@@ -32,6 +32,8 @@ class User extends Authenticatable
         'email',
         'password_hash',
         'role',
+        'status',
+        'last_seen_at',
         'avatar_url',
         'created_at',
         'updated_at',
@@ -51,8 +53,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
+            'created_at'   => 'datetime',
+            'updated_at'   => 'datetime',
+            'last_seen_at' => 'datetime',
         ];
     }
 
@@ -60,6 +63,14 @@ class User extends Authenticatable
     public function getAuthPassword(): string
     {
         return $this->password_hash;
+    }
+
+    public const STATUSES = ['Active', 'Inactive', 'Suspended'];
+
+    /** A suspended account cannot sign in. */
+    public function isSuspended(): bool
+    {
+        return $this->status === 'Suspended';
     }
 
     public function isAdmin(): bool

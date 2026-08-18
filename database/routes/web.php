@@ -75,9 +75,6 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/',          [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/users',     [AdminUserController::class, 'index'])->name('users');
-    Route::get('/users/export',      [AdminUserController::class, 'export'])->name('users.export');
-    Route::patch('/users/{user}',    [AdminUserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}',   [AdminUserController::class, 'destroy'])->name('users.destroy');
 
     Route::get('/destinations',                  [AdminChurchController::class, 'index'])->name('destinations');
     Route::post('/destinations',                 [AdminChurchController::class, 'store'])->name('destinations.store');
@@ -87,7 +84,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/schedules',              [AdminScheduleController::class, 'index'])->name('schedules');
     Route::post('/schedules',             [AdminScheduleController::class, 'store'])->name('schedules.store');
-    Route::get('/schedules/export',       [AdminScheduleController::class, 'export'])->name('schedules.export');
     Route::delete('/schedules/{schedule}',[AdminScheduleController::class, 'destroy'])->name('schedules.destroy');
 
     Route::get('/feedback',              [AdminFeedbackController::class, 'index'])->name('feedback');

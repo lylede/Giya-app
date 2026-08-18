@@ -248,6 +248,14 @@
                                     <i class="bi bi-{{ $church->is_active ? 'eye-slash' : 'eye' }}"></i>
                                 </button>
                             </form>
+
+                            <form method="POST" action="{{ route('admin.destinations.destroy', $church) }}"
+                                  data-confirm-delete="{{ $church->name }}">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="icon-btn is-danger" title="Delete permanently">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>
@@ -260,7 +268,7 @@
     </table>
 </div>
 
-<div style="margin-top:14px"><x-pagination :paginator="$churches->withQueryString()" /></div>
+<div style="margin-top:14px">{{ $churches->withQueryString()->links() }}</div>
 
 @endsection
 
@@ -336,6 +344,20 @@
     document.getElementById('btnChooseMap').addEventListener('click', function () {
         document.getElementById('adminPickMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
         picker.map.invalidateSize();
+    });
+
+    /* ---- delete confirmation ---- */
+    document.querySelectorAll('[data-confirm-delete]').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            const name = form.dataset.confirmDelete;
+            const ok = window.confirm(
+                'Delete "' + name + '" permanently?\n\n' +
+                'This also removes its photos, and any visit records, reviews, ' +
+                'saved favourites and itinerary stops that reference it.\n\n' +
+                'This cannot be undone. Use the eye icon to hide it instead.'
+            );
+            if (!ok) e.preventDefault();
+        });
     });
 
     /* ---- image drop zone ---- */

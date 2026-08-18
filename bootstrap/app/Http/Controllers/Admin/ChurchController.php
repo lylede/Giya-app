@@ -8,7 +8,9 @@ use App\Models\ChurchCategory;
 use App\Models\ChurchImage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ChurchController extends Controller
@@ -139,41 +141,35 @@ class ChurchController extends Controller
         return back()->with('success', $church->name.($church->is_active ? ' published.' : ' moved to draft.'));
     }
 
-    /** Swap the primary image, deleting the file the old row pointed at. */
+    /**
+     * Swap the primary image.
+     *
+     * Files land in public/images/churches so they sit beside the seeded
+     * artwork, need no storage:link, and can be committed to the repository —
+     * which means photos travel with a clone to another machine.
+     */
     protected function replacePhoto(Church $church, $file, ?string $caption): void
     {
         foreach ($church->images()->where('is_primary', true)->get() as $old) {
-            if (! str_starts_with($old->image_url, 'http')) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $old->image_url));
-            }
+            $this->deleteImageFile($old->image_url);
             $old->delete();
         }
 
+        $dir = public_path('images/churches');
+        File::ensureDirectoryExists($dir);
+
+        // church-name-1712345678.jpg — readable, and unique per upload.
+        $name = Str::slug($church->name).'-'.now()->timestamp.'.'.$file->getClientOriginalExtension();
+        $file->move($dir, $name);
+
         ChurchImage::create([
             'church_id'   => $church->id,
-            'image_url'   => 'storage/'.$file->store('churches', 'public'),
+            'image_url'   => 'images/churches/'.$name,
             'caption'     => $caption ?: $church->name,
             'is_primary'  => true,
             'uploaded_at' => now(),
             'created_at'  => now(),
         ]);
-    }
-        /** Remove a destination and everything attached to it. */
-    public function destroy(Church $church): RedirectResponse
-    {
-        $name = $church->name;
-
-        foreach ($church->images as $image) {
-            $this->deleteImageFile($image->image_url);
-        }
-
-        // church_images, itinerary_stops, visit_history, feedback and
-        // favorites all cascade in the schema.
-        $church->delete();
-
-        return redirect()
-            ->route('admin.destinations')
-            ->with('success', $name.' deleted.');
     }
 
     /**
@@ -189,14 +185,32 @@ class ChurchController extends Controller
         }
 
         if (str_starts_with($url, 'storage/')) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete(str_replace('storage/', '', $url));
+            Storage::disk('public')->delete(str_replace('storage/', '', $url));
             return;
         }
 
         $path = public_path($url);
 
-        if (file_exists($path)) {
-            unlink($path);
+        if (File::exists($path)) {
+            File::delete($path);
         }
+    }
+
+    /** Remove a destination and everything attached to it. */
+    public function destroy(Church $church): RedirectResponse
+    {
+        $name = $church->name;
+
+        foreach ($church->images as $image) {
+            $this->deleteImageFile($image->image_url);
+        }
+
+        // church_images, itinerary_stops, visit_history, feedback and
+        // favorites all cascade in the schema.
+        $church->delete();
+
+        return redirect()
+            ->route('admin.destinations')
+            ->with('success', $name.' deleted.');
     }
 }

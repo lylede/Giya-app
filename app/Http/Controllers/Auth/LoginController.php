@@ -32,6 +32,19 @@ class LoginController extends Controller
                 ->withErrors(['email' => 'Incorrect email or password.']);
         }
 
+        // A suspended account keeps its data but cannot sign in.
+        if (Auth::user()->isSuspended()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => 'This account has been suspended. Contact the administrator.']);
+        }
+
+        Auth::user()->forceFill(['last_seen_at' => now()])->saveQuietly();
+
         $request->session()->regenerate();
 
         return Auth::user()->isAdmin()
