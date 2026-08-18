@@ -3,6 +3,7 @@
 @section('no-footer', true)
 
 @push('head')
+<link rel="stylesheet" href="{{ asset('assets/css/leaflet.css') }}?v={{ filemtime(public_path('assets/css/leaflet.css')) }}">
 <style>
     body { overflow: hidden; }
     .active-layout { height: calc(100vh - 64px); }
@@ -65,7 +66,9 @@
                 <i class="bi bi-check-lg"></i> Mark Current Visited
             </button>
             <form method="POST" action="{{ route('plan.destroy', $itinerary) }}"
-                  onsubmit="return confirm('End and delete this pilgrimage? This cannot be undone.')">
+                  data-confirm-title="End this pilgrimage?"
+                  data-confirm="Your progress and this itinerary are deleted. Visits you already recorded stay in your history."
+                  data-confirm-ok="End pilgrimage">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-w-full">End Pilgrimage</button>
             </form>
@@ -74,17 +77,24 @@
 
     <div class="map-wrap">
         @php
-            $points = $stops->map(fn ($s) => [
-                'id'    => $s->id,
-                'name'  => $s->church_name,
-                'lat'   => $s->church?->latitude,
-                'lng'   => $s->church?->longitude,
-                'color' => $s->is_visited ? '#6B9B5A' : ($s->church?->color() ?? '#8E3B2F'),
-                'label' => $s->stop_order,
-            ]);
+            $points = $stops
+                ->filter(fn ($s) => $s->church && $s->church->latitude && $s->church->longitude)
+                ->map(fn ($s) => [
+                    'id'       => $s->id,
+                    'name'     => $s->church_name,
+                    'lat'      => (float) $s->church->latitude,
+                    'lng'      => (float) $s->church->longitude,
+                    'image'    => $s->church->imagePath(),
+                    'color'    => $s->is_visited ? '#6B9B5A' : $s->church->color(),
+                    'location' => $s->church->location,
+                    'order'    => $s->stop_order,
+                    'visited'  => (bool) $s->is_visited,
+                ])->values();
         @endphp
 
-        <x-offline-map :points="$points" :route="true" />
+        <div class="giya-map-canvas" id="activeMap" style="height:100%;border-radius:0;border:0"></div>
+
+        <div class="ap-summary" id="routeSummary"></div>
 
         <div class="ap-toolbar">
             <button type="button" class="btn btn-gold btn-sm" onclick="GiyaActive.markCurrent()">
@@ -96,19 +106,19 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/leaflet.js') }}?v={{ filemtime(public_path('assets/js/leaflet.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-leaflet.js') }}?v={{ filemtime(public_path('assets/js/giya-leaflet.js')) }}"></script>
 <script>
 /**
  * Active pilgrimage controller.
  *
- * Progress is persisted through the local Laravel API. The route map is
- * server-rendered SVG, so the whole screen works without a network.
+ * Progress is persisted through the local Laravel API. The map is Leaflet,
+ * so it shows real streets and the route follows roads when a routing key is
+ * configured.
  */
 const GiyaActive = (function () {
-    const stops = @json($stops->map(fn ($s) => [
-        'id' => $s->id, 'name' => $s->church_name, 'order' => $s->stop_order,
-        'visited' => (bool) $s->is_visited,
-        'location' => $s->church?->location ?? 'Cebu',
-    ])->values());
+    const points = {!! $points->toJson() !!};
+    const stops  = {!! $stops->map(fn ($s) => ['id' => $s->id, 'name' => $s->church_name, 'order' => $s->stop_order, 'visited' => (bool) $s->is_visited, 'location' => $s->church?->location ?? 'Cebu'])->values()->toJson() !!};
 
     const csrf    = document.querySelector('meta[name="csrf-token"]').content;
     const markUrl = @js(route('plan.stop.visited'));
@@ -120,16 +130,24 @@ const GiyaActive = (function () {
         return stops.find(s => !visited.has(s.id)) || null;
     }
 
+    // Leaflet map for the route. Pins carry their stop number and recolour
+    // as stops are marked visited.
+    const liveMap = GiyaLeaflet.pilgrimage({
+        element: 'activeMap',
+        stops: points,
+        currentId: (stops.find(s => !s.visited) || {}).id,
+        onRoads: function (d) {
+            const el = document.getElementById('routeSummary');
+            if (el) {
+                el.textContent = d.distance_km + ' km along roads'
+                    + (d.duration_min ? ' \u00b7 about ' + d.duration_min + ' min by car' : '');
+            }
+        }
+    });
+
     function paintPins() {
         const cur = current();
-        document.querySelectorAll('.om-pin').forEach(function (pin) {
-            const id    = Number(pin.dataset.pointId);
-            const shape = pin.querySelector('path');
-            if (!shape) return;
-            if (visited.has(id))            shape.setAttribute('fill', '#6B9B5A');
-            else if (cur && cur.id === id)  shape.setAttribute('fill', '#D7A94A');
-            else                            shape.setAttribute('fill', '#8E3B2F');
-        });
+        liveMap.refresh(Array.from(visited), cur ? cur.id : null);
     }
 
     function render() {
@@ -206,14 +224,24 @@ const GiyaActive = (function () {
             render();
             if (data.all_done) {
                 setTimeout(function () {
-                    if (confirm('Pilgrimage complete. View your saved itineraries?')) {
-                        window.location = doneUrl;
-                    }
+                    GiyaConfirm.ask({
+                        title: 'Pilgrimage complete',
+                        message: 'You have visited every stop on this route. View your saved itineraries?',
+                        ok: 'View itineraries',
+                        cancel: 'Stay here',
+                        tone: 'primary'
+                    }).then(function (go) { if (go) window.location = doneUrl; });
                 }, 350);
             }
         })
         .catch(function () {
-            alert('Could not save that stop. Make sure the local server is running and try again.');
+            GiyaConfirm.ask({
+                title: 'Could not save that stop',
+                message: 'The change was not recorded. Check that the local server is running, then try again.',
+                ok: 'Got it',
+                cancel: 'Dismiss',
+                tone: 'primary'
+            });
         });
     }
 

@@ -90,6 +90,7 @@
     </div>
 </div>
 <script src="{{ asset('assets/js/giya.js') }}?v={{ filemtime(public_path('assets/js/giya.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
 @stack('scripts')
 </body>
 </html>

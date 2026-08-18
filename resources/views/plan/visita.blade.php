@@ -141,10 +141,8 @@
 @push('scripts')
 <script>
 const GiyaVisita = (function () {
-    const all = @json($churches->map(fn ($c) => [
-        'id' => $c->id, 'name' => $c->name, 'location' => $c->location, 'color' => $c->color(),
-    ])->values());
-
+        const all = {!! $churches->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 
+        'location' => $c->location, 'color' => $c->color()])->values()->toJson() !!};
     let list = all.slice(0, Math.min(7, all.length)).map(c => Object.assign({ visited: false }, c));
 
     function render() {
@@ -231,7 +229,7 @@ const GiyaVisita = (function () {
             document.getElementById('addPicker').classList.add('d-none');
         },
         submit: function () {
-            if (!list.length) { alert('Add at least one church to your route.'); return; }
+            if (!list.length) { GiyaConfirm.ask({ title: 'No churches selected', message: 'Add at least one church to your Visita Iglesia route before saving it.', ok: 'Got it', cancel: 'Close', tone: 'primary' }); return; }
             document.getElementById('stopsInputs').innerHTML = list
                 .map(c => '<input type="hidden" name="stops[]" value="' + c.name.replace(/"/g, '&quot;') + '">')
                 .join('');

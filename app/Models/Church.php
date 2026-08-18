@@ -208,6 +208,23 @@ class Church extends Model
              . date('g:i A', strtotime($this->closing_time));
     }
 
+    /** Is the destination open at this moment, by its posted hours? */
+    public function isOpenNow(): bool
+    {
+        if (! $this->opening_time || ! $this->closing_time) {
+            return false;
+        }
+
+        $now   = now()->format('H:i:s');
+        $open  = substr($this->opening_time, 0, 8);
+        $close = substr($this->closing_time, 0, 8);
+
+        // Handles a closing time past midnight.
+        return $close < $open
+            ? ($now >= $open || $now <= $close)
+            : ($now >= $open && $now <= $close);
+    }
+
     public function color(): string
     {
         return self::CATEGORY_COLORS[$this->category] ?? '#8E3B2F';

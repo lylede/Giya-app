@@ -33,6 +33,8 @@ class MapController extends Controller
                     'color'    => $c->color(),
                     'rating'   => (float) $c->rating,
                     'hours'    => $c->hours_label,
+                    'open'     => $c->isOpenNow(),
+                    'masses'   => $c->schedules()->where('event_type', 'Mass')->exists(),
                 ])
                 ->values()
                 ->all(),

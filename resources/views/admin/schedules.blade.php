@@ -110,7 +110,9 @@
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
                                 <form method="POST" action="{{ route('admin.schedules.destroy', $s) }}"
-                                      onsubmit="return confirm('Remove this schedule?')">
+                                      data-confirm-title="Remove this schedule?"
+                                      data-confirm="{{ $s->event_name }} at {{ $s->church->name ?? 'this destination' }} will no longer show for devotees."
+                                      data-confirm-ok="Remove">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="icon-btn is-danger" title="Delete">
                                         <i class="bi bi-trash3"></i>

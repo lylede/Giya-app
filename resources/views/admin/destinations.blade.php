@@ -250,7 +250,9 @@
                             </form>
 
                             <form method="POST" action="{{ route('admin.destinations.destroy', $church) }}"
-                                  data-confirm-delete="{{ $church->name }}">
+                                  data-confirm-title="Delete {{ $church->name }}?"
+                                  data-confirm="Its photos, and any visit records, reviews, saved favourites and itinerary stops that reference it are deleted too. Use the eye icon to hide it instead."
+                                  data-confirm-ok="Delete destination">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="icon-btn is-danger" title="Delete permanently">
                                     <i class="bi bi-trash3"></i>
@@ -344,20 +346,6 @@
     document.getElementById('btnChooseMap').addEventListener('click', function () {
         document.getElementById('adminPickMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
         picker.map.invalidateSize();
-    });
-
-    /* ---- delete confirmation ---- */
-    document.querySelectorAll('[data-confirm-delete]').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            const name = form.dataset.confirmDelete;
-            const ok = window.confirm(
-                'Delete "' + name + '" permanently?\n\n' +
-                'This also removes its photos, and any visit records, reviews, ' +
-                'saved favourites and itinerary stops that reference it.\n\n' +
-                'This cannot be undone. Use the eye icon to hide it instead.'
-            );
-            if (!ok) e.preventDefault();
-        });
     });
 
     /* ---- image drop zone ---- */

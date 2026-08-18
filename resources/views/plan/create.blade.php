@@ -253,7 +253,7 @@ const GiyaPlanner = (function () {
             btn.classList.add('active');
         },
         submit: function () {
-            if (!stops.length) { alert('Add at least one destination before starting.'); return; }
+            if (!stops.length) { GiyaConfirm.ask({ title: 'No destinations yet', message: 'Add at least one destination to this itinerary before starting it.', ok: 'Got it', cancel: 'Close', tone: 'primary' }); return; }
             document.getElementById('stopsInputs').innerHTML = stops
                 .map(s => '<input type="hidden" name="stops[]" value="' + s.name.replace(/"/g, '&quot;') + '">')
                 .join('');

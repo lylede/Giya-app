@@ -230,12 +230,27 @@ img { max-width: 100%; display: block; }
 }
 .btn-outline-gold:hover { background: rgba(215,169,74,0.16); }
 
+/*
+   .btn-ghost defaults to LIGHT surfaces — cards, panels, tables, which is
+   where it is used almost everywhere. On a dark background (the hero, the AI
+   panel) add .btn-ghost-inverse alongside it.
+
+   It used to default the other way, which made it invisible white-on-white on
+   every card in the app.
+*/
 .btn-ghost {
-  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85);
+  background: transparent; color: var(--text);
   padding: 12px 20px; border-radius: var(--radius-xl);
-  font-size: 0.875rem; border: 1px solid rgba(215,169,74,0.5);
+  font-size: 0.875rem; border: 1px solid var(--border);
 }
-.btn-ghost:hover { background: rgba(255,255,255,0.18); color: #fff; }
+.btn-ghost:hover { background: var(--bg-secondary); color: var(--text); border-color: var(--gold); }
+
+/* For dark backgrounds: <a class="btn btn-ghost btn-ghost-inverse"> */
+.btn-ghost-inverse {
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85);
+  border-color: rgba(215,169,74,0.5);
+}
+.btn-ghost-inverse:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
 .btn-danger {
   background: rgba(212,24,61,0.08); color: #D4183D;
@@ -1320,3 +1335,459 @@ html[data-theme="dark"] .sm-table tbody tr:hover { background: var(--surface-2);
 .badge-suspended { background: rgba(179,24,47,.12); color: #B3182F; }
 
 html[data-theme="dark"] .um-stat-icon { filter: brightness(.85); }
+
+/* ── Fullscreen map ──────────────────────────────────────────── */
+.map-grid.is-fullscreen {
+  position: fixed; inset: 0; z-index: 1500;
+  background: var(--bg); padding: 14px; margin: 0;
+  grid-template-columns: 320px 1fr; gap: 14px;
+}
+.map-grid.is-fullscreen .giya-map-shell { height: 100%; }
+.map-grid.is-fullscreen .giya-map-canvas {
+  height: 100%; border-radius: var(--radius-md);
+}
+.map-grid.is-fullscreen .map-sidebar {
+  max-height: 100%; overflow-y: auto;
+}
+
+/* A floating hint so the exit route is obvious. */
+.map-grid.is-fullscreen::after {
+  content: "Press Esc to exit";
+  position: absolute; right: 22px; bottom: 22px;
+  background: rgba(36,28,24,.82); color: #fff;
+  font-size: 0.6875rem; padding: 5px 11px; border-radius: 999px;
+  pointer-events: none; z-index: 1600;
+}
+
+@media (max-width: 900px) {
+  .map-grid.is-fullscreen { grid-template-columns: 1fr; }
+  .map-grid.is-fullscreen .map-sidebar { display: none; }
+}
+
+/* ── Floating map controls (top-right, over the canvas) ──────── */
+.giya-map-shell { position: relative; }
+
+.map-tools {
+  position: absolute; top: 12px; right: 12px;
+  z-index: 600;                 /* above tiles, below the navbar at 1000 */
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.map-tool {
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; color: var(--primary);
+  border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(36,28,24,.22);
+  cursor: pointer; font-size: 1rem;
+  transition: background .15s, color .15s, transform .12s;
+}
+.map-tool:hover { background: var(--primary); color: #fff; }
+.map-tool:active { transform: scale(.94); }
+.map-tool:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.map-tool.is-busy { opacity: .6; pointer-events: none; }
+
+html[data-theme="dark"] .map-tool { background: var(--surface); color: var(--gold); border-color: var(--border); }
+html[data-theme="dark"] .map-tool:hover { background: var(--primary); color: #fff; }
+
+/* Leaflet's own zoom buttons sit top-left, so the two never collide. */
+
+/* ── Route mode notice ───────────────────────────────────────── */
+.route-mode {
+  font-size: 0.6875rem; margin: 2px 0 8px;
+  color: var(--text-muted); line-height: 1.5;
+}
+.route-mode.is-road   { color: #166534; font-weight: 700; }
+.route-mode.is-direct { color: #92610C; }
+
+/* ── Numbered pilgrimage pins ────────────────────────────────── */
+.giya-numpin { position: relative; width: 34px; height: 44px; }
+.giya-numpin-body {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 3px solid #fff; color: #fff;
+  font-weight: 800; font-size: 0.8125rem;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
+}
+.giya-numpin-tail {
+  position: absolute; left: 50%; bottom: 0;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 11px solid #8E3B2F;
+}
+.giya-numpin.is-current { animation: giya-pulse 1.6s ease-in-out infinite; }
+@keyframes giya-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
+}
+
+.ap-summary {
+  position: absolute; left: 16px; bottom: 16px; z-index: 600;
+  background: rgba(255,255,255,.94); color: var(--text);
+  font-size: 0.75rem; font-weight: 600;
+  padding: 7px 13px; border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(36,28,24,.2);
+}
+html[data-theme="dark"] .ap-summary { background: rgba(46,36,30,.94); color: var(--text); }
+
+/* ════════════════════════════════════════════════════════════════
+   MAP PAGE — layout and rhythm
+   Spacing follows a 4px scale. Type sizes step 13 / 15 / 26px so the
+   hierarchy reads at a glance instead of everything competing.
+   ════════════════════════════════════════════════════════════════ */
+
+.mx-head { margin-bottom: 14px; }
+.mx-head h1 {
+  font-family: var(--font-display);
+  font-size: 1.625rem; line-height: 1.2;
+  margin: 4px 0 3px; color: var(--text);
+}
+.mx-head p {
+  font-size: 0.8125rem; color: var(--text-muted);
+  margin: 0; max-width: 62ch;
+}
+
+/* ── Tile notice: informational, so it should not shout ───────── */
+.map-note {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 0.75rem; line-height: 1.55;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 9px 12px; margin-bottom: 14px;
+}
+.map-note.is-error {
+  color: #B3182F; background: rgba(179,24,47,.06);
+  border-color: rgba(179,24,47,.18); border-left-color: #B3182F;
+}
+.map-note-close {
+  margin-left: auto; flex-shrink: 0;
+  background: none; border: 0; cursor: pointer;
+  color: inherit; opacity: .5; font-size: 1.0625rem;
+  line-height: 1; padding: 0 2px;
+}
+.map-note-close:hover { opacity: 1; }
+
+/* ── Sidebar: one scrolling region, fixed controls ────────────── */
+.map-sidebar {
+  display: flex; flex-direction: column;
+  padding: 0; height: 640px; overflow: hidden;
+}
+
+.mx-controls {
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+.mx-search { margin-bottom: 10px; }
+
+/* Chips scroll sideways instead of wrapping to three rows. */
+.mx-chips {
+  display: flex; gap: 6px;
+  overflow-x: auto; padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.mx-chips::-webkit-scrollbar { display: none; }
+.cat-chip { flex: 0 0 auto; }
+
+/* ── Route panel ─────────────────────────────────────────────── */
+.mx-route {
+  padding: 14px; flex-shrink: 0;
+  background: var(--gold-bg);
+  border-bottom: 1px solid var(--border-light);
+}
+.mx-route-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; margin-bottom: 2px;
+}
+.mx-route-head h2 {
+  font-size: 0.6875rem; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-muted); margin: 0;
+}
+.mx-route-distance {
+  font-size: 0.8125rem; font-weight: 800; color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.mx-route-actions { display: flex; gap: 8px; margin-top: 10px; }
+.mx-route-actions > * { flex: 1; }
+.mx-route-note {
+  font-size: 0.625rem; line-height: 1.5;
+  color: var(--text-muted); margin: 8px 0 0;
+}
+
+/* ── Route stop rows ─────────────────────────────────────────── */
+.route-stop {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 9px; margin-bottom: 5px;
+  background: #fff; border: 1px solid var(--border-light);
+  border-radius: 9px; font-size: 0.8125rem;
+}
+.route-stop:last-of-type { margin-bottom: 0; }
+.route-stop .n {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.625rem; font-weight: 800;
+}
+.mx-stop-drop {
+  width: 22px; height: 22px; flex-shrink: 0;
+  background: none; border: 0; border-radius: 6px; cursor: pointer;
+  color: var(--text-muted); font-size: 1rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.mx-stop-drop:hover { background: rgba(179,24,47,.10); color: #B3182F; }
+
+/* ── Destination list ────────────────────────────────────────── */
+.mx-list-head {
+  padding: 12px 14px 6px; flex-shrink: 0;
+  font-size: 0.6875rem; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.mx-list {
+  flex: 1; min-height: 0;
+  overflow-y: auto; padding: 0 14px 14px;
+}
+.mx-list .history-item { margin-bottom: 6px; }
+
+/* ── Map canvas matches the sidebar height ───────────────────── */
+.giya-map-canvas { height: 640px; }
+
+.map-grid.is-fullscreen .map-sidebar { height: 100%; }
+
+@media (max-width: 900px) {
+  .map-sidebar { height: auto; max-height: 460px; }
+  .giya-map-canvas { height: 420px; }
+}
+
+html[data-theme="dark"] .mx-route { background: var(--surface-2); }
+html[data-theme="dark"] .route-stop { background: var(--surface); }
+
+.map-grid { display: grid; grid-template-columns: 340px 1fr; gap: 18px; }
+@media (max-width: 900px) { .map-grid { grid-template-columns: 1fr; } }
+
+/* ── Add-to-route button on destination rows ─────────────────── */
+.mx-add {
+  width: 30px; height: 30px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gold-bg); color: var(--primary);
+  border: 1px solid var(--border); border-radius: 9px;
+  cursor: pointer; font-size: 0.8125rem;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.mx-add:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+.mx-add:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.mx-add.is-added { background: #166534; color: #fff; border-color: #166534; }
+
+html[data-theme="dark"] .mx-add { background: var(--surface-2); color: var(--gold); }
+html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
+
+/* ════════════════════════════════════════════════════════════════
+   MAP SIDEBAR — explore, filter, select, plan
+   ════════════════════════════════════════════════════════════════ */
+
+.mx-title {
+  font-family: var(--font-display);
+  font-size: 1.0625rem; color: var(--text);
+  margin: 0 0 11px;
+}
+
+.mx-search-field {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 999px; padding: 0 15px; min-height: 42px;
+  margin-bottom: 11px;
+}
+.mx-search-field i { color: var(--text-muted); font-size: 0.8125rem; }
+.mx-search-field input {
+  flex: 1; min-width: 0; border: 0; outline: none;
+  background: transparent; font-size: 0.8125rem; color: var(--text);
+}
+.mx-search-field:focus-within { border-color: var(--gold); }
+
+/* Chips wrap onto two rows, as in the reference. */
+.mx-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-chip {
+  font-family: var(--font-body);
+  font-size: 0.75rem; font-weight: 600;
+  padding: 6px 13px; border-radius: 999px;
+  background: #fff; color: var(--text);
+  border: 1px solid var(--border);
+  cursor: pointer; white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.cat-chip:hover { border-color: var(--gold); }
+.cat-chip.is-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.cat-chip:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* ── Church rows ─────────────────────────────────────────────── */
+.mx-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px; margin-bottom: 8px;
+  background: #fff; border: 1px solid var(--border-light);
+  border-radius: 12px; cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
+}
+.mx-row:hover { border-color: var(--gold); box-shadow: 0 2px 10px rgba(36,28,24,.07); }
+.mx-row.is-picked { border-color: var(--primary); background: var(--gold-bg); }
+
+.mx-thumb {
+  position: relative; flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--gold-bg); overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary); font-size: 1.125rem;
+}
+.mx-thumb img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+.mx-row-body { flex: 1; min-width: 0; }
+.mx-row-body h3 {
+  font-size: 0.8125rem; font-weight: 700; color: var(--text);
+  margin: 0 0 3px; line-height: 1.3;
+}
+.mx-row-place {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.6875rem; color: var(--text-muted); margin: 0 0 5px;
+}
+.mx-row-place i { color: var(--primary); font-size: 0.625rem; flex-shrink: 0; }
+
+.mx-row-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; }
+.mx-star {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 0.625rem; font-weight: 700; color: var(--text-muted);
+}
+.mx-star i { color: var(--gold); font-size: 0.5625rem; }
+.mx-tag {
+  font-size: 0.5625rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+  background: var(--bg-secondary); color: var(--text-muted);
+}
+.mx-tag.is-open { background: #DCF2E3; color: #166534; }
+
+/* ── The select ring ─────────────────────────────────────────── */
+.mx-pick {
+  width: 26px; height: 26px; flex-shrink: 0;
+  border-radius: 50%; cursor: pointer;
+  background: transparent; color: transparent;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.mx-pick:hover { border-color: var(--primary); }
+.mx-pick.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.mx-pick:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.mx-empty {
+  text-align: center; padding: 30px 14px;
+  font-size: 0.8125rem; color: var(--text-muted);
+}
+
+/* ── Selection tray ──────────────────────────────────────────── */
+.mx-tray {
+  flex-shrink: 0; padding: 13px 14px 14px;
+  background: var(--gold-bg);
+  border-top: 1px solid var(--border);
+}
+.mx-tray-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px; margin-bottom: 8px;
+}
+.mx-tray-head span:first-child {
+  font-size: 0.75rem; font-weight: 700; color: var(--text);
+}
+.mx-tray-distance {
+  font-size: 0.75rem; font-weight: 800; color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.mx-tray-list {
+  list-style: none; margin: 0 0 6px; padding: 0;
+  max-height: 116px; overflow-y: auto;
+}
+.mx-tray-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 3px 0; font-size: 0.75rem; color: var(--text);
+}
+.mx-tray-n { color: var(--primary); font-weight: 700; flex-shrink: 0; }
+.mx-tray-name {
+  flex: 1; min-width: 0; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.mx-tray-actions { display: flex; gap: 8px; }
+.mx-plan { flex: 1; justify-content: center; }
+
+html[data-theme="dark"] .mx-row { background: var(--surface); }
+html[data-theme="dark"] .mx-row.is-picked { background: var(--surface-2); }
+html[data-theme="dark"] .cat-chip { background: var(--surface); }
+html[data-theme="dark"] .mx-search-field { background: var(--surface); }
+html[data-theme="dark"] .mx-tray { background: var(--surface-2); }
+
+/* ════════════════════════════════════════════════════════════════
+   CONFIRMATION DIALOG
+   Replaces the browser's native confirm(), which cannot be styled and
+   shows the host name to the user.
+   ════════════════════════════════════════════════════════════════ */
+
+.gc-backdrop {
+  position: fixed; inset: 0; z-index: 3000;
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgba(36,28,24,.55);
+  backdrop-filter: blur(2px);
+}
+.gc-backdrop.is-open { display: flex; animation: gc-fade .14s ease; }
+
+.gc-box {
+  width: 100%; max-width: 400px;
+  background: #fff; border-radius: var(--radius-2xl);
+  padding: 26px 24px 22px; text-align: center;
+  box-shadow: 0 24px 60px rgba(36,28,24,.32);
+  animation: gc-rise .18s cubic-bezier(.2,.8,.3,1);
+}
+
+.gc-icon {
+  width: 52px; height: 52px; margin: 0 auto 15px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 1.375rem;
+  background: var(--gold-bg); color: var(--primary);
+}
+.gc-icon.is-danger { background: rgba(179,24,47,.10); color: #B3182F; }
+
+.gc-title {
+  font-family: var(--font-display);
+  font-size: 1.0625rem; color: var(--text);
+  margin: 0 0 7px; line-height: 1.35;
+}
+.gc-message {
+  font-size: 0.8125rem; line-height: 1.6;
+  color: var(--text-muted); margin: 0 0 20px;
+}
+
+.gc-actions { display: flex; gap: 10px; }
+.gc-actions > button { flex: 1; justify-content: center; }
+
+.btn-danger-solid {
+  background: #B3182F; color: #fff;
+  border: 1px solid #B3182F;
+  padding: 12px 20px; border-radius: var(--radius-xl);
+  font-size: 0.875rem; font-weight: 700; cursor: pointer;
+}
+.btn-danger-solid:hover { background: #8E1226; color: #fff; }
+
+@keyframes gc-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gc-rise {
+  from { opacity: 0; transform: translateY(10px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+html[data-theme="dark"] .gc-box { background: var(--surface); }
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-backdrop.is-open, .gc-box { animation: none; }
+}

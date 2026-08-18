@@ -142,14 +142,20 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
-                               @php($payload = ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role, 'status' => $u->status, 'action' => route('admin.users.update', $u)])
                                 <button type="button" class="icon-btn" title="Edit"
-                                        data-user="{{ json_encode($payload) }}">
+                                        data-user='@json([
+                                            "id" => $u->id, "name" => $u->name, "email" => $u->email,
+                                            "role" => $u->role, "status" => $u->status,
+                                            "action" => route("admin.users.update", $u),
+                                        ])'>
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
+
                                 @if ($u->id !== auth()->id())
                                     <form method="POST" action="{{ route('admin.users.destroy', $u) }}"
-                                          onsubmit="return confirm('Delete {{ $u->name }}? Their itineraries, visit history, reviews and favourites go too. This cannot be undone.')">
+                                          data-confirm-title="Delete {{ $u->name }}?"
+                                          data-confirm="Their itineraries, visit history, reviews and saved favourites are deleted with the account. Suspend instead if you may want it back."
+                                          data-confirm-ok="Delete account">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="icon-btn is-danger" title="Delete">
                                             <i class="bi bi-trash3"></i>

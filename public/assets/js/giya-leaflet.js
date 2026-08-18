@@ -212,7 +212,11 @@ window.GiyaLeaflet = (function () {
                 .slice(0, 8);
         }
 
-        /* ---- route ---- */
+        /* ---- route ----
+           Two passes. The straight line appears immediately so the map never
+           looks frozen, then the road-following geometry replaces it when the
+           routing service answers. If that call fails for any reason — no key,
+           quota spent, no connection — the straight line simply stays. */
         function drawRoute() {
             if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
 
@@ -222,7 +226,7 @@ window.GiyaLeaflet = (function () {
             }).filter(Boolean);
 
             if (!stops.length) {
-                if (cfg.onRoute) cfg.onRoute([], 0);
+                if (cfg.onRoute) cfg.onRoute([], 0, { mode: 'none' });
                 return;
             }
 
@@ -232,20 +236,77 @@ window.GiyaLeaflet = (function () {
                 ordered.map(function (s) { return [s.lat, s.lng]; })
             );
 
-            routeLine = L.polyline(path, {
-                color: '#8E3B2F', weight: 4, opacity: .85, dashArray: '1 8', lineCap: 'round'
-            }).addTo(map);
+            paint(path, true);
 
-            L.polyline(path, { color: '#D7A94A', weight: 1.5, opacity: .9 }).addTo(routeLine);
-
-            var total = 0;
+            var direct = 0;
             for (var i = 1; i < path.length; i++) {
-                total += km({ lat: path[i - 1][0], lng: path[i - 1][1] },
-                            { lat: path[i][0],     lng: path[i][1] });
+                direct += km({ lat: path[i - 1][0], lng: path[i - 1][1] },
+                             { lat: path[i][0],     lng: path[i][1] });
             }
 
-            map.fitBounds(routeLine.getBounds().pad(0.2));
-            if (cfg.onRoute) cfg.onRoute(ordered, total);
+            if (cfg.onRoute) cfg.onRoute(ordered, direct, { mode: 'direct', pending: true });
+
+            fetchRoads(path, ordered, direct);
+        }
+
+        /** Draw the line. `dashed` marks it as an approximation. */
+        function paint(path, dashed) {
+            if (routeLine) { map.removeLayer(routeLine); }
+
+            routeLine = L.layerGroup().addTo(map);
+
+            L.polyline(path, {
+                color: '#8E3B2F', weight: dashed ? 4 : 6, opacity: .85,
+                dashArray: dashed ? '1 8' : null, lineCap: 'round', lineJoin: 'round'
+            }).addTo(routeLine);
+
+            L.polyline(path, {
+                color: '#D7A94A', weight: dashed ? 1.5 : 2, opacity: .9
+            }).addTo(routeLine);
+
+            map.fitBounds(L.polyline(path).getBounds().pad(0.2));
+        }
+
+        /** Ask the server for road geometry; stay silent on failure. */
+        function fetchRoads(path, ordered, directKm) {
+            var token = document.querySelector('meta[name="csrf-token"]');
+            if (!token || path.length < 2) { return; }
+
+            fetch('/api/route', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token.content
+                },
+                body: JSON.stringify({
+                    stops: path.map(function (p) { return { lat: p[0], lng: p[1] }; })
+                })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.ok || !data.geometry || !data.geometry.length) {
+                        if (cfg.onRoute) {
+                            cfg.onRoute(ordered, directKm, { mode: 'direct', reason: data.reason });
+                        }
+                        return;
+                    }
+
+                    paint(data.geometry, false);
+
+                    if (cfg.onRoute) {
+                        cfg.onRoute(ordered, data.distance_km, {
+                            mode: 'road',
+                            minutes: data.duration_min,
+                            steps: data.steps || [],
+                            cached: !!data.cached
+                        });
+                    }
+                })
+                .catch(function () {
+                    if (cfg.onRoute) {
+                        cfg.onRoute(ordered, directKm, { mode: 'direct', reason: 'offline' });
+                    }
+                });
         }
 
         function addStop(id) {
@@ -378,12 +439,137 @@ window.GiyaLeaflet = (function () {
         };
     }
 
+    /* =========================================================== PILGRIMAGE
+       A numbered, ordered route. Pins carry their stop number and recolour as
+       stops are marked visited. Same road-following logic as browse().
+       --------------------------------------------------------------------- */
+    function pilgrimage(cfg) {
+        var map = L.map(cfg.element, { center: [CEBU.lat, CEBU.lng], zoom: 12 });
+        tileLayer(cfg).addTo(map);
+
+        var pins = {};
+        var line = null;
+        var stops = (cfg.stops || []).filter(function (s) { return s.lat && s.lng; });
+
+        function numberedIcon(stop, state) {
+            var fill = state === 'visited' ? '#6B9B5A'
+                     : state === 'current' ? '#D7A94A' : '#8E3B2F';
+            var text = state === 'visited' ? '&#10003;' : stop.order;
+
+            return L.divIcon({
+                html: '<div class="giya-numpin' + (state === 'current' ? ' is-current' : '') + '">' +
+                        '<span class="giya-numpin-body" style="background:' + fill + '">' + text + '</span>' +
+                        '<span class="giya-numpin-tail" style="border-top-color:' + fill + '"></span>' +
+                      '</div>',
+                className: 'giya-pin-wrap',
+                iconSize: [34, 44],
+                iconAnchor: [17, 44],
+                popupAnchor: [0, -40]
+            });
+        }
+
+        function stateOf(stop, currentId) {
+            if (stop.visited) return 'visited';
+            return stop.id === currentId ? 'current' : 'pending';
+        }
+
+        function draw(currentId) {
+            stops.forEach(function (s) {
+                var state = stateOf(s, currentId);
+
+                if (pins[s.id]) {
+                    pins[s.id].setIcon(numberedIcon(s, state));
+                    return;
+                }
+
+                pins[s.id] = L.marker([s.lat, s.lng], {
+                    icon: numberedIcon(s, state),
+                    zIndexOffset: state === 'current' ? 800 : 0
+                })
+                    .bindPopup('<div class="giya-popup">' +
+                        (s.image ? '<img src="' + s.image + '" alt="">' : '') +
+                        '<strong>' + escapeHtml(s.name) + '</strong>' +
+                        '<span>Stop ' + s.order + ' &middot; ' + escapeHtml(s.location || '') + '</span>' +
+                        '</div>')
+                    .addTo(map);
+            });
+        }
+
+        function route() {
+            var path = stops.map(function (s) { return [s.lat, s.lng]; });
+            if (path.length < 2) {
+                if (path.length === 1) map.setView(path[0], 15);
+                return;
+            }
+
+            paint(path, true);
+            askRoads(path);
+        }
+
+        function paint(path, dashed) {
+            if (line) map.removeLayer(line);
+
+            line = L.layerGroup().addTo(map);
+
+            L.polyline(path, {
+                color: '#8E3B2F', weight: dashed ? 3 : 6, opacity: .8,
+                dashArray: dashed ? '2 9' : null, lineCap: 'round', lineJoin: 'round'
+            }).addTo(line);
+
+            if (!dashed) {
+                L.polyline(path, { color: '#D7A94A', weight: 2, opacity: .9 }).addTo(line);
+            }
+
+            map.fitBounds(L.polyline(path).getBounds().pad(0.18));
+        }
+
+        function askRoads(path) {
+            var token = document.querySelector('meta[name="csrf-token"]');
+            if (!token) return;
+
+            fetch('/api/route', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.content },
+                body: JSON.stringify({
+                    stops: path.map(function (p) { return { lat: p[0], lng: p[1] }; })
+                })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.ok && d.geometry && d.geometry.length) {
+                        paint(d.geometry, false);
+                        if (cfg.onRoads) cfg.onRoads(d);
+                    }
+                })
+                .catch(function () { /* keep the dashed line */ });
+        }
+
+        draw(cfg.currentId);
+        route();
+
+        setTimeout(function () { map.invalidateSize(); }, 200);
+        window.addEventListener('resize', function () { map.invalidateSize(); });
+
+        return {
+            map: map,
+            refresh: function (visitedIds, currentId) {
+                stops.forEach(function (s) { s.visited = visitedIds.indexOf(s.id) !== -1; });
+                draw(currentId);
+            },
+            focus: function (id) {
+                var m = pins[id];
+                if (m) { map.setView(m.getLatLng(), 16); m.openPopup(); }
+            }
+        };
+    }
+
     /* Popup buttons call through this; the page assigns the live instance. */
     var current = null;
 
     return {
         browse: function (cfg) { current = browse(cfg); return current; },
         picker: picker,
+        pilgrimage: pilgrimage,
         addStop: function (id) { if (current) current.addStop(id); },
         churchIcon: churchIcon,
         km: km
