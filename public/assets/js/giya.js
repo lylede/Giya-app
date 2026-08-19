@@ -86,6 +86,21 @@
 
     document.addEventListener('DOMContentLoaded', initMobileNav);
 
+    /* ── Temporary flash messages ──────────────────────────── */
+    function initAutoDismissAlerts() {
+        document.querySelectorAll('[data-auto-dismiss]').forEach(function (alert) {
+            const delay = Number(alert.dataset.autoDismiss) || 2500;
+
+            window.setTimeout(function () {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 180ms ease';
+                window.setTimeout(function () { alert.remove(); }, 180);
+            }, delay);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initAutoDismissAlerts);
+
     /* ── Profile: tabs, favorites, avatar ──────────────────── */
     const Profile = {
         show(id, btn) {

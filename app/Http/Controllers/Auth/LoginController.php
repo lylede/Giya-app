@@ -48,8 +48,14 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         return Auth::user()->isAdmin()
-            ? redirect()->intended(route('admin.dashboard'))
-            : redirect()->intended(route('home'));
+            ? redirect()->intended(route('admin.dashboard'))->with(
+                'success',
+                'Welcome back, '.Auth::user()->firstName().'!'
+            )
+            : redirect()->route('home')->with(
+                'success',
+                'Welcome back, '.Auth::user()->firstName().'!'
+            );
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -58,6 +64,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', 'You have been signed out.');
+        return redirect()->route('root')->with('success', 'You have been signed out.');
     }
 }

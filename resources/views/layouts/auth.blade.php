@@ -12,6 +12,9 @@
 </head>
 <body class="auth-page">
 
+<x-navbar />
+
+<main class="auth-content">
 <div class="auth-card">
     <header class="auth-header">
         <div class="auth-header-brand">
@@ -40,6 +43,7 @@
         @yield('content')
     </div>
 </div>
+</main>
 <script src="{{ asset('assets/js/giya.js') }}?v={{ filemtime(public_path('assets/js/giya.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
 </body>
