@@ -48,8 +48,14 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         return Auth::user()->isAdmin()
-            ? redirect()->intended(route('admin.dashboard'))
-            : redirect()->route('home');
+            ? redirect()->intended(route('admin.dashboard'))->with(
+                'success',
+                'Welcome back, '.Auth::user()->firstName().'!'
+            )
+            : redirect()->route('home')->with(
+                'success',
+                'Welcome back, '.Auth::user()->firstName().'!'
+            );
     }
 
     public function destroy(Request $request): RedirectResponse
