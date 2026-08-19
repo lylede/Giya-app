@@ -490,9 +490,12 @@ img { max-width: 100%; display: block; }
 
 /* ── AUTH LAYOUT ────────────────────────────────────────────── */
 .auth-page {
-  min-height: 100vh; display: flex;
-  align-items: center; justify-content: center;
-  padding: 20px; background: var(--bg);
+  min-height: 100vh; background: var(--bg);
+}
+.auth-content {
+  min-height: calc(100vh - 64px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
 }
 .auth-card {
   width: 100%; max-width: 420px; background: #fff;
@@ -757,8 +760,8 @@ img { max-width: 100%; display: block; }
   .footer-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
-  .auth-card { border-radius: 0; min-height: 100vh; }
-  .auth-page { padding: 0; align-items: flex-start; }
+  .auth-card { border-radius: 0; min-height: calc(100vh - 64px); }
+  .auth-content { min-height: calc(100vh - 64px); padding: 0; align-items: flex-start; }
 }
 
 /* ── LEAFLET TOOLTIP ────────────────────────────────────────── */
