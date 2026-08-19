@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Route;
 | below. No route points at an external service.
 */
 
-Route::redirect('/', '/login')->name('root');
+Route::get('/', [HomeController::class, 'landing'])->name('root');
 
 /* ---------------------------------------------------------------- Guest */
 Route::middleware('guest')->group(function () {
@@ -46,7 +46,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/home',    [HomeController::class, 'index'])->name('home');
-    Route::get('/map',     [MapController::class, 'index'])->name('map');
     Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot');
 
     /* Profile */
@@ -70,6 +69,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{itinerary}',  'destroy')->name('destroy');
     });
 });
+
+Route::get('/map', [MapController::class, 'index'])->name('map');
 
 /* --------------------------------------------------------------- Admin */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
