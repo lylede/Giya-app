@@ -36,15 +36,15 @@
                 <a href="{{ route('map') }}" class="btn btn-gold">
                     <i class="bi bi-map-fill"></i> Explore the Map
                 </a>
-                <a href="{{ route('plan.hub') }}" class="btn btn-ghost">
-                    <i class="bi bi-journal-text"></i> Plan a Pilgrimage
+                <a href="{{ auth()->check() ? route('plan.hub') : route('login') }}" class="btn btn-ghost">
+                    <i class="bi bi-journal-text"></i> {{ auth()->check() ? 'Plan a Pilgrimage' : 'Sign in to plan' }}
                 </a>
             </div>
 
             <div class="d-flex flex-wrap gap-4 pt-4" style="border-top:1px solid rgba(215,169,74,0.2)">
                 @foreach ([
                     [$stats['churches'] . '+', 'Churches & Shrines'],
-                    [number_format(auth()->user()->total_churches_visited), 'Your Visits'],
+                    [auth()->check() ? number_format(auth()->user()->total_churches_visited) : $stats['churches'], auth()->check() ? 'Your Visits' : 'Places to Discover'],
                     [$stats['cities'], 'Cities Covered'],
                 ] as [$value, $label])
                     <div style="min-width:110px">
@@ -90,9 +90,9 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px">
             @foreach ([
                 ['map-fill',       'Find Nearby Churches', 'Discover religious destinations close to your current location.', 'map'],
-                ['journal-text',   'Plan Pilgrimage',      'Create a custom itinerary tailored to your time and devotion.',   'plan.create'],
-                ['building',       'Visita Iglesia Route', 'Plan the traditional multi-church route with progress tracking.', 'plan.visita'],
-                ['chat-dots-fill', 'Ask Giya AI',          'Get answers about churches, schedules, and pilgrimage routes.',   'chatbot'],
+                ['journal-text',   'Plan Pilgrimage',      'Create a custom itinerary tailored to your time and devotion.',   auth()->check() ? 'plan.create' : 'login'],
+                ['building',       'Visita Iglesia Route', 'Plan the traditional multi-church route with progress tracking.', auth()->check() ? 'plan.visita' : 'login'],
+                ['chat-dots-fill', 'Ask Giya AI',          'Get answers about churches, schedules, and pilgrimage routes.',   auth()->check() ? 'chatbot' : 'login'],
             ] as [$icon, $title, $desc, $route])
                 <a href="{{ route($route) }}" class="card card-hover"
                    style="padding:20px;display:flex;flex-direction:column;gap:12px;text-decoration:none">
@@ -104,7 +104,7 @@
                         <span style="display:block;font-size: 0.75rem;color:var(--text-muted);margin-top:4px;line-height:1.6">{{ $desc }}</span>
                     </span>
                     <span style="margin-top:auto;font-size: 0.75rem;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:4px">
-                        Get started <i class="bi bi-chevron-right" style="font-size: 0.6875rem"></i>
+                        {{ $route === 'login' ? 'Sign in to continue' : 'Get started' }} <i class="bi bi-chevron-right" style="font-size: 0.6875rem"></i>
                     </span>
                 </a>
             @endforeach
@@ -180,8 +180,8 @@
                 </div>
 
                 <div class="d-flex flex-column gap-2 mt-auto pt-4" style="position:relative">
-                    <a href="{{ route('plan.create') }}" class="btn btn-gold btn-w-full">Plan My Pilgrimage</a>
-                    <a href="{{ route('chatbot') }}" class="btn btn-ghost btn-w-full">Ask Giya AI</a>
+                    <a href="{{ auth()->check() ? route('plan.create') : route('login') }}" class="btn btn-gold btn-w-full">{{ auth()->check() ? 'Plan My Pilgrimage' : 'Sign in to plan' }}</a>
+                    <a href="{{ auth()->check() ? route('chatbot') : route('login') }}" class="btn btn-ghost btn-w-full">{{ auth()->check() ? 'Ask Giya AI' : 'Create an account' }}</a>
                 </div>
             </div>
 
