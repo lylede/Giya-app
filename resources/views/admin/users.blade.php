@@ -143,11 +143,14 @@
                         <td>
                             <div class="d-flex gap-1">
                                 <button type="button" class="icon-btn" title="Edit"
-                                        data-user='@json([
-                                            "id" => $u->id, "name" => $u->name, "email" => $u->email,
-                                            "role" => $u->role, "status" => $u->status,
-                                            "action" => route("admin.users.update", $u),
-                                        ])'>
+                                        data-user="{{ json_encode([
+                                        'id' => $u->id,
+                                        'name' => $u->name,
+                                        'email' => $u->email,
+                                        'role' => $u->role,
+                                        'status' => $u->status,
+                                        'action' => route('admin.users.update', $u),
+                                    ]) }}">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
 
