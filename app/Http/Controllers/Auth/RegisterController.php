@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Auth\RegisterAction;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -30,17 +28,7 @@ class RegisterController extends Controller
             'password.confirmed' => 'Passwords do not match.',
         ]);
 
-        $user = User::create([
-            'name'          => $data['name'],
-            'email'         => $data['email'],
-            'password_hash' => Hash::make($data['password']),
-            'role'          => 'user',
-            'created_at'    => now(),
-            'updated_at'    => now(),
-        ]);
-
-        Auth::login($user);
-        $request->session()->regenerate();
+        $user = app(RegisterAction::class)->execute($data, $request);
 
         return redirect()->route('home')
             ->with('success', "Welcome to GIYA, {$user->firstName()}!");

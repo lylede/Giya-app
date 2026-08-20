@@ -48,3 +48,4 @@
         <button type="submit" class="btn btn-primary btn-w-full">Reset Password</button>
     </form>
 @endsection
+    <livewire:auth.reset-password :token="$token" :email="$email" />

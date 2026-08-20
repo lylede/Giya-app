@@ -9,6 +9,7 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/giya-icons.css') }}?v={{ filemtime(public_path('assets/css/giya-icons.css')) }}">
     <link rel="stylesheet" href="{{ asset('assets/css/giya.css') }}?v={{ filemtime(public_path('assets/css/giya.css')) }}">
+    @livewireStyles
 </head>
 <body class="auth-page">
 
@@ -46,5 +47,6 @@
 </main>
 <script src="{{ asset('assets/js/giya.js') }}?v={{ filemtime(public_path('assets/js/giya.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
+@livewireScripts
 </body>
 </html>
