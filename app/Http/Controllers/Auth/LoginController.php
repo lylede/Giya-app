@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Auth\LoginAction;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class LoginController extends Controller
@@ -26,35 +28,22 @@ class LoginController extends Controller
             'password.required' => 'Password is required.',
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        try {
+            $user = app(LoginAction::class)->execute($credentials, $request->boolean('remember'), $request);
+        } catch (ValidationException $exception) {
             return back()
                 ->withInput($request->only('email'))
-                ->withErrors(['email' => 'Incorrect email or password.']);
+                ->withErrors($exception->errors());
         }
 
-        // A suspended account keeps its data but cannot sign in.
-        if (Auth::user()->isSuspended()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return back()
-                ->withInput($request->only('email'))
-                ->withErrors(['email' => 'This account has been suspended. Contact the administrator.']);
-        }
-
-        Auth::user()->forceFill(['last_seen_at' => now()])->saveQuietly();
-
-        $request->session()->regenerate();
-
-        return Auth::user()->isAdmin()
+        return $user->isAdmin()
             ? redirect()->intended(route('admin.dashboard'))->with(
                 'success',
-                'Welcome back, '.Auth::user()->firstName().'!'
+                'Welcome back, '.$user->firstName().'!'
             )
             : redirect()->route('home')->with(
                 'success',
-                'Welcome back, '.Auth::user()->firstName().'!'
+                'Welcome back, '.$user->firstName().'!'
             );
     }
 
