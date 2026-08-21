@@ -28,7 +28,7 @@
                     {{ ($user->member_since ?? $user->created_at)?->format('F Y') }}
                 </p>
             </div>
-            <button type="button" class="btn btn-ghost" data-modal-open="editProfileModal">
+            <button type="button" class="btn btn-ghost btn-ghost-inverse" data-modal-open="editProfileModal">
                 <i class="bi bi-pencil-square"></i> Edit Profile
             </button>
         </div>
