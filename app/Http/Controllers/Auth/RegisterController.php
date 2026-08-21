@@ -30,7 +30,7 @@ class RegisterController extends Controller
 
         $user = app(RegisterAction::class)->execute($data, $request);
 
-        return redirect()->route('home')
-            ->with('success', "Welcome to GIYA, {$user->firstName()}!");
+        return redirect()->route('login')
+            ->with('success', "Account created. Sign in to begin, {$user->firstName()}.");
     }
 }
