@@ -36,7 +36,7 @@
                 <a href="{{ route('map') }}" class="btn btn-gold">
                     <i class="bi bi-map-fill"></i> Explore the Map
                 </a>
-                <a href="{{ auth()->check() ? route('plan.hub') : route('login') }}" class="btn btn-ghost">
+                <a href="{{ auth()->check() ? route('plan.hub') : route('login') }}" class="btn btn-ghost btn-ghost-inverse">
                     <i class="bi bi-journal-text"></i> {{ auth()->check() ? 'Plan a Pilgrimage' : 'Sign in to plan' }}
                 </a>
             </div>
