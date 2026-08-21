@@ -1156,6 +1156,14 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
   font-size: 0.6875rem; font-weight: 700; cursor: pointer;
 }
 .giya-popup button:hover { background: var(--primary-dark); }
+.giya-popup-details {
+  display: block; margin-top: 9px; text-align: center;
+  color: var(--primary); font-size: 0.6875rem; font-weight: 700;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.giya-popup-details:hover { color: var(--primary-dark); }
+.giya-popup-details:focus-visible,
+.giya-popup button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 .leaflet-container { font-family: var(--font-body); background: #E8DFD1; }
 .leaflet-popup-content-wrap { border-radius: 14px; }
