@@ -37,3 +37,6 @@ new class extends Component
     </form>
     <p class="auth-footer"><a href="{{ route('login') }}" wire:navigate style="color:var(--text-muted);font-weight:400">Back to sign in</a></p>
 </div>
+
+
+

@@ -49,3 +49,5 @@
     </form>
 @endsection
     <livewire:auth.reset-password :token="$token" :email="$email" />
+
+    
