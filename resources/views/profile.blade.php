@@ -219,7 +219,7 @@
                         @endif
                     </div>
                 </div>
-                <a href="{{ route('map') }}?church={{ $favorite->church_id }}" class="btn btn-ghost btn-sm">View Details</a>
+                <a href="{{ route('churches.show', $favorite->church_id) }}" class="btn btn-ghost btn-sm">View Details</a>
                 <button type="button" class="btn btn-ghost btn-sm" style="color:#D4183D"
                         onclick="GiyaProfile.unfavorite({{ $favorite->church_id }})"
                         aria-label="Remove from favorites">

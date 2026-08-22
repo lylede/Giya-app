@@ -24,6 +24,7 @@ class MapController extends Controller
                 ->filter(fn (Church $c) => $c->latitude && $c->longitude)
                 ->map(fn (Church $c) => [
                     'id'       => $c->id,
+                    'details'  => route('churches.show', $c),
                     'name'     => $c->name,
                     'location' => $c->location,
                     'category' => $c->category,
@@ -39,5 +40,19 @@ class MapController extends Controller
                 ->values()
                 ->all(),
         ]);
+    }
+
+    public function show(Church $church): View
+    {
+        abort_unless($church->is_active, 404);
+
+        $church->load([
+            'churchCategory',
+            'images',
+            'schedules' => fn ($query) => $query
+                ->orderBy('start_time'),
+        ]);
+
+        return view('churches.show', compact('church'));
     }
 }
