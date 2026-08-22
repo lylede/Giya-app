@@ -49,6 +49,11 @@ class MapController extends Controller
         $church->load([
             'churchCategory',
             'images',
+            'feedback' => fn ($query) => $query
+                ->approved()
+                ->with('user')
+                ->latest('created_at')
+                ->latest('id'),
             'schedules' => fn ($query) => $query
                 ->orderBy('start_time'),
         ]);

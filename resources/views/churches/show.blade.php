@@ -193,8 +193,70 @@
     </div>
 
     <section id="church-reviews" role="tabpanel" aria-labelledby="church-reviews-tab" data-church-panel hidden style="margin-bottom:40px">
-        <x-empty-state icon="chat-square-text" title="Reviews coming soon"
-                       desc="Reviews for this church will appear here when available." />
+        @php
+            $approvedFeedback = $church->feedback;
+            $ratedFeedback = $approvedFeedback->filter(fn ($feedback) => !is_null($feedback->rating));
+            $averageRating = $ratedFeedback->avg('rating');
+            $reviewCount = $approvedFeedback->count();
+        @endphp
+
+        <h2 class="section-title" style="margin-bottom:16px">Reviews</h2>
+
+        @if ($reviewCount)
+            <div class="church-reviews-layout">
+                <div class="church-review-summary card">
+                    <div class="church-review-average">
+                        <strong>{{ $averageRating ? number_format($averageRating, 1) : '—' }}</strong>
+                        @if ($averageRating)
+                            <x-stars :rating="round($averageRating)" :size="16" />
+                        @endif
+                        <span>{{ number_format($reviewCount) }} {{ $reviewCount === 1 ? 'review' : 'reviews' }}</span>
+                    </div>
+
+                    <div class="church-rating-breakdown" aria-label="Rating breakdown">
+                        @for ($rating = 5; $rating >= 1; $rating--)
+                            @php
+                                $ratingCount = $ratedFeedback->where('rating', $rating)->count();
+                                $ratingPercent = $ratedFeedback->count()
+                                    ? ($ratingCount / $ratedFeedback->count()) * 100
+                                    : 0;
+                            @endphp
+                            <div class="church-rating-row">
+                                <span>{{ $rating }}</span>
+                                <div class="church-rating-track" aria-hidden="true">
+                                    <span style="width:{{ $ratingPercent }}%"></span>
+                                </div>
+                            </div>
+                        @endfor
+                    </div>
+                </div>
+
+                <div class="church-review-list">
+                    @foreach ($approvedFeedback as $feedback)
+                        <article class="church-review-card">
+                            <div class="church-review-card-header">
+                                <div>
+                                    <div class="church-review-author">{{ $feedback->user->name ?? 'Anonymous pilgrim' }}</div>
+                                    @if (!is_null($feedback->rating))
+                                        <x-stars :rating="$feedback->rating" :size="12" />
+                                    @endif
+                                </div>
+                                <time datetime="{{ $feedback->created_at?->toDateString() }}">
+                                    {{ $feedback->created_at?->format('F j, Y') ?? 'Date unavailable' }}
+                                </time>
+                            </div>
+
+                            @if ($feedback->comment)
+                                <p>{{ $feedback->comment }}</p>
+                            @endif
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        @else
+            <x-empty-state icon="chat-square-text" title="No reviews yet"
+                           desc="Approved reviews for this church will appear here." />
+        @endif
     </section>
 
     <section id="church-guidelines" role="tabpanel" aria-labelledby="church-guidelines-tab" data-church-panel hidden style="margin-bottom:40px">
@@ -245,6 +307,124 @@
 
     .church-tab.is-active {
         border-bottom-color:var(--primary);
+    }
+
+    .church-reviews-layout {
+        display:grid;
+        grid-template-columns:minmax(0, 1.55fr) minmax(280px, 1fr);
+        gap:16px;
+        align-items:start;
+    }
+
+    .church-review-summary {
+        display:grid;
+        grid-template-columns:minmax(120px, 0.8fr) minmax(200px, 1.2fr);
+        align-items:center;
+        gap:24px;
+        padding:20px 24px;
+        border:1px solid var(--border-light);
+        box-shadow:var(--shadow-sm);
+    }
+
+    .church-review-average {
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:5px;
+        text-align:center;
+    }
+
+    .church-review-average strong {
+        color:var(--primary);
+        font-family:var(--font-display);
+        font-size:clamp(2.5rem, 5vw, 3.25rem);
+        line-height:1;
+    }
+
+    .church-review-average span {
+        color:var(--text-muted);
+        font-size:0.75rem;
+    }
+
+    .church-rating-breakdown {
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+    }
+
+    .church-rating-row {
+        display:grid;
+        grid-template-columns:12px 1fr;
+        align-items:center;
+        gap:8px;
+        color:var(--text-muted);
+        font-size:0.75rem;
+    }
+
+    .church-rating-track {
+        height:10px;
+        overflow:hidden;
+        border-radius:999px;
+        background:var(--gold-bg);
+    }
+
+    .church-rating-track span {
+        display:block;
+        height:100%;
+        border-radius:inherit;
+        background:var(--gold);
+    }
+
+    .church-review-list {
+        display:flex;
+        flex-direction:column;
+        gap:12px;
+    }
+
+    .church-review-card {
+        padding:16px;
+        border:1px solid var(--border-light);
+        border-radius:8px;
+        background:var(--surface, #fff);
+        box-shadow:var(--shadow-sm);
+    }
+
+    .church-review-card-header {
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:12px;
+    }
+
+    .church-review-author {
+        color:var(--text);
+        font-size:0.8125rem;
+        font-weight:700;
+        margin-bottom:3px;
+    }
+
+    .church-review-card time {
+        color:var(--text-muted);
+        font-size:0.6875rem;
+        white-space:nowrap;
+    }
+
+    .church-review-card p {
+        color:var(--text);
+        font-size:0.75rem;
+        line-height:1.6;
+        margin:12px 0 0;
+    }
+
+    @media (max-width: 700px) {
+        .church-reviews-layout,
+        .church-review-summary {
+            grid-template-columns:1fr;
+        }
+
+        .church-review-summary {
+            gap:20px;
+        }
     }
 </style>
 @endpush
