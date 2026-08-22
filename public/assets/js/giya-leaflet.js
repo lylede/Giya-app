@@ -159,6 +159,7 @@ window.GiyaLeaflet = (function () {
                 '<strong>' + escapeHtml(c.name) + '</strong>' +
                 '<span>' + escapeHtml(c.category || '') + ' &middot; ' + escapeHtml(c.location || '') + '</span>' +
                 (c.hours ? '<span>' + escapeHtml(c.hours) + '</span>' : '') +
+                '<a class="giya-popup-details" href="' + escapeHtml(c.details || '#') + '">See details</a>' +
                 '<button type="button" onclick="GiyaLeaflet.addStop(' + c.id + ')">Add to route</button>' +
                 '</div>';
         }

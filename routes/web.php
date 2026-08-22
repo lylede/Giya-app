@@ -71,6 +71,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/map', [MapController::class, 'index'])->name('map');
+Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
 
 /* --------------------------------------------------------------- Admin */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {

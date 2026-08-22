@@ -117,6 +117,10 @@
         },
         onLocated: function (me, nearest) {
             distances = {};
+    const initialChurchId = Number(new URLSearchParams(window.location.search).get('church'));
+    if (initialChurchId) {
+        setTimeout(function () { map.focus(initialChurchId); }, 0);
+    }
             nearest.forEach(function (n) { distances[n.church.id] = n.km; });
             renderList();
             showNote('Showing your location. The nearest destinations are listed first.', 'info');
