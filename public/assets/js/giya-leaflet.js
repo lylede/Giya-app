@@ -159,11 +159,11 @@ window.GiyaLeaflet = (function () {
                 '<strong>' + escapeHtml(c.name) + '</strong>' +
                 '<span>' + escapeHtml(c.category || '') + ' &middot; ' + escapeHtml(c.location || '') + '</span>' +
                 (c.hours ? '<span>' + escapeHtml(c.hours) + '</span>' : '') +
-                '<a class="giya-popup-details" href="' + escapeHtml(c.details || '#') + '">See details</a>' +
                 (c.details
-                    ? '<a class="giya-popup-link" href="' + c.details + '">View details</a>'
+                    ? '<a class="giya-popup-btn is-secondary" href="' + escapeHtml(c.details) + '">See details</a>'
                     : '') +
-                '<button type="button" onclick="GiyaLeaflet.addStop(' + c.id + ')">Add to route</button>' +
+                '<button type="button" class="giya-popup-btn"' +
+                        ' onclick="GiyaLeaflet.addStop(' + c.id + ')">Add to route</button>' +
                 '</div>';
         }
 
