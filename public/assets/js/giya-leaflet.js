@@ -551,8 +551,58 @@ window.GiyaLeaflet = (function () {
         setTimeout(function () { map.invalidateSize(); }, 200);
         window.addEventListener('resize', function () { map.invalidateSize(); });
 
+        /* Show where the devotee is, and how far the next stop is. */
+        var meMarker = null, meRing = null;
+
+        function locate(done) {
+            if (!navigator.geolocation) {
+                if (cfg.onStatus) cfg.onStatus('This browser cannot share a location.', 'error');
+                if (done) done();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    var here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+                    if (meMarker) map.removeLayer(meMarker);
+                    if (meRing) map.removeLayer(meRing);
+
+                    meRing = L.circle([here.lat, here.lng], {
+                        radius: pos.coords.accuracy,
+                        color: '#2563EB', weight: 1,
+                        fillColor: '#2563EB', fillOpacity: .08
+                    }).addTo(map);
+
+                    meMarker = L.marker([here.lat, here.lng], {
+                        icon: userIcon(), zIndexOffset: 900
+                    }).bindPopup('You are here').addTo(map);
+
+                    map.setView([here.lat, here.lng], 15);
+
+                    // Distance to the first stop still to be visited.
+                    var next = stops.filter(function (st) { return !st.visited; })[0];
+                    if (next && cfg.onLocated) {
+                        cfg.onLocated(here, next, km(here, { lat: next.lat, lng: next.lng }));
+                    }
+                    if (done) done();
+                },
+                function (err) {
+                    if (cfg.onStatus) {
+                        cfg.onStatus(err.code === 1
+                            ? 'Location permission was denied.'
+                            : 'Could not get a location fix.', 'error');
+                    }
+                    if (done) done();
+                },
+                { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+            );
+        }
+
         return {
             map: map,
+            locate: locate,
+            frameAll: function () { route(); },
             refresh: function (visitedIds, currentId) {
                 stops.forEach(function (s) { s.visited = visitedIds.indexOf(s.id) !== -1; });
                 draw(currentId);
