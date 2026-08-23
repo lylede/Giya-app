@@ -302,8 +302,19 @@ img { max-width: 100%; display: block; }
 .field { margin-bottom: 16px; }
 
 /* ── ALERTS ─────────────────────────────────────────────────── */
+/*
+   The flash sat at z-index 1200, above the navbar at 1000, and a fixed
+   top: 76px did not clear the bar on every screen. Where the two overlapped
+   the alert swallowed taps meant for the hamburger.
+
+   Now it sits BELOW the navbar in the stack, so the bar always wins, and it is
+   offset by the navbar's real height rather than a guess.
+*/
 .flash-container {
-  position: fixed; top: 76px; right: 20px; z-index: 1200;
+  position: fixed;
+  top: calc(var(--nav-height, 64px) + 12px);
+  right: 20px;
+  z-index: 900;                     /* under .giya-nav at 1000 */
   width: min(420px, calc(100vw - 40px));
   pointer-events: none;
 }
@@ -1992,14 +2003,7 @@ input[type="date"][readonly] { background-color: var(--bg-input); opacity: 1; }
    which reads as "nothing happened" on the first press. */
 input[type="date"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 .gdp, .gdp-day, .gdp-nav, .gdp-link { touch-action: manipulation; }
-input[type="date"] {
-  position: relative;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%238E3B2F'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V2.5h5.5v-.75a.75.75 0 0 1 1.5 0V2.5h.5A1.75 1.75 0 0 1 14.5 4.25v8.5A1.75 1.75 0 0 1 12.75 14.5h-9.5A1.75 1.75 0 0 1 1.5 12.75v-8.5A1.75 1.75 0 0 1 3.25 2.5h.5v-.75A.75.75 0 0 1 4.5 1ZM3 6.5v6.25c0 .14.11.25.25.25h9.5a.25.25 0 0 0 .25-.25V6.5Z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 15px;
-  padding-right: 38px;
-}
+
 
 .gdp {
   position: absolute; z-index: 2500;
@@ -2078,9 +2082,7 @@ input[type="date"] {
 .gdp-link.is-primary { color: var(--primary); }
 
 html[data-theme="dark"] .gdp { background: var(--surface); }
-html[data-theme="dark"] input[type="date"] {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23D7A94A'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V2.5h5.5v-.75a.75.75 0 0 1 1.5 0V2.5h.5A1.75 1.75 0 0 1 14.5 4.25v8.5A1.75 1.75 0 0 1 12.75 14.5h-9.5A1.75 1.75 0 0 1 1.5 12.75v-8.5A1.75 1.75 0 0 1 3.25 2.5h.5v-.75A.75.75 0 0 1 4.5 1ZM3 6.5v6.25c0 .14.11.25.25.25h9.5a.25.25 0 0 0 .25-.25V6.5Z'/%3E%3C/svg%3E");
-}
+
 
 @media (prefers-reduced-motion: reduce) { .gdp.is-open { animation: none; } }
 
@@ -2192,4 +2194,55 @@ html[data-theme="dark"] input[type="date"] {
 .mx-pick.is-on:hover {
   background: var(--primary-dark);
   border-color: var(--primary-dark);
+}
+
+/* ── Date field icon ─────────────────────────────────────────────
+   Declared last, and with every background longhand spelled out.
+
+   An earlier rule sets `background: var(--bg-input)` as a shorthand, which
+   silently resets background-repeat to `repeat`. A later rule that sets only
+   background-image then inherits that reset — and the calendar glyph tiles
+   across the field. That is what iOS was showing.
+   ---------------------------------------------------------------- */
+input[type="date"],
+input[type="datetime-local"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%238E3B2F'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V2.5h5.5v-.75a.75.75 0 0 1 1.5 0V2.5h.5A1.75 1.75 0 0 1 14.5 4.25v8.5A1.75 1.75 0 0 1 12.75 14.5h-9.5A1.75 1.75 0 0 1 1.5 12.75v-8.5A1.75 1.75 0 0 1 3.25 2.5h.5v-.75A.75.75 0 0 1 4.5 1ZM3 6.5v6.25c0 .14.11.25.25.25h9.5a.25.25 0 0 0 .25-.25V6.5Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 15px 15px;
+  background-attachment: scroll;
+  background-origin: padding-box;
+  background-clip: border-box;
+  padding-right: 38px;
+  /* iOS shrinks a date field to its content and centres the text. */
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+}
+
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="datetime-local"] {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23D7A94A'%3E%3Cpath d='M4.5 1a.75.75 0 0 1 .75.75V2.5h5.5v-.75a.75.75 0 0 1 1.5 0V2.5h.5A1.75 1.75 0 0 1 14.5 4.25v8.5A1.75 1.75 0 0 1 12.75 14.5h-9.5A1.75 1.75 0 0 1 1.5 12.75v-8.5A1.75 1.75 0 0 1 3.25 2.5h.5v-.75A.75.75 0 0 1 4.5 1ZM3 6.5v6.25c0 .14.11.25.25.25h9.5a.25.25 0 0 0 .25-.25V6.5Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 15px 15px;
+}
+
+/* Safari leaves a readonly empty date field blank, with no hint at all. */
+input[type="date"]:not([value]):empty::before { content: none; }
+input[type="date"][readonly] { cursor: pointer; }
+
+/* The navbar publishes its height so overlays can sit clear of it.
+   Declared on :root — a property set on .giya-nav is invisible to siblings.
+   giya.js overwrites this with the measured value on load and on resize. */
+:root { --nav-height: 64px; }
+
+@media (max-width: 768px) {
+  .flash-container {
+    right: 12px; left: 12px;
+    width: auto;
+    top: calc(var(--nav-height, 56px) + 10px);
+  }
 }
