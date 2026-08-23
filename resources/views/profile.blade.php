@@ -2,7 +2,7 @@
 @section('title', 'Profile')
 
 @section('content')
-
+@php $activeTab = request('tab', 'overview'); @endphp
 {{-- ───────────────────────── Profile header ─────────────────────────── --}}
 <header class="profile-header-card">
     <span style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:rgba(215,169,74,0.1)"></span>
@@ -53,7 +53,7 @@
 <div style="background:#fff;border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:100">
     <div style="max-width:900px;margin:0 auto;display:flex;padding:0 20px;overflow-x:auto">
         @foreach ([['overview','Overview'],['visits','Visit History'],['itineraries','Itineraries'],['favorites','Favorites'],['preferences','Preferences']] as $i => [$id, $label])
-            <button type="button" @class(['profile-tab', 'is-active' => $i === 0])
+            <button type="button" @class(['profile-tab', 'is-active' => $id === $activeTab])
                     data-tab="{{ $id }}" onclick="GiyaProfile.show('{{ $id }}', this)">{{ $label }}</button>
         @endforeach
     </div>
@@ -62,7 +62,7 @@
 <div style="max-width:900px;margin:0 auto;padding:24px 20px 48px">
 
     {{-- ── Overview ── --}}
-    <section class="profile-panel" id="panel-overview">
+    <section class="profile-panel @if($activeTab !== 'overview') d-none @endif" id="panel-overview">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" class="profile-grid">
 
             <div class="card card-body">
@@ -130,7 +130,7 @@
     </section>
 
     {{-- ── Visit history ── --}}
-    <section class="profile-panel d-none" id="panel-visits">
+    <section class="profile-panel @if($activeTab !== 'visits') d-none @endif" id="panel-visits">
         <h2 class="section-title" style="font-size: 1.25rem">Visit History</h2>
 
         @forelse ($visits as $visit)
@@ -163,7 +163,7 @@
     </section>
 
     {{-- ── Itineraries ── --}}
-    <section class="profile-panel d-none" id="panel-itineraries">
+    <section class="profile-panel @if($activeTab !== 'itineraries') d-none @endif" id="panel-itineraries">
         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
             <h2 class="section-title" style="font-size: 1.25rem;margin:0">My Itineraries</h2>
             <a href="{{ route('plan.create') }}" class="btn btn-primary btn-sm">
@@ -199,7 +199,7 @@
 
     {{-- ── Settings ── --}}
     {{-- ── Favorites ── --}}
-    <section class="profile-panel d-none" id="panel-favorites">
+    <section class="profile-panel @if($activeTab !== 'favorites') d-none @endif" id="panel-favorites">
         <h2 class="section-title" style="font-size: 1.25rem">Favorites</h2>
 
         @forelse ($favorites as $favorite)
@@ -235,7 +235,7 @@
     </section>
 
     {{-- ── Preferences ── --}}
-    <section class="profile-panel d-none" id="panel-preferences">
+    <section class="profile-panel @if($activeTab !== 'preferences') d-none @endif" id="panel-preferences">
         <h2 class="section-title" style="font-size: 1.25rem">Preferences</h2>
 
         <form method="POST" action="{{ route('profile.preferences') }}">

@@ -127,7 +127,7 @@ class ProfileController extends Controller
             'updated_at'               => now(),
         ]);
 
-        return redirect()->route('profile')->with('success', 'Preferences saved.');
+        return redirect()->route('profile', ['tab' => 'preferences'])->with('success', 'Preferences saved.');
     }
 
     public function toggleFavorite(Request $request): JsonResponse
