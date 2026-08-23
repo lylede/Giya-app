@@ -58,21 +58,28 @@
 </section>
 
 {{-- ────────────────────────── Search / filters ──────────────────────── --}}
-<div style="background:#fff;border-bottom:1px solid var(--border-light)">
-    <form action="{{ route('map') }}" method="GET"
-          style="max-width:1280px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:240px;position:relative">
-            <img src="{{ asset('images/icons/search.svg') }}" alt="" width="16" height="16"
-                 style="position:absolute;left:16px;top:50%;transform:translateY(-50%)">
-            <input type="search" name="q" class="giya-input" style="padding-left:44px"
-                   placeholder="Search churches, shrines, basilicas in Metro Cebu…">
+<div class="home-searchbar">
+    <form action="{{ route('map') }}" method="GET" class="hs-form">
+
+        {{-- Field and button stay on one row at every width. --}}
+        <div class="hs-row">
+            <div class="hs-field">
+                <img src="{{ asset('images/icons/search.svg') }}" alt="" width="16" height="16">
+                <input type="search" name="q" class="giya-input"
+                       placeholder="Search churches, shrines, basilicas…"
+                       aria-label="Search churches">
+            </div>
+            <button type="submit" class="btn btn-primary hs-submit">
+                <span class="hs-submit-text">Search</span>
+                <i class="bi bi-search hs-submit-icon" aria-hidden="true"></i>
+            </button>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
+
+        <div class="hs-chips">
             @foreach (['Basilica', 'Shrine', 'Cathedral', 'Church'] as $cat)
-                <a href="{{ route('map', ['category' => $cat]) }}" class="btn btn-outline btn-sm">{{ $cat }}</a>
+                <a href="{{ route('map', ['category' => $cat]) }}" class="hs-chip">{{ $cat }}</a>
             @endforeach
         </div>
-        <button type="submit" class="btn btn-primary btn-sm" style="padding:12px 22px">Search</button>
     </form>
 </div>
 
@@ -87,7 +94,7 @@
             </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px">
+        <div class="home-grid home-grid-sm">
             @foreach ([
                 ['map-fill',       'Find Nearby Churches', 'Discover religious destinations close to your current location.', 'map'],
                 ['journal-text',   'Plan Pilgrimage',      'Create a custom itinerary tailored to your time and devotion.',   auth()->check() ? 'plan.create' : 'login'],
@@ -125,7 +132,7 @@
             <x-empty-state icon="building" title="No featured destinations yet"
                            desc="An administrator can feature destinations from the admin panel." />
         @else
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px">
+            <div class="home-grid">
                 @foreach ($featured as $church)
                     <x-church-card :church="$church" />
                 @endforeach
