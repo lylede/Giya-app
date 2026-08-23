@@ -134,7 +134,13 @@
             const note = document.getElementById('routeMode');
             document.getElementById('btnClearRoute').style.display = stops.length ? '' : 'none';
 
-            if (!stops.length) { routeBox.style.display = 'none'; return; }
+            // Redraw the list BEFORE returning, or the last tick stays filled
+            // even though nothing is selected any more.
+            if (!stops.length) {
+                routeBox.style.display = 'none';
+                renderList();
+                return;
+            }
 
             routeBox.style.display = 'block';
             document.getElementById('traySummary').textContent =
@@ -219,7 +225,11 @@
                     '<i class="bi bi-building"></i>' +
                 '</span>' +
                 '<div class="mx-row-body">' +
-                    '<h3>' + c.name + '</h3>' +
+                    '<h3>' +
+                        (c.details
+                            ? '<a href="' + c.details + '" data-details="' + c.details + '">' + c.name + '</a>'
+                            : c.name) +
+                    '</h3>' +
                     '<p class="mx-row-place">' +
                         '<i class="bi bi-geo-alt-fill"></i>' + c.location +
                         (distances[c.id] != null ? ' &middot; ' + distances[c.id].toFixed(1) + ' km' : '') +
@@ -298,12 +308,35 @@
     });
 
     document.addEventListener('click', function (e) {
-        const add = e.target.closest('[data-add]');
-        if (add) { e.stopPropagation(); map.addStop(Number(add.dataset.add)); return; }
+        // The tick toggles: a second press deselects, no Clear needed.
+        const pick = e.target.closest('[data-add]');
+        if (pick) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Flip the control immediately, so it responds even if the route
+            // callback takes a different path afterwards.
+            const on = !pick.classList.contains('is-on');
+            pick.classList.toggle('is-on', on);
+            pick.setAttribute('aria-checked', String(on));
+            pick.closest('.mx-row')?.classList.toggle('is-picked', on);
+
+            map.toggleStop(Number(pick.dataset.add));
+            return;
+        }
 
         const drop = e.target.closest('[data-drop]');
         if (drop) { map.removeStop(Number(drop.dataset.drop)); return; }
 
+        // The name opens the church's own page.
+        const link = e.target.closest('[data-details]');
+        if (link) {
+            e.stopPropagation();
+            window.location.href = link.dataset.details;
+            return;
+        }
+
+        // Anywhere else on the row centres the map on it.
         const row = e.target.closest('[data-church]');
         if (row) map.focus(Number(row.dataset.church));
     });

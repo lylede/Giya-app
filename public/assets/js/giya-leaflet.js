@@ -160,6 +160,9 @@ window.GiyaLeaflet = (function () {
                 '<span>' + escapeHtml(c.category || '') + ' &middot; ' + escapeHtml(c.location || '') + '</span>' +
                 (c.hours ? '<span>' + escapeHtml(c.hours) + '</span>' : '') +
                 '<a class="giya-popup-details" href="' + escapeHtml(c.details || '#') + '">See details</a>' +
+                (c.details
+                    ? '<a class="giya-popup-link" href="' + c.details + '">View details</a>'
+                    : '') +
                 '<button type="button" onclick="GiyaLeaflet.addStop(' + c.id + ')">Add to route</button>' +
                 '</div>';
         }
@@ -316,6 +319,17 @@ window.GiyaLeaflet = (function () {
             drawRoute();
         }
 
+        /** Add if absent, remove if present — what a tick control should do. */
+        function toggleStop(id) {
+            if (selected.indexOf(id) === -1) {
+                selected.push(id);
+            } else {
+                selected = selected.filter(function (x) { return x !== id; });
+            }
+            highlight();
+            drawRoute();
+        }
+
         function removeStop(id) {
             selected = selected.filter(function (x) { return x !== id; });
             highlight();
@@ -368,7 +382,8 @@ window.GiyaLeaflet = (function () {
 
         return {
             map: map, locate: locate, focus: focus, frameAll: frameAll,
-            addStop: addStop, removeStop: removeStop, clearRoute: clearRoute,
+            addStop: addStop, toggleStop: toggleStop,
+            removeStop: removeStop, clearRoute: clearRoute,
             externalDirections: externalDirections,
             selected: function () { return selected.slice(); },
             distanceTo: function (c) { return me ? km(me, c) : null; }
