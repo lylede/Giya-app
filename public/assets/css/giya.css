@@ -2395,3 +2395,111 @@ html[data-theme="dark"] .notif-item.is-unread .notif-icon { background: var(--su
 .mobile-menu { position: relative; z-index: 3; }
 
 /* Mobile menu styles live in components/navbar.blade.php, beside the markup. */
+
+/* ════════════════════════════════════════════════════════════════
+   HOME SEARCH BAR
+   The field and its button share a row at every width; the category
+   chips sit below and scroll sideways rather than wrapping.
+   ════════════════════════════════════════════════════════════════ */
+
+.home-searchbar {
+  background: #fff;
+  border-bottom: 1px solid var(--border-light);
+}
+.hs-form {
+  max-width: 1280px; margin: 0 auto;
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+
+/* Field + button, never separated. */
+.hs-row {
+  display: flex; align-items: stretch; gap: 10px;
+  flex: 1 1 320px; min-width: 0;
+}
+
+.hs-field { position: relative; flex: 1; min-width: 0; }
+.hs-field img {
+  position: absolute; left: 16px; top: 50%;
+  transform: translateY(-50%); pointer-events: none;
+}
+.hs-field .giya-input {
+  width: 100%; padding-left: 44px;
+  text-overflow: ellipsis;
+}
+
+.hs-submit {
+  flex: 0 0 auto; padding: 12px 22px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.hs-submit-icon { display: none; }
+
+/* Chips: one row, scrolled, never four lines deep. */
+.hs-chips {
+  display: flex; gap: 8px; flex: 0 1 auto;
+  overflow-x: auto; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.hs-chips::-webkit-scrollbar { display: none; }
+
+.hs-chip {
+  flex: 0 0 auto;
+  padding: 8px 16px; border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff; color: var(--primary);
+  font-size: 0.8125rem; font-weight: 600;
+  text-decoration: none; white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.hs-chip:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+@media (max-width: 900px) {
+  .hs-form { flex-direction: column; align-items: stretch; gap: 10px; }
+  .hs-row { flex: 1 1 auto; }
+  .hs-chips { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .hs-form { padding: 14px 16px; }
+  /* The button becomes an icon, so the field keeps the width it needs. */
+  .hs-submit { padding: 0; width: 46px; flex: 0 0 46px; }
+  .hs-submit-text { display: none; }
+  .hs-submit-icon { display: inline-block; font-size: 0.9375rem; }
+  .hs-chip { padding: 7px 14px; font-size: 0.75rem; }
+}
+
+html[data-theme="dark"] .home-searchbar { background: var(--surface); }
+html[data-theme="dark"] .hs-chip { background: var(--surface); }
+
+/* ── Home card grids ─────────────────────────────────────────────
+   auto-fit rather than auto-fill: with four cards and room for five,
+   auto-fill keeps an empty column and the row looks lopsided.
+   ---------------------------------------------------------------- */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+.home-grid-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+/* Two across on a tablet, one on a phone — chosen, not incidental. */
+@media (max-width: 900px) {
+  .home-grid, .home-grid-sm { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+}
+@media (max-width: 560px) {
+  .home-grid, .home-grid-sm { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* Section headers stack instead of squeezing their "View all" link. */
+@media (max-width: 560px) {
+  .section-header {
+    flex-direction: column; align-items: flex-start; gap: 8px;
+  }
+  .section-title { font-size: 1.25rem; }
+  .section-subtitle { font-size: 0.8125rem; }
+  .page-wrap { padding-left: 16px; padding-right: 16px; }
+}
