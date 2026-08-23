@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ChurchSeeder::class,
             ScheduleSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

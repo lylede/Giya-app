@@ -318,9 +318,19 @@ img { max-width: 100%; display: block; }
   width: min(420px, calc(100vw - 40px));
   pointer-events: none;
 }
+/* Nothing here is interactive, so nothing here should catch a tap. The alert
+   used to re-enable pointer events, which is how it blocked the hamburger. */
 .flash-container .alert {
-  pointer-events: auto;
+  pointer-events: none;
   box-shadow: var(--shadow-lg);
+}
+.flash-container {
+  transition: opacity .28s ease, transform .28s ease;
+}
+.flash-container.is-going {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
 }
 .alert {
   border-radius: var(--radius-md);
@@ -2246,3 +2256,142 @@ input[type="date"][readonly] { cursor: pointer; }
     top: calc(var(--nav-height, 56px) + 10px);
   }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   HERO STATS — equal columns, so labels line up whatever their length
+   ════════════════════════════════════════════════════════════════ */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 12px;
+  padding-top: 20px; margin-top: 4px;
+  border-top: 1px solid rgba(215,169,74,.2);
+}
+.hero-stat { min-width: 0; }
+.hero-stat-value {
+  display: block;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 1.5rem; line-height: 1; color: var(--gold);
+}
+.hero-stat-label {
+  display: block; margin-top: 5px;
+  font-size: 0.75rem; line-height: 1.35;
+  color: rgba(255,255,255,.62);
+}
+
+@media (max-width: 380px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   NOTIFICATION PANEL
+   ════════════════════════════════════════════════════════════════ */
+.nav-bell-wrap { position: relative; }
+
+.nav-bell {
+  position: relative;
+  background: rgba(255,255,255,.12); border: 0;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.nav-bell:hover { background: rgba(255,255,255,.2); }
+.nav-bell:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.nav-bell-dot {
+  position: absolute; top: -3px; right: -3px;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 999px;
+  background: var(--gold); color: var(--primary-dark);
+  font-size: 0.5625rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--primary);
+}
+.nav-bell-dot.is-hidden { display: none; }
+
+.notif-panel {
+  position: absolute; top: calc(100% + 12px); right: 0;
+  z-index: 1300;
+  width: min(340px, calc(100vw - 24px));
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 18px 46px rgba(36,28,24,.26);
+  display: none; overflow: hidden;
+}
+.notif-panel.is-open { display: block; animation: notif-in .14s ease; }
+@keyframes notif-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.notif-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--border-light);
+  font-size: 0.8125rem; font-weight: 700; color: var(--text);
+}
+.notif-readall {
+  background: none; border: 0; cursor: pointer;
+  font-size: 0.6875rem; font-weight: 700; color: var(--primary);
+}
+.notif-readall:hover { text-decoration: underline; }
+
+.notif-body { max-height: 340px; overflow-y: auto; }
+
+.notif-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 11px 14px; text-decoration: none;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text);
+}
+.notif-item:last-child { border-bottom: 0; }
+.notif-item:hover { background: var(--bg); }
+.notif-item.is-unread { background: var(--gold-bg); }
+.notif-item.is-unread .notif-title { font-weight: 700; }
+
+.notif-icon {
+  width: 30px; height: 30px; flex-shrink: 0; border-radius: 9px;
+  background: var(--gold-bg); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8125rem;
+}
+.notif-item.is-unread .notif-icon { background: #fff; }
+
+.notif-text { min-width: 0; }
+.notif-title { display: block; font-size: 0.8125rem; line-height: 1.35; color: var(--text); }
+.notif-msg   { display: block; font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px; line-height: 1.45; }
+.notif-when  { display: block; font-size: 0.625rem; color: var(--text-muted); margin-top: 3px; }
+
+.notif-empty {
+  padding: 26px 18px; text-align: center;
+  font-size: 0.75rem; line-height: 1.6; color: var(--text-muted); margin: 0;
+}
+
+@media (max-width: 600px) {
+  .notif-panel {
+    position: fixed;
+    top: calc(var(--nav-height, 56px) + 8px);
+    left: 12px; right: 12px;
+    width: auto;
+    max-height: calc(100vh - var(--nav-height, 56px) - 90px);
+    display: none;
+  }
+  .notif-panel.is-open { display: flex; flex-direction: column; }
+  .notif-body { max-height: none; flex: 1; }
+}
+
+html[data-theme="dark"] .notif-panel { background: var(--surface); }
+html[data-theme="dark"] .notif-item:hover { background: var(--surface-2); }
+html[data-theme="dark"] .notif-item.is-unread { background: var(--surface-2); }
+html[data-theme="dark"] .notif-item.is-unread .notif-icon { background: var(--surface); }
+
+@media (prefers-reduced-motion: reduce) { .notif-panel.is-open { animation: none; } }
+
+/* The hamburger must stay on top of anything the navbar contains. */
+.hamburger-btn { position: relative; z-index: 5; }
+.nav-bell-wrap { position: relative; z-index: 4; }
+
+/* The open menu sits above page content. */
+.mobile-menu { position: relative; z-index: 3; }
+
+/* Mobile menu styles live in components/navbar.blade.php, beside the markup. */
