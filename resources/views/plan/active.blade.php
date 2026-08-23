@@ -94,6 +94,21 @@
 
         <div class="giya-map-canvas" id="activeMap" style="height:100%;border-radius:0;border:0"></div>
 
+        <div class="map-tools">
+            <button type="button" class="map-tool" id="apLocate"
+                    title="Find my location" aria-label="Find my location">
+                <i class="bi bi-geo-alt-fill"></i>
+            </button>
+            <button type="button" class="map-tool" id="apFullscreen"
+                    title="Fullscreen" aria-label="Toggle fullscreen">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+            <button type="button" class="map-tool" id="apRecenter"
+                    title="Show whole route" aria-label="Show the whole route">
+                <i class="bi bi-map"></i>
+            </button>
+        </div>
+
         <div class="ap-summary" id="routeSummary"></div>
 
         <div class="ap-toolbar">
@@ -136,6 +151,16 @@ const GiyaActive = (function () {
         element: 'activeMap',
         stops: points,
         currentId: (stops.find(s => !s.visited) || {}).id,
+        onStatus: function (message, kind) {
+            const el = document.getElementById('routeSummary');
+            if (el && kind === 'error') { el.textContent = message; }
+        },
+        onLocated: function (here, next, distanceKm) {
+            const el = document.getElementById('routeSummary');
+            if (el) {
+                el.textContent = distanceKm.toFixed(1) + ' km to ' + next.name;
+            }
+        },
         onRoads: function (d) {
             const el = document.getElementById('routeSummary');
             if (el) {
@@ -143,6 +168,35 @@ const GiyaActive = (function () {
                     + (d.duration_min ? ' \u00b7 about ' + d.duration_min + ' min by car' : '');
             }
         }
+    });
+
+    /* ---- map controls ---- */
+    const apShell = document.querySelector('.active-layout');
+    const apLocate = document.getElementById('apLocate');
+    const apFull = document.getElementById('apFullscreen');
+
+    apLocate.addEventListener('click', function () {
+        apLocate.classList.add('is-busy');
+        liveMap.locate(function () { apLocate.classList.remove('is-busy'); });
+        setTimeout(function () { apLocate.classList.remove('is-busy'); }, 13000);
+    });
+
+    apFull.addEventListener('click', function () {
+        const on = apShell.classList.toggle('is-fullscreen');
+        apFull.innerHTML = on
+            ? '<i class="bi bi-fullscreen-exit"></i>'
+            : '<i class="bi bi-arrows-fullscreen"></i>';
+        apFull.title = on ? 'Exit fullscreen' : 'Fullscreen';
+        document.body.style.overflow = on ? 'hidden' : '';
+        setTimeout(function () { liveMap.map.invalidateSize(); }, 120);
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && apShell.classList.contains('is-fullscreen')) apFull.click();
+    });
+
+    document.getElementById('apRecenter').addEventListener('click', function () {
+        liveMap.frameAll();
     });
 
     function paintPins() {
