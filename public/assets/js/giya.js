@@ -84,6 +84,20 @@
         });
     }
 
+    /* ── Navbar height ─────────────────────────────────────
+       Overlays position themselves under the bar. Measuring it beats
+       hard-coding a number that is wrong on one device or another. */
+    function publishNavHeight() {
+        var nav = document.querySelector('.giya-nav');
+        if (!nav) return;
+        document.documentElement.style.setProperty(
+            '--nav-height', Math.round(nav.getBoundingClientRect().height) + 'px');
+    }
+
+    document.addEventListener('DOMContentLoaded', publishNavHeight);
+    window.addEventListener('resize', publishNavHeight);
+    window.addEventListener('orientationchange', publishNavHeight);
+
     document.addEventListener('DOMContentLoaded', initMobileNav);
 
     /* ── Temporary flash messages ──────────────────────────── */

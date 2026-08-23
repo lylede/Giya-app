@@ -202,6 +202,7 @@
     }
 
     function commit(value) {
+        if (input.type !== 'date') input.type = 'date';
         input.value = value;
         input.dispatchEvent(new Event('input', { bubbles: true }));
         input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -212,7 +213,7 @@
 
     function isDate(el) {
         return el && el.tagName === 'INPUT'
-            && el.type === 'date'
+            && (el.type === 'date' || el.dataset.gdpReady === '1')
             && !el.hasAttribute('data-native-picker')
             && !el.disabled;
     }
@@ -234,6 +235,28 @@
         el.setAttribute('inputmode', 'none');
         el.setAttribute('autocomplete', 'off');
         el.style.cursor = 'pointer';
+
+        /*
+           Safari renders a readonly <input type="date"> with no value as a
+           blank box — no placeholder, no mm/dd/yyyy hint. Swapping to a text
+           input while it is empty gives it a placeholder; it turns back into a
+           date input the moment there is a value to hold.
+        */
+        applyEmptyState(el);
+        el.addEventListener('change', function () { applyEmptyState(el); });
+    }
+
+    function applyEmptyState(el) {
+        if (el.value) {
+            if (el.type !== 'date') el.type = 'date';
+            return;
+        }
+
+        if (el.type === 'date') {
+            el.type = 'text';
+            el.value = '';
+        }
+        if (!el.placeholder) el.placeholder = 'Choose a date';
     }
 
     function prepareAll(root) {
@@ -268,7 +291,8 @@
        taking focus, which is what opens the operating system's own calendar.
     */
     function fieldFrom(target) {
-        var el = target && target.closest ? target.closest('input[type="date"]') : null;
+        if (!target || !target.closest) return null;
+        var el = target.closest('input[type="date"], input[data-gdp-ready]');
         return isDate(el) ? el : null;
     }
 
