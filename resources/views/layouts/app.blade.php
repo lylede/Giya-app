@@ -28,6 +28,14 @@
 @else
     <x-footer />
 @endif
+@unless (request()->routeIs('chatbot'))
+    <a href="{{ route('chatbot') }}" class="giya-fab" id="giyaFab"
+       aria-label="Ask Giya AI">
+        <span class="giya-fab-icon"><i class="bi bi-chat-dots-fill"></i></span>
+        <span class="giya-fab-label">Ask Giya</span>
+    </a>
+@endunless
+
 <script src="{{ asset('assets/js/giya.js') }}?v={{ filemtime(public_path('assets/js/giya.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
 @stack('scripts')

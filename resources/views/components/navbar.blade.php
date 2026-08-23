@@ -4,7 +4,6 @@
         ['url' => route(auth()->check() ? 'home' : 'root'), 'label' => 'Home',    'icon' => 'house-fill',     'match' => auth()->check() ? 'home' : 'root'],
         ['url' => route('map'),                            'label' => 'Map',     'icon' => 'map-fill',       'match' => 'map'],
         ['url' => route('plan.hub'),                       'label' => 'Plan',    'icon' => 'journal-text',   'match' => 'plan.*'],
-        ['url' => route('chatbot'),                        'label' => 'Chatbot', 'icon' => 'chat-dots-fill', 'match' => 'chatbot'],
         ['url' => route('profile'),                        'label' => 'Profile', 'icon' => 'person-fill',    'match' => 'profile'],
     ];
 @endphp

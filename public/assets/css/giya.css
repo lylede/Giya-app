@@ -679,7 +679,7 @@ img { max-width: 100%; display: block; }
 
 /* ── MAP PAGE ───────────────────────────────────────────────── */
 .map-layout { display: flex; overflow: hidden; }
-.map-sidebar {
+.map-layout .map-sidebar {
   width: 340px; flex-shrink: 0; background: #fff;
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column; overflow: hidden;
@@ -752,7 +752,7 @@ img { max-width: 100%; display: block; }
   .section-title { font-size: 1.375rem; }
   .auth-header h1 { font-size: 1.25rem; }
   .map-layout { flex-direction: column; }
-  .map-sidebar { width: 100%; height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
+  .map-layout .map-sidebar { width: 100%; height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
   .active-layout { flex-direction: column; }
   .active-sidebar { width: 100%; height: 260px; border-right: none; border-bottom: 1px solid var(--border); }
   .admin-layout { flex-direction: column; }
@@ -1584,16 +1584,11 @@ html[data-theme="dark"] .ap-summary { background: rgba(46,36,30,.94); color: var
 
 .map-grid.is-fullscreen .map-sidebar { height: 100%; }
 
-@media (max-width: 900px) {
-  .map-sidebar { height: auto; max-height: 460px; }
-  .giya-map-canvas { height: 420px; }
-}
-
 html[data-theme="dark"] .mx-route { background: var(--surface-2); }
 html[data-theme="dark"] .route-stop { background: var(--surface); }
 
 .map-grid { display: grid; grid-template-columns: 340px 1fr; gap: 18px; }
-@media (max-width: 900px) { .map-grid { grid-template-columns: 1fr; } }
+
 
 /* ── Add-to-route button on destination rows ─────────────────── */
 .mx-add {
@@ -1817,3 +1812,160 @@ html[data-theme="dark"] .gc-box { background: var(--surface); }
 @media (prefers-reduced-motion: reduce) {
   .gc-backdrop.is-open, .gc-box { animation: none; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   FLOATING CHATBOT LAUNCHER
+   Fixed to the viewport, so it stays put while the page scrolls.
+   Collapsed to a circle; the label expands on hover and on focus.
+   ════════════════════════════════════════════════════════════════ */
+
+.giya-fab {
+  position: fixed;
+  right: 22px; bottom: 22px;
+  z-index: 1400;                /* above content, below modals at 2000+ */
+
+  display: inline-flex; align-items: center; gap: 0;
+  height: 56px; padding: 0 4px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff; text-decoration: none;
+  box-shadow: 0 6px 22px rgba(36,28,24,.32);
+  overflow: hidden;
+  transition: gap .18s ease, padding .18s ease,
+              background .15s ease, transform .15s ease,
+              box-shadow .18s ease;
+}
+.giya-fab:hover,
+.giya-fab:focus-visible {
+  background: var(--primary-dark);
+  color: #fff;
+  gap: 10px; padding: 0 20px 0 4px;
+  box-shadow: 0 8px 28px rgba(36,28,24,.40);
+}
+.giya-fab:active { transform: scale(.96); }
+.giya-fab:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.giya-fab-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.14);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem;
+}
+
+/* Width animates from zero, so the collapsed state is a clean circle. */
+.giya-fab-label {
+  max-width: 0; opacity: 0;
+  white-space: nowrap;
+  font-size: 0.875rem; font-weight: 700;
+  transition: max-width .18s ease, opacity .14s ease;
+}
+.giya-fab:hover .giya-fab-label,
+.giya-fab:focus-visible .giya-fab-label { max-width: 120px; opacity: 1; }
+
+/* A slow breathing ring, so it reads as available without nagging. */
+.giya-fab::after {
+  content: ""; position: absolute; inset: 0;
+  border-radius: 999px;
+  border: 2px solid var(--gold);
+  opacity: 0;
+  animation: giya-fab-ping 3.4s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes giya-fab-ping {
+  0%       { opacity: .55; transform: scale(1); }
+  55%, 100% { opacity: 0;   transform: scale(1.28); }
+}
+.giya-fab:hover::after { animation: none; }
+
+@media (max-width: 600px) {
+  .giya-fab { right: 16px; bottom: 16px; height: 52px; }
+  .giya-fab-icon { width: 44px; height: 44px; font-size: 1.125rem; }
+  /* No hover on touch, so never reserve room for the label. */
+  .giya-fab:hover { gap: 0; padding: 0 4px; }
+  .giya-fab:hover .giya-fab-label { max-width: 0; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .giya-fab::after { animation: none; }
+  .giya-fab, .giya-fab-label { transition: none; }
+}
+
+html[data-theme="dark"] .giya-fab { box-shadow: 0 6px 22px rgba(0,0,0,.55); }
+
+/* ════════════════════════════════════════════════════════════════
+   MAP PAGE — responsive
+   Three arrangements rather than a hard desktop/mobile split, so the
+   in-between widths (tablets, split-screen, small laptops) get a
+   layout meant for them instead of a desktop one squeezed down.
+   ════════════════════════════════════════════════════════════════ */
+
+.map-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+/* Sidebar and map share one height, so the columns line up. */
+.map-sidebar,
+.giya-map-canvas { height: clamp(460px, 68vh, 720px); }
+
+.map-sidebar {
+  display: flex; flex-direction: column;
+  padding: 0; overflow: hidden; width: auto;
+}
+
+/* ── Tablet and small laptop: stack, both full width ──────────── */
+@media (max-width: 1024px) {
+  .map-grid { grid-template-columns: 1fr; gap: 14px; }
+
+  /* The map leads on a touch device; the list follows. */
+  .giya-map-shell { order: 1; }
+  .map-sidebar    { order: 2; }
+
+  .giya-map-canvas { height: clamp(340px, 46vh, 520px); }
+  .map-sidebar     { height: auto; max-height: none; }
+
+  /* No fixed height means the list needs its own cap. */
+  .mx-list { max-height: 46vh; }
+}
+
+/* ── Tablet: two church columns, since the row is wide ────────── */
+@media (min-width: 700px) and (max-width: 1024px) {
+  .mx-list {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; align-content: start;
+  }
+  .mx-list .mx-row { margin-bottom: 0; }
+  .mx-empty { grid-column: 1 / -1; }
+}
+
+/* ── Phone ───────────────────────────────────────────────────── */
+@media (max-width: 699px) {
+  .mx-head h1 { font-size: 1.375rem; }
+  .giya-map-canvas { height: clamp(300px, 42vh, 420px); }
+  .mx-list { max-height: 52vh; }
+  .mx-controls { padding: 12px 12px 10px; }
+  .mx-list, .mx-list-head { padding-left: 12px; padding-right: 12px; }
+  .mx-tray { padding: 11px 12px 12px; }
+
+  /* Chips scroll sideways rather than eating four rows of height. */
+  .mx-chips {
+    flex-wrap: nowrap; overflow-x: auto;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .mx-chips::-webkit-scrollbar { display: none; }
+}
+
+/* ── Short landscape phones ──────────────────────────────────── */
+@media (max-height: 520px) and (orientation: landscape) {
+  .giya-map-canvas { height: 300px; }
+  .mx-list { max-height: 220px; }
+}
+
+/* Fullscreen overrides the stacking above. */
+.map-grid.is-fullscreen .map-sidebar,
+.map-grid.is-fullscreen .giya-map-canvas { height: 100%; }
+.map-grid.is-fullscreen .giya-map-shell { order: 0; }
+.map-grid.is-fullscreen .mx-list { max-height: none; }
