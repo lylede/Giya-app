@@ -1148,21 +1148,26 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
 .giya-popup span {
   display: block; font-size: 0.6875rem; color: var(--text-muted); line-height: 1.5;
 }
-.giya-popup button {
-  margin-top: 9px; width: 100%;
+/* One shape for both popup actions: primary filled, secondary outlined. */
+.giya-popup-btn {
+  display: block; width: 100%;
+  margin-top: 8px; padding: 8px 10px;
+  border: 1px solid var(--primary);
+  border-radius: 8px;
   background: var(--primary); color: #fff;
-  border: 0; border-radius: 8px; padding: 7px 10px;
-  font-size: 0.6875rem; font-weight: 700; cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.6875rem; font-weight: 700;
+  text-align: center; text-decoration: none;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
 }
-.giya-popup button:hover { background: var(--primary-dark); }
-.giya-popup-details {
-  display: block; margin-top: 9px; text-align: center;
-  color: var(--primary); font-size: 0.6875rem; font-weight: 700;
-  text-decoration: underline; text-underline-offset: 2px;
+.giya-popup-btn:hover { background: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
+
+.giya-popup-btn.is-secondary {
+  background: transparent; color: var(--primary);
 }
-.giya-popup-details:hover { color: var(--primary-dark); }
-.giya-popup-details:focus-visible,
-.giya-popup button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.giya-popup-btn.is-secondary:hover { background: var(--gold-bg); color: var(--primary); }
+.giya-popup-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 .leaflet-container { font-family: var(--font-body); background: #E8DFD1; }
 .leaflet-popup-content-wrap { border-radius: 14px; }
@@ -2188,9 +2193,3 @@ html[data-theme="dark"] input[type="date"] {
   background: var(--primary-dark);
   border-color: var(--primary-dark);
 }
-.giya-popup-link {
-  display: block; margin-top: 8px; text-align: center;
-  font-size: 0.6875rem; font-weight: 700;
-  color: var(--primary); text-decoration: none;
-}
-.giya-popup-link:hover { text-decoration: underline; }
