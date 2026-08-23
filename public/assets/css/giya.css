@@ -2503,3 +2503,17 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
   .section-subtitle { font-size: 0.8125rem; }
   .page-wrap { padding-left: 16px; padding-right: 16px; }
 }
+
+/* ── Preferences save themselves ─────────────────────────────── */
+.pref-status {
+  min-height: 18px; margin: 4px 0 0;
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--text-muted);
+  transition: color .15s ease;
+}
+.pref-status.is-ok    { color: #166534; }
+.pref-status.is-error { color: #B3182F; }
+
+/* The pills are the control now, so make them feel like one. */
+.pref-choice { transition: background .15s ease, border-color .15s ease, color .15s ease; }
+.pref-choice:active { transform: scale(.98); }
