@@ -115,6 +115,11 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class)->orderByDesc('created_at');
+    }
+
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);

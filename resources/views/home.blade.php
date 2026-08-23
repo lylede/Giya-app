@@ -41,15 +41,15 @@
                 </a>
             </div>
 
-            <div class="d-flex flex-wrap gap-4 pt-4" style="border-top:1px solid rgba(215,169,74,0.2)">
+            <div class="hero-stats">
                 @foreach ([
                     [$stats['churches'] . '+', 'Churches & Shrines'],
                     [auth()->check() ? number_format(auth()->user()->total_churches_visited) : $stats['churches'], auth()->check() ? 'Your Visits' : 'Places to Discover'],
                     [$stats['cities'], 'Cities Covered'],
                 ] as [$value, $label])
-                    <div style="min-width:110px">
-                        <div style="font-family:var(--font-display);color:var(--gold);font-size: 1.5rem;font-weight:700;line-height:1">{{ $value }}</div>
-                        <div style="color:rgba(255,255,255,0.6);font-size: 0.75rem;margin-top:4px">{{ $label }}</div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value">{{ $value }}</span>
+                        <span class="hero-stat-label">{{ $label }}</span>
                     </div>
                 @endforeach
             </div>

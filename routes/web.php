@@ -97,3 +97,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions');
 });
+
+Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/',                    [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+    Route::patch('/{notification}',    [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('read');
+    Route::patch('/',                  [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('readAll');
+    Route::delete('/',                 [\App\Http\Controllers\NotificationController::class, 'clear'])->name('clear');
+});

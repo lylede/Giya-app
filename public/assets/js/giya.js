@@ -64,25 +64,24 @@
     }
 
     /* ── Mobile navigation ─────────────────────────────────── */
-    function initMobileNav() {
-        const button = document.getElementById('navHamburger');
-        const menu   = document.getElementById('navMobileMenu');
-        if (!button || !menu) return;
+    /*
+       Delegated from document, not bound to the button.
 
-        button.addEventListener('click', function (event) {
-            event.stopPropagation();
-            const open = menu.classList.toggle('open');
-            button.querySelector('.bi').className = open ? 'bi bi-x' : 'bi bi-list';
-            button.setAttribute('aria-expanded', String(open));
-        });
+       A direct listener is lost the moment its element is replaced — which
+       Livewire does whenever it re-renders a component that contains the
+       navbar. The button then looks fine and does nothing. Delegation survives
+       any amount of DOM replacement, because the listener lives on document.
+    */
+    /*
+       The mobile menu is entirely CSS now — a checkbox and a label, styled in
+       components/navbar.blade.php. The script used to mirror that state, and
+       its outside-click handler was unchecking the box on the very tap that
+       opened it, so the menu opened once and then appeared dead.
 
-        document.addEventListener('click', function (event) {
-            if (menu.contains(event.target) || button.contains(event.target)) return;
-            menu.classList.remove('open');
-            button.querySelector('.bi').className = 'bi bi-list';
-            button.setAttribute('aria-expanded', 'false');
-        });
-    }
+       Nothing here touches it any more. Closing on an outside tap is handled by
+       a full-screen label in the markup, which needs no JavaScript.
+    */
+    function initMobileNav() { /* intentionally empty — see navbar.blade.php */ }
 
     /* ── Navbar height ─────────────────────────────────────
        Overlays position themselves under the bar. Measuring it beats
@@ -98,22 +97,11 @@
     window.addEventListener('resize', publishNavHeight);
     window.addEventListener('orientationchange', publishNavHeight);
 
-    document.addEventListener('DOMContentLoaded', initMobileNav);
+    initMobileNav();
 
-    /* ── Temporary flash messages ──────────────────────────── */
-    function initAutoDismissAlerts() {
-        document.querySelectorAll('[data-auto-dismiss]').forEach(function (alert) {
-            const delay = Number(alert.dataset.autoDismiss) || 2500;
+    /* Flash messages dismiss themselves — see components/flash.blade.php.
+       Keeping a second implementation here would mean two timers racing. */
 
-            window.setTimeout(function () {
-                alert.style.opacity = '0';
-                alert.style.transition = 'opacity 180ms ease';
-                window.setTimeout(function () { alert.remove(); }, 180);
-            }, delay);
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', initAutoDismissAlerts);
 
     /* ── Profile: tabs, favorites, avatar ──────────────────── */
     const Profile = {
