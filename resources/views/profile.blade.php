@@ -238,7 +238,8 @@
     <section class="profile-panel d-none" id="panel-preferences">
         <h2 class="section-title" style="font-size: 1.25rem">Preferences</h2>
 
-        <form method="POST" action="{{ route('profile.preferences') }}">
+        <form method="POST" action="{{ route('profile.preferences') }}" id="prefForm"
+              data-save-url="{{ route('profile.preference') }}">
             @csrf @method('PATCH')
 
             {{-- Appearance --}}
@@ -314,7 +315,13 @@
                 @endforeach
             </div>
 
-            <button type="submit" class="btn btn-primary btn-w-full">Save Preferences</button>
+            {{-- No Save button: every control writes as soon as it changes.
+                 The submit is kept for a browser with JavaScript disabled. --}}
+            <noscript>
+                <button type="submit" class="btn btn-primary btn-w-full">Save Preferences</button>
+            </noscript>
+
+            <p class="pref-status" id="prefStatus" role="status" aria-live="polite"></p>
         </form>
 
         {{-- Account actions kept from the old Settings tab --}}
@@ -565,13 +572,76 @@ const GiyaProfile = {
     },
 };
 
+/* ── Preferences save themselves ─────────────────────────────────
+   Each control writes its own field the moment it changes, and theme
+   and font size apply to the page immediately — no reload, no Save.
+   ---------------------------------------------------------------- */
+const PrefSaver = (function () {
+    const form = document.getElementById('prefForm');
+    if (!form) return { save() {} };
+
+    const status = document.getElementById('prefStatus');
+    let timer = null;
+
+    function say(text, kind) {
+        if (!status) return;
+        status.textContent = text;
+        status.className = 'pref-status' + (kind ? ' is-' + kind : '');
+        clearTimeout(timer);
+        if (kind === 'ok') timer = setTimeout(() => { status.textContent = ''; }, 2000);
+    }
+
+    function apply(field, value) {
+        const root = document.documentElement;
+        if (field === 'theme_style') root.setAttribute('data-theme', String(value).toLowerCase());
+        if (field === 'font_size')   root.setAttribute('data-font',  String(value).toLowerCase());
+    }
+
+    function save(field, value) {
+        apply(field, value);          // instant, before the round trip
+        say('Saving…');
+
+        fetch(form.dataset.saveUrl, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ field, value }),
+        })
+            .then(r => r.json())
+            .then(d => say(d.ok ? 'Saved' : 'Could not save that', d.ok ? 'ok' : 'error'))
+            .catch(() => say('Could not save — check your connection', 'error'));
+    }
+
+    return { save };
+})();
+
 document.addEventListener('change', event => {
-    if (event.target.matches('.pref-choice input[type=radio]')) {
-        document.querySelectorAll(`.pref-choice input[name="${event.target.name}"]`)
+    const el = event.target;
+
+    // Font size and theme: radios inside the pill controls.
+    if (el.matches('.pref-choice input[type=radio]')) {
+        document.querySelectorAll(`.pref-choice input[name="${el.name}"]`)
             .forEach(i => i.closest('.pref-choice').classList.toggle('is-active', i.checked));
+        PrefSaver.save(el.name, el.value);
         return;
     }
-    if (event.target.id === 'pf-avatar') GiyaProfile.previewAvatar(event.target);
+
+    // Language.
+    if (el.id === 'pref-language') {
+        PrefSaver.save('language', el.value);
+        return;
+    }
+
+    // Notification toggles.
+    if (el.matches('.pref-switch input[type=checkbox]')) {
+        PrefSaver.save(el.name, el.checked ? 1 : 0);
+        return;
+    }
+
+    if (el.id === 'pf-avatar') GiyaProfile.previewAvatar(el);
 });
 
 @if ($errors->hasAny(['name', 'email', 'avatar']))

@@ -111,6 +111,45 @@ class ProfileController extends Controller
 
         return redirect()->route('profile')->with('success', 'Password changed successfully.');
     }
+    /**
+     * Save a single preference as soon as it changes.
+     *
+     * The full-form action stays for a browser without JavaScript; this is what
+     * the auto-saving controls call. One field at a time, so a half-filled form
+     * is never a problem.
+     */
+    public function updatePreference(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $allowed = [
+            'font_size'                => ['required', 'in:Small,Medium,Large'],
+            'theme_style'              => ['required', 'in:Light,Dark'],
+            'language'                 => ['required', 'in:English,Cebuano,Filipino'],
+            'notify_mass_schedule'     => ['required', 'boolean'],
+            'notify_itinerary'         => ['required', 'boolean'],
+            'notify_feast_day'         => ['required', 'boolean'],
+            'notify_saved_destination' => ['required', 'boolean'],
+        ];
+
+        $field = $request->input('field');
+
+        if (! array_key_exists($field, $allowed)) {
+            return response()->json(['ok' => false, 'reason' => 'unknown_field'], 422);
+        }
+
+        $data = $request->validate(['value' => $allowed[$field]], [], ['value' => $field]);
+
+        $value = in_array($field, ['font_size', 'theme_style', 'language'], true)
+            ? $data['value']
+            : $request->boolean('value');
+
+        Auth::user()->preferencesOrDefault()->update([
+            $field       => $value,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['ok' => true, 'field' => $field, 'value' => $value]);
+    }
+
     public function updatePreferences(Request $request): RedirectResponse
     {
         $data = $request->validate([

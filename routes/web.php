@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile',          [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::patch('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
+    Route::patch('/profile/preference',  [ProfileController::class, 'updatePreference'])->name('profile.preference');
     Route::post('/favorites/toggle',     [ProfileController::class, 'toggleFavorite'])->name('favorites.toggle');
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
     Route::post('/profile/review', [ProfileController::class, 'storeReview'])->name('profile.review');
