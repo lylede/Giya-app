@@ -4,7 +4,7 @@
 @section('content')
 
 {{-- ─────────────────────────────── Hero ─────────────────────────────── --}}
-<section style="position:relative;overflow:hidden;min-height:480px;display:flex;flex-direction:column;justify-content:space-between;background-color:#63331b;padding-bottom:48px;">
+<section class="church-hero" style="position:relative;overflow:hidden;min-height:480px;display:flex;flex-direction:column;justify-content:space-between;background-color:#63331b;padding-bottom:48px;">
     @if ($church->imagePath())
         <img src="{{ $church->imagePath() }}" alt="{{ $church->name }}"
              style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
@@ -20,7 +20,7 @@
         </a>
     </div>
 
-    <div style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 24px;width:100%">
+    <div class="church-hero-content" style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 24px;width:100%">
         @if ($church->category)
             <span style="background:var(--gold);color:#fff;font-weight:600;font-size:0.75rem;padding:6px 14px;border-radius:999px;display:inline-block;margin-bottom:12px">
                 {{ $church->category }}
@@ -38,7 +38,7 @@
             </p>
         @endif
 
-        <div class="d-flex flex-wrap gap-3">
+        <div class="church-hero-actions d-flex flex-wrap gap-3">
             <a href="{{ route('map') }}?church={{ $church->id }}" class="btn btn-ghost btn-ghost-inverse">
                 <i class="bi bi-map" aria-hidden="true"></i> View Map
             </a>
@@ -57,8 +57,8 @@
 </section>
 
 {{-- ─────────────────── Stat strip — overlaps hero bottom edge cleanly ────────────────── --}}
-<div style="max-width:540px;margin:24px auto 0;position:relative;z-index:3;padding:0 20px">
-    <div class="card" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:28px;padding:14px 20px;box-shadow:0 4px 12px rgba(0,0,0,0.08);background:#fff;border-radius:999px;">
+<div class="church-stat-wrap" style="max-width:540px;margin:24px auto 0;position:relative;z-index:3;padding:0 20px">
+    <div class="church-stat-strip card" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:28px;padding:14px 20px;box-shadow:0 4px 12px rgba(0,0,0,0.08);background:#fff;border-radius:999px;">
         @if (!is_null($church->rating))
             <div style="text-align:center;">
                 <div style="font-weight:700;font-size:0.875rem;color:var(--text);display:flex;align-items:center;gap:3px;justify-content:center;">
@@ -91,7 +91,7 @@
     </div>
 </div>
 
-<div class="page-wrap" style="padding-top:28px">
+<div class="church-detail-page page-wrap" style="padding-top:28px">
 
     {{-- ───────────────────────────── Tabs ─────────────────────────────── --}}
     <div class="church-tabs" role="tablist" aria-label="Church details">
@@ -106,9 +106,9 @@
         <h2 class="section-title" style="margin-bottom:16px">About {{ $church->name }}</h2>
 
         @if ($church->description)
-            <p style="color:var(--text);line-height:1.75;margin-bottom:12px">{{ $church->description }}</p>
+            <p class="church-description" style="color:var(--text);line-height:1.75;margin-bottom:12px">{{ $church->description }}</p>
         @else
-            <p style="color:var(--text-muted);line-height:1.75;margin-bottom:12px">No description is available for this church yet.</p>
+            <p class="church-description" style="color:var(--text-muted);line-height:1.75;margin-bottom:12px">No description is available for this church yet.</p>
         @endif
 
         <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:4px">
@@ -166,19 +166,19 @@
             @endphp
 
             @forelse ($upcomingEvents as $event)
-                <div class="d-flex align-items-center gap-3 card" style="padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
-                    <span style="width:52px;height:52px;border-radius:12px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px;background:#63331b;color:var(--gold)">
+                <div class="church-event-row d-flex align-items-center gap-3 card" style="padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
+                    <span class="church-event-badge" style="width:52px;height:52px;border-radius:12px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px;background:#63331b;color:var(--gold)">
                         <i class="bi bi-star-fill" style="font-size:0.75rem;margin-bottom:2px"></i>
                         <span style="font-size:0.5rem;font-weight:700;text-transform:uppercase;line-height:1.1;">{{ $event->event_type }}</span>
                     </span>
-                    <div style="flex:1;min-width:0">
+                    <div class="church-event-details" style="flex:1;min-width:0">
                         <div style="font-size:0.875rem;font-weight:700;color:var(--text)">{{ $event->event_name }}</div>
                         <div style="font-size:0.75rem;color:var(--text-muted)">
                             <i class="bi bi-geo-alt" style="font-size:0.6875rem" aria-hidden="true"></i>
                             {{ $event->location ?? $church->name }}
                         </div>
                     </div>
-                    <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);white-space:nowrap;margin-left:auto;text-align:right">
+                    <div class="church-event-meta" style="font-size:0.75rem;font-weight:700;color:var(--text-muted);white-space:nowrap;margin-left:auto;text-align:right">
                         <div>{{ $event->day_label }}</div>
                         @if ($event->start_time)
                             <div>{{ $event->timeLabel($event->start_time) }}</div>
@@ -297,6 +297,7 @@
         text-decoration:none;
         padding-bottom:10px;
         border-bottom:2px solid transparent;
+        flex-shrink:0;
     }
 
     .church-tab.is-active,
@@ -414,6 +415,118 @@
         font-size:0.75rem;
         line-height:1.6;
         margin:12px 0 0;
+    }
+
+    .church-event-details,
+    .church-event-details > div {
+        overflow-wrap:anywhere;
+    }
+
+    @media (max-width: 700px) {
+        .church-hero {
+            min-height:430px !important;
+            padding-bottom:32px !important;
+        }
+
+        .church-hero-content {
+            padding:0 16px !important;
+        }
+
+        .church-hero-content h1 {
+            overflow-wrap:anywhere;
+        }
+
+        .church-hero-content p {
+            align-items:flex-start !important;
+            overflow-wrap:anywhere;
+        }
+
+        .church-hero-actions {
+            gap:10px !important;
+        }
+
+        .church-hero-actions .btn {
+            flex:1 1 150px;
+            min-width:0;
+            white-space:normal;
+            min-height:44px;
+        }
+
+        .church-stat-wrap {
+            margin-top:16px !important;
+            padding:0 16px !important;
+        }
+
+        .church-stat-strip {
+            display:grid !important;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:14px 10px !important;
+            padding:14px 12px !important;
+            border-radius:16px !important;
+        }
+
+        .church-detail-page {
+            width:100%;
+            max-width:100%;
+            box-sizing:border-box;
+            padding-left:16px !important;
+            padding-right:16px !important;
+        }
+
+        #church-info .section-title {
+            text-align:center;
+        }
+
+        #church-info .church-description {
+            text-align:justify;
+        }
+
+        .church-tabs {
+            width:max-content;
+            min-width:100%;
+            box-sizing:border-box;
+            justify-content:center;
+            gap:24px;
+            flex-wrap:nowrap;
+            overflow-x:auto;
+            overflow-y:hidden;
+            scrollbar-width:none;
+            white-space:nowrap;
+            padding:0 4px;
+        }
+
+        .church-tabs::-webkit-scrollbar {
+            display:none;
+        }
+
+        .church-event-row {
+            align-items:flex-start !important;
+            gap:10px !important;
+        }
+
+        .church-event-badge {
+            width:46px !important;
+            height:46px !important;
+        }
+
+        .church-event-meta {
+            white-space:normal !important;
+            flex:0 0 auto;
+            max-width:76px;
+        }
+
+        .church-review-card-header {
+            flex-wrap:wrap;
+        }
+
+        .church-review-card-header > div {
+            min-width:0;
+            overflow-wrap:anywhere;
+        }
+
+        .church-review-card time {
+            white-space:normal;
+        }
     }
 
     @media (max-width: 700px) {
