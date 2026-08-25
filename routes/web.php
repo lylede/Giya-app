@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/home',    [HomeController::class, 'index'])->name('home');
     Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot');
+    Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->name('chatbot.send');
+    Route::post('/chatbot/reset', [ChatbotController::class, 'reset'])->name('chatbot.reset');
 
     /* Profile */
     Route::get('/profile',            [ProfileController::class, 'index'])->name('profile');

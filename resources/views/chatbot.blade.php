@@ -2,91 +2,193 @@
 @section('title', 'Giya AI')
 
 @section('content')
-<div class="page-wrap" style="max-width:900px">
+<div class="page-wrap chat-page" style="max-width:900px">
 
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <span style="width:52px;height:52px;border-radius:16px;background:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i class="bi bi-chat-dots-fill" style="font-size: 1.375rem;color:var(--gold)"></i>
+    <div class="chat-header">
+        <span class="chat-avatar">
+            <i class="bi bi-chat-dots-fill"></i>
         </span>
-        <div>
-            <h1 style="font-family:var(--font-display);font-size: 1.5rem;margin:0">Giya AI Assistant</h1>
-            <div class="d-flex align-items-center gap-2" style="margin-top:2px">
-                <span style="width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block"></span>
-                <span style="font-size: 0.8125rem;color:var(--text-muted)">Pilgrimage guide for Metro Cebu</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="card" style="overflow:hidden">
-        {{-- Preview conversation, rendered statically until the assistant ships --}}
-        <div style="padding:24px;display:flex;flex-direction:column;gap:16px;background:#fff">
-            <div class="d-flex gap-3">
-                <span style="width:36px;height:36px;border-radius:50%;background:var(--gold-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                    <i class="bi bi-stars" style="color:var(--primary);font-size: 0.9375rem"></i>
-                </span>
-                <div class="chat-bubble chat-bubble-bot">Maayong buntag! I am Giya AI, your pilgrimage companion for Metro Cebu. Soon you will be able to ask me about churches, mass schedules, and pilgrimage routes right here.</div>
-            </div>
-
-            <div class="d-flex gap-3 flex-row-reverse">
-                <span class="nav-avatar" style="flex-shrink:0">
-                    @if (auth()->user()->avatarPath())
-                        <img src="{{ auth()->user()->avatarPath() }}" alt="{{ auth()->user()->name }}">
-                    @else
-                        {{ auth()->user()->initials() }}
-                    @endif
-                </span>
-                <div class="chat-bubble chat-bubble-user">What churches are near me?</div>
-            </div>
-
-            <div class="d-flex gap-3">
-                <span style="width:36px;height:36px;border-radius:50%;background:var(--gold-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                    <i class="bi bi-stars" style="color:var(--primary);font-size: 0.9375rem"></i>
-                </span>
-                <div class="chat-bubble chat-bubble-bot" style="opacity:.55">
-                    <span class="d-inline-flex align-items-center gap-2">
-                        <i class="bi bi-hourglass-split"></i> This capability is still being built…
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Coming-soon notice replaces the composer --}}
-        <div style="padding:24px;border-top:1px solid var(--border);background:var(--bg);text-align:center">
-            <span class="badge badge-amber mb-3" style="padding:5px 14px">
-                <i class="bi bi-cone-striped"></i> Coming Soon
-            </span>
-            <p style="font-size: 0.875rem;color:var(--text-muted);line-height:1.75;max-width:520px;margin:0 auto 20px">
-                The conversational assistant is under development. In the meantime you can
-                browse every destination on the map or build a route in the Plan Hub —
-                both work fully offline.
+        <div style="flex:1;min-width:0">
+            <h1>Giya AI Assistant</h1>
+            <p>
+                <span @class(['chat-dot', 'is-off' => ! $online])></span>
+                {{ $online ? 'Pilgrimage guide for Metro Cebu' : 'Offline - answering from destination records' }}
             </p>
-            <div class="d-flex gap-2 justify-content-center flex-wrap">
-                <a href="{{ route('map') }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-map-fill"></i> Browse the Map
-                </a>
-                <a href="{{ route('plan.hub') }}" class="btn btn-outline btn-sm">
-                    <i class="bi bi-journal-text"></i> Open Plan Hub
-                </a>
-            </div>
         </div>
+
+        @if ($messages->isNotEmpty())
+            <form method="POST" action="{{ route('chatbot.reset') }}"
+                  data-confirm-title="Start a new conversation?"
+                  data-confirm="This conversation is closed and cleared from view."
+                  data-confirm-ok="Start new"
+                  data-confirm-tone="primary">
+                @csrf
+                <button type="submit" class="btn btn-ghost btn-sm">New chat</button>
+            </form>
+        @endif
     </div>
 
-    <div class="mt-4">
-        <h2 class="section-title" style="font-size: 1.125rem">What Giya AI will help with</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
-            @foreach ([
-                ['clock-fill',      'Church Hours',    'Opening and closing times for every destination.'],
-                ['calendar-check',  'Mass Schedules',  'Weekday, Saturday, and Sunday mass times.'],
-                ['signpost-2-fill', 'Route Guidance',  'Suggested order and travel time between stops.'],
-                ['universal-access','Accessibility',   'Wheelchair access and visitor guidelines.'],
-            ] as [$icon, $title, $desc])
-                <div class="card card-body" style="padding:16px">
-                    <i class="bi bi-{{ $icon }}" style="font-size: 1.25rem;color:var(--gold)"></i>
-                    <div style="font-size: 0.875rem;font-weight:700;color:var(--text);margin-top:8px">{{ $title }}</div>
-                    <div style="font-size: 0.75rem;color:var(--text-muted);line-height:1.6;margin-top:4px">{{ $desc }}</div>
+    <div class="card chat-shell">
+        <div class="chat-log" id="chatLog">
+            @if ($messages->isEmpty())
+                <div class="chat-row">
+                    <span class="chat-bot-icon"><i class="bi bi-stars"></i></span>
+                    <div class="chat-bubble chat-bubble-bot">
+                        Maayong buntag! I am Giya AI. Ask me about churches in Metro Cebu,
+                        mass schedules, or let me plan a Visita Iglesia route for you.
+                    </div>
                 </div>
-            @endforeach
+            @else
+                @foreach ($messages as $m)
+                    @if ($m->sender_type === 'user')
+                        <div class="chat-row is-user">
+                            <span class="nav-avatar chat-user-icon">
+                                @if (auth()->user()->avatarPath())
+                                    <img src="{{ auth()->user()->avatarPath() }}" alt="">
+                                @else
+                                    {{ auth()->user()->initials() }}
+                                @endif
+                            </span>
+                            <div class="chat-bubble chat-bubble-user">{{ $m->message }}</div>
+                        </div>
+                    @else
+                        <div class="chat-row">
+                            <span class="chat-bot-icon"><i class="bi bi-stars"></i></span>
+                            <div class="chat-bubble chat-bubble-bot">{!! nl2br(e($m->message)) !!}</div>
+                        </div>
+                    @endif
+                @endforeach
+            @endif
         </div>
+
+        @if ($messages->isEmpty())
+            <div class="chat-starters" id="chatStarters">
+                @foreach ($starters as $starter)
+                    <button type="button" class="chat-starter" data-ask="{{ $starter }}">{{ $starter }}</button>
+                @endforeach
+            </div>
+        @endif
+
+        <form class="chat-composer" id="chatForm" autocomplete="off">
+            @csrf
+            <input type="text" id="chatInput" name="message" maxlength="1000"
+                   placeholder="Ask about churches, mass times, or a route…"
+                   aria-label="Ask Giya AI" required>
+            <button type="submit" class="chat-send" id="chatSend" aria-label="Send">
+                <i class="bi bi-arrow-right"></i>
+            </button>
+        </form>
     </div>
+
+    <p class="chat-note">
+        Giya AI answers from GIYA's destination records. Mass schedules change -
+        please confirm with the parish before travelling.
+    </p>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const form  = document.getElementById('chatForm');
+    const input = document.getElementById('chatInput');
+    const log   = document.getElementById('chatLog');
+    const send  = document.getElementById('chatSend');
+    if (!form) return;
+
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+    const avatar = @json(auth()->user()->avatarPath());
+    const initials = @json(auth()->user()->initials());
+
+    function scroll() { log.scrollTop = log.scrollHeight; }
+
+    function esc(v) {
+        return String(v == null ? '' : v)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function addUser(text) {
+        const row = document.createElement('div');
+        row.className = 'chat-row is-user';
+        row.innerHTML =
+            '<span class="nav-avatar chat-user-icon">' +
+                (avatar ? '<img src="' + esc(avatar) + '" alt="">' : esc(initials)) +
+            '</span>' +
+            '<div class="chat-bubble chat-bubble-user">' + esc(text) + '</div>';
+        log.appendChild(row);
+        scroll();
+    }
+
+    /* A typing indicator, not a spinner: it says the assistant is composing. */
+    function addTyping() {
+        const row = document.createElement('div');
+        row.className = 'chat-row';
+        row.id = 'chatTyping';
+        row.innerHTML =
+            '<span class="chat-bot-icon"><i class="bi bi-stars"></i></span>' +
+            '<div class="chat-bubble chat-bubble-bot chat-typing">' +
+                '<span></span><span></span><span></span>' +
+            '</div>';
+        log.appendChild(row);
+        scroll();
+    }
+
+    function addBot(text, ok) {
+        const typing = document.getElementById('chatTyping');
+        if (typing) typing.remove();
+
+        const row = document.createElement('div');
+        row.className = 'chat-row';
+        row.innerHTML =
+            '<span class="chat-bot-icon"><i class="bi bi-stars"></i></span>' +
+            '<div class="chat-bubble chat-bubble-bot' + (ok ? '' : ' is-offline') + '">' +
+                esc(text).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') +
+            '</div>';
+        log.appendChild(row);
+        scroll();
+    }
+
+    function ask(text) {
+        const starters = document.getElementById('chatStarters');
+        if (starters) starters.remove();
+
+        addUser(text);
+        input.value = '';
+        input.disabled = send.disabled = true;
+        addTyping();
+
+        fetch('{{ route('chatbot.send') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ message: text }),
+        })
+            .then(r => r.json())
+            .then(d => addBot(d.reply || 'Something went wrong. Try again.', d.ok))
+            .catch(() => addBot('I could not reach the server. Check that it is running and try again.', false))
+            .finally(() => {
+                input.disabled = send.disabled = false;
+                input.focus();
+            });
+    }
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const text = input.value.trim();
+        if (text.length > 1) ask(text);
+    });
+
+    document.addEventListener('click', function (e) {
+        const chip = e.target.closest('[data-ask]');
+        if (chip) ask(chip.dataset.ask);
+    });
+
+    scroll();
+    input.focus();
+})();
+</script>
+@endpush
