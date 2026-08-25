@@ -28,18 +28,24 @@
 @else
     <x-footer />
 @endif
-@unless (request()->routeIs('chatbot'))
-    <a href="{{ route('chatbot') }}" class="giya-fab" id="giyaFab"
-       aria-label="Ask Giya AI">
-        <span class="giya-fab-icon"><i class="bi bi-chat-dots-fill"></i></span>
-        <span class="giya-fab-label">Ask Giya</span>
-    </a>
-@endunless
+@auth
+    @unless (request()->routeIs('chatbot'))
+        <button type="button" class="giya-fab" id="giyaFab"
+                aria-label="Ask Giya AI" aria-expanded="false" aria-controls="giyaPanel"
+                data-send-url="{{ route('chatbot.send') }}">
+            <span class="giya-fab-icon"><i class="bi bi-giya-star"></i></span>
+            <span class="giya-fab-label">Ask Giya</span>
+        </button>
+
+        <x-ai-panel />
+    @endunless
+@endauth
 
 <script src="{{ asset('assets/js/giya.js') }}?v={{ filemtime(public_path('assets/js/giya.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-datepicker.js') }}?v={{ filemtime(public_path('assets/js/giya-datepicker.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-notifications.js') }}?v={{ filemtime(public_path('assets/js/giya-notifications.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-ai-panel.js') }}?v={{ filemtime(public_path('assets/js/giya-ai-panel.js')) }}"></script>
 @stack('scripts')
 </body>
 </html>

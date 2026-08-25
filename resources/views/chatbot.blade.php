@@ -6,13 +6,13 @@
 
     <div class="chat-header">
         <span class="chat-avatar">
-            <i class="bi bi-chat-dots-fill"></i>
+            <i class="bi bi-giya-star"></i>
         </span>
         <div style="flex:1;min-width:0">
             <h1>Giya AI Assistant</h1>
             <p>
                 <span @class(['chat-dot', 'is-off' => ! $online])></span>
-                {{ $online ? 'Pilgrimage guide for Metro Cebu' : 'Offline - answering from destination records' }}
+                {{ $online ? 'Pilgrimage guide for Metro Cebu' : 'Offline — answering from destination records' }}
             </p>
         </div>
 
@@ -32,7 +32,7 @@
         <div class="chat-log" id="chatLog">
             @if ($messages->isEmpty())
                 <div class="chat-row">
-                    <span class="chat-bot-icon"><i class="bi bi-stars"></i></span>
+                    <span class="chat-bot-icon"><i class="bi bi-giya-star"></i></span>
                     <div class="chat-bubble chat-bubble-bot">
                         Maayong buntag! I am Giya AI. Ask me about churches in Metro Cebu,
                         mass schedules, or let me plan a Visita Iglesia route for you.
@@ -53,7 +53,7 @@
                         </div>
                     @else
                         <div class="chat-row">
-                            <span class="chat-bot-icon"><i class="bi bi-stars"></i></span>
+                            <span class="chat-bot-icon"><i class="bi bi-giya-star"></i></span>
                             <div class="chat-bubble chat-bubble-bot">{!! nl2br(e($m->message)) !!}</div>
                         </div>
                     @endif
@@ -81,7 +81,7 @@
     </div>
 
     <p class="chat-note">
-        Giya AI answers from GIYA's destination records. Mass schedules change -
+        Giya AI answers from GIYA's destination records. Mass schedules change —
         please confirm with the parish before travelling.
     </p>
 </div>
@@ -126,7 +126,7 @@
         row.className = 'chat-row';
         row.id = 'chatTyping';
         row.innerHTML =
-            '<span class="chat-bot-icon"><i class="bi bi-stars"></i></span>' +
+            '<span class="chat-bot-icon"><i class="bi bi-giya-star"></i></span>' +
             '<div class="chat-bubble chat-bubble-bot chat-typing">' +
                 '<span></span><span></span><span></span>' +
             '</div>';
@@ -141,7 +141,7 @@
         const row = document.createElement('div');
         row.className = 'chat-row';
         row.innerHTML =
-            '<span class="chat-bot-icon"><i class="bi bi-stars"></i></span>' +
+            '<span class="chat-bot-icon"><i class="bi bi-giya-star"></i></span>' +
             '<div class="chat-bubble chat-bubble-bot' + (ok ? '' : ' is-offline') + '">' +
                 esc(text).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') +
             '</div>';
