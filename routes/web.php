@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/home',    [HomeController::class, 'index'])->name('home');
+Route::get('/search/churches', [HomeController::class, 'search'])->name('search.churches');
     Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot');
     Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->name('chatbot.send');
     Route::post('/chatbot/reset', [ChatbotController::class, 'reset'])->name('chatbot.reset');

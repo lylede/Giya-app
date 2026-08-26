@@ -2826,3 +2826,99 @@ body.ai-panel-locked .giya-fab { opacity: 0; pointer-events: none; }
 
 /* Safety net: if a map is ever created without zoomControl:false. */
 .leaflet-control-zoom { display: none !important; }
+
+/* The home search hands its term to the map rather than showing results in
+   place, so the old dropdown styles are gone. The map filters by name,
+   location and category — see map.blade.php. */
+.home-searchbar { position: relative; z-index: 20; }
+.hs-form { position: relative; }
+button.hs-chip { font-family: var(--font-body); }
+
+/* ── Search sitting on the hero ──────────────────────────────────
+   On a dark photographic background the bar needs its own contrast:
+   a translucent white field with a blur behind it, rather than the
+   white strip it used when it had its own row.
+   ---------------------------------------------------------------- */
+.home-searchbar.is-on-hero {
+  background: transparent;
+  border-bottom: 0;
+  margin-top: 0;
+  margin-bottom: clamp(28px, 4vh, 44px);
+  max-width: none;          /* spans the hero, matching the navbar edge */
+}
+.home-searchbar.is-on-hero .hs-form { padding: 0; }
+
+.home-searchbar.is-on-hero .hs-field .giya-input {
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(255,255,255,.5);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 22px rgba(20,10,6,.28);
+}
+.home-searchbar.is-on-hero .hs-field .giya-input:focus {
+  background: #fff;
+  border-color: var(--gold);
+}
+
+/* Chips read as light-on-dark here, unlike on a white strip. */
+.home-searchbar.is-on-hero .hs-chip {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.34);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.home-searchbar.is-on-hero .hs-chip:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--primary-dark);
+}
+
+/* The results panel stays a solid card — it holds real content. */
+.home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
+
+@media (max-width: 560px) {
+  .home-searchbar.is-on-hero { margin-bottom: 20px; max-width: none; }
+  .home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
+}
+
+/* ── Hero inner spacing ──────────────────────────────────────────
+   Was a fixed 48px top, which reads well on a phone and sits far too
+   close under the navbar on a wide screen. clamp() scales it with the
+   viewport rather than picking one number for every device.
+   ---------------------------------------------------------------- */
+.hero-inner {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(32px, 7vh, 72px) 20px clamp(56px, 9vh, 96px);
+}
+
+@media (max-width: 560px) {
+  .hero-inner { padding-left: 16px; padding-right: 16px; }
+}
+
+/* ── Search field icon ───────────────────────────────────────────
+   The SVG version was dark artwork on a translucent field over a dark
+   hero, so it disappeared while its 44px of padding kept the space —
+   the gap on the left of the input. A font glyph inherits colour, so
+   it can be tinted to suit whichever background it sits on.
+   ---------------------------------------------------------------- */
+.hs-field { position: relative; }
+.hs-field .bi {
+  position: absolute; left: 16px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  pointer-events: none;
+  z-index: 2;
+}
+.home-searchbar.is-on-hero .hs-field .bi { color: #8A6E5C; }
+
+/* Full width across the hero. */
+.hero-inner .home-searchbar.is-on-hero .hs-row { max-width: none; }
+.hero-inner .home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
+
+/* On a very wide screen a full-bleed field looks empty, so cap it there. */
+@media (min-width: 1400px) {
+  .home-searchbar.is-on-hero { max-width: 1100px; }
+}

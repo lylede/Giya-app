@@ -16,7 +16,31 @@
         </svg>
     </div>
 
-    <div style="position:relative;max-width:1280px;margin:0 auto;padding:96px 20px;width:100%">
+    <div class="hero-inner">
+        {{-- Search spans the hero, outside the 680px text column below it. --}}
+        <div class="home-searchbar is-on-hero">
+                <div class="hs-form">
+                    <div class="hs-row">
+                        <div class="hs-field">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <input type="search" id="homeSearch" class="giya-input"
+                                   placeholder="Search churches, shrines, basilicas…"
+                                   autocomplete="off" aria-label="Search churches">
+                        </div>
+                        <button type="button" class="btn btn-primary hs-submit" id="homeSearchGo">
+                            <span class="hs-submit-text">Search</span>
+                            <i class="bi bi-search hs-submit-icon" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <div class="hs-chips">
+                        @foreach (['Basilica', 'Shrine', 'Cathedral', 'Church'] as $cat)
+                            <button type="button" class="hs-chip" data-cat="{{ $cat }}">{{ $cat }}</button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
         <div style="max-width:680px">
             <div class="eyebrow">
                 <span class="eyebrow-bar"></span>
@@ -58,30 +82,6 @@
 </section>
 
 {{-- ────────────────────────── Search / filters ──────────────────────── --}}
-<div class="home-searchbar">
-    <form action="{{ route('map') }}" method="GET" class="hs-form">
-
-        {{-- Field and button stay on one row at every width. --}}
-        <div class="hs-row">
-            <div class="hs-field">
-                <img src="{{ asset('images/icons/search.svg') }}" alt="" width="16" height="16">
-                <input type="search" name="q" class="giya-input"
-                       placeholder="Search churches, shrines, basilicas…"
-                       aria-label="Search churches">
-            </div>
-            <button type="submit" class="btn btn-primary hs-submit">
-                <span class="hs-submit-text">Search</span>
-                <i class="bi bi-search hs-submit-icon" aria-hidden="true"></i>
-            </button>
-        </div>
-
-        <div class="hs-chips">
-            @foreach (['Basilica', 'Shrine', 'Cathedral', 'Church'] as $cat)
-                <a href="{{ route('map', ['category' => $cat]) }}" class="hs-chip">{{ $cat }}</a>
-            @endforeach
-        </div>
-    </form>
-</div>
 
 <div class="page-wrap">
 
@@ -204,3 +204,32 @@
 </style>
 @endpush
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const input = document.getElementById('homeSearch');
+    const goBtn = document.getElementById('homeSearchGo');
+    if (!input) return;
+
+    const mapUrl = @json(route('map'));
+
+    /* The map already filters by name, location and category, so the home page
+       hands the term over rather than duplicating that logic here. */
+    function go(term) {
+        term = (term || '').trim();
+        window.location.href = mapUrl + (term ? '?q=' + encodeURIComponent(term) : '');
+    }
+
+    if (goBtn) goBtn.addEventListener('click', function () { go(input.value); });
+
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); go(input.value); }
+    });
+
+    document.querySelectorAll('.hs-chip[data-cat]').forEach(function (chip) {
+        chip.addEventListener('click', function () { go(chip.dataset.cat); });
+    });
+})();
+</script>
+@endpush
