@@ -124,7 +124,7 @@ window.GiyaLeaflet = (function () {
         var map = L.map(cfg.element, {
             center: [cfg.center ? cfg.center.lat : CEBU.lat, cfg.center ? cfg.center.lng : CEBU.lng],
             zoom: cfg.zoom || 12,
-            zoomControl: true
+            zoomControl: false      // replaced by the .map-tools stack
         });
 
         tileLayer(cfg).addTo(map);

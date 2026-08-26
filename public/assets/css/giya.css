@@ -1690,6 +1690,13 @@ html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
 .mx-thumb img {
   position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover;
+  background: var(--bg-secondary);
+}
+/* Only when the photo fails to load does the fallback glyph appear. */
+.mx-thumb.is-empty::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: var(--gold-bg);
 }
 
 .mx-row-body { flex: 1; min-width: 0; }
@@ -2799,3 +2806,23 @@ html[data-theme="dark"] .ai-panel-composer { background: var(--surface-2); }
 body.ai-panel-locked .giya-fab { opacity: 0; pointer-events: none; }
 .giya-fab { transition: opacity .2s ease, gap .18s ease, padding .18s ease,
                         background .15s ease, transform .15s ease, box-shadow .18s ease; }
+
+/* ── Zoom pair in the map tool stack ─────────────────────────────
+   Zoom in and out are one control with two directions, so they share
+   a rounded outline. They match the fullscreen and locate buttons
+   above them; Leaflet's own control is switched off in giya-leaflet.js.
+   ---------------------------------------------------------------- */
+.map-tool-pair {
+  display: flex; flex-direction: column;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 2px 10px rgba(36,28,24,.22);
+}
+.map-tool-pair .map-tool { border-radius: 0; box-shadow: none; }
+.map-tool-pair .map-tool:first-child {
+  border-radius: 12px 12px 0 0;
+  border-bottom: 1px solid var(--border);
+}
+.map-tool-pair .map-tool:last-child { border-radius: 0 0 12px 12px; }
+
+/* Safety net: if a map is ever created without zoomControl:false. */
+.leaflet-control-zoom { display: none !important; }

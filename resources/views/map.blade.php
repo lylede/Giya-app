@@ -69,14 +69,26 @@
             <div class="giya-map-canvas" id="giyaMap"></div>
 
             <div class="map-tools">
-                <button type="button" class="map-tool" id="btnLocate"
-                        title="Find my location" aria-label="Find my location">
-                    <i class="bi bi-geo-alt-fill"></i>
-                </button>
                 <button type="button" class="map-tool" id="btnFullscreen"
                         title="Fullscreen" aria-label="Toggle fullscreen">
                     <i class="bi bi-arrows-fullscreen"></i>
                 </button>
+
+                <button type="button" class="map-tool" id="btnLocate"
+                        title="Find my location" aria-label="Find my location">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </button>
+
+                <div class="map-tool-pair">
+                    <button type="button" class="map-tool" id="btnZoomIn"
+                            title="Zoom in" aria-label="Zoom in">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button type="button" class="map-tool" id="btnZoomOut"
+                            title="Zoom out" aria-label="Zoom out">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -89,6 +101,28 @@
 <script>
 (function () {
     const churches = @json($markers);
+
+    /* A rotating reminder. It advances each time the devotee dismisses it, so
+       it stays worth reading instead of becoming wallpaper, and it remembers
+       where it left off between visits. */
+    const REMINDERS = [
+        'Travel safely today, and may every church you enter bring you a little more peace than the last.',
+        'Mass schedules change without notice, so it is always worth calling the parish before you set out.',
+        'Dress modestly when you visit, with shoulders and knees covered, and remember that some chapels ask for silence.',
+        'Start early and carry water with you. The midday heat in Cebu is unforgiving, especially on foot.',
+        'Keep your belongings close in crowded churches, particularly during fiesta and on feast days.',
+    ];
+
+    let reminderIndex = Number(localStorage.getItem('giya_reminder') || 0) % REMINDERS.length;
+
+    function showReminder() {
+        showNote(REMINDERS[reminderIndex], 'info');
+    }
+
+    function nextReminder() {
+        reminderIndex = (reminderIndex + 1) % REMINDERS.length;
+        localStorage.setItem('giya_reminder', reminderIndex);
+    }
     const note     = document.getElementById('mapNote');
     const listBox  = document.getElementById('churchList');
     const routeBox = document.getElementById('routeBox');
@@ -106,6 +140,7 @@
 
     note.querySelector('.map-note-close').addEventListener('click', function () {
         note.style.display = 'none';
+        nextReminder();
     });
 
     const map = GiyaLeaflet.browse({
@@ -113,7 +148,8 @@
         churches: churches,
         onStatus: showNote,
         onFallback: function () {
-            showNote('Local map tiles are not downloaded yet, so tiles are loading from OpenStreetMap. Run "php artisan giya:tiles" to work fully offline.', 'info');
+            // Offline tiles are a deployment concern, not something a devotee
+            // can act on. The map works either way, so say nothing.
         },
         onLocated: function (me, nearest) {
             distances = {};
@@ -221,8 +257,9 @@
 
             return '<article class="mx-row' + (picked ? ' is-picked' : '') + '" data-church="' + c.id + '">' +
                 '<span class="mx-thumb">' +
-                    (c.image ? '<img src="' + c.image + '" alt="" loading="lazy" onerror="this.remove()">' : '') +
-                    '<i class="bi bi-building"></i>' +
+                    (c.image
+                        ? '<img src="' + c.image + '" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'is-empty\')">'
+                        : '<i class="bi bi-building"></i>') +
                 '</span>' +
                 '<div class="mx-row-body">' +
                     '<h3>' +
@@ -248,6 +285,10 @@
             '</article>';
         }).join('');
     }
+
+    /* ---- zoom ---- */
+    document.getElementById('btnZoomIn').addEventListener('click', function () { map.map.zoomIn(); });
+    document.getElementById('btnZoomOut').addEventListener('click', function () { map.map.zoomOut(); });
 
     /* ---- fullscreen ---- */
     const shell = document.querySelector('.map-grid');
@@ -341,6 +382,7 @@
         if (row) map.focus(Number(row.dataset.church));
     });
 
+    showReminder();
     renderList();
 })();
 </script>
