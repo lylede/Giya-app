@@ -4,35 +4,35 @@
 @section('content')
 
 {{-- ─────────────────────────────── Hero ─────────────────────────────── --}}
-<section class="church-hero" style="position:relative;overflow:hidden;min-height:480px;display:flex;flex-direction:column;justify-content:space-between;background-color:#63331b;padding-bottom:48px;">
+<section class="church-hero">
     @if ($church->imagePath())
         <img src="{{ $church->imagePath() }}" alt="{{ $church->name }}"
-             style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;">
+             class="church-hero-image">
     @endif
     {{-- Warm brown tinted transparent gradient overlay matching the brand design --}}
-    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(99,51,27,0.55) 0%,rgba(53,27,14,0.92) 100%);z-index:1;"></div>
+    <div class="church-hero-overlay"></div>
 
-    <div style="position:relative;z-index:2;padding:24px">
+    <div class="church-hero-top">
         <a href="{{ url()->previous() ?: route('map') }}"
            aria-label="Back to map"
-           style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.5);color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none">
+           class="church-back-link">
             <i class="bi bi-chevron-left" aria-hidden="true"></i>
         </a>
     </div>
 
-    <div class="church-hero-content" style="position:relative;z-index:2;max-width:1280px;margin:0 auto;padding:0 24px;width:100%">
+    <div class="church-hero-content">
         @if ($church->category)
-            <span style="background:var(--gold);color:#fff;font-weight:600;font-size:0.75rem;padding:6px 14px;border-radius:999px;display:inline-block;margin-bottom:12px">
+            <span class="church-hero-category">
                 {{ $church->category }}
             </span>
         @endif
 
-        <h1 style="font-family:var(--font-display);color:#fff;font-size:clamp(28px,5vw,44px);line-height:1.2;font-weight:700;margin:0 0 8px">
+        <h1>
             {{ $church->name }}
         </h1>
 
         @if ($church->address || $church->location)
-            <p style="color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:6px;margin:0 0 20px">
+            <p class="church-hero-address">
                 <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
                 {{ $church->address ?? $church->location }}
             </p>
@@ -57,41 +57,41 @@
 </section>
 
 {{-- ─────────────────── Stat strip — overlaps hero bottom edge cleanly ────────────────── --}}
-<div class="church-stat-wrap" style="max-width:540px;margin:24px auto 0;position:relative;z-index:3;padding:0 20px">
-    <div class="church-stat-strip card" style="display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:28px;padding:14px 20px;box-shadow:0 4px 12px rgba(0,0,0,0.08);background:#fff;border-radius:999px;">
+<div class="church-stat-wrap">
+    <div class="church-stat-strip card">
         @if (!is_null($church->rating))
-            <div style="text-align:center;">
-                <div style="font-weight:700;font-size:0.875rem;color:var(--text);display:flex;align-items:center;gap:3px;justify-content:center;">
-                    <i class="bi bi-star-fill" style="color:var(--gold);font-size:0.75rem;" aria-hidden="true"></i> {{ number_format($church->rating, 1) }}
+            <div class="church-stat-item">
+                <div class="church-stat-value is-inline">
+                    <i class="bi bi-star-fill" aria-hidden="true"></i> {{ number_format($church->rating, 1) }}
                 </div>
-                <div style="font-size:0.6875rem;color:var(--text-muted)">Rating</div>
+                <div class="church-stat-label">Rating</div>
             </div>
         @endif
 
         @if ($church->hours_label)
-            <div style="text-align:center;">
-                <div style="font-weight:700;font-size:0.875rem;color:var(--text)">{{ $church->hours_label }}</div>
-                <div style="font-size:0.6875rem;color:var(--text-muted)">Open</div>
+            <div class="church-stat-item">
+                <div class="church-stat-value">{{ $church->hours_label }}</div>
+                <div class="church-stat-label">Open</div>
             </div>
         @endif
 
         @if (!is_null($church->daily_visits))
-            <div style="text-align:center;">
-                <div style="font-weight:700;font-size:0.875rem;color:var(--text)">{{ $church->daily_visits }}</div>
-                <div style="font-size:0.6875rem;color:var(--text-muted)">Visitors</div>
+            <div class="church-stat-item">
+                <div class="church-stat-value">{{ $church->daily_visits }}</div>
+                <div class="church-stat-label">Visitors</div>
             </div>
         @endif
 
-        <div style="text-align:center;">
-            <div style="font-weight:700;font-size:0.875rem;color:var(--text);display:flex;align-items:center;gap:3px;justify-content:center;">
-                <i class="bi bi-file-earmark-fill" style="color:#0d6efd;font-size:0.75rem;" aria-hidden="true"></i> {{ $church->access ?? 'Yes' }}
+        <div class="church-stat-item">
+            <div class="church-stat-value is-inline">
+                <i class="bi bi-file-earmark-fill" aria-hidden="true"></i> {{ $church->access ?? 'Yes' }}
             </div>
-            <div style="font-size:0.6875rem;color:var(--text-muted)">Access</div>
+            <div class="church-stat-label">Access</div>
         </div>
     </div>
 </div>
 
-<div class="church-detail-page page-wrap" style="padding-top:28px">
+<div class="church-detail-page page-wrap">
 
     {{-- ───────────────────────────── Tabs ─────────────────────────────── --}}
     <div class="church-tabs" role="tablist" aria-label="Church details">
@@ -102,21 +102,21 @@
     </div>
 
     {{-- ─────────────────────────── Info section ───────────────────────── --}}
-    <section id="church-info" role="tabpanel" aria-labelledby="church-info-tab" data-church-panel style="margin-bottom:40px">
-        <h2 class="section-title" style="margin-bottom:16px">About {{ $church->name }}</h2>
+    <section id="church-info" role="tabpanel" aria-labelledby="church-info-tab" data-church-panel class="church-detail-section">
+        <h2 class="section-title church-section-title">About {{ $church->name }}</h2>
 
         @if ($church->description)
-            <p class="church-description" style="color:var(--text);line-height:1.75;margin-bottom:12px">{{ $church->description }}</p>
+            <p class="church-description">{{ $church->description }}</p>
         @else
-            <p class="church-description" style="color:var(--text-muted);line-height:1.75;margin-bottom:12px">No description is available for this church yet.</p>
+            <p class="church-description is-empty">No description is available for this church yet.</p>
         @endif
 
-        <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:4px">
+        <p class="church-info-meta is-address">
             <i class="bi bi-geo-alt" aria-hidden="true"></i>
             {{ $church->address ?? $church->location ?? 'Address not available' }}
         </p>
 
-        <p style="color:var(--text-muted);font-size:0.875rem;margin:0">
+        <p class="church-info-meta is-hours">
             <i class="bi bi-clock" aria-hidden="true"></i>
             {{ $church->hours_label ?? 'Time not available' }}
         </p>
@@ -126,7 +126,7 @@
     <div id="church-schedule" role="tabpanel" aria-labelledby="church-schedule-tab" data-church-panel hidden class="church-detail-grid">
 
         <section>
-            <h2 class="section-title" style="margin-bottom:16px">Mass Schedule</h2>
+            <h2 class="section-title church-section-title">Mass Schedule</h2>
 
             @php
                 $massSchedules = $church->schedules
@@ -134,13 +134,13 @@
                     ->groupBy('day_label');
             @endphp
 
-            <div class="card" style="padding:20px 24px">
+            <div class="card church-schedule-card">
                 @forelse ($massSchedules as $dayLabel => $schedulesForDay)
-                    <div style="margin-bottom:20px">
-                        <div style="font-weight:700;color:var(--text);margin-bottom:10px">{{ $dayLabel }}</div>
+                    <div class="church-schedule-day">
+                        <div class="church-schedule-day-label">{{ $dayLabel }}</div>
                         <div>
                             @foreach ($schedulesForDay as $schedule)
-                                <span style="display:inline-block;background:var(--gold-bg);border:1px solid var(--border);border-radius:999px;padding:6px 14px;font-size:0.8125rem;color:var(--text);margin:0 6px 6px 0">
+                                <span class="church-schedule-time">
                                     {{ $schedule->timeLabel($schedule->start_time) }}
                                 </span>
                             @endforeach
@@ -154,7 +154,7 @@
         </section>
 
         <section id="church-events">
-            <h2 class="section-title" style="margin-bottom:16px">Upcoming Events</h2>
+            <h2 class="section-title church-section-title">Upcoming Events</h2>
 
             @php
                 $upcomingEvents = $church->schedules
@@ -166,19 +166,19 @@
             @endphp
 
             @forelse ($upcomingEvents as $event)
-                <div class="church-event-row d-flex align-items-center gap-3 card" style="padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
-                    <span class="church-event-badge" style="width:52px;height:52px;border-radius:12px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px;background:#63331b;color:var(--gold)">
-                        <i class="bi bi-star-fill" style="font-size:0.75rem;margin-bottom:2px"></i>
-                        <span style="font-size:0.5rem;font-weight:700;text-transform:uppercase;line-height:1.1;">{{ $event->event_type }}</span>
+                <div class="church-event-row d-flex align-items-center gap-3 card">
+                    <span class="church-event-badge">
+                        <i class="bi bi-star-fill"></i>
+                        <span>{{ $event->event_type }}</span>
                     </span>
-                    <div class="church-event-details" style="flex:1;min-width:0">
-                        <div style="font-size:0.875rem;font-weight:700;color:var(--text)">{{ $event->event_name }}</div>
-                        <div style="font-size:0.75rem;color:var(--text-muted)">
-                            <i class="bi bi-geo-alt" style="font-size:0.6875rem" aria-hidden="true"></i>
+                    <div class="church-event-details">
+                        <div>{{ $event->event_name }}</div>
+                        <div>
+                            <i class="bi bi-geo-alt" aria-hidden="true"></i>
                             {{ $event->location ?? $church->name }}
                         </div>
                     </div>
-                    <div class="church-event-meta" style="font-size:0.75rem;font-weight:700;color:var(--text-muted);white-space:nowrap;margin-left:auto;text-align:right">
+                    <div class="church-event-meta">
                         <div>{{ $event->day_label }}</div>
                         @if ($event->start_time)
                             <div>{{ $event->timeLabel($event->start_time) }}</div>
@@ -192,7 +192,7 @@
         </section>
     </div>
 
-    <section id="church-reviews" role="tabpanel" aria-labelledby="church-reviews-tab" data-church-panel hidden style="margin-bottom:40px">
+    <section id="church-reviews" role="tabpanel" aria-labelledby="church-reviews-tab" data-church-panel hidden class="church-detail-section">
         @php
             $approvedFeedback = $church->feedback;
             $ratedFeedback = $approvedFeedback->filter(fn ($feedback) => !is_null($feedback->rating));
@@ -200,7 +200,7 @@
             $reviewCount = $approvedFeedback->count();
         @endphp
 
-        <h2 class="section-title" style="margin-bottom:16px">Reviews</h2>
+        <h2 class="section-title church-section-title">Reviews</h2>
 
         @if ($reviewCount)
             <div class="church-reviews-layout">
@@ -259,287 +259,14 @@
         @endif
     </section>
 
-    <section id="church-guidelines" role="tabpanel" aria-labelledby="church-guidelines-tab" data-church-panel hidden style="margin-bottom:40px">
+    <section id="church-guidelines" role="tabpanel" aria-labelledby="church-guidelines-tab" data-church-panel hidden class="church-detail-section">
         <x-empty-state icon="info-circle" title="Guidelines coming soon"
                        desc="Visit guidelines for this church will appear here when available." />
     </section>
 </div>
 
 @push('head')
-<style>
-    @media (max-width: 900px) {
-        .church-detail-grid { grid-template-columns: 1fr !important; }
-    }
-
-    .church-detail-grid {
-        display:grid;
-        grid-template-columns:2fr 1fr;
-        gap:32px;
-    }
-
-    [data-church-panel][hidden] {
-        display:none !important;
-    }
-
-    .church-tabs {
-        display:flex;
-        justify-content:center;
-        gap:36px;
-        border-bottom:1px solid var(--border-light);
-        margin-bottom:24px;
-        flex-wrap:wrap;
-    }
-
-    .church-tab {
-        color:var(--text-muted);
-        font-weight:600;
-        font-size:0.9375rem;
-        text-decoration:none;
-        padding-bottom:10px;
-        border-bottom:2px solid transparent;
-        flex-shrink:0;
-    }
-
-    .church-tab.is-active,
-    .church-tab:hover,
-    .church-tab:focus-visible {
-        color:var(--primary);
-    }
-
-    .church-tab.is-active {
-        border-bottom-color:var(--primary);
-    }
-
-    .church-reviews-layout {
-        display:grid;
-        grid-template-columns:minmax(0, 1.55fr) minmax(280px, 1fr);
-        gap:16px;
-        align-items:start;
-    }
-
-    .church-review-summary {
-        display:grid;
-        grid-template-columns:minmax(120px, 0.8fr) minmax(200px, 1.2fr);
-        align-items:center;
-        gap:24px;
-        padding:20px 24px;
-        border:1px solid var(--border-light);
-        box-shadow:var(--shadow-sm);
-    }
-
-    .church-review-average {
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        gap:5px;
-        text-align:center;
-    }
-
-    .church-review-average strong {
-        color:var(--primary);
-        font-family:var(--font-display);
-        font-size:clamp(2.5rem, 5vw, 3.25rem);
-        line-height:1;
-    }
-
-    .church-review-average span {
-        color:var(--text-muted);
-        font-size:0.75rem;
-    }
-
-    .church-rating-breakdown {
-        display:flex;
-        flex-direction:column;
-        gap:8px;
-    }
-
-    .church-rating-row {
-        display:grid;
-        grid-template-columns:12px 1fr;
-        align-items:center;
-        gap:8px;
-        color:var(--text-muted);
-        font-size:0.75rem;
-    }
-
-    .church-rating-track {
-        height:10px;
-        overflow:hidden;
-        border-radius:999px;
-        background:var(--gold-bg);
-    }
-
-    .church-rating-track span {
-        display:block;
-        height:100%;
-        border-radius:inherit;
-        background:var(--gold);
-    }
-
-    .church-review-list {
-        display:flex;
-        flex-direction:column;
-        gap:12px;
-    }
-
-    .church-review-card {
-        padding:16px;
-        border:1px solid var(--border-light);
-        border-radius:8px;
-        background:var(--surface, #fff);
-        box-shadow:var(--shadow-sm);
-    }
-
-    .church-review-card-header {
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:12px;
-    }
-
-    .church-review-author {
-        color:var(--text);
-        font-size:0.8125rem;
-        font-weight:700;
-        margin-bottom:3px;
-    }
-
-    .church-review-card time {
-        color:var(--text-muted);
-        font-size:0.6875rem;
-        white-space:nowrap;
-    }
-
-    .church-review-card p {
-        color:var(--text);
-        font-size:0.75rem;
-        line-height:1.6;
-        margin:12px 0 0;
-    }
-
-    .church-event-details,
-    .church-event-details > div {
-        overflow-wrap:anywhere;
-    }
-
-    @media (max-width: 700px) {
-        .church-hero {
-            min-height:430px !important;
-            padding-bottom:32px !important;
-        }
-
-        .church-hero-content {
-            padding:0 16px !important;
-        }
-
-        .church-hero-content h1 {
-            overflow-wrap:anywhere;
-        }
-
-        .church-hero-content p {
-            align-items:flex-start !important;
-            overflow-wrap:anywhere;
-        }
-
-        .church-hero-actions {
-            gap:10px !important;
-        }
-
-        .church-hero-actions .btn {
-            flex:1 1 150px;
-            min-width:0;
-            white-space:normal;
-            min-height:44px;
-        }
-
-        .church-stat-wrap {
-            margin-top:16px !important;
-            padding:0 16px !important;
-        }
-
-        .church-stat-strip {
-            display:grid !important;
-            grid-template-columns:repeat(2, minmax(0, 1fr));
-            gap:14px 10px !important;
-            padding:14px 12px !important;
-            border-radius:16px !important;
-        }
-
-        .church-detail-page {
-            width:100%;
-            max-width:100%;
-            box-sizing:border-box;
-            padding-left:16px !important;
-            padding-right:16px !important;
-        }
-
-        #church-info .section-title {
-            text-align:center;
-        }
-
-        #church-info .church-description {
-            text-align:justify;
-        }
-
-        .church-tabs {
-            width:max-content;
-            min-width:100%;
-            box-sizing:border-box;
-            justify-content:center;
-            gap:24px;
-            flex-wrap:nowrap;
-            overflow-x:auto;
-            overflow-y:hidden;
-            scrollbar-width:none;
-            white-space:nowrap;
-            padding:0 4px;
-        }
-
-        .church-tabs::-webkit-scrollbar {
-            display:none;
-        }
-
-        .church-event-row {
-            align-items:flex-start !important;
-            gap:10px !important;
-        }
-
-        .church-event-badge {
-            width:46px !important;
-            height:46px !important;
-        }
-
-        .church-event-meta {
-            white-space:normal !important;
-            flex:0 0 auto;
-            max-width:76px;
-        }
-
-        .church-review-card-header {
-            flex-wrap:wrap;
-        }
-
-        .church-review-card-header > div {
-            min-width:0;
-            overflow-wrap:anywhere;
-        }
-
-        .church-review-card time {
-            white-space:normal;
-        }
-    }
-
-    @media (max-width: 700px) {
-        .church-reviews-layout,
-        .church-review-summary {
-            grid-template-columns:1fr;
-        }
-
-        .church-review-summary {
-            gap:20px;
-        }
-    }
-</style>
+    <link rel="stylesheet" href="{{ asset('assets/css/church-show.css') }}?v={{ filemtime(public_path('assets/css/church-show.css')) }}">
 @endpush
 
 @push('scripts')
