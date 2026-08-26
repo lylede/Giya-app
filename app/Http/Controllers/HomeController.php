@@ -23,6 +23,38 @@ class HomeController extends Controller
         return view('home', $this->homeData());
     }
 
+    public function search(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $term = trim((string) $request->query('q'));
+
+        if (mb_strlen($term) < 2) {
+            return response()->json(['ok' => true, 'items' => []]);
+        }
+
+        $items = Church::with('churchCategory')
+            ->active()
+            ->where(function ($q) use ($term) {
+                $like = '%'.$term.'%';
+                $q->where('name', 'ilike', $like)
+                  ->orWhere('location', 'ilike', $like)
+                  ->orWhereHas('churchCategory', fn ($c) => $c->where('name', 'ilike', $like));
+            })
+            ->orderBy('name')
+            ->take(8)
+            ->get()
+            ->map(fn (Church $c) => [
+                'id'       => $c->id,
+                'name'     => $c->name,
+                'location' => $c->location,
+                'category' => $c->category,
+                'image'    => $c->imagePath(),
+                'open'     => $c->isOpenNow(),
+                'url'      => route('churches.show', $c),
+            ]);
+
+        return response()->json(['ok' => true, 'items' => $items, 'term' => $term]);
+    }
+
     private function homeData(): array
     {
         return [

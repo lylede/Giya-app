@@ -349,6 +349,38 @@ window.GiyaLeaflet = (function () {
             });
         }
 
+        /**
+         * Show only the churches whose ids are given, and frame them.
+         *
+         * The map should answer the same question the list is answering. With
+         * every pin left on screen, searching "san" narrows the list to three
+         * while the map still shows nine — so the map contradicts the list.
+         */
+        function showOnly(ids) {
+            var shown = [];
+
+            churches.forEach(function (c) {
+                var m = markers[c.id];
+                if (!m) return;
+
+                if (ids.indexOf(c.id) !== -1) {
+                    if (!map.hasLayer(m)) m.addTo(group);
+                    shown.push([c.lat, c.lng]);
+                } else if (map.hasLayer(m)) {
+                    group.removeLayer(m);
+                }
+            });
+
+            if (!shown.length) return;
+
+            // One match reads better centred than filling the screen.
+            if (shown.length === 1) {
+                map.setView(shown[0], 15, { animate: true });
+            } else {
+                map.fitBounds(L.latLngBounds(shown).pad(0.22), { animate: true });
+            }
+        }
+
         function focus(id) {
             var m = markers[id];
             if (!m) return;
@@ -382,6 +414,7 @@ window.GiyaLeaflet = (function () {
 
         return {
             map: map, locate: locate, focus: focus, frameAll: frameAll,
+            showOnly: showOnly,
             addStop: addStop, toggleStop: toggleStop,
             removeStop: removeStop, clearRoute: clearRoute,
             externalDirections: externalDirections,

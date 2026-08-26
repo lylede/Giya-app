@@ -128,7 +128,9 @@
     const routeBox = document.getElementById('routeBox');
 
     let category = 'All';
-    let query    = '';
+    // A search from the home page arrives as ?q= — start from it.
+    let query = new URLSearchParams(window.location.search).get('q') || '';
+    query = query.trim().toLowerCase();
     let distances = {};
 
     function showNote(message, kind) {
@@ -246,6 +248,11 @@
 
         document.getElementById('listHeading').textContent =
             list.length + ' result' + (list.length === 1 ? '' : 's');
+
+        // Keep the map showing exactly what the list shows.
+        if (map.showOnly) {
+            map.showOnly(list.map(function (c) { return c.id; }));
+        }
 
         if (!list.length) {
             listBox.innerHTML = '<p class="mx-empty">No churches match these filters.</p>';
@@ -383,6 +390,10 @@
     });
 
     showReminder();
+    if (query) {
+        document.getElementById('mapSearch').value = query;
+    }
+
     renderList();
 })();
 </script>
