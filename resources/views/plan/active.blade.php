@@ -145,8 +145,6 @@ const GiyaActive = (function () {
         return stops.find(s => !visited.has(s.id)) || null;
     }
 
-    // Leaflet map for the route. Pins carry their stop number and recolour
-    // as stops are marked visited.
     const liveMap = GiyaLeaflet.pilgrimage({
         element: 'activeMap',
         stops: points,
