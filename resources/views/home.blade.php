@@ -227,9 +227,30 @@
         if (e.key === 'Enter') { e.preventDefault(); go(input.value); }
     });
 
+    /* Chips fill the field rather than navigating.
+
+       Tapping a category is a first draft, not a decision — someone can tap
+       Cathedral, see it, and change to Chapel before committing. The Search
+       button stays the one place a devotee leaves this page from, so there is
+       never a question about what a tap will do. */
+    function markChips(value) {
+        var v = (value || '').trim().toLowerCase();
+        document.querySelectorAll('.hs-chip[data-cat]').forEach(function (c) {
+            c.classList.toggle('is-active', c.dataset.cat.toLowerCase() === v);
+        });
+    }
+
     document.querySelectorAll('.hs-chip[data-cat]').forEach(function (chip) {
-        chip.addEventListener('click', function () { go(chip.dataset.cat); });
+        chip.addEventListener('click', function () {
+            input.value = chip.dataset.cat;
+            input.focus();
+            markChips(chip.dataset.cat);
+        });
     });
+
+    /* Typing over a chip's word clears its highlight, so a lit chip never
+       claims something the box no longer says. */
+    input.addEventListener('input', function () { markChips(input.value); });
 })();
 </script>
 @endpush

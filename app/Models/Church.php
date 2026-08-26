@@ -243,12 +243,17 @@ class Church extends Model
         }
 
         $slug = \Illuminate\Support\Str::slug($this->name);
-        $file = public_path("images/churches/{$slug}.svg");
 
-        return file_exists($file)
-            ? asset("images/churches/{$slug}.svg")
-            : asset('images/churches/placeholder.svg');
+        // PNG first: SVG is for icons, photographs belong in a raster format.
+        foreach (['png', 'jpg', 'webp', 'svg'] as $ext) {
+            if (file_exists(public_path("images/churches/{$slug}.{$ext}"))) {
+                return asset("images/churches/{$slug}.{$ext}");
+            }
+        }
+
+        return asset('images/churches/placeholder.svg');
     }
+
     /** Has the signed-in devotee saved this destination? */
     public function isFavorited(): bool
     {

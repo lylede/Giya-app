@@ -2477,6 +2477,29 @@ html[data-theme="dark"] .notif-item.is-unread .notif-icon { background: var(--su
 }
 
 html[data-theme="dark"] .home-searchbar { background: var(--surface); }
+
+/* On the hero the bar has no strip of its own — in either theme. The generic
+   dark rule above was painting a black band across the hero image. */
+html[data-theme="dark"] .home-searchbar.is-on-hero { background: transparent; }
+
+html[data-theme="dark"] .home-searchbar.is-on-hero .hs-field .giya-input {
+  background: rgba(28, 22, 19, .88);
+  border-color: rgba(215,169,74,.34);
+  color: var(--text);
+}
+html[data-theme="dark"] .home-searchbar.is-on-hero .hs-field .bi { color: var(--gold); }
+
+html[data-theme="dark"] .home-searchbar.is-on-hero .hs-chip {
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.24);
+  color: #fff;
+}
+html[data-theme="dark"] .home-searchbar.is-on-hero .hs-chip.is-active,
+html[data-theme="dark"] .home-searchbar.is-on-hero .hs-chip:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--primary-dark);
+}
 html[data-theme="dark"] .hs-chip { background: var(--surface); }
 
 /* ── Home card grids ─────────────────────────────────────────────
@@ -2921,4 +2944,12 @@ button.hs-chip { font-family: var(--font-body); }
 /* On a very wide screen a full-bleed field looks empty, so cap it there. */
 @media (min-width: 1400px) {
   .home-searchbar.is-on-hero { max-width: 1100px; }
+}
+
+/* A chip stays lit while its word is in the search box, so the devotee can see
+   what they picked before pressing Search. */
+.home-searchbar.is-on-hero .hs-chip.is-active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--primary-dark);
 }
