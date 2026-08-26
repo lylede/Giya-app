@@ -188,7 +188,7 @@
 
                 <div class="d-flex flex-column gap-2 mt-auto pt-4" style="position:relative">
                     <a href="{{ auth()->check() ? route('plan.create') : route('login') }}" class="btn btn-gold btn-w-full">{{ auth()->check() ? 'Plan My Pilgrimage' : 'Sign in to plan' }}</a>
-                    <a href="{{ auth()->check() ? route('chatbot') : route('login') }}" class="btn btn-ghost btn-w-full">{{ auth()->check() ? 'Ask Giya AI' : 'Create an account' }}</a>
+                    <a href="{{ auth()->check() ? route('chatbot') : route('login') }}" class="btn btn-ghost btn-ghost-inverse btn-w-full">{{ auth()->check() ? 'Ask Giya AI' : 'Create an account' }}</a>
                 </div>
             </div>
 
