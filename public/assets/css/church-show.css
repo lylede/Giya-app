@@ -1,0 +1,535 @@
+.church-hero {
+    position:relative;
+    overflow:hidden;
+    min-height:480px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    background-color:#63331b;
+    padding-bottom:48px;
+}
+
+.church-hero-image {
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:0;
+}
+
+.church-hero-overlay {
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg,rgba(99,51,27,0.55) 0%,rgba(53,27,14,0.92) 100%);
+    z-index:1;
+}
+
+.church-hero-top,
+.church-hero-content {
+    position:relative;
+    z-index:2;
+}
+
+.church-hero-top {
+    padding:24px;
+}
+
+.church-back-link {
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.5);
+    color:#fff;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+}
+
+.church-hero-content {
+    max-width:1280px;
+    margin:0 auto;
+    padding:0 24px;
+    width:100%;
+}
+
+.church-hero-category {
+    background:var(--gold);
+    color:#fff;
+    font-weight:600;
+    font-size:0.75rem;
+    padding:6px 14px;
+    border-radius:999px;
+    display:inline-block;
+    margin-bottom:12px;
+}
+
+.church-hero-content h1 {
+    font-family:var(--font-display);
+    color:#fff;
+    font-size:clamp(28px,5vw,44px);
+    line-height:1.2;
+    font-weight:700;
+    margin:0 0 8px;
+}
+
+.church-hero-address {
+    color:rgba(255,255,255,0.9);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin:0 0 20px;
+}
+
+.church-stat-wrap {
+    max-width:540px;
+    margin:24px auto 0;
+    position:relative;
+    z-index:3;
+    padding:0 20px;
+}
+
+.church-stat-strip {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:28px;
+    padding:14px 20px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    background:#fff;
+    border-radius:999px;
+}
+
+.church-stat-item {
+    text-align:center;
+}
+
+.church-stat-value {
+    font-weight:700;
+    font-size:0.875rem;
+    color:var(--text);
+}
+
+.church-stat-value.is-inline {
+    display:flex;
+    align-items:center;
+    gap:3px;
+    justify-content:center;
+}
+
+.church-stat-value i {
+    font-size:0.75rem;
+}
+
+.church-stat-value .bi-star-fill {
+    color:var(--gold);
+}
+
+.church-stat-value .bi-file-earmark-fill {
+    color:#0d6efd;
+}
+
+.church-stat-label {
+    font-size:0.6875rem;
+    color:var(--text-muted);
+}
+
+.church-detail-page {
+    padding-top:28px;
+}
+
+.church-detail-section {
+    margin-bottom:40px;
+}
+
+.church-section-title {
+    margin-bottom:16px;
+}
+
+.church-description {
+    color:var(--text);
+    line-height:1.75;
+    margin-bottom:12px;
+}
+
+.church-description.is-empty {
+    color:var(--text-muted);
+}
+
+.church-info-meta {
+    color:var(--text-muted);
+    font-size:0.875rem;
+}
+
+.church-info-meta.is-address {
+    margin-bottom:4px;
+}
+
+.church-info-meta.is-hours {
+    margin:0;
+}
+
+.church-schedule-card {
+    padding:20px 24px;
+}
+
+.church-schedule-day {
+    margin-bottom:20px;
+}
+
+.church-schedule-day-label {
+    font-weight:700;
+    color:var(--text);
+    margin-bottom:10px;
+}
+
+.church-schedule-time {
+    display:inline-block;
+    background:var(--gold-bg);
+    border:1px solid var(--border);
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:0.8125rem;
+    color:var(--text);
+    margin:0 6px 6px 0;
+}
+
+.church-event-row {
+    padding:14px;
+    margin-bottom:10px;
+    box-shadow:var(--shadow-sm);
+}
+
+.church-event-badge {
+    width:52px;
+    height:52px;
+    border-radius:12px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:4px;
+    background:#63331b;
+    color:var(--gold);
+}
+
+.church-event-badge i {
+    font-size:0.75rem;
+    margin-bottom:2px;
+}
+
+.church-event-badge span {
+    font-size:0.5rem;
+    font-weight:700;
+    text-transform:uppercase;
+    line-height:1.1;
+}
+
+.church-event-details {
+    flex:1;
+    min-width:0;
+}
+
+.church-event-details > div:first-child {
+    font-size:0.875rem;
+    font-weight:700;
+    color:var(--text);
+}
+
+.church-event-details > div:last-child {
+    font-size:0.75rem;
+    color:var(--text-muted);
+}
+
+.church-event-details i {
+    font-size:0.6875rem;
+}
+
+.church-event-meta {
+    font-size:0.75rem;
+    font-weight:700;
+    color:var(--text-muted);
+    white-space:nowrap;
+    margin-left:auto;
+    text-align:right;
+}
+
+.church-reviews-layout {
+    display:grid;
+    grid-template-columns:minmax(0, 1.55fr) minmax(280px, 1fr);
+    gap:16px;
+    align-items:start;
+}
+
+.church-review-summary {
+    display:grid;
+    grid-template-columns:minmax(120px, 0.8fr) minmax(200px, 1.2fr);
+    align-items:center;
+    gap:24px;
+    padding:20px 24px;
+    border:1px solid var(--border-light);
+    box-shadow:var(--shadow-sm);
+}
+
+.church-review-average {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    text-align:center;
+}
+
+.church-review-average strong {
+    color:var(--primary);
+    font-family:var(--font-display);
+    font-size:clamp(2.5rem, 5vw, 3.25rem);
+    line-height:1;
+}
+
+.church-review-average span {
+    color:var(--text-muted);
+    font-size:0.75rem;
+}
+
+.church-rating-breakdown {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.church-rating-row {
+    display:grid;
+    grid-template-columns:12px 1fr;
+    align-items:center;
+    gap:8px;
+    color:var(--text-muted);
+    font-size:0.75rem;
+}
+
+.church-rating-track {
+    height:10px;
+    overflow:hidden;
+    border-radius:999px;
+    background:var(--gold-bg);
+}
+
+.church-rating-track span {
+    display:block;
+    height:100%;
+    border-radius:inherit;
+    background:var(--gold);
+}
+
+.church-review-list {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.church-review-card {
+    padding:16px;
+    border:1px solid var(--border-light);
+    border-radius:8px;
+    background:var(--surface, #fff);
+    box-shadow:var(--shadow-sm);
+}
+
+.church-review-card-header {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+}
+
+.church-review-author {
+    color:var(--text);
+    font-size:0.8125rem;
+    font-weight:700;
+    margin-bottom:3px;
+}
+
+.church-review-card time {
+    color:var(--text-muted);
+    font-size:0.6875rem;
+    white-space:nowrap;
+}
+
+.church-review-card p {
+    color:var(--text);
+    font-size:0.75rem;
+    line-height:1.6;
+    margin:12px 0 0;
+}
+
+.church-event-details,
+.church-event-details > div {
+    overflow-wrap:anywhere;
+}
+
+.church-detail-grid {
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:32px;
+}
+
+.church-tabs {
+    display:flex;
+    justify-content:center;
+    gap:36px;
+    border-bottom:1px solid var(--border-light);
+    margin-bottom:24px;
+    flex-wrap:wrap;
+}
+
+.church-tab {
+    color:var(--text-muted);
+    font-weight:600;
+    font-size:0.9375rem;
+    text-decoration:none;
+    padding-bottom:10px;
+    border-bottom:2px solid transparent;
+    flex-shrink:0;
+}
+
+.church-tab.is-active,
+.church-tab:hover,
+.church-tab:focus-visible {
+    color:var(--primary);
+}
+
+.church-tab.is-active {
+    border-bottom-color:var(--primary);
+}
+
+[data-church-panel][hidden] {
+    display:none !important;
+}
+
+@media (max-width: 900px) {
+    .church-detail-grid {
+        grid-template-columns:1fr !important;
+    }
+}
+
+@media (max-width: 700px) {
+    .church-hero {
+        min-height:430px !important;
+        padding-bottom:32px !important;
+    }
+
+    .church-hero-content {
+        padding:0 16px !important;
+    }
+
+    .church-hero-content h1 {
+        overflow-wrap:anywhere;
+    }
+
+    .church-hero-address {
+        align-items:flex-start !important;
+        overflow-wrap:anywhere;
+    }
+
+    .church-hero-actions {
+        gap:10px !important;
+    }
+
+    .church-hero-actions .btn {
+        flex:1 1 150px;
+        min-width:0;
+        white-space:normal;
+        min-height:44px;
+    }
+
+    .church-stat-wrap {
+        margin-top:16px !important;
+        padding:0 16px !important;
+    }
+
+    .church-stat-strip {
+        display:grid !important;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:14px 10px !important;
+        padding:14px 12px !important;
+        border-radius:16px !important;
+    }
+
+    .church-detail-page {
+        width:100%;
+        max-width:100%;
+        box-sizing:border-box;
+        padding-left:16px !important;
+        padding-right:16px !important;
+    }
+
+    #church-info .section-title {
+        text-align:center;
+    }
+
+    #church-info .church-description {
+        text-align:justify;
+    }
+
+    .church-tabs {
+        width:max-content;
+        min-width:100%;
+        box-sizing:border-box;
+        justify-content:center;
+        gap:24px;
+        flex-wrap:nowrap;
+        overflow-x:auto;
+        overflow-y:hidden;
+        scrollbar-width:none;
+        white-space:nowrap;
+        padding:0 4px;
+    }
+
+    .church-tabs::-webkit-scrollbar {
+        display:none;
+    }
+
+    .church-event-row {
+        align-items:flex-start !important;
+        gap:10px !important;
+    }
+
+    .church-event-badge {
+        width:46px !important;
+        height:46px !important;
+    }
+
+    .church-event-meta {
+        white-space:normal !important;
+        flex:0 0 auto;
+        max-width:76px;
+    }
+
+    .church-review-card-header {
+        flex-wrap:wrap;
+    }
+
+    .church-review-card-header > div {
+        min-width:0;
+        overflow-wrap:anywhere;
+    }
+
+    .church-review-card time {
+        white-space:normal;
+    }
+}
+
+@media (max-width: 700px) {
+    .church-reviews-layout,
+    .church-review-summary {
+        grid-template-columns:1fr;
+    }
+
+    .church-review-summary {
+        gap:20px;
+    }
+}
