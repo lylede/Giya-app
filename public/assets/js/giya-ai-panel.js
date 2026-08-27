@@ -107,9 +107,6 @@
     }
 
     function ask(text) {
-        var starters = document.getElementById('giyaPanelStarters');
-        if (starters) starters.remove();
-
         addUser(text);
         input.value = '';
         input.disabled = send.disabled = true;
