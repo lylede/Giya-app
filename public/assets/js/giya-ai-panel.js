@@ -80,7 +80,9 @@
         row.className = 'chat-row';
         row.id = 'giyaPanelTyping';
         row.innerHTML =
-            '<span class="chat-bot-icon"><i class="bi bi-giya-star"></i></span>' +
+            '<span class="chat-bot-icon">' +
+                '<img src="/images/icons/chatbot_icon.svg" alt="" class="chat-bot-svg">' +
+            '</span>' +
             '<div class="chat-bubble chat-bubble-bot chat-typing">' +
                 '<span></span><span></span><span></span></div>';
         log.appendChild(row);
@@ -94,7 +96,9 @@
         var row = document.createElement('div');
         row.className = 'chat-row';
         row.innerHTML =
-            '<span class="chat-bot-icon"><i class="bi bi-giya-star"></i></span>' +
+            '<span class="chat-bot-icon">' +
+                '<img src="/images/icons/chatbot_icon.svg" alt="" class="chat-bot-svg">' +
+            '</span>' +
             '<div class="chat-bubble chat-bubble-bot' + (ok ? '' : ' is-offline') + '">' +
                 esc(text).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') +
             '</div>';
