@@ -44,12 +44,26 @@
             </a>
 
             @auth
-                <a href="{{ route('plan.create', ['church' => $church->id]) }}" class="btn btn-ghost btn-ghost-inverse">
+                <a href="{{ route('plan.create', ['stops' => $church->id]) }}" class="btn btn-ghost btn-ghost-inverse">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Add to Itinerary
                 </a>
+
+                {{-- Saving a destination belongs beside the other actions, not
+                     buried in a card elsewhere in the app. --}}
+                <button type="button"
+                        @class(['btn', 'btn-ghost', 'btn-ghost-inverse', 'church-fav', 'is-saved' => $church->isFavorited()])
+                        data-church="{{ $church->id }}"
+                        aria-pressed="{{ $church->isFavorited() ? 'true' : 'false' }}"
+                        onclick="GiyaChurchFav.toggle(this)">
+                    <i class="bi bi-heart-fill" aria-hidden="true"></i>
+                    <span class="church-fav-text">{{ $church->isFavorited() ? 'Saved' : 'Save' }}</span>
+                </button>
             @else
                 <a href="{{ route('login') }}" class="btn btn-ghost btn-ghost-inverse">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Add to Itinerary
+                </a>
+                <a href="{{ route('login') }}" class="btn btn-ghost btn-ghost-inverse">
+                    <i class="bi bi-heart" aria-hidden="true"></i> Save
                 </a>
             @endauth
         </div>
@@ -298,6 +312,39 @@
             });
         });
     });
+</script>
+<script>
+window.GiyaChurchFav = {
+    toggle(btn) {
+        const saved = !btn.classList.contains('is-saved');
+
+        /* Flip first, then persist. A save that waits on the network feels
+           broken; if the request fails the button is put back. */
+        btn.classList.toggle('is-saved', saved);
+        btn.setAttribute('aria-pressed', String(saved));
+        btn.querySelector('.church-fav-text').textContent = saved ? 'Saved' : 'Save';
+
+        fetch('{{ route('favorites.toggle') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ church_id: btn.dataset.church }),
+        })
+            .then(r => r.json())
+            .then(d => {
+                if (d.ok) return;
+                throw new Error('rejected');
+            })
+            .catch(() => {
+                btn.classList.toggle('is-saved', !saved);
+                btn.setAttribute('aria-pressed', String(!saved));
+                btn.querySelector('.church-fav-text').textContent = !saved ? 'Saved' : 'Save';
+            });
+    },
+};
 </script>
 @endpush
 @endsection
