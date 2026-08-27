@@ -15,14 +15,24 @@ class ChurchController extends Controller
 {
     public function index(Request $request): View
     {
+        /*
+           when() hands the CONDITION to the callback, not the value. The old
+           line tested `$request->category !== 'All'`, so the callback received
+           `true` and searched for a category literally named "1" - which is why
+           filtering by category returned an empty table.
+
+           Passing the value itself means the callback receives the value.
+        */
+        $category = $request->category === 'All' ? null : $request->category;
+
         $churches = Church::with('churchCategory', 'primaryImage')
             ->search($request->search)
-            ->when($request->category && $request->category !== 'All',
-                fn ($q, $c) => $q->ofCategory($c))
+            ->when($category, fn ($q, $name) => $q->ofCategory($name))
             ->when($request->status === 'active', fn ($q) => $q->where('is_active', true))
             ->when($request->status === 'hidden', fn ($q) => $q->where('is_active', false))
             ->orderBy('name')
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $all = Church::with('churchCategory', 'primaryImage')->get();
 
@@ -63,7 +73,7 @@ class ChurchController extends Controller
         ]);
     }
 
-    /** Handles both create and update - the form posts church_id when editing. */
+    /** Handles both create and update — the form posts church_id when editing. */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -140,18 +150,49 @@ class ChurchController extends Controller
     }
 
     /** Swap the primary image, deleting the file the old row pointed at. */
+    /**
+     * Store the primary photograph for a destination.
+     *
+     * Files go to public/images/churches, named after the church:
+     *
+     *     basilica-del-santo-nino.jpg
+     *
+     * public/ is committed to the repository while storage/app/public is
+     * gitignored, so a teammate who clones or pulls gets the photographs rather
+     * than a wall of placeholders. Naming the file after the church also means
+     * Church::imagePath() can find it even if the ChurchImage row is lost.
+     */
     protected function replacePhoto(Church $church, $file, ?string $caption): void
     {
+        $dir = public_path('images/churches');
+
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        // Remove whatever this church had before, in either location.
         foreach ($church->images()->where('is_primary', true)->get() as $old) {
-            if (! str_starts_with($old->image_url, 'http')) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $old->image_url));
-            }
+            $this->deleteImageFile($old->image_url);
             $old->delete();
         }
 
+        $slug = \Illuminate\Support\Str::slug($church->name);
+        $ext  = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+
+        // One church, one photo file: a repeatedly edited destination should not
+        // leave a trail of orphans behind it.
+        foreach (['jpg', 'jpeg', 'png', 'webp'] as $stale) {
+            $path = "{$dir}/{$slug}.{$stale}";
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+
+        $file->move($dir, "{$slug}.{$ext}");
+
         ChurchImage::create([
             'church_id'   => $church->id,
-            'image_url'   => 'storage/'.$file->store('churches', 'public'),
+            'image_url'   => "images/churches/{$slug}.{$ext}",
             'caption'     => $caption ?: $church->name,
             'is_primary'  => true,
             'uploaded_at' => now(),
@@ -180,7 +221,7 @@ class ChurchController extends Controller
      * Remove an uploaded file from disk.
      *
      * Seeded .svg artwork ships with the repository and is shared, so it is
-     * never deleted - only files this admin panel wrote.
+     * never deleted — only files this admin panel wrote.
      */
     protected function deleteImageFile(?string $url): void
     {

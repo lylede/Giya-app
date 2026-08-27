@@ -107,9 +107,12 @@ class Church extends Model
 
         $term = '%'.mb_strtolower($term).'%';
 
+        // Name, location or category - the same three the devotee map searches,
+        // so typing "shrine" behaves the same in both places.
         return $query->where(fn (Builder $q) => $q
             ->whereRaw('LOWER(name) LIKE ?', [$term])
-            ->orWhereRaw('LOWER(location) LIKE ?', [$term]));
+            ->orWhereRaw("LOWER(COALESCE(location, '')) LIKE ?", [$term])
+            ->orWhereHas('churchCategory', fn ($c) => $c->whereRaw('LOWER(name) LIKE ?', [$term])));
     }
 
     /**

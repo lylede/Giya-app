@@ -11,162 +11,61 @@
 @section('content')
 
 {{-- ═══════════════ ADD / EDIT PANEL (inline, per the design) ═══════════════ --}}
-<section class="card dm-panel" id="formPanel">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-        <h2 class="dm-panel-title" id="formTitle">Add New Destinations</h2>
-        <button type="button" class="btn btn-ghost btn-sm" id="btnResetForm" style="display:none">
-            <i class="bi bi-x-lg"></i> Cancel edit
+{{-- ═══════════════ MAP: the way destinations are added ═══════════════
+     The map is the interface, not an aid to a form beside it. A destination
+     exists somewhere, so placing it comes first and describing it follows.
+--}}
+<section class="card dm-mapcard">
+    <div class="dm-mapcard-head">
+        <div>
+            <h2 class="dm-panel-title">Destinations map</h2>
+            <p class="dm-mapcard-sub">
+                Click anywhere to add a destination, or click a pin to edit one.
+            </p>
+        </div>
+        <button type="button" class="btn btn-primary" id="dmAddHere">
+            <i class="bi bi-plus-lg"></i> Add Destination
         </button>
     </div>
 
-    <form method="POST" action="{{ route('admin.destinations.store') }}" enctype="multipart/form-data" id="destForm">
-        @csrf
-        <input type="hidden" name="church_id" id="churchId">
+    <div class="dm-map-shell" id="adminMapShell">
+        <div class="dm-map-canvas" id="adminPickMap"></div>
 
-        {{-- Row 1 --}}
-        <div class="dm-row">
-            <div class="field" style="flex:1 1 416px">
-                <label class="dm-label" for="f-name">Destination Name</label>
-                <input id="f-name" type="text" name="name" class="giya-input" required maxlength="200"
-                       value="{{ old('name') }}"
-                       placeholder="Archdiocesan Shrine of the Most Sacred Heart of Jesus">
-                @error('name')<span class="field-error">{{ $message }}</span>@enderror
-            </div>
-
-            <div class="field" style="flex:0 1 250px">
-                <label class="dm-label" for="f-category">Category</label>
-                <select id="f-category" name="category" class="giya-input" required>
-                    @foreach ($categories as $cat)
-                        @continue ($cat === 'All')
-                        <option value="{{ $cat }}" @selected(old('category') === $cat)>{{ $cat }}</option>
-                    @endforeach
-                </select>
-                @error('category')<span class="field-error">{{ $message }}</span>@enderror
-            </div>
-
-            <div class="field" style="flex:0 1 250px">
-                <label class="dm-label" for="f-status">Status</label>
-                <select id="f-status" name="status" class="giya-input">
-                    <option value="Published">Published</option>
-                    <option value="Draft" @selected(old('status') === 'Draft')>Draft</option>
-                </select>
+        <div class="map-tools">
+            <button type="button" class="map-tool" id="dmFullscreen"
+                    title="Fullscreen" aria-label="Toggle fullscreen">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+            <div class="map-tool-pair">
+                <button type="button" class="map-tool" id="dmZoomIn" title="Zoom in" aria-label="Zoom in">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <button type="button" class="map-tool" id="dmZoomOut" title="Zoom out" aria-label="Zoom out">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
             </div>
         </div>
 
-        {{-- Row 2 --}}
-        <div class="dm-row">
-            <div class="field" style="flex:0 1 416px">
-                <label class="dm-label" for="f-location">Location (City / Municipality)</label>
-                <input id="f-location" type="text" name="location" class="giya-input" required
-                       value="{{ old('location') }}" placeholder="Cebu City">
-                @error('location')<span class="field-error">{{ $message }}</span>@enderror
-            </div>
-        </div>
-
-        {{-- Row 3 --}}
-        <div class="field">
-            <label class="dm-label" for="f-address">Exact Address (Optional)</label>
-            <input id="f-address" type="text" name="address" class="giya-input" maxlength="255"
-                   value="{{ old('address') }}"
-                   placeholder="242 Dionisio Jakosalem St, Cebu City, 6000 Cebu, Philippines">
-        </div>
-
-        {{-- Map picker --}}
-        <div class="field">
-            <label class="dm-label">Map Location</label>
-
-            <div class="dm-map-box">
-                <div class="dm-map-side">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <img src="{{ asset('assets/img/giya-logo.png') }}" alt="" width="40" height="40"
-                             onerror="this.style.display='none'">
-                        <span class="dm-map-heading">Choose on Map</span>
-                    </div>
-                    <p class="dm-map-hint">Pin the exact location</p>
-
-                    <button type="button" class="btn btn-primary dm-choose-btn" id="btnChooseMap">
-                        <i class="bi bi-geo-alt-fill"></i> Choose on Map
-                    </button>
-
-                    <p class="dm-map-note">
-                        <i class="bi bi-info-circle"></i>
-                        Latitude and Longitude will be saved automatically after selecting on the map.
-                    </p>
-                </div>
-
-                <div class="dm-map-canvas" id="adminPickMap"></div>
-            </div>
-        </div>
-
-        {{-- Coordinates --}}
-        <div class="dm-row">
-            <div class="field" style="flex:0 1 250px">
-                <label class="dm-label" for="f-lat">Latitude</label>
-                <input id="f-lat" type="number" step="0.00000001" name="latitude" class="giya-input"
-                       value="{{ old('latitude') }}" placeholder="10.3089">
-                @error('latitude')<span class="field-error">{{ $message }}</span>@enderror
-            </div>
-            <div class="field" style="flex:0 1 250px">
-                <label class="dm-label" for="f-lng">Longitude</label>
-                <input id="f-lng" type="number" step="0.00000001" name="longitude" class="giya-input"
-                       value="{{ old('longitude') }}" placeholder="123.8990">
-                @error('longitude')<span class="field-error">{{ $message }}</span>@enderror
-            </div>
-            <div class="field" style="flex:0 1 180px">
-                <label class="dm-label" for="f-open">Opens</label>
-                <input id="f-open" type="time" name="opening_time" class="giya-input" value="{{ old('opening_time') }}">
-            </div>
-            <div class="field" style="flex:0 1 180px">
-                <label class="dm-label" for="f-close">Closes</label>
-                <input id="f-close" type="time" name="closing_time" class="giya-input" value="{{ old('closing_time') }}">
-            </div>
-        </div>
-
-        {{-- Background + image --}}
-        <div class="dm-row">
-            <div class="field" style="flex:1 1 479px">
-                <label class="dm-label" for="f-desc">Historical Background</label>
-                <textarea id="f-desc" name="description" class="giya-input" rows="7"
-                          placeholder="Enter historical and religious significance...">{{ old('description') }}</textarea>
-            </div>
-
-            <div class="field" style="flex:1 1 478px">
-                <label class="dm-label">Destination Image</label>
-
-                <label class="dm-drop" id="dropZone">
-                    <input type="file" name="photo" id="f-photo" accept="image/jpeg,image/png,image/webp" hidden>
-                    <img id="dropPreview" alt="" style="display:none">
-                    <span class="dm-drop-inner" id="dropPrompt">
-                        <span class="dm-drop-circle"><i class="bi bi-camera-fill"></i></span>
-                        <span class="dm-drop-text">Click to upload image or drag and drop</span>
-                        <span class="dm-drop-sub">JPG, PNG</span>
-                    </span>
-                </label>
-                <input type="text" name="caption" class="giya-input" style="margin-top:8px"
-                       placeholder="Photo caption (optional)" maxlength="255">
-                @error('photo')<span class="field-error">{{ $message }}</span>@enderror
-                <p class="dm-map-note" style="margin-top:6px">
-                    <i class="bi bi-info-circle"></i> This photo becomes the pin shown on the map.
-                </p>
-            </div>
-        </div>
-
-        <div class="dm-actions">
-            <button type="submit" class="btn btn-primary dm-btn-wide" id="btnSave">Save Destination</button>
-            <button type="button" class="btn btn-outline dm-btn-wide" id="btnCancel">Cancel</button>
-        </div>
-    </form>
+        <p class="dm-map-hint-bar" id="dmHint">
+            Click the map to place a destination
+        </p>
+    </div>
 </section>
 
 {{-- ═══════════════════════════ FILTERS ═══════════════════════════ --}}
+{{--
+    Filtering always returns to page one. Narrowing the results while on page 3
+    of the old set lands on a page that no longer exists, and the table comes
+    back empty - which reads as "the filter is broken".
+--}}
 <form method="GET" class="dm-filters">
-    <div class="field" style="flex:1 1 380px">
+    <div class="dm-filter-field" style="flex:1 1 320px">
         <label class="dm-label" for="q">Search Destination</label>
         <input id="q" type="search" name="search" value="{{ $search }}" class="giya-input"
-               placeholder="Search destinations by name or location...">
+               placeholder="Search by name or location...">
     </div>
 
-    <div class="field" style="flex:0 1 194px">
+    <div class="dm-filter-field" style="flex:0 1 190px">
         <label class="dm-label" for="fcat">Category</label>
         <select id="fcat" name="category" class="giya-input" onchange="this.form.submit()">
             @foreach ($categories as $cat)
@@ -175,7 +74,7 @@
         </select>
     </div>
 
-    <div class="field" style="flex:0 1 194px">
+    <div class="dm-filter-field" style="flex:0 1 190px">
         <label class="dm-label" for="fstatus">Status</label>
         <select id="fstatus" name="status" class="giya-input" onchange="this.form.submit()">
             <option value="">All Status</option>
@@ -184,13 +83,15 @@
         </select>
     </div>
 
-    <div class="d-flex gap-2 align-items-end" style="flex:0 0 auto">
-        <a href="{{ route('admin.destinations') }}" class="btn btn-outline">
-            <i class="bi bi-arrow-clockwise"></i> Reset Filter
-        </a>
+    <div class="dm-filter-actions">
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-search"></i> Apply
         </button>
+        @if ($search || ($category && $category !== 'All') || request('status'))
+            <a href="{{ route('admin.destinations') }}" class="btn btn-outline">
+                <i class="bi bi-arrow-clockwise"></i> Reset
+            </a>
+        @endif
     </div>
 </form>
 
@@ -272,6 +173,226 @@
 
 <div style="margin-top:14px"><x-pagination :paginator="$churches->withQueryString()" /></div>
 
+{{--
+    Quick add, used while the map is expanded.
+
+    In fullscreen the form is off screen, so dropping a pin has nowhere to go.
+    Rather than collapsing the map and making the admin find their place again,
+    the essential fields come to them. Everything else - hours, description,
+    photo - is filled in afterwards on the full form.
+--}}
+<div class="modal" id="quickAddModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:26px;max-width:460px">
+            <div class="modal-title">
+                <i class="bi bi-geo-alt-fill" style="color:var(--primary)"></i>
+                New destination here
+            </div>
+
+            <p class="quick-coords" id="quickCoords"></p>
+
+            <div class="field">
+                <label class="dm-label" for="q-name">Destination Name</label>
+                <input id="q-name" type="text" class="giya-input" maxlength="200"
+                       placeholder="Archdiocesan Shrine of ...">
+            </div>
+
+            <div class="dm-row">
+                <div class="field" style="flex:1 1 180px">
+                    <label class="dm-label" for="q-category">Category</label>
+                    <select id="q-category" class="giya-input">
+                        @foreach ($categories as $cat)
+                            @continue ($cat === 'All')
+                            <option value="{{ $cat }}">{{ $cat }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="field" style="flex:1 1 180px">
+                    <label class="dm-label" for="q-location">Location</label>
+                    <input id="q-location" type="text" class="giya-input" maxlength="200"
+                           placeholder="Cebu City">
+                </div>
+            </div>
+
+            <p class="quick-note">
+                Hours, history and a photograph are added on the form below once
+                this destination is created.
+            </p>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" style="flex:1" id="quickApply">
+                    Add to form
+                </button>
+                <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ═══════════════ ONE MODAL: add and edit ═══════════════
+     Every field lives here, photograph included. The inline panel is gone -
+     two copies of the same form is two sets of rules to keep in step.
+
+     It posts to the same route as before, so validation and storage are
+     unchanged. On a validation failure the modal reopens with the values the
+     admin typed, rather than losing them.
+--}}
+{{-- Outside the modal on purpose: a form nested inside another form is invalid
+     HTML and the browser drops the inner one. The action is set in JavaScript,
+     since the id is only known once a destination has been opened. --}}
+<form method="POST" id="deleteForm" data-base="{{ url('admin/destinations') }}">
+    @csrf
+    @method('DELETE')
+</form>
+
+<div class="modal" id="destModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content dm-modal">
+
+            <div class="dm-modal-head">
+                <div class="modal-title" style="margin:0">
+                    <i class="bi bi-geo-alt-fill" style="color:var(--primary)"></i>
+                    <span id="destModalTitle">Add Destination</span>
+                </div>
+                <button type="button" class="ai-panel-close" data-modal-close aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('admin.destinations.store') }}"
+                  enctype="multipart/form-data" id="destForm" class="dm-modal-body">
+                @csrf
+                <input type="hidden" name="church_id" id="churchId" value="{{ old('church_id') }}">
+
+                <div class="dm-row">
+                    <div class="field" style="flex:1 1 100%">
+                        <label class="dm-label" for="f-name">Destination Name</label>
+                        <input id="f-name" type="text" name="name" class="giya-input" required maxlength="200"
+                               value="{{ old('name') }}"
+                               placeholder="Archdiocesan Shrine of the Most Sacred Heart of Jesus">
+                        @error('name')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+
+                <div class="dm-row">
+                    <div class="field" style="flex:1 1 180px">
+                        <label class="dm-label" for="f-category">Category</label>
+                        <select id="f-category" name="category" class="giya-input" required>
+                            @foreach ($categories as $cat)
+                                @continue ($cat === 'All')
+                                <option value="{{ $cat }}" @selected(old('category') === $cat)>{{ $cat }}</option>
+                            @endforeach
+                        </select>
+                        @error('category')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+
+                    <div class="field" style="flex:1 1 180px">
+                        <label class="dm-label" for="f-status">Status</label>
+                        <select id="f-status" name="status" class="giya-input">
+                            <option value="Published">Published</option>
+                            <option value="Draft" @selected(old('status') === 'Draft')>Draft</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="dm-row">
+                    <div class="field" style="flex:1 1 100%">
+                        <label class="dm-label" for="f-location">Location (City / Municipality)</label>
+                        <input id="f-location" type="text" name="location" class="giya-input" required
+                               value="{{ old('location') }}" placeholder="Cebu City">
+                        @error('location')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="dm-label" for="f-address">Exact Address (Optional)</label>
+                    <input id="f-address" type="text" name="address" class="giya-input" maxlength="255"
+                           value="{{ old('address') }}"
+                           placeholder="242 Dionisio Jakosalem St, Cebu City">
+                </div>
+
+                {{-- Coordinates come from the map click; shown so they can be corrected. --}}
+                <div class="dm-row dm-coords">
+                    <div class="field" style="flex:1 1 160px">
+                        <label class="dm-label" for="f-lat">Latitude</label>
+                        <input id="f-lat" type="number" step="0.00000001" name="latitude"
+                               class="giya-input" value="{{ old('latitude') }}" readonly>
+                        @error('latitude')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="field" style="flex:1 1 160px">
+                        <label class="dm-label" for="f-lng">Longitude</label>
+                        <input id="f-lng" type="number" step="0.00000001" name="longitude"
+                               class="giya-input" value="{{ old('longitude') }}" readonly>
+                        @error('longitude')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="field" style="flex:0 0 auto;align-self:flex-end">
+                        <button type="button" class="btn btn-outline btn-sm" id="dmRepin">
+                            <i class="bi bi-geo-alt-fill"></i> Move pin
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dm-row">
+                    <div class="field" style="flex:1 1 160px">
+                        <label class="dm-label" for="f-open">Opens</label>
+                        <input id="f-open" type="time" name="opening_time" class="giya-input"
+                               value="{{ old('opening_time') }}">
+                    </div>
+                    <div class="field" style="flex:1 1 160px">
+                        <label class="dm-label" for="f-close">Closes</label>
+                        <input id="f-close" type="time" name="closing_time" class="giya-input"
+                               value="{{ old('closing_time') }}">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="dm-label" for="f-desc">Historical Background</label>
+                    <textarea id="f-desc" name="description" class="giya-input" rows="4"
+                              placeholder="Historical and religious significance">{{ old('description') }}</textarea>
+                </div>
+
+                <div class="field">
+                    <label class="dm-label">Destination Photograph</label>
+
+                    <label class="dm-drop" id="dropZone">
+                        <input type="file" name="photo" id="f-photo"
+                               accept="image/jpeg,image/png,image/webp" hidden>
+                        <img id="dropPreview" alt="" style="display:none">
+                        <span class="dm-drop-inner" id="dropPrompt">
+                            <span class="dm-drop-circle"><i class="bi bi-camera-fill"></i></span>
+                            <span class="dm-drop-text">Click to upload, or drag an image here</span>
+                            <span class="dm-drop-sub">JPG or PNG</span>
+                        </span>
+                    </label>
+
+                    <input type="text" name="caption" class="giya-input" style="margin-top:8px"
+                           placeholder="Photo caption (optional)" maxlength="255">
+                    @error('photo')<span class="field-error">{{ $message }}</span>@enderror
+                    <p class="dm-map-note" style="margin-top:6px">
+                        <i class="bi bi-info-circle"></i>
+                        Saved to public/images/churches, named after the destination.
+                    </p>
+                </div>
+
+                <div class="dm-modal-foot">
+                    <button type="submit" class="btn btn-primary" style="flex:1" id="btnSave">
+                        Save Destination
+                    </button>
+                    <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+
+                    {{-- Only meaningful once a destination exists, so it is
+                         hidden while adding one. --}}
+                    <button type="button" class="btn btn-danger-solid dm-delete"
+                            id="btnDelete" style="display:none">
+                        <i class="bi bi-trash3"></i> Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -282,84 +403,183 @@
     const markers = @json($markers);
     const rows    = @json($rows);
 
-    /* The map is inline and visible on load, so it can be built immediately. */
+    let expanded = false;
+    let picking  = false;      // waiting for a map click to place a pin
+
+    const shell = document.getElementById('adminMapShell');
+    const fsBtn = document.getElementById('dmFullscreen');
+    const hint  = document.getElementById('dmHint');
+
     const picker = GiyaLeaflet.picker({
         element: 'adminPickMap',
         churches: markers,
         latInput: '#f-lat',
         lngInput: '#f-lng',
-        onChurchClick: function (c) { loadIntoForm(c.id); }
+
+        /* A click on empty map means "put a destination here". */
+        onPin: function (lat, lng) {
+            picking = false;
+            hint.textContent = 'Click the map to place a destination';
+            openModal(null, lat, lng);
+        },
+
+        /* A click on a pin means "edit this one". */
+        onChurchClick: function (c) { openModal(c.id); }
     });
 
-    /* ---- edit an existing destination ---- */
-    function loadIntoForm(id) {
-        const c = rows.filter(function (r) { return r.id === id; })[0];
-        if (!c) return;
+    /* ---------------------------------------------------------- modal ---- */
 
-        document.getElementById('churchId').value    = c.id;
-        document.getElementById('f-name').value      = c.name;
-        document.getElementById('f-category').value  = c.category;
-        document.getElementById('f-location').value  = c.location || '';
-        document.getElementById('f-address').value   = c.address || '';
-        document.getElementById('f-lat').value       = c.lat || '';
-        document.getElementById('f-lng').value       = c.lng || '';
-        document.getElementById('f-open').value      = c.open || '';
-        document.getElementById('f-close').value     = c.close || '';
-        document.getElementById('f-desc').value      = c.description || '';
-        document.getElementById('f-status').value    = c.active ? 'Published' : 'Draft';
+    function field(id) { return document.getElementById(id); }
 
-        if (c.image) {
-            const img = document.getElementById('dropPreview');
-            img.src = c.image;
-            img.style.display = 'block';
-            document.getElementById('dropPrompt').style.display = 'none';
+    function clearForm() {
+        field('destForm').reset();
+        field('churchId').value = '';
+        field('dropPreview').style.display = 'none';
+        field('dropPrompt').style.display = '';
+        field('destModalTitle').textContent = 'Add Destination';
+        field('btnSave').textContent = 'Save Destination';
+    }
+
+    function openModal(churchId, lat, lng) {
+        clearForm();
+
+        if (churchId) {
+            const c = rows.filter(function (r) { return r.id === churchId; })[0];
+            if (!c) return;
+
+            field('churchId').value    = c.id;
+            field('f-name').value      = c.name;
+            field('f-category').value  = c.category;
+            field('f-location').value  = c.location || '';
+            field('f-address').value   = c.address || '';
+            field('f-lat').value       = c.lat || '';
+            field('f-lng').value       = c.lng || '';
+            field('f-open').value      = c.open || '';
+            field('f-close').value     = c.close || '';
+            field('f-desc').value      = c.description || '';
+            field('f-status').value    = c.active ? 'Published' : 'Draft';
+
+            if (c.image) {
+                const img = field('dropPreview');
+                img.src = c.image;
+                img.style.display = 'block';
+                field('dropPrompt').style.display = 'none';
+            }
+
+            field('destModalTitle').textContent = 'Edit Destination';
+            field('btnSave').textContent = 'Save Changes';
+
+            if (c.lat && c.lng) picker.place(c.lat, c.lng, true);
+        } else if (lat !== null && lat !== undefined) {
+            field('f-lat').value = lat.toFixed(8);
+            field('f-lng').value = lng.toFixed(8);
         }
 
-        document.getElementById('formTitle').textContent = 'Edit Destination';
-        document.getElementById('btnSave').textContent   = 'Save Changes';
-        document.getElementById('btnResetForm').style.display = '';
+        // Delete only applies to something that already exists.
+        const del = field('btnDelete');
+        del.style.display = churchId ? '' : 'none';
+        del.dataset.church = churchId || '';
+        del.dataset.name = churchId ? (field('f-name').value || 'this destination') : '';
 
-        if (c.lat && c.lng) { picker.place(c.lat, c.lng, true); picker.focus(c.lat, c.lng); }
-
-        document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        GiyaUI.Modal.open('destModal');
+        setTimeout(function () { field('f-name').focus(); }, 120);
     }
 
-    function resetForm() {
-        document.getElementById('destForm').reset();
-        document.getElementById('churchId').value = '';
-        document.getElementById('formTitle').textContent = 'Add New Destinations';
-        document.getElementById('btnSave').textContent   = 'Save Destination';
-        document.getElementById('btnResetForm').style.display = 'none';
-        document.getElementById('dropPreview').style.display = 'none';
-        document.getElementById('dropPrompt').style.display = '';
-        picker.clear();
+    /* Add Destination asks for a location first: a destination without
+       coordinates cannot appear on the map, so it is not optional. */
+    /* Add Destination opens the form. The pin is placed from inside it with
+       Move pin, which is the same map click either way - and this way the
+       admin is not thrown into fullscreen before they have typed anything. */
+    document.getElementById('dmAddHere').addEventListener('click', function () {
+        openModal(null, null, null);
+    });
+
+    /* Move pin: close the modal, take the next map click, reopen. */
+    document.getElementById('dmRepin').addEventListener('click', function () {
+        GiyaUI.Modal.close('destModal');
+        picking = true;
+        hint.textContent = 'Click the new position for this destination';
+        hint.classList.add('is-active');
+        if (!expanded) expand();
+    });
+
+    /* ------------------------------------------------------ fullscreen ---- */
+
+    function expand() {
+        expanded = true;
+        shell.classList.add('is-fullscreen');
+        document.body.style.overflow = 'hidden';
+        fsBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+        fsBtn.title = 'Exit fullscreen';
+        setTimeout(function () { picker.map.invalidateSize(); }, 120);
     }
 
-    document.getElementById('btnCancel').addEventListener('click', resetForm);
-    document.getElementById('btnResetForm').addEventListener('click', resetForm);
+    function collapse() {
+        expanded = false;
+        shell.classList.remove('is-fullscreen');
+        document.body.style.overflow = '';
+        fsBtn.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+        fsBtn.title = 'Fullscreen';
+        hint.classList.remove('is-active');
+        setTimeout(function () { picker.map.invalidateSize(); }, 120);
+    }
 
+    fsBtn.addEventListener('click', function () { expanded ? collapse() : expand(); });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (document.querySelector('.modal.is-open')) return;   // let the modal close first
+        if (expanded) collapse();
+    });
+
+    document.getElementById('dmZoomIn').addEventListener('click', function () { picker.map.zoomIn(); });
+    document.getElementById('dmZoomOut').addEventListener('click', function () { picker.map.zoomOut(); });
+
+    /* The modal sits above an expanded map, so the page must stay locked when
+       it closes while the map is still expanded. */
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('[data-modal-close]')) return;
+        if (expanded) setTimeout(function () { document.body.style.overflow = 'hidden'; }, 0);
+    });
+
+    /* Delete asks first, and says what goes with it. The confirmation dialog
+       is the shared one, so this matches every other destructive action. */
+    document.getElementById('btnDelete').addEventListener('click', function () {
+        const id = this.dataset.church;
+        if (!id) return;
+
+        GiyaConfirm.ask({
+            title: 'Delete ' + (this.dataset.name || 'this destination') + '?',
+            message: 'Its photograph, and any visit records, reviews, saved '
+                   + 'favourites and itinerary stops that reference it are '
+                   + 'deleted too. Set it to Draft instead to hide it.',
+            ok: 'Delete destination',
+            tone: 'danger',
+        }).then(function (yes) {
+            if (!yes) return;
+            const form = document.getElementById('deleteForm');
+            form.action = form.dataset.base + '/' + id;
+            form.submit();
+        });
+    });
+
+    /* ---- edit from the table ---- */
     document.querySelectorAll('[data-edit]').forEach(function (b) {
-        b.addEventListener('click', function () { loadIntoForm(Number(this.dataset.edit)); });
+        b.addEventListener('click', function () { openModal(Number(this.dataset.edit)); });
     });
 
-    /* ---- "Choose on Map" scrolls the picker into view ---- */
-    document.getElementById('btnChooseMap').addEventListener('click', function () {
-        document.getElementById('adminPickMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        picker.map.invalidateSize();
-    });
-
-    /* ---- image drop zone ---- */
-    const zone = document.getElementById('dropZone');
+    /* ---- photograph ---- */
+    const zone  = document.getElementById('dropZone');
     const input = document.getElementById('f-photo');
 
     function preview(file) {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function (e) {
-            const img = document.getElementById('dropPreview');
+            const img = field('dropPreview');
             img.src = e.target.result;
             img.style.display = 'block';
-            document.getElementById('dropPrompt').style.display = 'none';
+            field('dropPrompt').style.display = 'none';
         };
         reader.readAsDataURL(file);
     }
@@ -377,6 +597,12 @@
         input.files = e.dataTransfer.files;
         preview(e.dataTransfer.files[0]);
     });
+
+    /* A rejected save reopens the modal with what was typed, rather than
+       leaving the admin looking at a map wondering what happened. */
+    @if ($errors->any())
+        GiyaUI.Modal.open('destModal');
+    @endif
 })();
 </script>
 @endpush
