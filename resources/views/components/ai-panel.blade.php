@@ -11,7 +11,11 @@
      aria-label="Giya AI assistant" hidden>
 
     <div class="ai-panel-head">
-        <span class="ai-panel-mark"><i class="bi bi-giya-star"></i></span>
+        <span class="ai-panel-mark">
+            <img src="{{ asset('images/icons/chatbot_icon.svg') }}"
+                alt=""
+                class="ai-panel-chatbot-icon">
+        </span>
         <div class="ai-panel-title">
             <strong>Giya AI</strong>
             <span>Pilgrimage guide for Metro Cebu</span>
@@ -27,7 +31,9 @@
 
     <div class="ai-panel-log" id="giyaPanelLog">
         <div class="chat-row">
-            <span class="chat-bot-icon"><i class="bi bi-giya-star"></i></span>
+            <span class="chat-bot-icon">
+                <img src="{{ asset('images/icons/chatbot_icon.svg') }}" alt="" class="chat-bot-svg">
+            </span>
             <div class="chat-bubble chat-bubble-bot">
                 Maayong buntag! Ask me about churches, mass schedules, or a Visita Iglesia route.
             </div>
