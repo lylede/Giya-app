@@ -317,13 +317,13 @@
                     <div class="field" style="flex:1 1 160px">
                         <label class="dm-label" for="f-lat">Latitude</label>
                         <input id="f-lat" type="number" step="0.00000001" name="latitude"
-                               class="giya-input" value="{{ old('latitude') }}" readonly>
+                               class="giya-input" value="{{ old('latitude') }}">
                         @error('latitude')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
                     <div class="field" style="flex:1 1 160px">
                         <label class="dm-label" for="f-lng">Longitude</label>
                         <input id="f-lng" type="number" step="0.00000001" name="longitude"
-                               class="giya-input" value="{{ old('longitude') }}" readonly>
+                               class="giya-input" value="{{ old('longitude') }}">
                         @error('longitude')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
                     <div class="field" style="flex:0 0 auto;align-self:flex-end">

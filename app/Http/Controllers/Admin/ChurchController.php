@@ -183,8 +183,13 @@ class ChurchController extends Controller
         // leave a trail of orphans behind it.
         foreach (['jpg', 'jpeg', 'png', 'webp'] as $stale) {
             $path = "{$dir}/{$slug}.{$stale}";
-            if (file_exists($path)) {
-                unlink($path);
+
+            if (! file_exists($path) || $path === "{$dir}/{$slug}.{$ext}") {
+                continue;
+            }
+
+            if (! @unlink($path)) {
+                \Illuminate\Support\Facades\Log::warning("Could not remove old photo: {$path}");
             }
         }
 
