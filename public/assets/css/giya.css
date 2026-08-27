@@ -2553,8 +2553,43 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
    GIYA AI - chat
    ════════════════════════════════════════════════════════════════ */
 
+<<<<<<< HEAD
 .chat-page { display: flex; flex-direction: column; }
 
+=======
+.giya-chatbot-icon {
+    width: 36px;
+    height: 36px;
+    display: block;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.chat-bot-svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+    object-fit: contain;
+    filter: brightness(0);
+}
+
+html[data-theme="dark"] .chat-bot-svg {
+    filter: brightness(0) invert(1);
+}
+.chat-page { display: flex; flex-direction: column; }
+
+.chat-bot-icon {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--gold-bg);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+>>>>>>> d6fcc25f5170a0b247417653e7c2454c88b8c852
 .chat-header {
   display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
 }
