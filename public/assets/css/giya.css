@@ -1,5 +1,5 @@
 /* ============================================================
-   GIYA – Design System CSS
+   GIYA - Design System CSS
    Fonts: Playfair Display (headings) + Lato (body)
    Colors: #8E3B2F (primary) · #D7A94A (gold) · #FFF8ED (bg) · #241C18 (text)
    ============================================================ */
@@ -231,7 +231,7 @@ img { max-width: 100%; display: block; }
 .btn-outline-gold:hover { background: rgba(215,169,74,0.16); }
 
 /*
-   .btn-ghost defaults to LIGHT surfaces — cards, panels, tables, which is
+   .btn-ghost defaults to LIGHT surfaces - cards, panels, tables, which is
    where it is used almost everywhere. On a dark background (the hero, the AI
    panel) add .btn-ghost-inverse alongside it.
 
@@ -827,7 +827,7 @@ img { max-width: 100%; display: block; }
 
 /* ============================================================
    Layout utilities
-   A deliberately small set — only what the GIYA templates use.
+   A deliberately small set - only what the GIYA templates use.
    ============================================================ */
 .d-flex          { display: flex; }
 .d-block         { display: block; }
@@ -1031,7 +1031,7 @@ html[data-theme="dark"] .giya-pagination span {
   border-color: var(--border);
 }
 
-/* Painted with var(--text) as a background — pin them dark explicitly. */
+/* Painted with var(--text) as a background - pin them dark explicitly. */
 html[data-theme="dark"] .giya-footer   { background: #100C0A; }
 html[data-theme="dark"] .admin-sidebar { background: #100C0A; }
 html[data-theme="dark"] .giya-tooltip  { background: #100C0A; color: var(--text); }
@@ -1308,7 +1308,7 @@ html[data-theme="dark"] .dm-drop-circle { background: var(--surface); border-col
 }
 
 /* ── Map category chips ──────────────────────────────────────
-   These sit on a white card, so they cannot reuse .btn-ghost —
+   These sit on a white card, so they cannot reuse .btn-ghost -
    that class is white-on-transparent, meant for the dark hero.
 */
 .cat-chip {
@@ -1484,7 +1484,7 @@ html[data-theme="dark"] .map-tool:hover { background: var(--primary); color: #ff
 html[data-theme="dark"] .ap-summary { background: rgba(46,36,30,.94); color: var(--text); }
 
 /* ════════════════════════════════════════════════════════════════
-   MAP PAGE — layout and rhythm
+   MAP PAGE - layout and rhythm
    Spacing follows a 4px scale. Type sizes step 13 / 15 / 26px so the
    hierarchy reads at a glance instead of everything competing.
    ════════════════════════════════════════════════════════════════ */
@@ -1632,7 +1632,7 @@ html[data-theme="dark"] .mx-add { background: var(--surface-2); color: var(--gol
 html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
 
 /* ════════════════════════════════════════════════════════════════
-   MAP SIDEBAR — explore, filter, select, plan
+   MAP SIDEBAR - explore, filter, select, plan
    ════════════════════════════════════════════════════════════════ */
 
 .mx-title {
@@ -1927,7 +1927,7 @@ html[data-theme="dark"] .gc-box { background: var(--surface); }
 html[data-theme="dark"] .giya-fab { box-shadow: 0 6px 22px rgba(0,0,0,.55); }
 
 /* ════════════════════════════════════════════════════════════════
-   MAP PAGE — responsive
+   MAP PAGE - responsive
    Three arrangements rather than a hard desktop/mobile split, so the
    in-between widths (tablets, split-screen, small laptops) get a
    layout meant for them instead of a desktop one squeezed down.
@@ -2007,11 +2007,11 @@ html[data-theme="dark"] .giya-fab { box-shadow: 0 6px 22px rgba(0,0,0,.55); }
    DATE PICKER
    The browser draws its own calendar inside a shadow DOM that CSS
    cannot reach, so the popup is replaced. The <input type="date">
-   itself is untouched — it still holds and validates the value.
+   itself is untouched - it still holds and validates the value.
    ════════════════════════════════════════════════════════════════ */
 
 /* Hide the native calendar glyph; the field gets our own. */
-/* display:none, not opacity:0 — an invisible indicator is still clickable,
+/* display:none, not opacity:0 - an invisible indicator is still clickable,
    which opened the browser's calendar on top of ours. */
 input[type="date"]::-webkit-calendar-picker-indicator { display: none; }
 input[type="date"]::-webkit-inner-spin-button,
@@ -2153,7 +2153,7 @@ html[data-theme="dark"] .gdp { background: var(--surface); }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   FOOTER — responsive
+   FOOTER - responsive
    The brand blurb needs width; the two link lists do not. So the
    brand drops to its own row and the lists stay side by side,
    rather than everything stacking into one long column.
@@ -2169,7 +2169,7 @@ html[data-theme="dark"] .gdp { background: var(--surface); }
   .footer-grid > *:first-child { grid-column: 1 / -1; }
 }
 
-/* Phone: same arrangement, tighter. Two columns is still comfortable —
+/* Phone: same arrangement, tighter. Two columns is still comfortable -
    "Visita Iglesia" is the longest label and fits at 360px. */
 @media (max-width: 560px) {
   .footer-grid { gap: 22px 18px; }
@@ -2219,7 +2219,7 @@ html[data-theme="dark"] .gdp { background: var(--surface); }
 
    An earlier rule sets `background: var(--bg-input)` as a shorthand, which
    silently resets background-repeat to `repeat`. A later rule that sets only
-   background-image then inherits that reset — and the calendar glyph tiles
+   background-image then inherits that reset - and the calendar glyph tiles
    across the field. That is what iOS was showing.
    ---------------------------------------------------------------- */
 input[type="date"],
@@ -2253,7 +2253,7 @@ input[type="date"]:not([value]):empty::before { content: none; }
 input[type="date"][readonly] { cursor: pointer; }
 
 /* The navbar publishes its height so overlays can sit clear of it.
-   Declared on :root — a property set on .giya-nav is invisible to siblings.
+   Declared on :root - a property set on .giya-nav is invisible to siblings.
    giya.js overwrites this with the measured value on load and on resize. */
 :root { --nav-height: 64px; }
 
@@ -2266,7 +2266,7 @@ input[type="date"][readonly] { cursor: pointer; }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   HERO STATS — equal columns, so labels line up whatever their length
+   HERO STATS - equal columns, so labels line up whatever their length
    ════════════════════════════════════════════════════════════════ */
 .hero-stats {
   display: grid;
@@ -2478,7 +2478,7 @@ html[data-theme="dark"] .notif-item.is-unread .notif-icon { background: var(--su
 
 html[data-theme="dark"] .home-searchbar { background: var(--surface); }
 
-/* On the hero the bar has no strip of its own — in either theme. The generic
+/* On the hero the bar has no strip of its own - in either theme. The generic
    dark rule above was painting a black band across the hero image. */
 html[data-theme="dark"] .home-searchbar.is-on-hero { background: transparent; }
 
@@ -2517,7 +2517,7 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
   gap: 16px;
 }
 
-/* Two across on a tablet, one on a phone — chosen, not incidental. */
+/* Two across on a tablet, one on a phone - chosen, not incidental. */
 @media (max-width: 900px) {
   .home-grid, .home-grid-sm { grid-template-columns: repeat(2, 1fr); gap: 14px; }
 }
@@ -2550,59 +2550,20 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
 .pref-choice:active { transform: scale(.98); }
 
 /* ════════════════════════════════════════════════════════════════
-   GIYA AI — chat
+   GIYA AI - chat
    ════════════════════════════════════════════════════════════════ */
-
-   .giya-chatbot-icon {
-    width: 36px;
-    height: 36px;
-    display: block;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-}
 
 .chat-page { display: flex; flex-direction: column; }
 
-.chat-bot-svg {
-    width: 20px;
-    height: 20px;
-    display: block;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-}
-.chat-bot-icon {
-    width: 34px;
-    height: 34px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--gold-bg);
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 .chat-header {
   display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
 }
-
 .chat-avatar {
   width: 52px; height: 52px; flex-shrink: 0;
   border-radius: 16px; background: var(--primary);
   display: flex; align-items: center; justify-content: center;
   font-size: 1.375rem; color: var(--gold);
 }
-
-.chat-header-chatbot-icon {
-    width: 22px;
-    height: 22px;
-    display: block;
-    object-fit: contain;
-
-    /* Yellow / gold */
-    filter: brightness(0) saturate(100%) invert(72%) sepia(72%)
-            saturate(496%) hue-rotate(2deg) brightness(94%) contrast(90%);
-}
-
 .chat-header h1 {
   font-family: var(--font-display); font-size: 1.5rem; margin: 0; color: var(--text);
 }
@@ -2631,6 +2592,12 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
 .chat-row { display: flex; gap: 11px; align-items: flex-start; }
 .chat-row.is-user { flex-direction: row-reverse; }
 
+.chat-bot-icon {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
+  background: var(--gold-bg); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.875rem;
+}
 .chat-user-icon { flex-shrink: 0; width: 34px; height: 34px; }
 
 .chat-bubble {
@@ -2730,7 +2697,7 @@ html[data-theme="dark"] .chat-bubble-bot { background: var(--surface-2); }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   GIYA AI — slide-out panel
+   GIYA AI - slide-out panel
    Desktop: a docked panel beside the content.
    Mobile:  a bottom sheet, which is where a thumb already is.
    ════════════════════════════════════════════════════════════════ */
@@ -2846,17 +2813,6 @@ html[data-theme="dark"] .chat-bubble-bot { background: var(--surface-2); }
   .ai-panel-composer { padding-bottom: max(11px, env(safe-area-inset-bottom)); }
 }
 
-.ai-panel-chatbot-icon {
-    width: 22px;
-    height: 22px;
-    display: block;
-    object-fit: contain;
-
-    /* yellow/gold icon */
-    filter: brightness(0) saturate(100%) invert(72%) sepia(72%)
-            saturate(496%) hue-rotate(2deg) brightness(94%) contrast(90%);
-}
-
 /* The page behind must not scroll while the sheet is open. */
 body.ai-panel-locked { overflow: hidden; }
 
@@ -2896,7 +2852,7 @@ body.ai-panel-locked .giya-fab { opacity: 0; pointer-events: none; }
 
 /* The home search hands its term to the map rather than showing results in
    place, so the old dropdown styles are gone. The map filters by name,
-   location and category — see map.blade.php. */
+   location and category - see map.blade.php. */
 .home-searchbar { position: relative; z-index: 20; }
 .hs-form { position: relative; }
 button.hs-chip { font-family: var(--font-body); }
@@ -2939,7 +2895,7 @@ button.hs-chip { font-family: var(--font-body); }
   color: var(--primary-dark);
 }
 
-/* The results panel stays a solid card — it holds real content. */
+/* The results panel stays a solid card - it holds real content. */
 .home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
 
 @media (max-width: 560px) {
@@ -2947,7 +2903,11 @@ button.hs-chip { font-family: var(--font-body); }
   .home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
 }
 
-/* ── Hero inner spacing ────────────────────────────────────────── */
+/* ── Hero inner spacing ──────────────────────────────────────────
+   Was a fixed 48px top, which reads well on a phone and sits far too
+   close under the navbar on a wide screen. clamp() scales it with the
+   viewport rather than picking one number for every device.
+   ---------------------------------------------------------------- */
 .hero-inner {
   position: relative;
   width: 100%;
@@ -2960,7 +2920,12 @@ button.hs-chip { font-family: var(--font-body); }
   .hero-inner { padding-left: 16px; padding-right: 16px; }
 }
 
-/* ── Search field icon ─────────────────────────────────────────── */
+/* ── Search field icon ───────────────────────────────────────────
+   The SVG version was dark artwork on a translucent field over a dark
+   hero, so it disappeared while its 44px of padding kept the space -
+   the gap on the left of the input. A font glyph inherits colour, so
+   it can be tinted to suit whichever background it sits on.
+   ---------------------------------------------------------------- */
 .hs-field { position: relative; }
 .hs-field .bi {
   position: absolute; left: 16px; top: 50%;
@@ -2990,7 +2955,7 @@ button.hs-chip { font-family: var(--font-body); }
 }
 
 /* ════════════════════════════════════════════════════════════════
-   CHURCH DETAIL — polish
+   CHURCH DETAIL - polish
    ════════════════════════════════════════════════════════════════ */
 
 /* The hero photo was washing out under a flat overlay, so the building
@@ -3006,11 +2971,14 @@ button.hs-chip { font-family: var(--font-body); }
 }
 .church-hero-image { filter: none; }
 
-/* The title needs its own shadow — a gradient alone cannot carry every photo. */
+/* The title needs its own shadow - a gradient alone cannot carry every photo. */
 .church-hero-content h1 { text-shadow: 0 2px 18px rgba(0,0,0,.55); }
 .church-hero-address    { text-shadow: 0 1px 10px rgba(0,0,0,.5); }
 
-/* ── Stat strip ─────────────────────────────────────────────────*/
+/* ── Stat strip ─────────────────────────────────────────────────
+   Dividers between items, so four values do not read as one row of
+   loose text, and each stat now carries an icon.
+   ---------------------------------------------------------------- */
 .church-stat-strip { gap: 0; }
 .church-stat-item {
   position: relative;
@@ -3034,12 +3002,19 @@ button.hs-chip { font-family: var(--font-body); }
   color: var(--text-muted); margin-top: 3px;
 }
 
-/* ── Tabs ───────────────────────────────────────────────────────*/
+/* ── Tabs ───────────────────────────────────────────────────────
+   The active tab was marked by colour alone, which is the one cue a
+   colour-blind reader cannot use. A weight change and a thicker rule
+   carry it too.
+   ---------------------------------------------------------------- */
 .church-tab { font-weight: 600; transition: color .15s ease; }
 .church-tab.is-active { font-weight: 800; }
 .church-tab.is-active::after { height: 3px; }
 
-/* ── Empty states ───────────────────────────────────────────────*/
+/* ── Empty states ───────────────────────────────────────────────
+   The icon was a bare glyph floating in space. A tinted disc gives it
+   an edge, so an empty panel looks designed rather than unfinished.
+   ---------------------------------------------------------------- */
 .empty-state .empty-icon {
   display: inline-flex; align-items: center; justify-content: center;
   width: 56px; height: 56px; border-radius: 50%;
@@ -3070,7 +3045,11 @@ button.hs-chip { font-family: var(--font-body); }
 
 html[data-theme="dark"] .plan-preset-note { color: #6FBF8B; }
 
-/* ── Icons inside buttons must not intercept the click ───────────*/
+/* ── Icons inside buttons must not intercept the click ───────────
+   A .bi is an inline element with a ::before mask. It sits above the
+   button's hit area, so a click landing on the glyph goes to the icon
+   rather than the button - which reads as "only the edges work".
+   ---------------------------------------------------------------- */
 .btn .bi,
 .btn .bi::before,
 button .bi,
@@ -3081,3 +3060,83 @@ button .bi::before,
 .icon-btn .bi {
   pointer-events: none;
 }
+/* ── Save button on the church detail hero ───────────────────── */
+.church-fav .bi { transition: transform .18s cubic-bezier(.2,.8,.3,1); }
+.church-fav.is-saved {
+  background: rgba(215,169,74,.22);
+  border-color: var(--gold);
+  color: #fff;
+}
+.church-fav.is-saved .bi {
+  color: #E8607A;
+  transform: scale(1.15);
+}
+
+/* ── Church card title links through ─────────────────────────── */
+.church-card-name {
+  font-size: 0.875rem; font-weight: 700;
+  line-height: 1.3; margin: 0;
+}
+.church-card-name a {
+  color: var(--text); text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color .12s ease, border-color .12s ease;
+}
+.church-card-name a:hover,
+.church-card-name a:focus-visible {
+  color: var(--primary);
+  border-bottom-color: var(--gold);
+}
+.church-card-name a:focus-visible { outline: none; }
+
+html[data-theme="dark"] .church-card-name a:hover { color: var(--gold); }
+
+/* ── Arrival toast on the pilgrimage map ─────────────────────── */
+.arrive-toast {
+  position: absolute; left: 50%; bottom: 22px;
+  transform: translate(-50%, 14px);
+  z-index: 700;
+  display: flex; align-items: center; gap: 12px;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-left: 3px solid #4E9C6B;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 14px 38px rgba(36,28,24,.28);
+  opacity: 0;
+  transition: opacity .28s ease, transform .28s cubic-bezier(.2,.8,.3,1);
+}
+.arrive-toast.is-open { opacity: 1; transform: translate(-50%, 0); }
+
+.arrive-icon {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
+  background: #4E9C6B; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9375rem;
+}
+.arrive-body { flex: 1; min-width: 0; line-height: 1.35; }
+.arrive-body strong { display: block; font-size: 0.8125rem; color: var(--text); }
+.arrive-body span   { display: block; font-size: 0.75rem; color: var(--text-muted); }
+
+.arrive-undo {
+  flex-shrink: 0;
+  background: none; border: 1px solid var(--border);
+  border-radius: 999px; padding: 6px 13px;
+  font-family: var(--font-body); font-size: 0.6875rem; font-weight: 700;
+  color: var(--text-muted); cursor: pointer;
+}
+.arrive-undo:hover { border-color: var(--primary); color: var(--primary); }
+
+/* "Visited" in a pin popup, in place of the mark button. */
+.giya-popup-done {
+  display: block; margin-top: 8px; text-align: center;
+  font-size: 0.6875rem; font-weight: 700; color: #4E9C6B;
+}
+
+@media (max-width: 600px) {
+  .arrive-toast { left: 12px; right: 12px; max-width: none; transform: translateY(14px); }
+  .arrive-toast.is-open { transform: translateY(0); }
+}
+
+html[data-theme="dark"] .arrive-toast { background: var(--surface); }
