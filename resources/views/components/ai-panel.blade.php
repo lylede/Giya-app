@@ -41,7 +41,7 @@
     </div>
 
     <div class="ai-panel-starters" id="giyaPanelStarters">
-        @foreach (['Churches near Cebu City', 'Plan a Visita Iglesia', 'Mass at the Cathedral'] as $starter)
+        @foreach (['What churches can I visit in Cebu?', 'Plan a Visita Iglesia for me', 'How do I plan a pilgrimage day?'] as $starter)
             <button type="button" class="chat-starter" data-ai-ask="{{ $starter }}">{{ $starter }}</button>
         @endforeach
     </div>
