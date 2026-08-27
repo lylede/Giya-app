@@ -2553,7 +2553,7 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
    GIYA AI — chat
    ════════════════════════════════════════════════════════════════ */
 
-   .giya-chatbot-icon {
+.giya-chatbot-icon {
     width: 36px;
     height: 36px;
     display: block;
@@ -2561,15 +2561,19 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
     filter: brightness(0) invert(1);
 }
 
-.chat-page { display: flex; flex-direction: column; }
-
 .chat-bot-svg {
     width: 20px;
     height: 20px;
     display: block;
     object-fit: contain;
+    filter: brightness(0);
+}
+
+html[data-theme="dark"] .chat-bot-svg {
     filter: brightness(0) invert(1);
 }
+.chat-page { display: flex; flex-direction: column; }
+
 .chat-bot-icon {
     width: 34px;
     height: 34px;
