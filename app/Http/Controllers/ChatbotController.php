@@ -27,10 +27,10 @@ class ChatbotController extends Controller
             'messages'  => $session->messages,
             'online'    => $this->assistant->configured(),
             'starters'  => [
-                'What churches are near Cebu City?',
+                'What churches can I visit in Cebu?',
                 'Plan a Visita Iglesia for me',
-                'When is mass at the Cathedral?',
-                'Tell me about the Santo Niño',
+                'How do I plan a pilgrimage day?',
+                'What should I know before visiting a church?',
             ],
         ]);
     }

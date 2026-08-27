@@ -71,13 +71,11 @@
             @endif
         </div>
 
-        @if ($messages->isEmpty())
-            <div class="chat-starters" id="chatStarters">
-                @foreach ($starters as $starter)
-                    <button type="button" class="chat-starter" data-ask="{{ $starter }}">{{ $starter }}</button>
-                @endforeach
-            </div>
-        @endif
+        <div class="chat-starters" id="chatStarters">
+            @foreach ($starters as $starter)
+                <button type="button" class="chat-starter" data-ask="{{ $starter }}">{{ $starter }}</button>
+            @endforeach
+        </div>
 
         <form class="chat-composer" id="chatForm" autocomplete="off">
             @csrf
@@ -166,9 +164,6 @@
     }
 
     function ask(text) {
-        const starters = document.getElementById('chatStarters');
-        if (starters) starters.remove();
-
         addUser(text);
         input.value = '';
         input.disabled = send.disabled = true;
