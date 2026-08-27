@@ -33,7 +33,11 @@
         <button type="button" class="giya-fab" id="giyaFab"
                 aria-label="Ask Giya AI" aria-expanded="false" aria-controls="giyaPanel"
                 data-send-url="{{ route('chatbot.send') }}">
-            <span class="giya-fab-icon"><i class="bi bi-giya-star"></i></span>
+            <span class="giya-fab-icon">
+                <img src="{{ asset('images/icons/chatbot_icon.svg') }}"
+                    alt=""
+                    class="giya-chatbot-icon">
+            </span>
             <span class="giya-fab-label">Ask Giya</span>
         </button>
 
