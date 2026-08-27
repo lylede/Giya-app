@@ -104,6 +104,10 @@
                 <div class="card card-body mb-3">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <div class="card-title" style="margin:0">Route (<span id="stopCount">0</span> stops)</div>
+                        <p id="presetNote" class="plan-preset-note" hidden>
+                            <i class="bi bi-check-circle-fill"></i>
+                            Brought over from the map — add or remove any stop before saving.
+                        </p>
                         <div id="routeEstimate" style="font-size: 0.75rem;color:var(--text-muted);display:none"></div>
                     </div>
 
@@ -121,9 +125,9 @@
                             onclick="GiyaPlanner.submit()" @disabled($atLimit)>
                         <i class="bi bi-person-walking"></i> Start Pilgrimage
                     </button>
-                    <a href="{{ route('map') }}" class="btn btn-outline">
+                    <button type="button" class="btn btn-outline" id="planViewMap">
                         <i class="bi bi-map-fill"></i> View on Map
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -159,6 +163,11 @@
 <script>
 const GiyaPlanner = (function () {
     let stops = [];
+
+    /* Stops chosen on the map arrive already ordered. Adding them through the
+       same add() the buttons use means the list, the counter and the hidden
+       inputs are all built by one code path — nothing special-cased. */
+    const PRESET = @json($preset ?? []);
 
     function add(id) {
         if (stops.some(s => s.id === id)) return;
@@ -245,6 +254,41 @@ const GiyaPlanner = (function () {
         est.textContent = 'Estimated ' + Math.floor(total / 60) + 'h ' + (total % 60) + 'min';
         est.style.display = 'block';
     }
+
+    function loadPreset() {
+        if (!PRESET.length) return;
+
+        PRESET.forEach(function (c) {
+            if (document.getElementById('dest-' + c.id)) {
+                add(c.id);
+            }
+        });
+
+        const note = document.getElementById('presetNote');
+        if (note) note.hidden = false;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPreset);
+
+    /* Show what is in the route, not a fresh map. The ids go back the same way
+       they came, so the map arrives ticked and framed on those churches. */
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('planViewMap');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            const base = @json(route('map'));
+
+            if (!stops.length) {
+                window.location.href = base;
+                return;
+            }
+
+            const ids = stops.map(function (s) { return s.id; }).join(',');
+            window.location.href = base + '?stops=' + ids;
+        });
+    });
+
 
     return {
         add: add, remove: remove, move: move, render: render,

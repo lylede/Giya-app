@@ -32,11 +32,32 @@ class ItineraryController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
+        $churches = Church::active()->orderBy('name')->get();
+
+        /*
+           Stops chosen on the map arrive as ?stops=3,7,1 — in the order the
+           map worked out, which is the nearest-neighbour order it drew. That
+           order is the useful part, so it is preserved rather than re-sorted.
+        */
+        $preset = collect(explode(',', (string) $request->query('stops')))
+            ->map(fn ($id) => (int) trim($id))
+            ->filter()
+            ->unique()
+            ->map(fn ($id) => $churches->firstWhere('id', $id))
+            ->filter()
+            ->map(fn (Church $c) => [
+                'id'       => $c->id,
+                'name'     => $c->name,
+                'location' => $c->location,
+            ])
+            ->values();
+
         return view('plan.create', [
-            'churches' => Church::active()->orderBy('name')->get(),
+            'churches' => $churches,
             'atLimit'  => $this->atLimit(),
+            'preset'   => $preset,
         ]);
     }
 

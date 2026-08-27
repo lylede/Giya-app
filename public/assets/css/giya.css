@@ -2953,3 +2953,110 @@ button.hs-chip { font-family: var(--font-body); }
   border-color: var(--gold);
   color: var(--primary-dark);
 }
+
+/* ════════════════════════════════════════════════════════════════
+   CHURCH DETAIL — polish
+   ════════════════════════════════════════════════════════════════ */
+
+/* The hero photo was washing out under a flat overlay, so the building
+   was barely legible. A gradient keeps the top of the image clear and
+   darkens only where the text sits. */
+.church-hero-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(36,28,24,.30) 0%,
+    rgba(36,28,24,.45) 45%,
+    rgba(36,28,24,.88) 100%
+  );
+}
+.church-hero-image { filter: none; }
+
+/* The title needs its own shadow — a gradient alone cannot carry every photo. */
+.church-hero-content h1 { text-shadow: 0 2px 18px rgba(0,0,0,.55); }
+.church-hero-address    { text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+
+/* ── Stat strip ─────────────────────────────────────────────────
+   Dividers between items, so four values do not read as one row of
+   loose text, and each stat now carries an icon.
+   ---------------------------------------------------------------- */
+.church-stat-strip { gap: 0; }
+.church-stat-item {
+  position: relative;
+  padding: 0 22px;
+  text-align: center;
+}
+.church-stat-item + .church-stat-item::before {
+  content: "";
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 1px; height: 30px;
+  background: var(--border);
+}
+.church-stat-value.is-inline {
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.church-stat-value .bi { font-size: 0.8125rem; }
+.church-stat-label {
+  font-size: 0.6875rem; letter-spacing: .03em;
+  color: var(--text-muted); margin-top: 3px;
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────
+   The active tab was marked by colour alone, which is the one cue a
+   colour-blind reader cannot use. A weight change and a thicker rule
+   carry it too.
+   ---------------------------------------------------------------- */
+.church-tab { font-weight: 600; transition: color .15s ease; }
+.church-tab.is-active { font-weight: 800; }
+.church-tab.is-active::after { height: 3px; }
+
+/* ── Empty states ───────────────────────────────────────────────
+   The icon was a bare glyph floating in space. A tinted disc gives it
+   an edge, so an empty panel looks designed rather than unfinished.
+   ---------------------------------------------------------------- */
+.empty-state .empty-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--gold-bg);
+  margin: 0 auto 12px;
+}
+.empty-state .empty-icon .bi {
+  font-size: 1.375rem;
+  color: var(--primary) !important;   /* overrides the inline gold */
+}
+
+@media (max-width: 700px) {
+  .church-stat-strip { flex-wrap: wrap; row-gap: 14px; }
+  .church-stat-item { padding: 0 14px; flex: 1 1 44%; }
+  /* With two per row, the vertical rules land in the wrong places. */
+  .church-stat-item + .church-stat-item::before { display: none; }
+  .church-hero-content h1 { font-size: 1.75rem; }
+}
+
+/* ── Stops carried over from the map ─────────────────────────── */
+.plan-preset-note {
+  display: flex; align-items: flex-start; gap: 7px;
+  margin: 6px 0 0;
+  font-size: 0.6875rem; line-height: 1.55;
+  color: #166534;
+}
+.plan-preset-note .bi { flex-shrink: 0; margin-top: 2px; font-size: 0.75rem; }
+
+html[data-theme="dark"] .plan-preset-note { color: #6FBF8B; }
+
+/* ── Icons inside buttons must not intercept the click ───────────
+   A .bi is an inline element with a ::before mask. It sits above the
+   button's hit area, so a click landing on the glyph goes to the icon
+   rather than the button — which reads as "only the edges work".
+   ---------------------------------------------------------------- */
+.btn .bi,
+.btn .bi::before,
+button .bi,
+button .bi::before,
+.chat-starter .bi,
+.hs-chip .bi,
+.map-tool .bi,
+.icon-btn .bi {
+  pointer-events: none;
+}
