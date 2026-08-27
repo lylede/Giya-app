@@ -12,8 +12,10 @@ class TransactionController extends Controller
     public function index(Request $request): View
     {
         $transactions = Transaction::with('user')
-            ->when($request->status && $request->status !== 'All',
-                fn ($q, $s) => $q->where('status', $s))
+            // when() passes the CONDITION to the callback. Testing a boolean
+            // here meant $s was `true` and the filter matched nothing.
+            ->when($request->status === 'All' ? null : $request->status,
+                fn ($q, $status) => $q->where('status', $status))
             ->orderByDesc('created_at')
             ->paginate(15)
             ->withQueryString();
