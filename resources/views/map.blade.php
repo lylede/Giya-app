@@ -57,9 +57,9 @@
                 <p id="routeMode" class="route-mode"></p>
 
                 <div class="mx-tray-actions">
-                    <a href="#" id="btnDirections" class="btn btn-primary mx-plan">
+                    <button type="button" id="btnDirections" class="btn btn-primary mx-plan">
                         <i class="bi bi-signpost-fill"></i> Plan Route
-                    </a>
+                    </button>
                     <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm">Clear</button>
                 </div>
             </section>
@@ -221,8 +221,7 @@
 
             renderList();
 
-            const url = map.externalDirections();
-            document.getElementById('btnDirections').href = url || '#';
+            // Plan Route carries the selection into the planner — see below.
         }
     });
     let flags = { open: false, masses: false };
@@ -331,6 +330,23 @@
     });
     document.getElementById('btnClearRoute').addEventListener('click', function () { map.clearRoute(); });
 
+    /* Plan Route hands the selection to the itinerary planner, in the order the
+       map worked out — so the planner receives a route, not a bag of churches. */
+    document.getElementById('btnDirections').addEventListener('click', function () {
+        const ordered = (map.orderedStops ? map.orderedStops() : [])
+            .map(function (s) { return s.id; })
+            .filter(Boolean);
+
+        const ids = ordered.length ? ordered : map.selected();
+
+        if (!ids.length) {
+            showNote('Pick at least one destination first.', 'error');
+            return;
+        }
+
+        window.location.href = @json(route('plan.create')) + '?stops=' + ids.join(',');
+    });
+
     document.getElementById('mapSearch').addEventListener('input', function () {
         query = this.value.trim().toLowerCase();
         renderList();
@@ -393,6 +409,27 @@
     if (query) {
         document.getElementById('mapSearch').value = query;
     }
+
+    /* Stops sent back from the planner arrive as ?stops=3,7,1 — tick them and
+       frame the map on them, so the devotee sees their route rather than a
+       fresh map they have to rebuild. */
+    (function () {
+        const raw = new URLSearchParams(window.location.search).get('stops');
+        if (!raw) return;
+
+        const ids = raw.split(',')
+            .map(function (n) { return parseInt(n, 10); })
+            .filter(function (n) { return !isNaN(n); });
+
+        const known = ids.filter(function (id) {
+            return churches.some(function (c) { return c.id === id; });
+        });
+
+        if (!known.length) return;
+
+        known.forEach(function (id) { map.addStop(id); });
+        renderList();
+    })();
 
     renderList();
 })();

@@ -59,32 +59,43 @@
 {{-- ─────────────────── Stat strip — overlaps hero bottom edge cleanly ────────────────── --}}
 <div class="church-stat-wrap">
     <div class="church-stat-strip card">
-        @if (!is_null($church->rating))
-            <div class="church-stat-item">
-                <div class="church-stat-value is-inline">
-                    <i class="bi bi-star-fill" aria-hidden="true"></i> {{ number_format($church->rating, 1) }}
-                </div>
-                <div class="church-stat-label">Rating</div>
+        {{-- A rating of 0.0 means "not rated yet", not "rated zero". Say so. --}}
+        <div class="church-stat-item">
+            <div class="church-stat-value is-inline">
+                <i class="bi bi-star-fill" style="color:var(--gold)" aria-hidden="true"></i>
+                {{ $church->rating > 0 ? number_format($church->rating, 1) : '—' }}
             </div>
-        @endif
+            <div class="church-stat-label">
+                {{ $church->rating > 0 ? 'Rating' : 'No ratings yet' }}
+            </div>
+        </div>
 
         @if ($church->hours_label)
             <div class="church-stat-item">
-                <div class="church-stat-value">{{ $church->hours_label }}</div>
-                <div class="church-stat-label">Open</div>
+                <div class="church-stat-value is-inline">
+                    <i class="bi bi-clock" aria-hidden="true"></i>
+                    {{ $church->hours_label }}
+                </div>
+                <div class="church-stat-label">
+                    {{ $church->isOpenNow() ? 'Open now' : 'Opening hours' }}
+                </div>
             </div>
         @endif
 
         @if (!is_null($church->daily_visits))
             <div class="church-stat-item">
-                <div class="church-stat-value">{{ $church->daily_visits }}</div>
-                <div class="church-stat-label">Visitors</div>
+                <div class="church-stat-value is-inline">
+                    <i class="bi bi-people-fill" aria-hidden="true"></i>
+                    {{ $church->daily_visits }}
+                </div>
+                <div class="church-stat-label">Visits this month</div>
             </div>
         @endif
 
         <div class="church-stat-item">
             <div class="church-stat-value is-inline">
-                <i class="bi bi-file-earmark-fill" aria-hidden="true"></i> {{ $church->access ?? 'Yes' }}
+                <i class="bi bi-check-circle-fill" style="color:#4E9C6B" aria-hidden="true"></i>
+                {{ $church->access ?? 'Yes' }}
             </div>
             <div class="church-stat-label">Access</div>
         </div>
