@@ -1,0 +1,107 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 512 512"
+    width="512"
+    height="512"
+    fill="none"
+    class="chatbot-icon"
+>
+    <!-- Robot Antenna -->
+    <line
+        x1="256"
+        y1="75"
+        x2="256"
+        y2="110"
+        stroke="currentColor"
+        stroke-width="18"
+        stroke-linecap="round"
+    />
+
+    <circle
+        cx="256"
+        cy="58"
+        r="18"
+        fill="currentColor"
+    />
+
+    <!-- Robot Head -->
+    <rect
+        x="126"
+        y="105"
+        width="260"
+        height="190"
+        rx="65"
+        stroke="currentColor"
+        stroke-width="22"
+    />
+
+    <!-- Left Ear -->
+    <rect
+        x="98"
+        y="155"
+        width="30"
+        height="90"
+        rx="15"
+        fill="currentColor"
+    />
+
+    <!-- Right Ear -->
+    <rect
+        x="384"
+        y="155"
+        width="30"
+        height="90"
+        rx="15"
+        fill="currentColor"
+    />
+
+    <!-- Left Eye -->
+    <circle
+        cx="205"
+        cy="190"
+        r="16"
+        fill="currentColor"
+    />
+
+    <!-- Right Eye -->
+    <circle
+        cx="307"
+        cy="190"
+        r="16"
+        fill="currentColor"
+    />
+
+    <!-- Smile -->
+    <path
+        d="M210 235
+           C230 265 282 265 302 235"
+        stroke="currentColor"
+        stroke-width="18"
+        stroke-linecap="round"
+    />
+
+    <!-- Chat Bubble -->
+    <path
+        d="M150 325
+           H362
+           C390 325 412 347 412 375
+           V405
+           C412 433 390 455 362 455
+           H285
+           L256 482
+           L227 455
+           H150
+           C122 455 100 433 100 405
+           V375
+           C100 347 122 325 150 325
+           Z"
+        stroke="currentColor"
+        stroke-width="22"
+        stroke-linejoin="round"
+    />
+
+    <!-- Chat Dots -->
+    <circle cx="190" cy="390" r="13" fill="currentColor" />
+    <circle cx="256" cy="390" r="13" fill="currentColor" />
+    <circle cx="322" cy="390" r="13" fill="currentColor" />
+</svg>
