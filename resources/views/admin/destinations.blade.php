@@ -270,7 +270,7 @@
     </table>
 </div>
 
-<div style="margin-top:14px">{{ $churches->withQueryString()->links() }}</div>
+<div style="margin-top:14px"><x-pagination :paginator="$churches->withQueryString()" /></div>
 
 @endsection
 
