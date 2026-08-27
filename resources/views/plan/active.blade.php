@@ -111,11 +111,18 @@
 
         <div class="ap-summary" id="routeSummary"></div>
 
-        <div class="ap-toolbar">
-            <button type="button" class="btn btn-gold btn-sm" onclick="GiyaActive.markCurrent()">
-                <i class="bi bi-check-lg"></i> Mark Visited
-            </button>
+        {{-- Shown when the devotee walks into a stop's radius. --}}
+        <div class="arrive-toast" id="arriveToast" hidden role="status" aria-live="polite">
+            <span class="arrive-icon"><i class="bi bi-check-lg"></i></span>
+            <div class="arrive-body">
+                <strong>You have arrived</strong>
+                <span id="arriveName"></span>
+            </div>
+            <button type="button" class="arrive-undo" id="arriveUndo">Not yet</button>
         </div>
+
+        {{-- The corner button is gone: a stop is marked from its own pin, or
+             from the sidebar. Both are where the devotee is already looking. --}}
     </div>
 </div>
 @endsection
@@ -145,10 +152,34 @@ const GiyaActive = (function () {
         return stops.find(s => !visited.has(s.id)) || null;
     }
 
+    /* Arrival is recorded automatically. A pilgrim standing at the church door
+       should not have to tell the app they are there. */
+    function announceArrival(stop, metres) {
+        if (visited.has(stop.id)) return;
+
+        const box = document.getElementById('arriveToast');
+        const name = document.getElementById('arriveName');
+        if (!box) return;
+
+        name.textContent = stop.name;
+        box.hidden = false;
+        box.classList.add('is-open');
+        box.dataset.stop = stop.id;
+
+        mark(stop.id);          // record it; the toast offers an undo
+
+        clearTimeout(announceArrival._t);
+        announceArrival._t = setTimeout(function () {
+            box.classList.remove('is-open');
+            setTimeout(function () { box.hidden = true; }, 300);
+        }, 9000);
+    }
+
     const liveMap = GiyaLeaflet.pilgrimage({
         element: 'activeMap',
         stops: points,
         currentId: (stops.find(s => !s.visited) || {}).id,
+        onArrive: announceArrival,
         onStatus: function (message, kind) {
             const el = document.getElementById('routeSummary');
             if (el && kind === 'error') { el.textContent = message; }
@@ -191,6 +222,21 @@ const GiyaActive = (function () {
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && apShell.classList.contains('is-fullscreen')) apFull.click();
+    });
+
+    /* Ask for location as soon as the pilgrimage opens. Without it nothing can
+       tick itself, so it is asked for once, up front, with the reason visible
+       on screen rather than as a bare browser prompt. */
+    liveMap.track();
+
+    document.getElementById('arriveUndo').addEventListener('click', function () {
+        const box = document.getElementById('arriveToast');
+        const id = Number(box.dataset.stop);
+
+        if (id) unmark(id);
+
+        box.classList.remove('is-open');
+        setTimeout(function () { box.hidden = true; }, 300);
     });
 
     document.getElementById('apRecenter').addEventListener('click', function () {
@@ -258,6 +304,30 @@ const GiyaActive = (function () {
         paintPins();
     }
 
+    /* Undo for a false arrival. GPS drifts, and a devotee walking past a
+       church on their route should be able to say "not yet" without losing
+       their place. */
+    function unmark(stopId) {
+        if (!visited.has(stopId)) return;
+
+        visited.delete(stopId);
+        render();
+
+        fetch(markUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ stop_id: stopId, undo: true }),
+        }).catch(function () {
+            // Put it back if the server did not accept the undo.
+            visited.add(stopId);
+            render();
+        });
+    }
+
     function mark(stopId) {
         if (visited.has(stopId)) return;
 
@@ -301,6 +371,7 @@ const GiyaActive = (function () {
 
     return {
         mark: mark,
+        unmark: unmark,
         markCurrent: function () {
             const cur = current();
             if (cur) mark(cur.id);

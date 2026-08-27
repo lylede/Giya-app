@@ -517,6 +517,26 @@ window.GiyaLeaflet = (function () {
             });
         }
 
+        /* The popup is where a stop is marked visited: the devotee is looking
+           at the pin for the church they are standing outside, so the action
+           belongs there rather than on a button in the corner. */
+        function popupFor(s) {
+            return '<div class="giya-popup">' +
+                (s.image ? '<img src="' + s.image + '" alt="">' : '') +
+                '<strong>' + escapeHtml(s.name) + '</strong>' +
+                '<span>Stop ' + s.order + ' &middot; ' + escapeHtml(s.location || '') + '</span>' +
+                (s.visited
+                    ? '<span class="giya-popup-done">Visited</span>'
+                    : '<button type="button" class="giya-popup-btn" ' +
+                          'onclick="GiyaActive.mark(' + s.id + ')">Mark visited</button>') +
+                '</div>';
+        }
+
+        function refreshPopup(id) {
+            var s = stops.filter(function (x) { return x.id === id; })[0];
+            if (s && pins[id]) pins[id].setPopupContent(popupFor(s));
+        }
+
         function stateOf(stop, currentId) {
             if (stop.visited) return 'visited';
             return stop.id === currentId ? 'current' : 'pending';
@@ -535,11 +555,7 @@ window.GiyaLeaflet = (function () {
                     icon: numberedIcon(s, state),
                     zIndexOffset: state === 'current' ? 800 : 0
                 })
-                    .bindPopup('<div class="giya-popup">' +
-                        (s.image ? '<img src="' + s.image + '" alt="">' : '') +
-                        '<strong>' + escapeHtml(s.name) + '</strong>' +
-                        '<span>Stop ' + s.order + ' &middot; ' + escapeHtml(s.location || '') + '</span>' +
-                        '</div>')
+                    .bindPopup(popupFor(s))
                     .addTo(map);
             });
         }
@@ -602,6 +618,21 @@ window.GiyaLeaflet = (function () {
         /* Show where the devotee is, and how far the next stop is. */
         var meMarker = null, meRing = null;
 
+        function showMe(here, accuracy) {
+            if (meMarker) map.removeLayer(meMarker);
+            if (meRing) map.removeLayer(meRing);
+
+            meRing = L.circle([here.lat, here.lng], {
+                radius: accuracy || 30,
+                color: '#2563EB', weight: 1,
+                fillColor: '#2563EB', fillOpacity: .08
+            }).addTo(map);
+
+            meMarker = L.marker([here.lat, here.lng], {
+                icon: userIcon(), zIndexOffset: 900
+            }).bindPopup('You are here').addTo(map);
+        }
+
         function locate(done) {
             if (!navigator.geolocation) {
                 if (cfg.onStatus) cfg.onStatus('This browser cannot share a location.', 'error');
@@ -647,12 +678,75 @@ window.GiyaLeaflet = (function () {
             );
         }
 
+        /*
+           Arrival detection.
+
+           A pilgrim standing outside a church should not have to tell the app
+           they are there. watchPosition runs for the length of the pilgrimage,
+           and when the devotee comes within ARRIVE_M of an unvisited stop the
+           page is told so it can record the visit.
+
+           75 m is chosen deliberately: phone GPS in a built-up area is good to
+           roughly 20-40 m, and a church occupies a fair footprint, so a tighter
+           radius would miss arrivals at the door. Wider would fire while
+           walking past on the far side of the street.
+        */
+        var ARRIVE_M = 75;
+        var watchId = null;
+        var announced = {};
+
+        function track() {
+            if (!navigator.geolocation || watchId !== null) return;
+
+            watchId = navigator.geolocation.watchPosition(
+                function (pos) {
+                    var here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    showMe(here, pos.coords.accuracy);
+
+                    var next = stops.filter(function (st) { return !st.visited; })[0];
+                    if (next && cfg.onLocated) {
+                        cfg.onLocated(here, next, km(here, { lat: next.lat, lng: next.lng }));
+                    }
+
+                    stops.forEach(function (st) {
+                        if (st.visited || announced[st.id]) return;
+
+                        var metres = km(here, { lat: st.lat, lng: st.lng }) * 1000;
+
+                        if (metres <= ARRIVE_M) {
+                            announced[st.id] = true;      // announce once per session
+                            if (cfg.onArrive) cfg.onArrive(st, Math.round(metres));
+                        }
+                    });
+                },
+                function (err) {
+                    if (cfg.onStatus) {
+                        cfg.onStatus(err.code === 1
+                            ? 'Location is off, so stops will not tick themselves. Turn it on to check in automatically.'
+                            : 'Could not follow your location.', 'error');
+                    }
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+            );
+        }
+
+        function untrack() {
+            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+
         return {
             map: map,
             locate: locate,
+            track: track,
+            untrack: untrack,
+            refreshPopup: refreshPopup,
             frameAll: function () { route(); },
             refresh: function (visitedIds, currentId) {
-                stops.forEach(function (s) { s.visited = visitedIds.indexOf(s.id) !== -1; });
+                stops.forEach(function (s) {
+                    s.visited = visitedIds.indexOf(s.id) !== -1;
+                    refreshPopup(s.id);
+                });
                 draw(currentId);
             },
             focus: function (id) {

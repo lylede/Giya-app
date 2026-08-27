@@ -161,10 +161,35 @@ class ItineraryController extends Controller
 
     public function markVisited(Request $request): JsonResponse
     {
-        $data = $request->validate(['stop_id' => ['required', 'integer', 'exists:itinerary_stops,id']]);
+        $data = $request->validate([
+            'stop_id' => ['required', 'integer', 'exists:itinerary_stops,id'],
+            'undo'    => ['nullable', 'boolean'],
+        ]);
 
         $stop = ItineraryStop::with('itinerary')->findOrFail($data['stop_id']);
         $this->authorizeOwner($stop->itinerary);
+
+        /*
+           Undo an automatic check-in.
+
+           GPS drifts, and a devotee walking past a church that is later on
+           their route can be marked arrived before they mean to be. The visit
+           record is removed with the flag, so their history stays honest.
+        */
+        if ($request->boolean('undo')) {
+            DB::transaction(function () use ($stop) {
+                $stop->update(['is_visited' => false, 'visited_at' => null]);
+
+                VisitHistory::where('user_id', Auth::id())
+                    ->where('itinerary_id', $stop->itinerary_id)
+                    ->where('church_id', $stop->church_id)
+                    ->latest('visited_at')
+                    ->limit(1)
+                    ->delete();
+            });
+
+            return response()->json(['ok' => true, 'undone' => true]);
+        }
 
         if ($stop->is_visited) {
             return response()->json(['ok' => true, 'already' => true]);
