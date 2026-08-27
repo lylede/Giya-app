@@ -1,11 +1,11 @@
 /**
- * GIYA — date picker.
+ * GIYA - date picker.
  *
  * Chrome, Edge and Safari each draw their own calendar for <input type="date">,
  * inside a shadow DOM that CSS cannot reach. So the palette can only be matched
  * by replacing the popup entirely.
  *
- * The real <input type="date"> is kept as the value holder — form submission,
+ * The real <input type="date"> is kept as the value holder - form submission,
  * validation, min/max and required all keep working exactly as before. Only the
  * popup is ours.
  *
@@ -225,7 +225,7 @@
        at once. A readonly input never opens one, and still submits its value.
 
        The field is not readonly to a screen reader's understanding of the form
-       — it keeps its name, value and required state; only typing is disabled,
+       - it keeps its name, value and required state; only typing is disabled,
        and the calendar supplies the value instead.
     */
     function prepare(el) {
@@ -238,7 +238,7 @@
 
         /*
            Safari renders a readonly <input type="date"> with no value as a
-           blank box — no placeholder, no mm/dd/yyyy hint. Swapping to a text
+           blank box - no placeholder, no mm/dd/yyyy hint. Swapping to a text
            input while it is empty gives it a placeholder; it turns back into a
            date input the moment there is a value to hold.
         */
@@ -266,7 +266,7 @@
     document.addEventListener('DOMContentLoaded', function () { prepareAll(); });
     prepareAll();
 
-    // Catch inputs added later — Livewire re-renders, modals, JS-built rows.
+    // Catch inputs added later - Livewire re-renders, modals, JS-built rows.
     if (window.MutationObserver) {
         new MutationObserver(function (records) {
             records.forEach(function (r) {

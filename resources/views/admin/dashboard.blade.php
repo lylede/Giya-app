@@ -21,7 +21,7 @@
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px" class="chart-grid">
     <div class="card card-body">
-        <div class="card-title">Visits — Last 6 Months</div>
+        <div class="card-title">Visits - Last 6 Months</div>
         <x-line-chart :labels="$monthlyVisits['labels']" :data="$monthlyVisits['data']" />
     </div>
 

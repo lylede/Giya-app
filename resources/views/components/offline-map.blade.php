@@ -2,7 +2,7 @@
     Offline map.
 
     Renders destinations as an SVG using an equirectangular projection of the
-    supplied coordinates. No tile server, no network — the map draws identically
+    supplied coordinates. No tile server, no network - the map draws identically
     with the machine disconnected.
 
     @param  \Illuminate\Support\Collection  $points   each: id, name, lat, lng, color, label, state

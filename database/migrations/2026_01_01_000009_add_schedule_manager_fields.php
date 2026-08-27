@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Schema;
  * Columns the Schedule Manager design needs that the ERD's Schedules entity
  * does not carry. Add these to the diagram and Data Dictionary.
  *
- *   time_frame_label  "1st Mass", "2nd Mass" — distinguishes repeated services
+ *   time_frame_label  "1st Mass", "2nd Mass" - distinguishes repeated services
  *   is_whole_day      all-day events such as a fiesta
- *   location          "Main Church", "Adoration Chapel" — where inside the site
- *   status            Published | Draft — mirrors churches.is_active
+ *   location          "Main Church", "Adoration Chapel" - where inside the site
+ *   status            Published | Draft - mirrors churches.is_active
  */
 return new class extends Migration
 {

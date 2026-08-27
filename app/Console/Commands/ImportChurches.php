@@ -87,7 +87,7 @@ class ImportChurches extends Command
             if ($lat === null || $lng === null
                 || $lat < 9.3  || $lat > 11.4
                 || $lng < 123.0 || $lng > 124.5) {
-                $problems[] = "Line {$line}: {$name} — coordinates ({$lat}, {$lng}) fall outside Cebu province";
+                $problems[] = "Line {$line}: {$name} - coordinates ({$lat}, {$lng}) fall outside Cebu province";
                 $skipped++;
                 continue;
             }

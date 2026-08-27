@@ -129,7 +129,7 @@
                             </div>
                         </td>
                         <td style="color:var(--text-muted)">{{ $u->email }}</td>
-                        <td>{{ $u->created_at?->format('F j, Y') ?? '—' }}</td>
+                        <td>{{ $u->created_at?->format('F j, Y') ?? '-' }}</td>
                         <td>{{ $u->favorites_count }}</td>
                         <td>{{ $u->itineraries_count }}</td>
                         <td>
@@ -247,7 +247,7 @@
 
                 <p style="font-size: 0.75rem;color:var(--text-muted);margin:0 0 14px">
                     A suspended account keeps all its data but cannot sign in.
-                    Inactive is a label only — it does not block access.
+                    Inactive is a label only - it does not block access.
                 </p>
 
                 <div class="modal-actions">

@@ -574,7 +574,7 @@ const GiyaProfile = {
 
 /* ── Preferences save themselves ─────────────────────────────────
    Each control writes its own field the moment it changes, and theme
-   and font size apply to the page immediately — no reload, no Save.
+   and font size apply to the page immediately - no reload, no Save.
    ---------------------------------------------------------------- */
 const PrefSaver = (function () {
     const form = document.getElementById('prefForm');
@@ -612,7 +612,7 @@ const PrefSaver = (function () {
         })
             .then(r => r.json())
             .then(d => say(d.ok ? 'Saved' : 'Could not save that', d.ok ? 'ok' : 'error'))
-            .catch(() => say('Could not save — check your connection', 'error'));
+            .catch(() => say('Could not save - check your connection', 'error'));
     }
 
     return { save };

@@ -1,5 +1,5 @@
 /**
- * GIYA — Leaflet map layer.
+ * GIYA - Leaflet map layer.
  *
  * Wraps Leaflet with the behaviour the app needs: category-coloured pins for
  * every destination, search and filtering, itinerary routing, and turn-by-turn

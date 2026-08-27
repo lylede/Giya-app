@@ -1,5 +1,5 @@
 /* ============================================================================
-   GIYA — Leaflet integration
+   GIYA - Leaflet integration
    ----------------------------------------------------------------------------
    Leaflet is served from /assets/js/leaflet.js, so the library never needs the
    network. Tiles try the local folder first and fall back to OpenStreetMap when
@@ -7,8 +7,8 @@
    has been run.
 
    Two entry points:
-     GiyaLeaflet.browse(config)   devotee map — locate me, plan a route
-     GiyaLeaflet.picker(config)   admin map  — click to pin, click a pin to edit
+     GiyaLeaflet.browse(config)   devotee map - locate me, plan a route
+     GiyaLeaflet.picker(config)   admin map  - click to pin, click a pin to edit
 
    Church pins render as the church's own photo inside a teardrop frame.
    ============================================================================ */
@@ -219,8 +219,8 @@ window.GiyaLeaflet = (function () {
         /* ---- route ----
            Two passes. The straight line appears immediately so the map never
            looks frozen, then the road-following geometry replaces it when the
-           routing service answers. If that call fails for any reason — no key,
-           quota spent, no connection — the straight line simply stays. */
+           routing service answers. If that call fails for any reason - no key,
+           quota spent, no connection - the straight line simply stays. */
         function drawRoute() {
             if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
 
@@ -319,7 +319,7 @@ window.GiyaLeaflet = (function () {
             drawRoute();
         }
 
-        /** Add if absent, remove if present — what a tick control should do. */
+        /** Add if absent, remove if present - what a tick control should do. */
         function toggleStop(id) {
             if (selected.indexOf(id) === -1) {
                 selected.push(id);
@@ -354,7 +354,7 @@ window.GiyaLeaflet = (function () {
          *
          * The map should answer the same question the list is answering. With
          * every pin left on screen, searching "san" narrows the list to three
-         * while the map still shows nine — so the map contradicts the list.
+         * while the map still shows nine - so the map contradicts the list.
          */
         function showOnly(ids) {
             var shown = [];
@@ -407,7 +407,7 @@ window.GiyaLeaflet = (function () {
                    '&travelmode=driving';
         }
 
-        // Size first, then frame — fitBounds against a stale size picks the
+        // Size first, then frame - fitBounds against a stale size picks the
         // wrong centre and zoom.
         setTimeout(function () { map.invalidateSize(); frameAll(); }, 200);
         window.addEventListener('resize', function () { map.invalidateSize(); });

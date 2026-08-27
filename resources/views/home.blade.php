@@ -229,7 +229,7 @@
 
     /* Chips fill the field rather than navigating.
 
-       Tapping a category is a first draft, not a decision — someone can tap
+       Tapping a category is a first draft, not a decision - someone can tap
        Cathedral, see it, and change to Chapel before committing. The Search
        button stays the one place a devotee leaves this page from, so there is
        never a question about what a tap will do. */

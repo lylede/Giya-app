@@ -1,5 +1,5 @@
 /**
- * GIYA — notification panel.
+ * GIYA - notification panel.
  *
  * The bell fetches on first open rather than on page load, so a page the
  * devotee never interacts with costs nothing.

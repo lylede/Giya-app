@@ -39,7 +39,7 @@
                         <td style="font-weight:600">{{ $t->user->name ?? 'Deleted user' }}</td>
                         <td style="font-size: 0.8125rem;color:var(--text-muted)">{{ $t->plan }}</td>
                         <td style="font-weight:700">₱{{ number_format($t->amount, 2) }}</td>
-                        <td style="font-size: 0.8125rem">{{ $t->method ?? '—' }}</td>
+                        <td style="font-size: 0.8125rem">{{ $t->method ?? '-' }}</td>
                         <td>
                             <span @class([
                                 'badge',

@@ -10,7 +10,7 @@
     </div>
     <h1 style="font-family:var(--font-display);font-size: 2rem;margin:0 0 10px">Pilgrimage Plan Hub</h1>
     <p style="color:var(--text-muted);font-size: 0.9375rem;line-height:1.7;max-width:580px;margin:0 0 40px">
-        Choose how you want to plan your religious journey across Metro Cebu — build a custom
+        Choose how you want to plan your religious journey across Metro Cebu - build a custom
         route, follow the Visita Iglesia tradition, or continue where you left off.
     </p>
 
@@ -118,7 +118,7 @@
         <div>
             <h2 class="section-title" style="font-size: 1.25rem">Pilgrim Tips</h2>
             @foreach ([
-                ['person-vcard-fill', 'Dress modestly — cover shoulders and knees when entering a church.'],
+                ['person-vcard-fill', 'Dress modestly - cover shoulders and knees when entering a church.'],
                 ['fire',              'Light a candle and offer a prayer at each stop for a fuller experience.'],
                 ['bus-front-fill',    'Arrange transport ahead of time for destinations outside Cebu City.'],
                 ['droplet-fill',      'Bring water, especially for hilltop shrines such as Simala.'],

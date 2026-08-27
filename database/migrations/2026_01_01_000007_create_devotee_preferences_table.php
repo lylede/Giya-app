@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * NOT in the current ERD — add this entity to the diagram and Data Dictionary.
+ * NOT in the current ERD - add this entity to the diagram and Data Dictionary.
  * One row per devotee, created on first save.
  */
 return new class extends Migration

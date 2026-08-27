@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>GIYA — @yield('title', 'Pilgrimage Companion')</title>
+    <title>GIYA - @yield('title', 'Pilgrimage Companion')</title>
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/giya-icons.css') }}?v={{ filemtime(public_path('assets/css/giya-icons.css')) }}">

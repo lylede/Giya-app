@@ -1,5 +1,5 @@
 /**
- * GIYA — the directions sheet.
+ * GIYA - the directions sheet.
  *
  * Binds the navigation engine to the panel on the map page: the current turn,
  * the full list of turns, distance remaining, and live tracking.

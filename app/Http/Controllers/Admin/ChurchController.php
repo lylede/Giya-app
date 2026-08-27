@@ -63,7 +63,7 @@ class ChurchController extends Controller
         ]);
     }
 
-    /** Handles both create and update — the form posts church_id when editing. */
+    /** Handles both create and update - the form posts church_id when editing. */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -180,7 +180,7 @@ class ChurchController extends Controller
      * Remove an uploaded file from disk.
      *
      * Seeded .svg artwork ships with the repository and is shared, so it is
-     * never deleted — only files this admin panel wrote.
+     * never deleted - only files this admin panel wrote.
      */
     protected function deleteImageFile(?string $url): void
     {

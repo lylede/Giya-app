@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
  * Street-level routing through OpenRouteService.
  *
  * Leaflet draws the map; it has never done routing. Turn instructions come from
- * a routing engine, and this is the call to one. The key stays on the server —
+ * a routing engine, and this is the call to one. The key stays on the server -
  * a key shipped to the browser is a key anyone can read and spend.
  *
  * Results are cached: churches do not move, so the same stops always produce
@@ -96,7 +96,7 @@ class RouteService
 
     /**
      * One list of turns per leg, each carrying the coordinate the manoeuvre
-     * happens at — that is what lets the app say "turn in 120 m".
+     * happens at - that is what lets the app say "turn in 120 m".
      */
     protected function legs(array $feature): array
     {

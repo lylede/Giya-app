@@ -1,5 +1,5 @@
 /**
- * GIYA — front-end behaviour.
+ * GIYA - front-end behaviour.
  *
  * Written for this project so the app carries no third-party JavaScript and
  * runs with no network access. Exposes four small helpers used by the Blade
@@ -67,13 +67,13 @@
     /*
        Delegated from document, not bound to the button.
 
-       A direct listener is lost the moment its element is replaced — which
+       A direct listener is lost the moment its element is replaced - which
        Livewire does whenever it re-renders a component that contains the
        navbar. The button then looks fine and does nothing. Delegation survives
        any amount of DOM replacement, because the listener lives on document.
     */
     /*
-       The mobile menu is entirely CSS now — a checkbox and a label, styled in
+       The mobile menu is entirely CSS now - a checkbox and a label, styled in
        components/navbar.blade.php. The script used to mirror that state, and
        its outside-click handler was unchecking the box on the very tap that
        opened it, so the menu opened once and then appeared dead.
@@ -81,7 +81,7 @@
        Nothing here touches it any more. Closing on an outside tap is handled by
        a full-screen label in the markup, which needs no JavaScript.
     */
-    function initMobileNav() { /* intentionally empty — see navbar.blade.php */ }
+    function initMobileNav() { /* intentionally empty - see navbar.blade.php */ }
 
     /* ── Navbar height ─────────────────────────────────────
        Overlays position themselves under the bar. Measuring it beats
@@ -99,7 +99,7 @@
 
     initMobileNav();
 
-    /* Flash messages dismiss themselves — see components/flash.blade.php.
+    /* Flash messages dismiss themselves - see components/flash.blade.php.
        Keeping a second implementation here would mean two timers racing. */
 
 

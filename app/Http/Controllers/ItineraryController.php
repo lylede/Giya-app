@@ -37,7 +37,7 @@ class ItineraryController extends Controller
         $churches = Church::active()->orderBy('name')->get();
 
         /*
-           Stops chosen on the map arrive as ?stops=3,7,1 — in the order the
+           Stops chosen on the map arrive as ?stops=3,7,1 - in the order the
            map worked out, which is the nearest-neighbour order it drew. That
            order is the useful part, so it is preserved rather than re-sorted.
         */

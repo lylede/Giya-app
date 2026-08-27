@@ -27,7 +27,7 @@
 
         This used to rely on a handler in giya.js registered at DOMContentLoaded.
         That is one more thing that has to load, in the right order, and survive
-        any Livewire re-render — and when it did not, the message simply stayed
+        any Livewire re-render - and when it did not, the message simply stayed
         on screen forever.
 
         Inline, beside the markup it controls, it runs the moment the element

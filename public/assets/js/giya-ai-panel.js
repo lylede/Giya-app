@@ -1,5 +1,5 @@
 /**
- * Giya AI — slide-out panel.
+ * Giya AI - slide-out panel.
  *
  * Talks to the same endpoint as the full chat page, so a conversation started
  * here continues there and the other way round: both write to the devotee's

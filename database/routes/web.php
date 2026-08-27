@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| GIYA — Web Routes
+| GIYA - Web Routes
 |--------------------------------------------------------------------------
 | Every internal link in the Blade templates resolves through a named route
 | below. No route points at an external service.
@@ -58,7 +58,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
     Route::post('/profile/review', [ProfileController::class, 'storeReview'])->name('profile.review');
 
-    /* Plan / Itineraries — static segments registered before {itinerary} */
+    /* Plan / Itineraries - static segments registered before {itinerary} */
     Route::prefix('plan')->name('plan.')->controller(ItineraryController::class)->group(function () {
         Route::get('/',                'hub')->name('hub');
         Route::get('/create',          'create')->name('create');
