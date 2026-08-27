@@ -20,7 +20,9 @@
     </div>
 
     <div class="church-card-body">
-        <h3 style="font-size: 0.875rem;font-weight:700;color:var(--text);line-height:1.3;margin:0">{{ $church->name }}</h3>
+        <h3 class="church-card-name">
+            <a href="{{ route('churches.show', $church) }}">{{ $church->name }}</a>
+        </h3>
         <p class="d-flex align-items-center gap-1" style="font-size: 0.75rem;color:var(--text-muted);margin:4px 0 0">
             <img src="{{ asset('images/icons/location.svg') }}" alt="" width="11" height="11">
             {{ $church->location }}
