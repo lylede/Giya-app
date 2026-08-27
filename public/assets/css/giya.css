@@ -1164,7 +1164,8 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
 }
 .giya-popup strong {
   display: block; font-family: var(--font-display);
-  font-size: 0.875rem; color: var(--text); margin-bottom: 3px;
+  font-size: 0.875rem; margin-bottom: 3px;
+  color: #241C18;
 }
 .giya-popup span {
   display: block; font-size: 0.6875rem; color: var(--text-muted); line-height: 1.5;
@@ -3264,12 +3265,15 @@ html[data-theme="dark"] .arrive-toast { background: var(--surface); }
 }
 
 /* Coordinates are filled by the map, so they read as confirmation. */
-.dm-coords .giya-input[readonly] {
-  background: var(--bg-secondary);
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+.dm-coords input[type="number"]::-webkit-outer-spin-button,
+.dm-coords input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
-
+.dm-coords input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
 /* The modal must clear an expanded map. */
 #destModal { z-index: 2100; }
 
@@ -3326,3 +3330,6 @@ html[data-theme="dark"] .arrive-toast { background: var(--surface); }
 @media (max-width: 560px) {
   .dm-modal-foot .dm-delete { margin-left: 0; width: 100%; justify-content: center; }
 }
+
+html[data-theme="dark"] .giya-popup strong { color: #241C18; }
+html[data-theme="dark"] .giya-popup span   { color: #6B5B4E; }
