@@ -12,7 +12,7 @@
             <h1>Giya AI Assistant</h1>
             <p>
                 <span @class(['chat-dot', 'is-off' => ! $online])></span>
-                {{ $online ? 'Pilgrimage guide for Metro Cebu' : 'Offline — answering from destination records' }}
+                {{ $online ? 'Pilgrimage guide for Metro Cebu' : 'Offline - answering from destination records' }}
             </p>
         </div>
 
@@ -81,7 +81,7 @@
     </div>
 
     <p class="chat-note">
-        Giya AI answers from GIYA's destination records. Mass schedules change —
+        Giya AI answers from GIYA's destination records. Mass schedules change -
         please confirm with the parish before travelling.
     </p>
 </div>

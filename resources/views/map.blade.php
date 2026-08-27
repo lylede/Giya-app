@@ -128,7 +128,7 @@
     const routeBox = document.getElementById('routeBox');
 
     let category = 'All';
-    // A search from the home page arrives as ?q= — start from it.
+    // A search from the home page arrives as ?q= - start from it.
     let query = new URLSearchParams(window.location.search).get('q') || '';
     query = query.trim().toLowerCase();
     let distances = {};
@@ -221,7 +221,7 @@
 
             renderList();
 
-            // Plan Route carries the selection into the planner — see below.
+            // Plan Route carries the selection into the planner - see below.
         }
     });
     let flags = { open: false, masses: false };
@@ -331,7 +331,7 @@
     document.getElementById('btnClearRoute').addEventListener('click', function () { map.clearRoute(); });
 
     /* Plan Route hands the selection to the itinerary planner, in the order the
-       map worked out — so the planner receives a route, not a bag of churches. */
+       map worked out - so the planner receives a route, not a bag of churches. */
     document.getElementById('btnDirections').addEventListener('click', function () {
         const ordered = (map.orderedStops ? map.orderedStops() : [])
             .map(function (s) { return s.id; })
@@ -410,7 +410,7 @@
         document.getElementById('mapSearch').value = query;
     }
 
-    /* Stops sent back from the planner arrive as ?stops=3,7,1 — tick them and
+    /* Stops sent back from the planner arrive as ?stops=3,7,1 - tick them and
        frame the map on them, so the devotee sees their route rather than a
        fresh map they have to rebuild. */
     (function () {

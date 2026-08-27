@@ -1,5 +1,5 @@
 /**
- * GIYA — confirmation dialog.
+ * GIYA - confirmation dialog.
  *
  * Replaces the browser's native confirm(), which cannot be styled, shows the
  * host name to the user, and looks like a security warning rather than part of
@@ -108,7 +108,7 @@ window.GiyaConfirm = (function (window, document) {
         host.classList.add('is-open');
         document.body.style.overflow = 'hidden';
 
-        // Focus Cancel, not Confirm — a stray Enter should not delete anything.
+        // Focus Cancel, not Confirm - a stray Enter should not delete anything.
         setTimeout(function () { document.getElementById('gcCancel').focus(); }, 30);
 
         return new Promise(function (resolve) { resolver = resolve; });

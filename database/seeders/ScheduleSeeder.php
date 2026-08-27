@@ -42,7 +42,7 @@ class ScheduleSeeder extends Seeder
             );
         }
 
-        // Recurring Mass times — replaces the old churches.mass_schedule jsonb.
+        // Recurring Mass times - replaces the old churches.mass_schedule jsonb.
         $masses = [
             'Basilica del Santo Niño' => [
                 ['Weekday Mass', 'Daily',            '05:00'],

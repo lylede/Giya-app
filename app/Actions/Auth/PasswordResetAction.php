@@ -30,7 +30,7 @@ class PasswordResetAction
             Mail::send(
                 'emails.reset-password',
                 ['resetUrl' => $resetUrl, 'email' => $email],
-                fn ($message) => $message->to($email)->subject('GIYA — Password Reset Request')
+                fn ($message) => $message->to($email)->subject('GIYA - Password Reset Request')
             );
         } catch (\Throwable $exception) {
             report($exception);

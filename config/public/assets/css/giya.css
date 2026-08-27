@@ -1,5 +1,5 @@
 /* ============================================================
-   GIYA – Design System CSS
+   GIYA - Design System CSS
    Fonts: Playfair Display (headings) + Lato (body)
    Colors: #8E3B2F (primary) · #D7A94A (gold) · #FFF8ED (bg) · #241C18 (text)
    ============================================================ */
@@ -774,7 +774,7 @@ img { max-width: 100%; display: block; }
 
 /* ============================================================
    Layout utilities
-   A deliberately small set — only what the GIYA templates use.
+   A deliberately small set - only what the GIYA templates use.
    ============================================================ */
 .d-flex          { display: flex; }
 .d-block         { display: block; }
@@ -978,7 +978,7 @@ html[data-theme="dark"] .giya-pagination span {
   border-color: var(--border);
 }
 
-/* Painted with var(--text) as a background — pin them dark explicitly. */
+/* Painted with var(--text) as a background - pin them dark explicitly. */
 html[data-theme="dark"] .giya-footer   { background: #100C0A; }
 html[data-theme="dark"] .admin-sidebar { background: #100C0A; }
 html[data-theme="dark"] .giya-tooltip  { background: #100C0A; color: var(--text); }
@@ -1242,7 +1242,7 @@ html[data-theme="dark"] .dm-drop-circle { background: var(--surface); border-col
 }
 
 /* ── Map category chips ──────────────────────────────────────
-   These sit on a white card, so they cannot reuse .btn-ghost —
+   These sit on a white card, so they cannot reuse .btn-ghost -
    that class is white-on-transparent, meant for the dark hero.
 */
 .cat-chip {

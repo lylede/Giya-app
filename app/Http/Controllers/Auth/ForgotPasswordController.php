@@ -38,7 +38,7 @@ class ForgotPasswordController extends Controller
         Mail::send(
             'emails.reset-password',
             ['resetUrl' => $resetUrl, 'email' => $request->email],
-            fn($m) => $m->to($request->email)->subject('GIYA – Password Reset')
+            fn($m) => $m->to($request->email)->subject('GIYA - Password Reset')
         );
 
         return back()->with('success', 'Reset link sent to ' . $request->email . '. Check your inbox.');

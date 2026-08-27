@@ -88,15 +88,15 @@
                 @forelse ($schedules as $i => $s)
                     <tr>
                         <td>{{ $schedules->firstItem() + $i }}</td>
-                        <td style="font-weight:700">{{ $s->church->name ?? '—' }}</td>
+                        <td style="font-weight:700">{{ $s->church->name ?? '-' }}</td>
                         <td>{{ $s->event_name }}</td>
                         <td><span class="badge badge-gold">{{ $s->event_type }}</span></td>
                         <td>{{ $s->day_label }}</td>
-                        <td>{{ $s->time_frame_label ?: '—' }}</td>
+                        <td>{{ $s->time_frame_label ?: '-' }}</td>
                         <td>{{ $s->timeLabel($s->start_time) }}</td>
                         <td>{{ $s->timeLabel($s->end_time) }}</td>
                         <td>{{ $s->is_whole_day ? 'Yes' : 'No' }}</td>
-                        <td>{{ $s->location ?: '—' }}</td>
+                        <td>{{ $s->location ?: '-' }}</td>
                         <td>
                             <span @class(['badge', 'badge-published' => $s->status === 'Published',
                                           'badge-brown' => $s->status !== 'Published'])>
@@ -219,7 +219,7 @@
                     <div class="field" style="flex:1 1 220px">
                         <label class="dm-label" for="s-recurrence">Repeats on</label>
                         <select id="s-recurrence" name="recurrence" class="giya-input">
-                            <option value="">Does not repeat — one-off date</option>
+                            <option value="">Does not repeat - one-off date</option>
                             @foreach ($days as $day)
                                 <option value="{{ $day }}">{{ $day }}</option>
                             @endforeach

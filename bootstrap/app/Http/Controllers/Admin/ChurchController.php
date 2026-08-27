@@ -65,7 +65,7 @@ class ChurchController extends Controller
         ]);
     }
 
-    /** Handles both create and update — the form posts church_id when editing. */
+    /** Handles both create and update - the form posts church_id when editing. */
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
@@ -145,7 +145,7 @@ class ChurchController extends Controller
      * Swap the primary image.
      *
      * Files land in public/images/churches so they sit beside the seeded
-     * artwork, need no storage:link, and can be committed to the repository —
+     * artwork, need no storage:link, and can be committed to the repository -
      * which means photos travel with a clone to another machine.
      */
     protected function replacePhoto(Church $church, $file, ?string $caption): void
@@ -158,7 +158,7 @@ class ChurchController extends Controller
         $dir = public_path('images/churches');
         File::ensureDirectoryExists($dir);
 
-        // church-name-1712345678.jpg — readable, and unique per upload.
+        // church-name-1712345678.jpg - readable, and unique per upload.
         $name = Str::slug($church->name).'-'.now()->timestamp.'.'.$file->getClientOriginalExtension();
         $file->move($dir, $name);
 
@@ -176,7 +176,7 @@ class ChurchController extends Controller
      * Remove an uploaded file from disk.
      *
      * Seeded .svg artwork ships with the repository and is shared, so it is
-     * never deleted — only files this admin panel wrote.
+     * never deleted - only files this admin panel wrote.
      */
     protected function deleteImageFile(?string $url): void
     {

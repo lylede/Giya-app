@@ -13,7 +13,7 @@
         <span class="badge badge-brown">Traditionally 7 churches</span>
     </div>
     <p style="color:var(--text-muted);font-size: 0.875rem;margin:0 0 32px">
-        The traditional multi-church pilgrimage — adjust the number of stops to suit your devotion and schedule.
+        The traditional multi-church pilgrimage - adjust the number of stops to suit your devotion and schedule.
     </p>
 
     @if ($atLimit)

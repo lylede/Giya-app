@@ -106,7 +106,7 @@
                         <div class="card-title" style="margin:0">Route (<span id="stopCount">0</span> stops)</div>
                         <p id="presetNote" class="plan-preset-note" hidden>
                             <i class="bi bi-check-circle-fill"></i>
-                            Brought over from the map — add or remove any stop before saving.
+                            Brought over from the map - add or remove any stop before saving.
                         </p>
                         <div id="routeEstimate" style="font-size: 0.75rem;color:var(--text-muted);display:none"></div>
                     </div>
@@ -166,7 +166,7 @@ const GiyaPlanner = (function () {
 
     /* Stops chosen on the map arrive already ordered. Adding them through the
        same add() the buttons use means the list, the counter and the hidden
-       inputs are all built by one code path — nothing special-cased. */
+       inputs are all built by one code path - nothing special-cased. */
     const PRESET = @json($preset ?? []);
 
     function add(id) {

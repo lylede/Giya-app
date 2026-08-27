@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><title>GIYA — Password Reset</title></head>
+<head><meta charset="utf-8"><title>GIYA - Password Reset</title></head>
 <body style="margin:0;padding:0;background:#FDF3E3;font-family:Georgia,'Times New Roman',serif">
 <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
     <tr><td align="center">
@@ -44,7 +44,7 @@
 
                     <p style="color:#B9A493;font-size:12px;line-height:1.6;margin:0">
                         This link expires in <strong>60 minutes</strong>.
-                        If you did not request a password reset you can safely ignore this email —
+                        If you did not request a password reset you can safely ignore this email -
                         your password will not change.
                     </p>
                 </td>
@@ -53,7 +53,7 @@
             <tr>
                 <td style="background:#FDF3E3;padding:16px 32px;text-align:center;border-top:1px solid rgba(142,59,47,0.08)">
                     <p style="color:#B9A493;font-size:11px;margin:0;font-family:Arial,sans-serif">
-                        GIYA — Localized Pilgrimage Companion for Metro Cebu
+                        GIYA - Localized Pilgrimage Companion for Metro Cebu
                     </p>
                 </td>
             </tr>

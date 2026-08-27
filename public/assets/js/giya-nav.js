@@ -1,5 +1,5 @@
 /**
- * GIYA — in-app navigation.
+ * GIYA - in-app navigation.
  *
  * Everything a pilgrim needs to follow a route without leaving the app:
  * the road-following line, the list of turns with street names, the live
@@ -226,7 +226,7 @@ window.GiyaNav = (function (window, document) {
 
                     // Wandered well off the line? Ask for a new one.
                     if (geometry.length && offRouteBy(here, geometry) > 60) {
-                        onStatus('You are off the route — recalculating…', 'warn');
+                        onStatus('You are off the route - recalculating…', 'warn');
                         if (options.onOffRoute) options.onOffRoute(here);
                     }
 

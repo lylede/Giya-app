@@ -226,7 +226,7 @@
                             <i class="bi bi-star-fill" style="color:var(--gold);font-size: 0.6875rem"></i>
                             {{ number_format($church->rating, 1) }}
                         @else
-                            <span style="color:var(--text-muted)">&mdash;</span>
+                            <span style="color:var(--text-muted)">-</span>
                         @endif
                     </td>
                     <td>

@@ -1,7 +1,7 @@
 {{--
     Giya AI as a slide-out panel.
 
-    The assistant is something you consult while doing something else — checking
+    The assistant is something you consult while doing something else - checking
     a mass time while looking at the map, asking about a church mid-route. Sending
     the devotee to a separate page loses their place. A panel keeps it.
 

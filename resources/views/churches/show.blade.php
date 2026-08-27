@@ -56,14 +56,14 @@
     </div>
 </section>
 
-{{-- ─────────────────── Stat strip — overlaps hero bottom edge cleanly ────────────────── --}}
+{{-- ─────────────────── Stat strip - overlaps hero bottom edge cleanly ────────────────── --}}
 <div class="church-stat-wrap">
     <div class="church-stat-strip card">
         {{-- A rating of 0.0 means "not rated yet", not "rated zero". Say so. --}}
         <div class="church-stat-item">
             <div class="church-stat-value is-inline">
                 <i class="bi bi-star-fill" style="color:var(--gold)" aria-hidden="true"></i>
-                {{ $church->rating > 0 ? number_format($church->rating, 1) : '—' }}
+                {{ $church->rating > 0 ? number_format($church->rating, 1) : '-' }}
             </div>
             <div class="church-stat-label">
                 {{ $church->rating > 0 ? 'Rating' : 'No ratings yet' }}
@@ -217,7 +217,7 @@
             <div class="church-reviews-layout">
                 <div class="church-review-summary card">
                     <div class="church-review-average">
-                        <strong>{{ $averageRating ? number_format($averageRating, 1) : '—' }}</strong>
+                        <strong>{{ $averageRating ? number_format($averageRating, 1) : '-' }}</strong>
                         @if ($averageRating)
                             <x-stars :rating="round($averageRating)" :size="16" />
                         @endif

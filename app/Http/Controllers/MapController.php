@@ -19,7 +19,7 @@ class MapController extends Controller
             'churches'   => $churches,
             'categories' => ChurchCategory::orderBy('name')->pluck('name')->prepend('All')->all(),
 
-            // Plain array for Leaflet — no Eloquent objects cross into JS.
+            // Plain array for Leaflet - no Eloquent objects cross into JS.
             'markers' => $churches
                 ->filter(fn (Church $c) => $c->latitude && $c->longitude)
                 ->map(fn (Church $c) => [

@@ -14,7 +14,7 @@ use Illuminate\Notifications\Notifiable;
  * still resolves; only the underlying table changed.
  *
  * The profile counters (total_pilgrimages, total_churches_visited,
- * total_km_walked, is_premium, member_since) are NOT columns any more — the
+ * total_km_walked, is_premium, member_since) are NOT columns any more - the
  * ERD has no place for them. They are derived from the related tables and
  * exposed as accessors, so `$user->total_churches_visited` still works in
  * Blade exactly as before.

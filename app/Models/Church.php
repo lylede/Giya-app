@@ -114,7 +114,7 @@ class Church extends Model
 
     /**
      * Sort by average approved rating. `rating` is no longer a column, so a
-     * plain orderBy('rating') would fail — this adds the average as a computed
+     * plain orderBy('rating') would fail - this adds the average as a computed
      * column the database can actually sort on.
      */
     public function scopeOrderByRating(Builder $query, string $direction = 'desc'): Builder

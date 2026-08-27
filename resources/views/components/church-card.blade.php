@@ -29,7 +29,7 @@
             {{ \Illuminate\Support\Str::limit($church->description, 88) }}
         </p>
         <div class="d-flex align-items-center justify-content-between mt-3">
-            <span style="font-size: 0.6875rem;color:var(--primary);font-weight:700">{{ $church->daily_visits ?? '—' }} visitors</span>
+            <span style="font-size: 0.6875rem;color:var(--primary);font-weight:700">{{ $church->daily_visits ?? '-' }} visitors</span>
             <a href="{{ route('map') }}" style="font-size: 0.6875rem;color:var(--primary);font-weight:700">View on map →</a>
         </div>
     </div>
