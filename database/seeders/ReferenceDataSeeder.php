@@ -20,8 +20,6 @@ class ReferenceDataSeeder extends Seeder
             ['name' => 'Cathedral', 'description' => 'The principal church of a diocese, seat of the bishop.'],
             ['name' => 'Shrine',    'description' => 'A holy place devoted to a saint or a sacred image.'],
             ['name' => 'Church',    'description' => 'A parish church open for regular worship.'],
-            ['name' => 'Chapel',    'description' => 'A small place of worship, often inside a larger site.'],
-            ['name' => 'Heritage',  'description' => 'A declared heritage religious site.'],
         ];
 
         foreach ($categories as $row) {
