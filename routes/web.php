@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -100,6 +101,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::patch('/feedback/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
 
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions');
+    
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
+    Route::get('/reports/download/{report}', [AdminReportController::class, 'download'])->name('reports.download');
 });
 
 Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
