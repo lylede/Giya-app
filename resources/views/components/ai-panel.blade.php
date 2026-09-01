@@ -10,11 +10,26 @@
 <div class="ai-panel" id="giyaPanel" role="dialog" aria-modal="false"
      aria-label="Giya AI assistant" hidden>
 
+         {{-- The head sits above the panel, the way it does on the full page.
+         The panel is only 380px wide, so it is smaller here. --}}
+    <span class="panel-head-wrap" aria-hidden="true">
+        <span class="guide-face">
+            <span class="guide-ear guide-ear-l"></span>
+            <span class="guide-ear guide-ear-r"></span>
+            <span class="guide-screen">
+                <span class="guide-eye guide-eye-l"><i></i></span>
+                <span class="guide-eye guide-eye-r"><i></i></span>
+                <span class="guide-mouth"></span>
+                <span class="guide-blush guide-blush-l"></span>
+                <span class="guide-blush guide-blush-r"></span>
+            </span>
+            <span class="guide-lamp"></span>
+        </span>
+    </span>
+
     <div class="ai-panel-head">
         <span class="ai-panel-mark">
-            <img src="{{ asset('images/icons/chatbot_icon.svg') }}"
-                alt=""
-                class="ai-panel-chatbot-icon">
+            <span class="mini-guide" aria-hidden="true"><span class="mini-eye mini-eye-l"></span><span class="mini-eye mini-eye-r"></span><span class="mini-mouth"></span></span>
         </span>
         <div class="ai-panel-title">
             <strong>Giya AI</strong>
@@ -31,9 +46,11 @@
 
     <div class="ai-panel-log" id="giyaPanelLog">
         <div class="chat-row">
-            <span class="chat-bot-icon">
-                <img src="{{ asset('images/icons/chatbot_icon.svg') }}" alt="" class="chat-bot-svg">
-            </span>
+                    <span class="mini-face">
+                        <span class="mini-eye mini-eye-l"></span>
+                        <span class="mini-eye mini-eye-r"></span>
+                        <span class="mini-mouth"></span>
+                    </span>
             <div class="chat-bubble chat-bubble-bot">
                 Maayong buntag! Ask me about churches, mass schedules, or a Visita Iglesia route.
             </div>

@@ -740,6 +740,22 @@ img { max-width: 100%; display: block; }
   background: var(--primary); color: #fff;
   border-radius: 18px 18px 4px 18px;
 }
+/* The assistant's title bar, inside the panel. */
+.chat-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 36px 20px 13px;      /* the top clears the guide's hands */
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+.chat-bar strong {
+  display: block; font-family: var(--font-display);
+  font-size: 0.9375rem; color: var(--text);
+}
+.chat-bar span {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px;
+}
 
 /* ── UPGRADE CARD ───────────────────────────────────────────── */
 .upgrade-card {
@@ -1101,6 +1117,7 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
 .star-picker input:focus-visible + label { outline: 3px solid var(--gold); outline-offset: 2px; }
 
 /* ── Favorite heart on cards ─────────────────────────────────── */
+
 .fav-btn {
   position: absolute; top: 12px; right: 12px;
   width: 32px; height: 32px; border: 0; border-radius: 50%;
@@ -3333,3 +3350,461 @@ html[data-theme="dark"] .arrive-toast { background: var(--surface); }
 
 html[data-theme="dark"] .giya-popup strong { color: #241C18; }
 html[data-theme="dark"] .giya-popup span   { color: #6B5B4E; }
+/* ════════════════════════════════════════════════════════════════
+   FEATURED DESTINATIONS - a procession
+   One church, full frame, six seconds. One layout at every width:
+   no measuring, no per-browser arithmetic.
+   ════════════════════════════════════════════════════════════════ */
+
+.proc {
+  position: relative;
+  height: clamp(400px, 64vh, 560px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--primary-dark);
+  isolation: isolate;
+  outline: none;
+}
+.proc:focus-visible { box-shadow: 0 0 0 3px var(--gold); }
+
+.proc-slide {
+  position: absolute; inset: 0; margin: 0;
+  background-size: cover; background-position: center;
+  background-color: var(--primary-dark);
+  opacity: 0;
+  transition: opacity 1.1s ease;
+}
+/* The live image drifts almost imperceptibly. A completely still photograph
+   on a page that is otherwise moving reads as a failed load. */
+.proc-slide.is-live {
+  opacity: 1;
+  animation: proc-drift 14s ease-out forwards;
+}
+@keyframes proc-drift {
+  from { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+
+.proc-veil {
+  position: absolute; inset: 0; z-index: 2;
+  background:
+    linear-gradient(100deg,
+      rgba(36,28,24,.94) 0%, rgba(36,28,24,.7) 42%,
+      rgba(36,28,24,.22) 78%, rgba(36,28,24,.08) 100%),
+    linear-gradient(to top,
+      rgba(36,28,24,.72) 0%, rgba(36,28,24,0) 34%);
+  pointer-events: none;
+}
+
+/* ── Copy ─────────────────────────────────────────────────────── */
+.proc-copy {
+  position: absolute; z-index: 3;
+  left: clamp(22px, 5vw, 64px);
+  right: clamp(22px, 5vw, 64px);
+  bottom: clamp(64px, 12vh, 96px);
+  max-width: min(520px, 76%);
+}
+.proc-copy > * { opacity: 0; transform: translateY(16px); filter: blur(5px); }
+.proc-copy.is-in > * { animation: proc-rise .68s cubic-bezier(.2,.8,.3,1) forwards; }
+
+.proc-copy.is-in .proc-cat   { animation-delay: .13s; }
+.proc-copy.is-in h3          { animation-delay: .22s; }
+.proc-copy.is-in .proc-loc   { animation-delay: .31s; }
+.proc-copy.is-in .proc-desc  { animation-delay: .40s; }
+.proc-copy.is-in .btn        { animation-delay: .49s; }
+
+@keyframes proc-rise { to { opacity: 1; transform: none; filter: blur(0); } }
+
+.proc-cat {
+  display: inline-block;
+  padding: 4px 12px; border-radius: 999px;
+  background: var(--gold); color: var(--primary-dark);
+  font-size: 0.625rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 12px;
+}
+.proc-copy h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4.2vw, 3rem);
+  color: #fff; margin: 0 0 8px; line-height: 1.08;
+}
+.proc-loc {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.8125rem; color: rgba(255,255,255,.86); margin: 0 0 10px;
+}
+.proc-desc {
+  font-size: 0.875rem; line-height: 1.6;
+  color: rgba(255,255,255,.76); margin: 0 0 20px;
+  max-width: 46ch;
+}
+
+/* ── The bars ─────────────────────────────────────────────────── */
+.proc-bars {
+  position: absolute; z-index: 4;
+  left: clamp(22px, 5vw, 64px);
+  right: clamp(22px, 5vw, 64px);
+  bottom: clamp(24px, 4.5vh, 40px);
+  display: flex; gap: 8px;
+  max-width: 340px;
+}
+.proc-bar {
+  flex: 1 1 0; height: 26px;
+  border: 0; padding: 0; background: none; cursor: pointer;
+  display: flex; align-items: center;
+}
+.proc-bar span {
+  display: block; position: relative;
+  width: 100%; height: 3px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.3);
+  overflow: hidden;
+}
+.proc-bar span::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: var(--gold);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.proc-bar.is-done span::after { transform: scaleX(1); }
+/* Filled, not filling. With no timer there is nothing to count down, so the
+   live bar simply shows which destination is on screen. */
+.proc-bar.is-live span::after { transform: scaleX(1); }
+
+.proc-bar:hover span { background: rgba(255,255,255,.5); }
+.proc-bar:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+
+@media (max-width: 640px) {
+  .proc { height: clamp(420px, 66vh, 520px); }
+  .proc-copy { max-width: none; bottom: 72px; }
+  .proc-copy h3 { font-size: 1.75rem; }
+  .proc-desc { display: none; }
+  .proc-bars { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proc-slide.is-live { animation: none; }
+  .proc-copy > * { opacity: 1; transform: none; filter: none; animation: none !important; }
+  .proc-bar.is-live span::after { animation: none; transform: scaleX(1); }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   THE GUIDE - the chatbot's face
+   Drawn in CSS rather than an image, so every expression is a class
+   change with nothing to load and nothing to go stale.
+   ════════════════════════════════════════════════════════════════ */
+
+.guide {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  margin: 0 auto 6px;
+  width: fit-content;
+}
+
+/* ── Speech bubble ─────────────────────────────────────────────── */
+.guide-bubble {
+  position: relative;
+  max-width: 340px; margin-bottom: 14px;
+  padding: 11px 16px;
+  background: #fff;
+  border: 2px solid var(--primary);
+  border-radius: 16px;
+  font-size: 0.8125rem; line-height: 1.5;
+  color: var(--text); text-align: center;
+  opacity: 0; transform: translateY(6px) scale(.96);
+}
+.guide-bubble.is-in {
+  animation: guide-pop .38s cubic-bezier(.2,1.3,.4,1) forwards;
+}
+@keyframes guide-pop { to { opacity: 1; transform: none; } }
+
+/* The tail, drawn twice so the border shows through. */
+.guide-bubble::before,
+.guide-bubble::after {
+  content: "";
+  position: absolute; left: 50%; bottom: -9px;
+  transform: translateX(-50%);
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 9px solid var(--primary);
+}
+.guide-bubble::after { bottom: -6px; border-top-color: #fff; }
+
+/* ── Head ─────────────────────────────────────────────────────── */
+.guide-face {
+  position: relative;
+  width: 118px; height: 104px;
+  background: #fff;
+  border: 3px solid var(--primary-dark);
+  border-radius: 26px;
+  box-shadow: 0 6px 0 rgba(36,28,24,.12);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .3s cubic-bezier(.2,.8,.3,1);
+  z-index: 2;
+}
+.guide.is-typing .guide-face   { transform: translateY(3px) rotate(-2deg); }
+.guide.is-thinking .guide-face { transform: translateY(-4px) rotate(3deg); }
+.guide.is-happy .guide-face    { transform: translateY(-2px); }
+
+.guide-ear {
+  position: absolute; top: 34px;
+  width: 11px; height: 26px;
+  background: #fff;
+  border: 3px solid var(--primary-dark);
+}
+.guide-ear-l { left: -12px; border-radius: 8px 0 0 8px; border-right: 0; }
+.guide-ear-r { right: -12px; border-radius: 0 8px 8px 0; border-left: 0; }
+
+/* The lantern: giya means guide, and a guide carries a light. */
+.guide-lamp {
+  position: absolute; top: -17px; left: 50%;
+  width: 13px; height: 13px; margin-left: -6.5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 3px var(--primary-dark), 0 0 16px 3px rgba(215,169,74,.6);
+}
+.guide-lamp::before {
+  content: ""; position: absolute; top: 12px; left: 50%;
+  width: 3px; height: 8px; margin-left: -1.5px;
+  background: var(--primary-dark);
+}
+.guide.is-thinking .guide-lamp { animation: guide-flicker 1s ease-in-out infinite; }
+@keyframes guide-flicker {
+  50% { box-shadow: 0 0 0 3px var(--primary-dark), 0 0 26px 6px rgba(215,169,74,.95); }
+}
+
+/* ── Screen ───────────────────────────────────────────────────── */
+.guide-screen {
+  position: relative;
+  width: 88px; height: 74px;
+  background: var(--primary-dark);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.guide-eye {
+  position: absolute; top: 24px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: #F5E9D9;
+  transition: transform .28s cubic-bezier(.2,.8,.3,1),
+              height .12s ease, border-radius .12s ease;
+}
+.guide-eye-l { left: 18px; }
+.guide-eye-r { right: 18px; }
+
+/* A blink: the eye squashes rather than disappearing. */
+.guide.is-blinking .guide-eye { height: 3px; border-radius: 3px; transform: translateY(6px); }
+
+/* Looking down at what is being typed. */
+.guide.is-typing .guide-eye { transform: translateY(4px) scaleY(.8); }
+
+/* Glancing up while it searches. */
+.guide.is-thinking .guide-eye-l { transform: translate(3px, -5px); }
+.guide.is-thinking .guide-eye-r { transform: translate(3px, -5px); }
+
+/* Pleased: the eyes become arcs, which is how a face smiles. */
+.guide.is-happy .guide-eye {
+  height: 8px;
+  border-radius: 15px 15px 0 0;
+  transform: translateY(3px);
+}
+
+.guide-mouth {
+  position: absolute; left: 50%; bottom: 16px;
+  width: 18px; height: 4px; margin-left: -9px;
+  border-radius: 999px;
+  background: #F5E9D9;
+  transition: all .28s cubic-bezier(.2,.8,.3,1);
+}
+.guide.is-typing .guide-mouth  { width: 12px; margin-left: -6px; }
+.guide.is-thinking .guide-mouth {
+  width: 10px; height: 10px; margin-left: -5px;
+  border-radius: 50%; bottom: 13px;
+}
+.guide.is-happy .guide-mouth {
+  width: 26px; height: 13px; margin-left: -13px;
+  border-radius: 0 0 26px 26px;
+  bottom: 13px;
+}
+.guide.is-sorry .guide-mouth {
+  width: 20px; height: 9px; margin-left: -10px;
+  border-radius: 20px 20px 0 0;
+  bottom: 12px;
+}
+
+.guide-blush {
+  position: absolute; top: 40px;
+  width: 11px; height: 5px; border-radius: 50%;
+  background: #E2725B; opacity: 0;
+  transition: opacity .3s ease;
+}
+.guide-blush-l { left: 8px; }
+.guide-blush-r { right: 8px; }
+.guide.is-happy .guide-blush { opacity: .85; }
+
+/* ── Hands, for the panel below ───────────────────────────────── */
+.guide-hands {
+  display: flex; justify-content: space-between;
+  width: 148px; margin-top: -12px;
+  position: relative; z-index: 3;
+}
+.guide-hand {
+  width: 30px; height: 20px;
+  background: #fff;
+  border: 3px solid var(--primary-dark);
+  border-radius: 8px 8px 4px 4px;
+  transition: transform .3s cubic-bezier(.2,1.4,.4,1);
+}
+.guide.is-happy .guide-hand-l { transform: translateY(-4px) rotate(-12deg); }
+.guide.is-happy .guide-hand-r { transform: translateY(-4px) rotate(12deg); }
+
+/* ── Header, now that the avatar has moved into the face ──────── */
+.chat-header-slim { margin-bottom: 14px; }
+.chat-header-slim h1 { text-align: center; }
+.chat-header-slim p  { justify-content: center; }
+
+/* An offline guide is dimmer, and its lantern is out. */
+.guide[data-online="0"] .guide-lamp {
+  background: var(--text-muted);
+  box-shadow: 0 0 0 3px var(--primary-dark);
+}
+.guide[data-online="0"] .guide-screen { background: #4A3A31; }
+
+/* ── The head as the button ──────────────────────────────────────
+   No pill: the head is the button. A container around it was
+   competing with the face for attention.
+   ---------------------------------------------------------------- */
+.giya-fab {
+  background: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  width: 56px !important;
+  height: 52px !important;
+  border-radius: 0 !important;
+}
+.giya-fab:hover { background: none !important; transform: translateY(-3px); }
+
+.fab-head-wrap {
+  display: block; position: relative;
+  width: 56px; height: 52px;
+  filter: drop-shadow(0 6px 14px rgba(36,28,24,.42));
+}
+.fab-head-wrap .guide-face {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(.46);
+  transform-origin: center;
+  box-shadow: none;
+}
+
+/* ── The greeting ───────────────────────────────────────────────
+   Right-aligned and above, so it opens into the page rather than
+   off the edge of the screen.
+   ---------------------------------------------------------------- */
+.fab-say {
+  position: absolute;
+  right: 4px; bottom: calc(100% + 14px);
+  width: max-content; max-width: 210px;
+  padding: 9px 14px;
+  background: #fff;
+  border: 2px solid var(--primary-dark);
+  border-radius: 14px;
+  font-size: 0.75rem; font-weight: 600; line-height: 1.4;
+  color: var(--primary-dark);
+  text-align: left;
+  opacity: 0; transform: translateY(6px) scale(.94);
+  transform-origin: bottom right;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .28s cubic-bezier(.2,1.3,.4,1);
+}
+.fab-say::before {
+  content: ""; position: absolute;
+  right: 20px; bottom: -8px;
+  width: 2px; height: 8px;
+  background: var(--primary-dark);
+}
+
+.giya-fab:hover .fab-say,
+.giya-fab:focus-visible .fab-say { opacity: 1; transform: none; }
+
+/* Hover expressions, driven from the button. */
+.giya-fab:hover .guide-eye { height: 8px; border-radius: 15px 15px 0 0; transform: translateY(3px); }
+.giya-fab:hover .guide-mouth {
+  width: 26px; height: 13px; margin-left: -13px;
+  border-radius: 0 0 26px 26px; bottom: 13px;
+}
+.giya-fab:hover .guide-blush { opacity: .85; }
+
+.giya-fab[aria-expanded="true"] .guide-eye { transform: translateY(4px); }
+
+/* ── The head above the slide-out panel ─────────────────────────── */
+.ai-panel { overflow: visible; }
+.ai-panel-head { border-radius: 16px 16px 0 0; }
+.ai-panel-log:first-of-type { border-radius: 0; }
+
+.panel-head-wrap {
+  position: absolute;
+  top: -38px; left: 22px;
+  width: 62px; height: 56px;
+  z-index: 2;
+  filter: drop-shadow(0 5px 12px rgba(36,28,24,.4));
+}
+.panel-head-wrap .guide-face {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(.5);
+  transform-origin: center;
+  box-shadow: none;
+}
+/* The panel's own top padding clears the head. */
+.ai-panel-head { padding-top: 26px; }
+
+/* ── The face beside each reply ─────────────────────────────────── */
+.mini-face {
+  position: relative; display: block;
+  width: 100%; height: 100%;
+  background: var(--primary-dark);
+  border-radius: 8px;
+}
+.mini-eye {
+  position: absolute; top: 9px;
+  width: 4px; height: 6px; border-radius: 2px;
+  background: var(--gold);
+}
+.mini-eye-l { left: 7px; }
+.mini-eye-r { right: 7px; }
+.mini-mouth {
+  position: absolute; left: 50%; bottom: 8px;
+  width: 8px; height: 2px; margin-left: -4px;
+  border-radius: 999px; background: var(--gold);
+}
+.chat-bot-icon { background: none; padding: 0; overflow: hidden; }
+
+/* The bubble would run off a narrow screen, so it stays hidden there -
+   the head is self-explanatory once tapped. */
+@media (max-width: 480px) {
+  .fab-say { display: none; }
+}
+
+html[data-theme="dark"] .fab-say { background: #F5E9D9; }
+@media (max-width: 560px) {
+  .guide-face { width: 100px; height: 90px; }
+  .guide-screen { width: 74px; height: 62px; }
+  .guide-eye { width: 13px; height: 13px; top: 20px; }
+  .guide-eye-l { left: 15px; } .guide-eye-r { right: 15px; }
+  .guide-bubble { max-width: 84vw; font-size: 0.75rem; }
+  .guide-hands { width: 126px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-face, .guide-eye, .guide-mouth, .guide-hand, .guide-bubble { transition: none; }
+  .guide-bubble.is-in { animation: none; opacity: 1; transform: none; }
+  .guide.is-thinking .guide-lamp { animation: none; }
+}
+
+html[data-theme="dark"] .guide-face,
+html[data-theme="dark"] .guide-ear,
+html[data-theme="dark"] .guide-hand { background: var(--surface); }
+html[data-theme="dark"] .guide-bubble { background: var(--surface); color: var(--text); }
+html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface); }

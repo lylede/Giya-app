@@ -33,12 +33,29 @@
         <button type="button" class="giya-fab" id="giyaFab"
                 aria-label="Ask Giya AI" aria-expanded="false" aria-controls="giyaPanel"
                 data-send-url="{{ route('chatbot.send') }}">
-            <span class="giya-fab-icon">
-                <img src="{{ asset('images/icons/chatbot_icon.svg') }}"
-                    alt=""
-                    class="giya-chatbot-icon">
+            {{-- The assistant's own head, reused exactly: same classes, same
+                 CSS, just scaled down. Restyling the guide restyles this too. --}}
+            <span class="fab-head-wrap" aria-hidden="true">
+                <span class="guide-face">
+                    <span class="guide-ear guide-ear-l"></span>
+                    <span class="guide-ear guide-ear-r"></span>
+
+                    <span class="guide-screen">
+                        <span class="guide-eye guide-eye-l"><i></i></span>
+                        <span class="guide-eye guide-eye-r"><i></i></span>
+                        <span class="guide-mouth"></span>
+                        <span class="guide-blush guide-blush-l"></span>
+                        <span class="guide-blush guide-blush-r"></span>
+                    </span>
+
+                    <span class="guide-lamp"></span>
+                </span>
             </span>
-            <span class="giya-fab-label">Ask Giya</span>
+            {{-- Appears on hover. The head alone is friendly but silent;
+                 a line of greeting says what pressing it will do. --}}
+            <span class="fab-say" id="fabSay" aria-hidden="true">
+                Hi, I'm Giya. Ask me anything.
+            </span>
         </button>
 
         <x-ai-panel />
