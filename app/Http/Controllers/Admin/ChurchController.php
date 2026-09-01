@@ -130,6 +130,99 @@ class ChurchController extends Controller
         return back()->with('success', $message);
     }
 
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'import_file' => ['required', 'file', 'max:10240'],
+        ], [
+            'import_file.required' => 'Choose a CSV or JSON file to import.',
+        ]);
+
+        $file = $request->file('import_file');
+        $extension = strtolower($file->getClientOriginalExtension() ?: pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+
+        if (! in_array($extension, ['csv', 'json'], true)) {
+            return back()->with('error', 'Use a CSV or JSON file for destination import.');
+        }
+
+        try {
+            $rows = $this->parseImportRows($file->getRealPath(), $extension);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'The file could not be read. Please check that it is valid CSV or JSON.');
+        }
+
+        $created = 0;
+        $skipped = 0;
+        $errors = [];
+
+        foreach ($rows as $index => $row) {
+            $data = $this->normalizeImportRow($row);
+
+            if ($data['name'] === '' || $data['location'] === '' || $data['category'] === '') {
+                $errors[] = 'Row '.($index + 2).': missing name, location or category.';
+                $skipped++;
+                continue;
+            }
+
+            if ($this->destinationExists($data['name'], $data['location'])) {
+                $errors[] = 'Row '.($index + 2).': '.$data['name'].' in '.$data['location'].' already exists.';
+                $skipped++;
+                continue;
+            }
+
+            $category = ChurchCategory::firstOrCreate(
+                ['name' => $data['category']],
+                ['created_at' => now(), 'updated_at' => now()]
+            );
+
+            $church = Church::create([
+                'category_id' => $category->id,
+                'name' => $data['name'],
+                'location' => $data['location'],
+                'address' => $data['address'] ?? null,
+                'description' => $data['description'] ?? null,
+                'latitude' => $data['latitude'] ?? null,
+                'longitude' => $data['longitude'] ?? null,
+                'opening_time' => $data['opening_time'] ?? null,
+                'closing_time' => $data['closing_time'] ?? null,
+                'is_active' => ($data['status'] ?? 'Published') === 'Published',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            if (! empty($data['image_url']) && filter_var($data['image_url'], FILTER_VALIDATE_URL)) {
+                ChurchImage::create([
+                    'church_id' => $church->id,
+                    'image_url' => $data['image_url'],
+                    'caption' => $data['caption'] ?? $church->name,
+                    'is_primary' => true,
+                    'uploaded_at' => now(),
+                    'created_at' => now(),
+                ]);
+            }
+
+            $created++;
+        }
+
+        $message = 'Imported '.$created.' destination'.($created === 1 ? '' : 's').'.';
+
+        if ($skipped > 0) {
+            $message .= ' '.$skipped.' row'.($skipped === 1 ? '' : 's').' skipped.';
+        }
+
+        if (! empty($errors)) {
+            $response = redirect()->route('admin.destinations')->with('success', $message)->with('import_errors', $errors);
+
+            if ($created === 0) {
+                $response->with('error', $message);
+            }
+
+            return $response;
+        }
+
+        return redirect()->route('admin.destinations')->with('success', $message);
+    }
+
     public function updatePhoto(Request $request, Church $church): RedirectResponse
     {
         $request->validate([
@@ -147,6 +240,143 @@ class ChurchController extends Controller
         $church->update(['is_active' => ! $church->is_active, 'updated_at' => now()]);
 
         return back()->with('success', $church->name.($church->is_active ? ' published.' : ' moved to draft.'));
+    }
+
+    protected function parseImportRows(string $path, string $extension): array
+    {
+        if ($extension === 'json') {
+            $decoded = json_decode(file_get_contents($path), true);
+
+            if (is_array($decoded) && isset($decoded['destinations']) && is_array($decoded['destinations'])) {
+                return $decoded['destinations'];
+            }
+
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+
+            throw new \RuntimeException('Invalid JSON import file.');
+        }
+
+        $handle = fopen($path, 'r');
+        if ($handle === false) {
+            throw new \RuntimeException('Could not open CSV import file.');
+        }
+
+        $header = null;
+        $rows = [];
+
+        while (($row = fgetcsv($handle)) !== false) {
+            if ($row === [null] || count(array_filter($row, fn ($cell) => trim((string) $cell) !== '')) === 0) {
+                continue;
+            }
+
+            if ($header === null) {
+                $header = array_map(fn ($cell) => trim((string) $cell), $row);
+                continue;
+            }
+
+            $data = [];
+            foreach ($header as $index => $key) {
+                $data[trim((string) $key)] = $row[$index] ?? '';
+            }
+
+            $rows[] = $data;
+        }
+
+        fclose($handle);
+
+        return $rows;
+    }
+
+    protected function normalizeImportRow(array $row): array
+    {
+        $normalized = [];
+
+        foreach ($row as $key => $value) {
+            $lookup = strtolower(str_replace([' ', '-', '/'], '_', trim((string) $key)));
+            $normalized[$lookup] = is_scalar($value) ? trim((string) $value) : (string) $value;
+        }
+
+        $aliases = [
+            'church_name' => 'name',
+            'destination_name' => 'name',
+            'title' => 'name',
+            'city' => 'location',
+            'municipality' => 'location',
+            'new_category' => 'category',
+            'status_name' => 'status',
+            'photo_url' => 'image_url',
+            'image' => 'image_url',
+        ];
+
+        foreach ($aliases as $from => $to) {
+            if (isset($normalized[$from])) {
+                $normalized[$to] = $normalized[$from];
+            }
+        }
+
+        $status = $normalized['status'] ?? 'Published';
+        if ($status !== 'Published' && $status !== 'Draft') {
+            $status = 'Published';
+        }
+
+        $latitude = $this->coerceImportNumber($normalized['latitude'] ?? null, -90, 90);
+        $longitude = $this->coerceImportNumber($normalized['longitude'] ?? null, -180, 180);
+
+        return [
+            'name' => $normalized['name'] ?? '',
+            'category' => $normalized['category'] ?? '',
+            'location' => $normalized['location'] ?? '',
+            'address' => $normalized['address'] ?? null,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'opening_time' => $this->normalizeImportTime($normalized['opening_time'] ?? null),
+            'closing_time' => $this->normalizeImportTime($normalized['closing_time'] ?? null),
+            'description' => $normalized['description'] ?? null,
+            'status' => $status,
+            'image_url' => $normalized['image_url'] ?? null,
+            'caption' => $normalized['caption'] ?? null,
+        ];
+    }
+
+    protected function destinationExists(string $name, string $location): bool
+    {
+        return Church::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])
+            ->whereRaw('LOWER(location) = ?', [mb_strtolower(trim($location))])
+            ->exists();
+    }
+
+    protected function coerceImportNumber(?string $value, float $min, float $max): ?float
+    {
+        if ($value === null || trim((string) $value) === '') {
+            return null;
+        }
+
+        $value = trim((string) $value);
+        $numeric = is_numeric($value) ? (float) $value : null;
+
+        if ($numeric === null || $numeric < $min || $numeric > $max) {
+            return null;
+        }
+
+        return $numeric;
+    }
+
+    protected function normalizeImportTime(?string $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $time = trim((string) $value);
+        if (preg_match('/^\d{1,2}:\d{2}$/', $time)) {
+            return $time;
+        }
+
+        $parsed = strtotime($time);
+
+        return $parsed === false ? null : date('H:i', $parsed);
     }
 
     /** Swap the primary image, deleting the file the old row pointed at. */

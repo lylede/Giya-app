@@ -23,9 +23,14 @@
                 Click anywhere to add a destination, or click a pin to edit one.
             </p>
         </div>
-        <button type="button" class="btn btn-primary" id="dmAddHere">
-            <i class="bi bi-plus-lg"></i> Add Destination
-        </button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline" id="dmImportHere">
+                <i class="bi bi-upload"></i> Import
+            </button>
+            <button type="button" class="btn btn-primary" id="dmAddHere">
+                <i class="bi bi-plus-lg"></i> Add Destination
+            </button>
+        </div>
     </div>
 
     <div class="dm-map-shell" id="adminMapShell">
@@ -226,6 +231,45 @@
                 </button>
                 <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:26px;max-width:520px">
+            <div class="dm-modal-head" style="margin-bottom:14px">
+                <div class="modal-title" style="margin:0">
+                    <i class="bi bi-upload" style="color:var(--primary)"></i>
+                    Import destinations
+                </div>
+                <button type="button" class="ai-panel-close" data-modal-close aria-label="Close">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('admin.destinations.import') }}" enctype="multipart/form-data">
+                @csrf
+
+                <div class="field">
+                    <label class="dm-label" for="importFile">CSV or JSON file</label>
+                    <input id="importFile" type="file" name="import_file" class="giya-input" accept=".csv,.json,text/csv,application/json" required>
+                    @error('import_file')<span class="field-error">{{ $message }}</span>@enderror
+                </div>
+
+                <div class="dm-map-note" style="margin-top:10px; margin-bottom:14px;">
+                    <i class="bi bi-info-circle"></i>
+                    Supported columns: name, category, location, address, latitude, longitude, opening_time, closing_time, description, status.
+                </div>
+
+                <pre style="background:rgba(15,23,42,0.04);padding:12px;border-radius:12px;font-size:11px;line-height:1.5;overflow:auto;white-space:pre-wrap;margin:0 0 18px;">name,category,location,address,latitude,longitude,opening_time,closing_time,description,status
+Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,08:00,17:00,"Historic church","Published"</pre>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" style="flex:1">Upload bulk import</button>
+                    <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -492,6 +536,10 @@
        admin is not thrown into fullscreen before they have typed anything. */
     document.getElementById('dmAddHere').addEventListener('click', function () {
         openModal(null, null, null);
+    });
+
+    document.getElementById('dmImportHere').addEventListener('click', function () {
+        GiyaUI.Modal.open('importModal');
     });
 
     /* Move pin: close the modal, take the next map click, reopen. */
