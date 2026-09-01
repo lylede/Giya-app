@@ -33,14 +33,13 @@
             </button>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);text-align:center">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);text-align:center">
             @foreach ([
-                [$user->total_pilgrimages,                'Pilgrimages',  'Completed'],
-                [$user->total_churches_visited,           'Churches',     'Visited'],
-                [$reviewCount,                            'Reviews',      'Written'],
-                [(int) $user->total_km_walked . 'km',     'Distance',     'Walked'],
+                [$user->total_pilgrimages,      'Pilgrimages',  'Completed'],
+                [$user->total_churches_visited, 'Churches',     'Visited'],
+                [$reviewCount,                  'Reviews',      'Written'],
             ] as $i => [$value, $l1, $l2])
-                <div style="padding:8px 4px;{{ $i < 3 ? 'border-right:1px solid rgba(255,255,255,0.1)' : '' }}">
+                <div style="padding:8px 4px;{{ $i < 2 ? 'border-right:1px solid rgba(255,255,255,0.1)' : '' }}">
                     <div class="profile-stat-val">{{ $value }}</div>
                     <div class="profile-stat-lbl">{{ $l1 }}<br>{{ $l2 }}</div>
                 </div>
