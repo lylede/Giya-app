@@ -61,16 +61,6 @@
                         </div>
                     </div>
 
-                    <div class="field">
-                        <label class="form-label-sm">Transport</label>
-                        <div class="d-flex gap-2 flex-wrap">
-                            @foreach (['Walk', 'Jeepney', 'Taxi', 'Private Car'] as $i => $mode)
-                                <button type="button" @class(['transport-btn', 'active' => $i === 0])
-                                        onclick="GiyaPlanner.setTransport(this)">{{ $mode }}</button>
-                            @endforeach
-                        </div>
-                    </div>
-
                     <div class="field" style="margin-bottom:0">
                         <label class="form-label-sm" for="pl-notes">Notes (optional)</label>
                         <textarea id="pl-notes" name="notes" class="giya-input" rows="2"
@@ -141,10 +131,6 @@
                  transition:all .18s; width:100%; }
     .dest-item:hover:not(.added) { border-color:var(--primary); background:rgba(142,59,47,0.04); }
     .dest-item.added { background:var(--gold-bg); border-color:var(--gold); opacity:.65; cursor:default; }
-    .transport-btn { padding:8px 14px; border-radius:10px; font-size: 0.75rem; border:1.5px solid var(--border);
-                     color:var(--text-muted); background:var(--bg); cursor:pointer; transition:all .18s;
-                     font-family:var(--font-body); }
-    .transport-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
     .route-row { display:flex; gap:12px; }
     .route-node { display:flex; flex-direction:column; align-items:center; }
     .route-dot  { width:32px; height:32px; border-radius:50%; display:flex; align-items:center;
@@ -292,10 +278,6 @@ const GiyaPlanner = (function () {
 
     return {
         add: add, remove: remove, move: move, render: render,
-        setTransport: function (btn) {
-            document.querySelectorAll('.transport-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        },
         submit: function () {
             if (!stops.length) { GiyaConfirm.ask({ title: 'No destinations yet', message: 'Add at least one destination to this itinerary before starting it.', ok: 'Got it', cancel: 'Close', tone: 'primary' }); return; }
             document.getElementById('stopsInputs').innerHTML = stops

@@ -33,30 +33,6 @@
     </div>
 
     <div class="hero-inner">
-        {{-- Search spans the hero, outside the 680px text column below it. --}}
-        <div class="home-searchbar is-on-hero">
-                <div class="hs-form">
-                    <div class="hs-row">
-                        <div class="hs-field">
-                            <i class="bi bi-search" aria-hidden="true"></i>
-                            <input type="search" id="homeSearch" class="giya-input"
-                                   placeholder="Search churches, shrines, basilicas…"
-                                   autocomplete="off" aria-label="Search churches">
-                        </div>
-                        <button type="button" class="btn btn-primary hs-submit" id="homeSearchGo">
-                            <span class="hs-submit-text">Search</span>
-                            <i class="bi bi-search hs-submit-icon" aria-hidden="true"></i>
-                        </button>
-                    </div>
-
-                    <div class="hs-chips">
-                        @foreach (['Basilica', 'Shrine', 'Cathedral', 'Church'] as $cat)
-                            <button type="button" class="hs-chip" data-cat="{{ $cat }}">{{ $cat }}</button>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
         <div style="max-width:680px">
             <div class="eyebrow">
                 <span class="eyebrow-bar"></span>
@@ -252,53 +228,6 @@
 @endsection
 
 @push('scripts')
-<script>
-(function () {
-    const input = document.getElementById('homeSearch');
-    const goBtn = document.getElementById('homeSearchGo');
-    if (!input) return;
-
-    const mapUrl = @json(route('map'));
-
-    /* The map already filters by name, location and category, so the home page
-       hands the term over rather than duplicating that logic here. */
-    function go(term) {
-        term = (term || '').trim();
-        window.location.href = mapUrl + (term ? '?q=' + encodeURIComponent(term) : '');
-    }
-
-    if (goBtn) goBtn.addEventListener('click', function () { go(input.value); });
-
-    input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); go(input.value); }
-    });
-
-    /* Chips fill the field rather than navigating.
-
-       Tapping a category is a first draft, not a decision - someone can tap
-       Cathedral, see it, and change to Chapel before committing. The Search
-       button stays the one place a devotee leaves this page from, so there is
-       never a question about what a tap will do. */
-    function markChips(value) {
-        var v = (value || '').trim().toLowerCase();
-        document.querySelectorAll('.hs-chip[data-cat]').forEach(function (c) {
-            c.classList.toggle('is-active', c.dataset.cat.toLowerCase() === v);
-        });
-    }
-
-    document.querySelectorAll('.hs-chip[data-cat]').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-            input.value = chip.dataset.cat;
-            input.focus();
-            markChips(chip.dataset.cat);
-        });
-    });
-
-    /* Typing over a chip's word clears its highlight, so a lit chip never
-       claims something the box no longer says. */
-    input.addEventListener('input', function () { markChips(input.value); });
-})();
-</script>
 <script>
 (function () {
     const proc = document.getElementById('proc');

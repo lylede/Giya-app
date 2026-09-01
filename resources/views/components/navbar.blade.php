@@ -4,7 +4,6 @@
         ['url' => route(auth()->check() ? 'home' : 'root'), 'label' => 'Home',    'icon' => 'house-fill',     'match' => auth()->check() ? 'home' : 'root'],
         ['url' => route('map'),                            'label' => 'Map',     'icon' => 'map-fill',       'match' => 'map'],
         ['url' => route('plan.hub'),                       'label' => 'Plan',    'icon' => 'journal-text',   'match' => 'plan.*'],
-        ['url' => route('profile'),                        'label' => 'Profile', 'icon' => 'person-fill',    'match' => 'profile'],
     ];
 @endphp
 
@@ -68,6 +67,101 @@
         .giya-nav .nav-toggle-input:checked ~ .mobile-menu,
         .giya-nav .nav-toggle-input:checked ~ .menu-scrim { display: none !important; }
     }
+
+    /* Below the grid breakpoint this is just a plain flex row on the right. */
+    .giya-nav .nav-end {
+        display: flex; align-items: center; gap: 12px;
+        margin-left: auto; min-width: 0;
+    }
+
+    /* ── Search ──────────────────────────────────────────────────── */
+    .giya-nav .nav-search {
+        display: none;                 /* shown from 900px up, see below */
+        align-items: center; gap: 6px;
+        flex: 0 1 320px; min-width: 0;
+        /* The links are absolutely centred and out of the flow, so this sits
+           between the logo and the bell on its own. */
+        margin: 0 0 0 auto;
+        padding: 4px 5px 4px 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.12);
+        border: 1px solid rgba(255,255,255,.16);
+        transition: background .15s ease, border-color .15s ease;
+    }
+    .giya-nav .nav-search:focus-within {
+        background: rgba(255,255,255,.18);
+        border-color: var(--gold);
+    }
+
+    /*
+        giya.css paints every input[type=search] with --bg-input in dark mode,
+        which is nearly black - and at (0,2,2) that selector outranked a plain
+        .giya-nav .nav-search input at (0,2,1), so the field rendered as a
+        black slab on the maroon bar. Matching the type selector and naming
+        the theme takes this to (0,3,2), which settles it in both themes.
+    */
+    .giya-nav .nav-search input[type="search"],
+    html[data-theme="dark"] .giya-nav .nav-search input[type="search"] {
+        flex: 1; min-width: 0;
+        background: none !important;
+        border: 0; outline: none; box-shadow: none;
+        padding: 0; margin: 0; height: auto;
+        color: #fff !important;
+        font-family: var(--font-body); font-size: .8125rem;
+    }
+    .giya-nav .nav-search input[type="search"]::placeholder,
+    html[data-theme="dark"] .giya-nav .nav-search input[type="search"]::placeholder {
+        color: rgba(255,255,255,.62) !important;
+    }
+    /* The clear cross Safari and Chrome add is a second control in a space
+       that has no room for one. */
+    .giya-nav .nav-search input[type="search"]::-webkit-search-cancel-button { display: none; }
+
+    /* The magnifier is the submit button, so it is a real control rather
+       than a decoration someone can click and have nothing happen. */
+    .giya-nav .nav-search-go {
+        flex-shrink: 0;
+        width: 30px; height: 30px;
+        display: flex; align-items: center; justify-content: center;
+        border: 0; border-radius: 50%;
+        background: var(--gold); color: var(--primary-dark);
+        font-size: .8125rem; cursor: pointer; padding: 0;
+        transition: background .15s ease, transform .12s ease;
+    }
+    .giya-nav .nav-search-go:hover { background: #E8BC63; }
+    .giya-nav .nav-search-go:active { transform: scale(.92); }
+    .giya-nav .nav-search-go:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+    /* Below this the links and the search cannot both fit; search lives in
+       the mobile menu instead. */
+    @media (min-width: 900px) {
+        .giya-nav .nav-search { display: flex; }
+
+        /*
+            Home / Map / Plan on the true midpoint of the bar.
+
+            Centring them with flexbox only centres them in whatever space the
+            logo and the search leave over, and those are different widths, so
+            the links drift left. Absolute positioning hits the midpoint but
+            reserves no space, so the search runs straight over them.
+
+            A three-column grid does both: the outer columns are equal
+            fractions whatever they contain, which puts the middle column on
+            the centre line, and the search still shrinks because its column
+            is allowed to go below its content width.
+        */
+        .giya-nav .nav-inner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            gap: 12px;
+        }
+        .giya-nav .nav-links { flex: 0 0 auto; margin: 0; justify-content: center; }
+        .giya-nav .nav-end {
+            display: flex; align-items: center; gap: 12px;
+            justify-content: flex-end; min-width: 0;
+        }
+        .giya-nav .nav-search { margin: 0; }
+    }
 </style>
 
 
@@ -91,6 +185,21 @@
                 </a>
             @endforeach
         </div>
+
+        {{-- Search moved up from the home hero, so it is reachable from every
+             page rather than only the one someone lands on. It hands the term
+             to the map, which already filters by name, location and category.
+             Hidden on small screens - the mobile menu is the way in there. --}}
+        <div class="nav-end">
+        <form class="nav-search" role="search" action="{{ route('map') }}" method="GET">
+            <input type="search" name="q" id="navSearch"
+                   value="{{ request()->routeIs('map') ? request('q') : '' }}"
+                   placeholder="Search churches…"
+                   autocomplete="off" aria-label="Search churches">
+            <button type="submit" class="nav-search-go" aria-label="Search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+            </button>
+        </form>
 
         <div class="nav-right">
             @auth
@@ -153,6 +262,7 @@
                 <i class="bi bi-x    icon-close" style="font-size: 1.25rem;color:var(--gold)"></i>
             </label>
         </div>
+        </div>
     </div>
 
     <input type="checkbox" id="navHamburger" class="nav-toggle-input">
@@ -163,6 +273,16 @@
 
     <div class="mobile-menu" id="navMobileMenu">
         <div class="mobile-nav-links">
+            <form role="search" action="{{ route('map') }}" method="GET"
+                  style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)">
+                <i class="bi bi-search" style="color:var(--gold);font-size:.8125rem"></i>
+                <input type="search" name="q"
+                       value="{{ request()->routeIs('map') ? request('q') : '' }}"
+                       placeholder="Search churches…" autocomplete="off"
+                       aria-label="Search churches"
+                       style="flex:1;min-width:0;background:none;border:0;outline:none;color:#fff;font-size:.8125rem">
+            </form>
+
             @foreach ($links as $link)
                 <a href="{{ $link['url'] }}"
                    @class(['mobile-nav-link', 'active' => request()->routeIs($link['match'])])>
