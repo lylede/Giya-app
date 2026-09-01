@@ -87,6 +87,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     Route::get('/destinations',                  [AdminChurchController::class, 'index'])->name('destinations');
     Route::post('/destinations',                 [AdminChurchController::class, 'store'])->name('destinations.store');
+    Route::post('/destinations/import',          [AdminChurchController::class, 'import'])->name('destinations.import');
     Route::patch('/destinations/{church}/toggle',[AdminChurchController::class, 'toggle'])->name('destinations.toggle');
     Route::post('/destinations/{church}/photo', [AdminChurchController::class, 'updatePhoto'])->name('destinations.photo');
     Route::delete('/destinations/{church}',      [AdminChurchController::class, 'destroy'])->name('destinations.destroy');
