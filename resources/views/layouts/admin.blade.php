@@ -48,7 +48,10 @@
             <a href="{{ route('admin.transactions') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.transactions')])>
                 <i class="bi bi-credit-card-fill"></i> Transactions
             </a>
-
+            <a href="{{ route('admin.reports') }}" @class(['admin-nav-item', 'active' =>request()->routeIs('admin.reports*')])>
+                <i class="bi bi-bar-chart"></i> Reports
+            </a>
+            
             <div class="admin-nav-section">Site</div>
             <a href="{{ route('home') }}" class="admin-nav-item">
                 <i class="bi bi-box-arrow-up-right"></i> View Public Site
