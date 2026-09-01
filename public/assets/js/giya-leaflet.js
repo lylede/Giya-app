@@ -39,6 +39,103 @@ window.GiyaLeaflet = (function () {
         return local;
     }
 
+    /* ------------------------------------------------------------ routing */
+
+    /**
+     * Road geometry, asked for from the BROWSER.
+     *
+     * This used to go through the Laravel app, which meant the roads only
+     * appeared if PHP itself could reach the routing service - and behind a
+     * school or office network, or a PHP without a CA bundle, it could not.
+     * The map then blamed the network and drew a straight line.
+     *
+     * The browser is already on the internet: it loaded this page. Asking it
+     * directly removes PHP, .env, the config cache, CSRF and the session from
+     * a request that only needs public coordinates. OSRM's public server sends
+     * CORS headers precisely so browsers can call it.
+     *
+     * Answers are kept in localStorage, so a route drawn once redraws with no
+     * network at all - which is the state a pilgrim is usually in.
+     */
+    // Override by setting window.GIYA_OSRM before this file loads - that is
+    // the whole change needed to point at a local OSRM later.
+    var OSRM = (window.GIYA_OSRM || 'https://router.project-osrm.org') +
+               '/route/v1/driving/';
+
+    function cacheGet(key) {
+        try {
+            var hit = JSON.parse(localStorage.getItem('giya_road_' + key) || 'null');
+            // A month, same as the old server-side cache. Churches do not move.
+            if (hit && Date.now() - hit.at < 2592000000) return hit.data;
+        } catch (e) { /* private mode, full quota - not worth a message */ }
+        return null;
+    }
+
+    function cachePut(key, data) {
+        try {
+            localStorage.setItem('giya_road_' + key,
+                JSON.stringify({ at: Date.now(), data: data }));
+        } catch (e) { /* nothing to do, and nothing the devotee can do */ }
+    }
+
+    /**
+     * @param  points  [[lat, lng], ...] in the order they should be visited
+     * @return Promise resolving the same shape the map already reads, or a
+     *         { ok: false, reason } that leaves the straight line in place.
+     */
+    function roads(points) {
+        if (!points || points.length < 2) {
+            return Promise.resolve({ ok: false, reason: 'too_few' });
+        }
+
+        // OSRM wants lng,lat. Five places is about a metre - finer than a
+        // phone fix, and it keeps the cache key stable between calls.
+        var coords = points.map(function (p) {
+            return p[1].toFixed(5) + ',' + p[0].toFixed(5);
+        }).join(';');
+
+        var hit = cacheGet(coords);
+        if (hit) {
+            hit.cached = true;
+            return Promise.resolve(hit);
+        }
+
+        return fetch(OSRM + coords + '?overview=full&geometries=geojson&steps=false')
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function (body) {
+                if (body.code !== 'Ok' || !body.routes || !body.routes.length) {
+                    return { ok: false, reason: 'no_route' };
+                }
+
+                var route = body.routes[0];
+                var line  = (route.geometry.coordinates || []).map(function (c) {
+                    // GeoJSON is [lng, lat]; Leaflet wants [lat, lng].
+                    return [c[1], c[0]];
+                });
+
+                if (!line.length) return { ok: false, reason: 'no_route' };
+
+                var data = {
+                    ok: true,
+                    geometry: line,
+                    distance: Math.round(route.distance),
+                    duration: Math.round(route.duration),
+                    // The two names the map prints directly.
+                    distance_km:  Math.round(route.distance / 100) / 10,
+                    duration_min: Math.round(route.duration / 60)
+                };
+
+                cachePut(coords, data);
+                return data;
+            })
+            .catch(function (e) {
+                return { ok: false, reason: 'offline', detail: e.message };
+            });
+    }
+
     /* ---------------------------------------------------------------- pins */
 
     /**
@@ -163,6 +260,8 @@ window.GiyaLeaflet = (function () {
                     ? '<a class="giya-popup-btn is-secondary" href="' + escapeHtml(c.details) + '">See details</a>'
                     : '') +
                 '<button type="button" class="giya-popup-btn"' +
+                        ' onclick="GiyaLeaflet.directionsTo(' + c.id + ')">Directions</button>' +
+                '<button type="button" class="giya-popup-btn is-secondary"' +
                         ' onclick="GiyaLeaflet.addStop(' + c.id + ')">Add to route</button>' +
                 '</div>';
         }
@@ -253,8 +352,19 @@ window.GiyaLeaflet = (function () {
             fetchRoads(path, ordered, direct);
         }
 
-        /** Draw the line. `dashed` marks it as an approximation. */
-        function paint(path, dashed) {
+        /**
+         * Draw the line. `dashed` marks it as an approximation.
+         *
+         * `fit` forces the map to frame the whole route. It is deliberately
+         * NOT the default: paint() runs on every redraw, so fitting each time
+         * meant one Add to route zoomed the map twice - once for the straight
+         * line, again when the roads arrived - pulling the view out from under
+         * someone who was reading it. Adding a stop is not a request to move.
+         *
+         * Without `fit` the map only moves when the route would otherwise be
+         * off-screen, which is the one case where staying put is useless.
+         */
+        function paint(path, dashed, fit) {
             if (routeLine) { map.removeLayer(routeLine); }
 
             routeLine = L.layerGroup().addTo(map);
@@ -268,49 +378,39 @@ window.GiyaLeaflet = (function () {
                 color: '#D7A94A', weight: dashed ? 1.5 : 2, opacity: .9
             }).addTo(routeLine);
 
-            map.fitBounds(L.polyline(path).getBounds().pad(0.2));
+            // A single point has no meaningful bounds - fitting one zooms to
+            // the maximum, which reads as the map lurching.
+            if (path.length < 2) return;
+
+            var bounds = L.polyline(path).getBounds();
+
+            if (fit || !map.getBounds().contains(bounds)) {
+                map.fitBounds(bounds.pad(0.2), { animate: true });
+            }
         }
 
-        /** Ask the server for road geometry; stay silent on failure. */
+        /** Ask for road geometry; leave the straight line alone on failure. */
         function fetchRoads(path, ordered, directKm) {
-            var token = document.querySelector('meta[name="csrf-token"]');
-            if (!token || path.length < 2) { return; }
+            if (path.length < 2) return;
 
-            fetch('/api/route', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token.content
-                },
-                body: JSON.stringify({
-                    stops: path.map(function (p) { return { lat: p[0], lng: p[1] }; })
-                })
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (data) {
-                    if (!data.ok || !data.geometry || !data.geometry.length) {
-                        if (cfg.onRoute) {
-                            cfg.onRoute(ordered, directKm, { mode: 'direct', reason: data.reason });
-                        }
-                        return;
-                    }
-
-                    paint(data.geometry, false);
-
+            roads(path).then(function (data) {
+                if (!data.ok) {
                     if (cfg.onRoute) {
-                        cfg.onRoute(ordered, data.distance_km, {
-                            mode: 'road',
-                            minutes: data.duration_min,
-                            steps: data.steps || [],
-                            cached: !!data.cached
-                        });
+                        cfg.onRoute(ordered, directKm, { mode: 'direct', reason: data.reason });
                     }
-                })
-                .catch(function () {
-                    if (cfg.onRoute) {
-                        cfg.onRoute(ordered, directKm, { mode: 'direct', reason: 'offline' });
-                    }
-                });
+                    return;
+                }
+
+                paint(data.geometry, false);
+
+                if (cfg.onRoute) {
+                    cfg.onRoute(ordered, data.distance_km, {
+                        mode: 'road',
+                        minutes: data.duration_min,
+                        cached: !!data.cached
+                    });
+                }
+            });
         }
 
         function addStop(id) {
@@ -412,12 +512,55 @@ window.GiyaLeaflet = (function () {
         setTimeout(function () { map.invalidateSize(); frameAll(); }, 200);
         window.addEventListener('resize', function () { map.invalidateSize(); });
 
+        /**
+         * The way from where the devotee is to one church.
+         *
+         * Needs a position, so it asks for one first if there is none yet -
+         * a devotee who taps Directions has already said what they want, and
+         * making them find the locate button first would be a second ask.
+         */
+        function directionsTo(id) {
+            var church = churches.filter(function (c) { return c.id === id; })[0];
+            if (!church) return;
+
+            function draw() {
+                var from = [me.lat, me.lng];
+                var to   = [church.lat, church.lng];
+
+                paint([from, to], true, true);    // straight away, so nothing stalls
+
+                roads([from, to]).then(function (d) {
+                    if (!d.ok) {
+                        if (cfg.onStatus) {
+                            cfg.onStatus(d.reason === 'offline'
+                                ? 'Could not reach the routing service, so the line is direct.'
+                                : 'No road route to ' + church.name + '.', 'error');
+                        }
+                        return;
+                    }
+
+                    paint(d.geometry, false, true);
+
+                    if (cfg.onStatus) {
+                        cfg.onStatus(d.distance_km + ' km to ' + church.name +
+                            ' \u00b7 about ' + d.duration_min + ' min by car', 'info');
+                    }
+                });
+            }
+
+            if (me) { draw(); return; }
+
+            if (cfg.onStatus) cfg.onStatus('Finding your location\u2026', 'info');
+            locate(function () { if (me) draw(); });
+        }
+
         return {
             map: map, locate: locate, focus: focus, frameAll: frameAll,
             showOnly: showOnly,
             addStop: addStop, toggleStop: toggleStop,
             removeStop: removeStop, clearRoute: clearRoute,
             externalDirections: externalDirections,
+            directionsTo: directionsTo,
             selected: function () { return selected.slice(); },
             distanceTo: function (c) { return me ? km(me, c) : null; }
         };
@@ -589,24 +732,14 @@ window.GiyaLeaflet = (function () {
         }
 
         function askRoads(path) {
-            var token = document.querySelector('meta[name="csrf-token"]');
-            if (!token) return;
-
-            fetch('/api/route', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.content },
-                body: JSON.stringify({
-                    stops: path.map(function (p) { return { lat: p[0], lng: p[1] }; })
-                })
-            })
-                .then(function (r) { return r.json(); })
-                .then(function (d) {
-                    if (d.ok && d.geometry && d.geometry.length) {
-                        paint(d.geometry, false);
-                        if (cfg.onRoads) cfg.onRoads(d);
-                    }
-                })
-                .catch(function () { /* keep the dashed line */ });
+            roads(path).then(function (d) {
+                if (d.ok && d.geometry.length) {
+                    paint(d.geometry, false);
+                    if (cfg.onRoads) cfg.onRoads(d);
+                } else if (cfg.onRoadsFailed) {
+                    cfg.onRoadsFailed(d.reason);
+                }
+            });
         }
 
         draw(cfg.currentId);
@@ -764,6 +897,7 @@ window.GiyaLeaflet = (function () {
         picker: picker,
         pilgrimage: pilgrimage,
         addStop: function (id) { if (current) current.addStop(id); },
+        directionsTo: function (id) { if (current) current.directionsTo(id); },
         churchIcon: churchIcon,
         km: km
     };
