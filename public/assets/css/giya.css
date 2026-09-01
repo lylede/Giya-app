@@ -2650,10 +2650,16 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
   30%           { opacity: 1;   transform: translateY(-3px); }
 }
 
+/* One line that scrolls sideways, rather than three rows of chips. */
 .chat-starters {
-  display: flex; flex-wrap: wrap; gap: 8px;
+  display: flex; flex-wrap: nowrap; gap: 8px;
   padding: 0 22px 16px; background: #fff;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none; -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
 }
+.chat-starters::-webkit-scrollbar { display: none; }
+.chat-starters .chat-starter { flex: 0 0 auto; white-space: nowrap; }
 .chat-starter {
   padding: 8px 14px; border-radius: 999px;
   border: 1px solid var(--border); background: #fff;
@@ -2662,6 +2668,29 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
   transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
 .chat-starter:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* ── Edge fade on the chip strips ───────────────────────────────
+   With the scrollbar hidden there is nothing on a desktop to say the
+   row continues, so the edge softens on whichever side still has
+   chips off-screen. giya-ai-panel.js toggles the two classes.
+   ---------------------------------------------------------------- */
+.chat-starters,
+.ai-panel-starters {
+  --edge-l: 0px;
+  --edge-r: 0px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--edge-l),
+                      #000 calc(100% - var(--edge-r)), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 var(--edge-l),
+                      #000 calc(100% - var(--edge-r)), transparent 100%);
+}
+.chat-starters.can-left,
+.ai-panel-starters.can-left  { --edge-l: 30px; }
+.chat-starters.can-right,
+.ai-panel-starters.can-right { --edge-r: 30px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-starters, .ai-panel-starters { scroll-behavior: auto; }
+}
 
 .chat-composer {
   display: flex; align-items: center; gap: 10px;
@@ -2783,11 +2812,20 @@ html[data-theme="dark"] .chat-bubble-bot { background: var(--surface-2); }
 .ai-panel .chat-bubble { max-width: 88%; font-size: 0.8125rem; }
 .ai-panel .chat-row.is-user { flex-direction: row-reverse; }
 
+/* Three starters stacked into three rows ate the panel's height. They now
+   sit on one line and scroll sideways, the way the map and home chips do. */
 .ai-panel-starters {
-  display: flex; flex-wrap: wrap; gap: 6px;
+  display: flex; flex-wrap: nowrap; gap: 6px;
   padding: 0 15px 12px; flex-shrink: 0;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none; -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
 }
-.ai-panel-starters .chat-starter { font-size: 0.6875rem; padding: 6px 11px; }
+.ai-panel-starters::-webkit-scrollbar { display: none; }
+.ai-panel-starters .chat-starter {
+  flex: 0 0 auto; white-space: nowrap;
+  font-size: 0.6875rem; padding: 6px 11px;
+}
 
 .ai-panel-composer {
   display: flex; align-items: center; gap: 8px;
@@ -3739,47 +3777,48 @@ html[data-theme="dark"] .giya-popup span   { color: #6B5B4E; }
 
 .giya-fab[aria-expanded="true"] .guide-eye { transform: translateY(4px); }
 
-/* ── The head above the slide-out panel ─────────────────────────── */
-.ai-panel { overflow: visible; }
+/* ── The guide's face in the panel head ─────────────────────────
+   The head used to float above the panel's top-left corner, which read
+   as a stray graphic rather than as the assistant. It now sits in the
+   head beside the name - the conversation's profile picture.
+   ---------------------------------------------------------------- */
 .ai-panel-head { border-radius: 16px 16px 0 0; }
 .ai-panel-log:first-of-type { border-radius: 0; }
 
-.panel-head-wrap {
-  position: absolute;
-  top: -38px; left: 22px;
-  width: 62px; height: 56px;
-  z-index: 2;
-  filter: drop-shadow(0 5px 12px rgba(36,28,24,.4));
+/* ── The robot head, small ──────────────────────────────────────
+   The real .guide-face - ears, screen, lantern and all - scaled down
+   rather than redrawn, so there is one robot in the app and it cannot
+   drift out of sync. It sits on the head beside "Giya AI" and beside
+   each reply, on nothing: no disc, no rounded tile behind it.
+
+   .guide-face is 118x104 with ears at +/-12px and the lantern above,
+   so the drawn shape is about 142x121. The wrappers below are sized
+   to the scale rather than the other way round.
+   ---------------------------------------------------------------- */
+.ai-panel-mark,
+.chat-bot-icon {
+  position: relative; display: block; flex-shrink: 0;
+  background: none; border: 0; border-radius: 0;
+  padding: 0; overflow: visible;
 }
-.panel-head-wrap .guide-face {
+.ai-panel-mark { width: 47px; height: 40px; }
+.chat-bot-icon { width: 37px; height: 32px; }
+
+.ai-panel-mark .guide-face,
+.chat-bot-icon .guide-face {
   position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(.5);
   transform-origin: center;
   box-shadow: none;
 }
-/* The panel's own top padding clears the head. */
-.ai-panel-head { padding-top: 26px; }
+.ai-panel-mark  .guide-face { transform: translate(-50%, -50%) scale(.33); }
+.chat-bot-icon  .guide-face { transform: translate(-50%, -50%) scale(.26); }
 
-/* ── The face beside each reply ─────────────────────────────────── */
-.mini-face {
-  position: relative; display: block;
-  width: 100%; height: 100%;
-  background: var(--primary-dark);
-  border-radius: 8px;
+/* The lantern's glow is sized for a 118px head and reads as a smudge
+   at a third of that, so it is dialled back here. */
+.ai-panel-mark .guide-lamp,
+.chat-bot-icon .guide-lamp {
+  box-shadow: 0 0 0 3px var(--primary-dark), 0 0 8px 1px rgba(215,169,74,.5);
 }
-.mini-eye {
-  position: absolute; top: 9px;
-  width: 4px; height: 6px; border-radius: 2px;
-  background: var(--gold);
-}
-.mini-eye-l { left: 7px; }
-.mini-eye-r { right: 7px; }
-.mini-mouth {
-  position: absolute; left: 50%; bottom: 8px;
-  width: 8px; height: 2px; margin-left: -4px;
-  border-radius: 999px; background: var(--gold);
-}
-.chat-bot-icon { background: none; padding: 0; overflow: hidden; }
 
 /* The bubble would run off a narrow screen, so it stays hidden there -
    the head is self-explanatory once tapped. */
