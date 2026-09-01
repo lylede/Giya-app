@@ -3,6 +3,22 @@
 
 @section('content')
 
+@php
+    /* Built here rather than inside a @json directive: Blade matches a
+       directive's brackets textually, and an array literal inside a closure
+       defeats that parser. */
+    $featuredData = $featured->map(function ($c) {
+        return [
+            'name'     => $c->name,
+            'category' => $c->category,
+            'location' => $c->location,
+            'desc'     => \Illuminate\Support\Str::limit($c->description, 120),
+            'image'    => $c->imagePath(),
+            'url'      => route('churches.show', $c),
+        ];
+    })->values()->toJson();
+@endphp
+
 {{-- ─────────────────────────────── Hero ─────────────────────────────── --}}
 <section style="position:relative;overflow:hidden;min-height:520px;display:flex;align-items:center">
     <img src="{{ asset('images/backgrounds/hero-basilica.svg') }}" alt=""
@@ -132,10 +148,40 @@
             <x-empty-state icon="building" title="No featured destinations yet"
                            desc="An administrator can feature destinations from the admin panel." />
         @else
-            <div class="home-grid">
-                @foreach ($featured as $church)
-                    <x-church-card :church="$church" />
+            {{--
+                A procession: one church at a time, filling the frame, advancing
+                on its own every six seconds.
+
+                A church deserves the whole frame - the facade, the scale, the
+                sky behind it. A grid of four cards gave each one a thumbnail and
+                a truncated paragraph, which is the least interesting way to show
+                a building.
+            --}}
+            <div class="proc" id="proc" tabindex="0" aria-roledescription="carousel">
+                @foreach ($featured as $i => $church)
+                    <figure @class(['proc-slide', 'is-live' => $i === 0])
+                            style="background-image:url('{{ $church->imagePath() }}')"
+                            aria-hidden="{{ $i === 0 ? 'false' : 'true' }}"></figure>
                 @endforeach
+
+                <div class="proc-veil"></div>
+
+                <div class="proc-copy" id="procCopy">
+                    <span class="proc-cat" id="procCat"></span>
+                    <h3 id="procName"></h3>
+                    <p class="proc-loc" id="procLoc"></p>
+                    <p class="proc-desc" id="procDesc"></p>
+                    <a class="btn btn-gold btn-sm" id="procLink">See More</a>
+                </div>
+
+                {{-- One bar per destination: position, remaining time, and a
+                     jump control in a single row. --}}
+                <div class="proc-bars" role="tablist">
+                    @foreach ($featured as $i => $church)
+                        <button type="button" class="proc-bar" data-go="{{ $i }}"
+                                role="tab" aria-label="{{ $church->name }}"><span></span></button>
+                    @endforeach
+                </div>
             </div>
         @endif
     </section>
@@ -251,6 +297,97 @@
     /* Typing over a chip's word clears its highlight, so a lit chip never
        claims something the box no longer says. */
     input.addEventListener('input', function () { markChips(input.value); });
+})();
+</script>
+<script>
+(function () {
+    const proc = document.getElementById('proc');
+    if (!proc) return;
+
+    const items  = {!! $featuredData !!};
+    const slides = Array.from(proc.querySelectorAll('.proc-slide'));
+    const bars   = Array.from(proc.querySelectorAll('.proc-bar'));
+    const copy   = document.getElementById('procCopy');
+    if (!items.length) return;
+
+    const HOLD = 6000;
+    let live = 0, timer = null, paused = false;
+
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function show(index) {
+        live = (index + items.length) % items.length;
+        const it = items[live];
+
+        slides.forEach(function (s, i) {
+            s.classList.toggle('is-live', i === live);
+            s.setAttribute('aria-hidden', i === live ? 'false' : 'true');
+        });
+        bars.forEach(function (b, i) {
+            b.classList.toggle('is-live', i === live);
+            b.classList.toggle('is-done', i < live);
+            b.setAttribute('aria-selected', i === live ? 'true' : 'false');
+        });
+
+        document.getElementById('procCat').textContent  = it.category || '';
+        document.getElementById('procName').textContent  = it.name;
+        document.getElementById('procLoc').innerHTML     =
+            '<i class="bi bi-geo-alt-fill"></i> ' + (it.location || '');
+        document.getElementById('procDesc').textContent  = it.desc || '';
+        document.getElementById('procLink').href         = it.url;
+
+        copy.classList.remove('is-in');
+        void copy.offsetWidth;
+        copy.classList.add('is-in');
+
+        restart();
+    }
+
+    /* No automatic advance. Nothing moves unless the devotee moves it - the
+       bars, the arrow keys and a swipe are the controls.
+
+       The pause and resume handlers below are left in place: they cost
+       nothing, and turning the timer back on is a one-line change. */
+    function restart() {}
+
+    /* Pausing on hover or focus is the difference between a slideshow that
+       helps and one that snatches the page away mid-sentence. */
+    function pause() { paused = true; clearTimeout(timer); proc.classList.add('is-paused'); }
+    function resume() { paused = false; proc.classList.remove('is-paused'); restart(); }
+
+    proc.addEventListener('mouseenter', pause);
+    proc.addEventListener('mouseleave', resume);
+    proc.addEventListener('focusin', pause);
+    proc.addEventListener('focusout', resume);
+
+    bars.forEach(function (b) {
+        b.addEventListener('click', function () { show(Number(b.dataset.go)); });
+    });
+
+    proc.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { show(live + 1); e.preventDefault(); }
+        if (e.key === 'ArrowLeft')  { show(live - 1); e.preventDefault(); }
+    });
+
+    let startX = null;
+    proc.addEventListener('touchstart', function (e) {
+        startX = e.touches[0].clientX; pause();
+    }, { passive: true });
+    proc.addEventListener('touchend', function (e) {
+        if (startX !== null) {
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) show(live + (dx < 0 ? 1 : -1));
+            startX = null;
+        }
+        resume();
+    });
+
+    // A background tab should not run through five destinations unwatched.
+    document.addEventListener('visibilitychange', function () {
+        document.hidden ? pause() : resume();
+    });
+
+    show(0);
 })();
 </script>
 @endpush

@@ -4,33 +4,70 @@
 @section('content')
 <div class="page-wrap chat-page" style="max-width:900px">
 
-    <div class="chat-header">
-        <span class="chat-avatar">
-            <img src="{{ asset('images/icons/chatbot_icon.svg') }}"
-                alt=""
-                class="chat-header-chatbot-icon">
-        </span>
-        <div style="flex:1;min-width:0">
-            <h1>Giya AI Assistant</h1>
-            <p>
-                <span @class(['chat-dot', 'is-off' => ! $online])></span>
-                {{ $online ? 'Pilgrimage guide for Metro Cebu' : 'Offline - answering from destination records' }}
-            </p>
+    {{--
+        The guide sits above the panel and reacts to what is happening: it looks
+        down while you type, glances up while it thinks, and smiles when an
+        answer arrives.
+
+        A face is not decoration here. A chat window with no visible state is
+        silent while it works, and silence reads as broken. The face is the
+        status indicator, and it is legible at a glance.
+    --}}
+    <div class="guide" id="guide" data-online="{{ $online ? '1' : '0' }}">
+        <div class="guide-bubble" id="guideBubble">
+            <span id="guideSay">
+                {{ $online
+                    ? 'Maayong buntag. Ask me about any church in Metro Cebu.'
+                    : 'I am offline, so I answer from the destination records only.' }}
+            </span>
         </div>
 
-        @if ($messages->isNotEmpty())
-            <form method="POST" action="{{ route('chatbot.reset') }}"
-                  data-confirm-title="Start a new conversation?"
-                  data-confirm="This conversation is closed and cleared from view."
-                  data-confirm-ok="Start new"
-                  data-confirm-tone="primary">
-                @csrf
-                <button type="submit" class="btn btn-ghost btn-sm">New chat</button>
-            </form>
-        @endif
+        <div class="guide-face" aria-hidden="true">
+            <span class="guide-ear guide-ear-l"></span>
+            <span class="guide-ear guide-ear-r"></span>
+
+            <div class="guide-screen">
+                <span class="guide-eye guide-eye-l"><i></i></span>
+                <span class="guide-eye guide-eye-r"><i></i></span>
+                <span class="guide-mouth"></span>
+                <span class="guide-blush guide-blush-l"></span>
+                <span class="guide-blush guide-blush-r"></span>
+            </div>
+
+            {{-- A lantern rather than an antenna: giya means guide, and a
+                 lantern is what a guide carries. --}}
+            <span class="guide-lamp"></span>
+        </div>
+
+        <div class="guide-hands">
+            <span class="guide-hand guide-hand-l"></span>
+            <span class="guide-hand guide-hand-r"></span>
+        </div>
     </div>
 
     <div class="card chat-shell">
+                {{-- Inside the panel, so the assistant reads as one box rather than a
+             heading floating above a separate card. --}}
+        <div class="chat-bar">
+            <div>
+                <strong>Giya AI Assistant</strong>
+                <span>
+                    <span @class(['chat-dot', 'is-off' => ! $online])></span>
+                    {{ $online ? 'Pilgrimage guide for Metro Cebu' : 'Offline - answering from records' }}
+                </span>
+            </div>
+
+            @if ($messages->isNotEmpty())
+                <form method="POST" action="{{ route('chatbot.reset') }}"
+                      data-confirm-title="Start a new conversation?"
+                      data-confirm="This conversation is closed and cleared from view."
+                      data-confirm-ok="Start new"
+                      data-confirm-tone="primary">
+                    @csrf
+                    <button type="submit" class="btn btn-ghost btn-sm">New chat</button>
+                </form>
+            @endif
+        </div>
         <div class="chat-log" id="chatLog">
             @if ($messages->isEmpty())
                 <div class="chat-row">
@@ -200,6 +237,104 @@
 
     scroll();
     input.focus();
+})();
+</script>
+<script>
+/**
+ * The guide's expressions.
+ *
+ * Each state is a class on the wrapper; the CSS does the drawing. Keeping the
+ * behaviour here and the appearance there means an expression can be redrawn
+ * without touching the logic that decides when to use it.
+ */
+(function () {
+    const guide  = document.getElementById('guide');
+    if (!guide) return;
+
+    const say    = document.getElementById('guideSay');
+    const bubble = document.getElementById('guideBubble');
+    const input  = document.getElementById('chatInput');
+    const log    = document.getElementById('chatLog');
+
+    const STATES = ['is-idle', 'is-typing', 'is-secret', 'is-thinking', 'is-happy', 'is-sorry'];
+
+    let restTimer = null;
+
+    function setState(state, line) {
+        STATES.forEach(function (c) { guide.classList.toggle(c, c === state); });
+
+        if (line) {
+            // Re-trigger the bubble's entrance so a repeat line still registers.
+            bubble.classList.remove('is-in');
+            void bubble.offsetWidth;
+            say.textContent = line;
+            bubble.classList.add('is-in');
+        }
+    }
+
+    function rest(delay) {
+        clearTimeout(restTimer);
+        restTimer = setTimeout(function () {
+            setState('is-idle', guide.dataset.online === '1'
+                ? 'Ask me anything about Metro Cebu.'
+                : 'Offline, but I still know the destinations.');
+        }, delay || 4000);
+    }
+
+    /* ---- typing ---- */
+    if (input) {
+        input.addEventListener('input', function () {
+            if (!input.value.trim()) { rest(1200); return; }
+
+            clearTimeout(restTimer);
+            setState('is-typing', 'Go on, I am listening.');
+        });
+
+        input.addEventListener('focus', function () {
+            if (!input.value.trim()) setState('is-typing', 'What would you like to know?');
+        });
+    }
+
+    /* ---- the conversation ---- */
+    if (log) {
+        /* Watching the log rather than hooking the fetch: the panel and the
+           page both write here, so one observer covers both without either
+           script knowing about the guide. */
+        new MutationObserver(function (records) {
+            records.forEach(function (r) {
+                Array.from(r.addedNodes).forEach(function (node) {
+                    if (!node.classList) return;
+
+                    if (node.classList.contains('is-user')) {
+                        setState('is-thinking', 'Let me look through the churches...');
+                        return;
+                    }
+
+                    if (node.querySelector && node.querySelector('.chat-typing')) return;
+
+                    const bot = node.querySelector && node.querySelector('.chat-bubble-bot');
+                    if (!bot) return;
+
+                    if (bot.classList.contains('is-offline')) {
+                        setState('is-sorry', 'I could not reach the AI, so that came from the records.');
+                    } else {
+                        setState('is-happy', 'Here you go.');
+                    }
+                    rest(5000);
+                });
+            });
+        }).observe(log, { childList: true });
+    }
+
+    /* A blink now and then, so an idle face is not a staring one. */
+    setInterval(function () {
+        if (guide.classList.contains('is-thinking')) return;
+        guide.classList.add('is-blinking');
+        setTimeout(function () { guide.classList.remove('is-blinking'); }, 160);
+    }, 4200);
+
+    setState('is-idle');
+    bubble.classList.add('is-in');
 })();
 </script>
 @endpush

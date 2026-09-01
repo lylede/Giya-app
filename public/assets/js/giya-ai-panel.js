@@ -80,9 +80,11 @@
         row.className = 'chat-row';
         row.id = 'giyaPanelTyping';
         row.innerHTML =
-            '<span class="chat-bot-icon">' +
-                '<img src="/images/icons/chatbot_icon.svg" alt="" class="chat-bot-svg">' +
-            '</span>' +
+                '<span class="mini-face">' +
+                    '<span class="mini-eye mini-eye-l"></span>' +
+                    '<span class="mini-eye mini-eye-r"></span>' +
+                    '<span class="mini-mouth"></span>' +
+                '</span>' +
             '<div class="chat-bubble chat-bubble-bot chat-typing">' +
                 '<span></span><span></span><span></span></div>';
         log.appendChild(row);
@@ -97,7 +99,7 @@
         row.className = 'chat-row';
         row.innerHTML =
             '<span class="chat-bot-icon">' +
-                '<img src="/images/icons/chatbot_icon.svg" alt="" class="chat-bot-svg">' +
+                '<span class="mini-guide" aria-hidden="true"><span class="mini-eye mini-eye-l"></span><span class="mini-eye mini-eye-r"></span><span class="mini-mouth"></span></span>' +
             '</span>' +
             '<div class="chat-bubble chat-bubble-bot' + (ok ? '' : ' is-offline') + '">' +
                 esc(text).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') +
