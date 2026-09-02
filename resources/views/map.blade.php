@@ -34,7 +34,7 @@
                 </label>
 
                 <div class="mx-chips" role="group" aria-label="Filters">
-                    <button type="button" class="cat-chip is-active" data-cat="Near">Near</button>
+                    <button type="button" class="cat-chip" data-cat="Near">Near</button>
                     @foreach ($categories as $category)
                         <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category }}</button>
                     @endforeach
@@ -132,6 +132,8 @@
     let query = new URLSearchParams(window.location.search).get('q') || '';
     query = query.trim().toLowerCase();
     let distances = {};
+    let nearbyIds = [];
+    let hasLocation = false;
 
     function showNote(message, kind) {
         if (!message || kind === 'clear') { note.style.display = 'none'; return; }
@@ -155,6 +157,8 @@
         },
         onLocated: function (me, nearest) {
             distances = {};
+            nearbyIds = nearest.map(function (n) { return n.church.id; });
+            hasLocation = true;
     const initialChurchId = Number(new URLSearchParams(window.location.search).get('church'));
     if (initialChurchId) {
         setTimeout(function () { map.focus(initialChurchId); }, 0);
@@ -228,7 +232,10 @@
 
     function filtered() {
         return churches
-            .filter(function (c) { return category === 'All' || category === 'Near' || c.category === category; })
+            .filter(function (c) {
+                if (category === 'Near') return nearbyIds.indexOf(c.id) !== -1;
+                return category === 'All' || c.category === category;
+            })
             .filter(function (c) { return !flags.open   || c.open; })
             .filter(function (c) { return !flags.masses || c.masses; })
             .filter(function (c) { return !query || (c.name + ' ' + c.location).toLowerCase().indexOf(query) !== -1; })
@@ -364,8 +371,12 @@
                 this.classList.add('is-active');
                 category = this.dataset.cat;
 
-                // "Near" only means anything once we know where the devotee is.
-                if (category === 'Near' && !Object.keys(distances).length) map.locate();
+                if (category === 'Near') {
+                    if (!hasLocation) {
+                        showNote('Finding nearby churches...', 'info');
+                    }
+                    map.locate();
+                }
             }
             renderList();
         });
