@@ -29,15 +29,15 @@
                 </p>
             </div>
             <button type="button" class="btn btn-ghost btn-ghost-inverse" data-modal-open="editProfileModal">
-                <i class="bi bi-pencil-square"></i> Edit Profile
+                <i class="bi bi-pencil-square"></i> {{ __('giya.profile.edit') }}
             </button>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(3,1fr);text-align:center">
             @foreach ([
-                [$user->total_pilgrimages,      'Pilgrimages',  'Completed'],
-                [$user->total_churches_visited, 'Churches',     'Visited'],
-                [$reviewCount,                  'Reviews',      'Written'],
+                [$user->total_pilgrimages,      __('giya.profile.pilgrimages'), __('giya.profile.completed')],
+                [$user->total_churches_visited, __('giya.church.churches'),     __('giya.profile.visited')],
+                [$reviewCount,                  __('giya.profile.reviews'),     __('giya.profile.written')],
             ] as $i => [$value, $l1, $l2])
                 <div style="padding:8px 4px;{{ $i < 2 ? 'border-right:1px solid rgba(255,255,255,0.1)' : '' }}">
                     <div class="profile-stat-val">{{ $value }}</div>
@@ -51,7 +51,7 @@
 {{-- ───────────────────────────── Tabs ───────────────────────────────── --}}
 <div style="background:#fff;border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:100">
     <div style="max-width:900px;margin:0 auto;display:flex;padding:0 20px;overflow-x:auto">
-        @foreach ([['overview','Overview'],['visits','Visit History'],['itineraries','Itineraries'],['favorites','Favorites'],['preferences','Preferences']] as $i => [$id, $label])
+        @foreach ([['overview',__('giya.profile.overview')],['visits',__('giya.profile.visit_history')],['itineraries',__('giya.profile.itineraries')],['favorites',__('giya.profile.favorites')],['preferences',__('giya.profile.preferences')]] as $i => [$id, $label])
             <button type="button" @class(['profile-tab', 'is-active' => $id === $activeTab])
                     data-tab="{{ $id }}" onclick="GiyaProfile.show('{{ $id }}', this)">{{ $label }}</button>
         @endforeach
@@ -65,7 +65,7 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" class="profile-grid">
 
             <div class="card card-body">
-                <div class="form-label-sm" style="margin-bottom:14px">Account Information</div>
+                <div class="form-label-sm" style="margin-bottom:14px">{{ __('giya.profile.account_info') }}</div>
                 @foreach ([
                     ['Full Name',    $user->name],
                     ['Email',        $user->email],
@@ -82,7 +82,7 @@
             </div>
 
             <div class="card card-body">
-                <div class="form-label-sm" style="margin-bottom:14px">Pilgrim Achievements</div>
+                <div class="form-label-sm" style="margin-bottom:14px">{{ __('giya.profile.achievements') }}</div>
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
                     @foreach ([
                         ['sunrise-fill',    'First Steps',   $user->total_churches_visited >= 1],
@@ -191,7 +191,7 @@
         @empty
             <x-empty-state icon="journal-text" title="No itineraries yet"
                            desc="Plan a route in the Plan Hub and it will be listed here.">
-                <a href="{{ route('plan.hub') }}" class="btn btn-primary btn-sm mt-3">Open Plan Hub</a>
+                <a href="{{ route('plan.hub') }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.profile.open_plan_hub') }}</a>
             </x-empty-state>
         @endforelse
     </section>
@@ -228,7 +228,7 @@
         @empty
             <x-empty-state icon="heart" title="No saved destinations yet"
                            desc="Tap the heart on any church to save it here for later.">
-                <a href="{{ route('map') }}" class="btn btn-primary btn-sm mt-3">Find Churches</a>
+                <a href="{{ route('map') }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.profile.find_churches') }}</a>
             </x-empty-state>
         @endforelse
     </section>
@@ -245,10 +245,10 @@
             <div class="card card-body mb-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <i class="bi bi-brightness-high-fill" style="color:var(--gold)"></i>
-                    <span style="font-size: 0.9375rem;font-weight:700;color:var(--text)">Appearance</span>
+                    <span style="font-size: 0.9375rem;font-weight:700;color:var(--text)">{{ __('giya.profile.appearance') }}</span>
                 </div>
 
-                <label class="form-label-sm" style="display:block;margin-bottom:6px">Font Size</label>
+                <label class="form-label-sm" style="display:block;margin-bottom:6px">{{ __('giya.profile.font_size') }}</label>
                 <div class="d-flex gap-2 mb-3" role="radiogroup" aria-label="Font size">
                     @foreach (['Small', 'Medium', 'Large'] as $size)
                         <label @class(['pref-choice', 'is-active' => $prefs->font_size === $size])>
@@ -275,19 +275,17 @@
             <div class="card card-body mb-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <i class="bi bi-globe2" style="color:var(--gold)"></i>
-                    <span style="font-size: 0.9375rem;font-weight:700;color:var(--text)">Language</span>
-                    <span class="pref-soon">Coming soon</span>
+                    <span style="font-size: 0.9375rem;font-weight:700;color:var(--text)">{{ __('giya.profile.language') }}</span>
                 </div>
 
-                <label class="form-label-sm" for="pref-language">Display Language</label>
+                <label class="form-label-sm" for="pref-language">{{ __('giya.profile.display_lang') }}</label>
                 <select id="pref-language" name="language" class="giya-input">
                     @foreach (['English', 'Cebuano', 'Filipino'] as $language)
                         <option value="{{ $language }}" @selected($prefs->language === $language)>{{ $language }}</option>
                     @endforeach
                 </select>
                 <p style="font-size: 0.75rem;color:var(--text-muted);margin:6px 0 0">
-                    Your choice is saved now. Cebuano and Filipino translations are still
-                    being prepared, so the interface stays in English for the moment.
+                    {{ __('giya.profile.lang_note') }}
                 </p>
             </div>
 
@@ -352,7 +350,7 @@
                     </span>
                     <span style="flex:1">
                         <span style="display:block;font-size: 0.875rem;font-weight:600;color:#D4183D">Sign Out</span>
-                        <span style="display:block;font-size: 0.75rem;color:var(--text-muted)">End your session on this device.</span>
+                        <span style="display:block;font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.profile.sign_out_note') }}</span>
                     </span>
                     <i class="bi bi-chevron-right" style="color:var(--text-muted)"></i>
                 </button>
@@ -386,21 +384,21 @@
                         <div style="flex:1">
                             <input id="pf-avatar" type="file" name="avatar" class="giya-input"
                                    accept="image/jpeg,image/png,image/webp">
-                            <p style="font-size: 0.75rem;color:var(--text-muted);margin:4px 0 0">JPG, PNG, or WEBP. Up to 2 MB.</p>
+                            <p style="font-size: 0.75rem;color:var(--text-muted);margin:4px 0 0">{{ __('giya.profile.avatar_hint') }}</p>
                         </div>
                     </div>
                     @error('avatar')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="field">
-                    <label class="form-label-sm" for="pf-name">Full Name</label>
+                    <label class="form-label-sm" for="pf-name">{{ __('giya.profile.full_name') }}</label>
                     <input id="pf-name" type="text" name="name" class="giya-input"
                            value="{{ old('name', $user->name) }}" maxlength="100" required>
                     @error('name')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="field">
-                    <label class="form-label-sm" for="pf-email">Email Address</label>
+                    <label class="form-label-sm" for="pf-email">{{ __('giya.profile.email') }}</label>
                     <input id="pf-email" type="email" name="email" class="giya-input"
                            value="{{ old('email', $user->email) }}" maxlength="150" required>
                     @error('email')<span class="field-error">{{ $message }}</span>@enderror
@@ -430,7 +428,7 @@
             <form method="POST" action="{{ route('profile.password') }}">
                 @csrf @method('PATCH')
                 <div class="field">
-                    <label class="form-label-sm" for="cp-current">Current Password</label>
+                    <label class="form-label-sm" for="cp-current">{{ __('giya.profile.current_pw') }}</label>
                     <div class="input-wrap">
                         <input id="cp-current" type="password" name="current_password" class="giya-input" required>
                         <button type="button" class="input-suffix" onclick="giyaTogglePassword('cp-current', this)">
@@ -440,7 +438,7 @@
                     @error('current_password')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
                 <div class="field">
-                    <label class="form-label-sm" for="cp-new">New Password</label>
+                    <label class="form-label-sm" for="cp-new">{{ __('giya.profile.new_pw') }}</label>
                     <div class="input-wrap">
                         <input id="cp-new" type="password" name="password" class="giya-input"
                                placeholder="Minimum 8 characters" required>
@@ -451,7 +449,7 @@
                     @error('password')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
                 <div class="field">
-                    <label class="form-label-sm" for="cp-confirm">Confirm New Password</label>
+                    <label class="form-label-sm" for="cp-confirm">{{ __('giya.profile.confirm_pw') }}</label>
                     <div class="input-wrap">
                         <input id="cp-confirm" type="password" name="password_confirmation" class="giya-input" required>
                         <button type="button" class="input-suffix" onclick="giyaTogglePassword('cp-confirm', this)">
@@ -596,7 +594,16 @@ const PrefSaver = (function () {
         if (field === 'font_size')   root.setAttribute('data-font',  String(value).toLowerCase());
     }
 
-    function save(field, value) {
+    /*
+        `reload` is for settings this page cannot repaint itself.
+
+        Theme and font are attributes on <html>, so apply() flips them and the
+        page is done. Language is not: every string was rendered server-side
+        on the way in, so the page has to come back to change. Without this
+        the choice saved, said "Saved", and nothing moved until you happened
+        to navigate somewhere.
+    */
+    function save(field, value, reload) {
         apply(field, value);          // instant, before the round trip
         say('Saving…');
 
@@ -610,7 +617,17 @@ const PrefSaver = (function () {
             body: JSON.stringify({ field, value }),
         })
             .then(r => r.json())
-            .then(d => say(d.ok ? 'Saved' : 'Could not save that', d.ok ? 'ok' : 'error'))
+            .then(d => {
+                say(d.ok ? 'Saved' : 'Could not save that', d.ok ? 'ok' : 'error');
+
+                // Come back on the same tab rather than dumping the devotee
+                // on Overview - ?tab= is already how this page picks one.
+                if (d.ok && reload) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('tab', 'preferences');
+                    window.location.replace(url.toString());
+                }
+            })
             .catch(() => say('Could not save - check your connection', 'error'));
     }
 
@@ -630,7 +647,7 @@ document.addEventListener('change', event => {
 
     // Language.
     if (el.id === 'pref-language') {
-        PrefSaver.save('language', el.value);
+        PrefSaver.save('language', el.value, true);   // reload; see save()
         return;
     }
 

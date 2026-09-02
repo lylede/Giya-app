@@ -10,9 +10,9 @@
 <div style="max-width:1280px;margin:0 auto;padding:24px 20px 48px">
 
     <header class="mx-head">
-        <span class="eyebrow">EXPLORE</span>
-        <h1>Map of Metro Cebu</h1>
-        <p>Find churches near you, then build a route through the ones you want to visit.</p>
+        <span class="eyebrow">{{ __('giya.map.eyebrow') }}</span>
+        <h1>{{ __('giya.map.title') }}</h1>
+        <p>{{ __('giya.map.lead') }}</p>
     </header>
 
     <div id="mapNote" class="map-note" style="display:none">
@@ -25,21 +25,21 @@
         <aside class="map-sidebar card">
 
             <div class="mx-controls">
-                <h2 class="mx-title">Explore Churches</h2>
+                <h2 class="mx-title">{{ __('giya.map.explore') }}</h2>
 
                 <label class="mx-search-field">
                     <i class="bi bi-search"></i>
-                    <input type="search" id="mapSearch" placeholder="Search churches..."
-                           aria-label="Search churches">
+                    <input type="search" id="mapSearch" placeholder="{{ __('giya.nav.search') }}"
+                           aria-label="{{ __('giya.nav.search_label') }}">
                 </label>
 
-                <div class="mx-chips" role="group" aria-label="Filters">
-                    <button type="button" class="cat-chip" data-cat="Near">Near</button>
+                <div class="mx-chips" role="group" aria-label="{{ __('giya.map.filters') }}">
+                    <button type="button" class="cat-chip is-active" data-cat="Near">{{ __('giya.church.near') }}</button>
                     @foreach ($categories as $category)
                         <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category }}</button>
                     @endforeach
-                    <button type="button" class="cat-chip is-toggle" data-flag="open">Open Now</button>
-                    <button type="button" class="cat-chip is-toggle" data-flag="masses">Has Mass Schedule</button>
+                    <button type="button" class="cat-chip is-toggle" data-flag="open">{{ __('giya.church.open_now') }}</button>
+                    <button type="button" class="cat-chip is-toggle" data-flag="masses">{{ __('giya.church.mass_schedule') }}</button>
                 </div>
             </div>
 
@@ -58,9 +58,9 @@
 
                 <div class="mx-tray-actions">
                     <button type="button" id="btnDirections" class="btn btn-primary mx-plan">
-                        <i class="bi bi-signpost-fill"></i> Plan Route
+                        <i class="bi bi-signpost-fill"></i> {{ __('giya.map.plan_route') }}
                     </button>
-                    <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm">Clear</button>
+                    <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm">{{ __('giya.common.clear') }}</button>
                 </div>
             </section>
         </aside>
@@ -70,22 +70,22 @@
 
             <div class="map-tools">
                 <button type="button" class="map-tool" id="btnFullscreen"
-                        title="Fullscreen" aria-label="Toggle fullscreen">
+                        title="{{ __('giya.map.fullscreen') }}" aria-label="{{ __('giya.map.fullscreen') }}">
                     <i class="bi bi-arrows-fullscreen"></i>
                 </button>
 
                 <button type="button" class="map-tool" id="btnLocate"
-                        title="Find my location" aria-label="Find my location">
+                        title="{{ __('giya.map.locate') }}" aria-label="{{ __('giya.map.locate') }}">
                     <i class="bi bi-geo-alt-fill"></i>
                 </button>
 
                 <div class="map-tool-pair">
                     <button type="button" class="map-tool" id="btnZoomIn"
-                            title="Zoom in" aria-label="Zoom in">
+                            title="{{ __('giya.map.zoom_in') }}" aria-label="{{ __('giya.map.zoom_in') }}">
                         <i class="bi bi-plus-lg"></i>
                     </button>
                     <button type="button" class="map-tool" id="btnZoomOut"
-                            title="Zoom out" aria-label="Zoom out">
+                            title="{{ __('giya.map.zoom_out') }}" aria-label="{{ __('giya.map.zoom_out') }}">
                         <i class="bi bi-dash-lg"></i>
                     </button>
                 </div>
@@ -132,8 +132,6 @@
     let query = new URLSearchParams(window.location.search).get('q') || '';
     query = query.trim().toLowerCase();
     let distances = {};
-    let nearbyIds = [];
-    let hasLocation = false;
 
     function showNote(message, kind) {
         if (!message || kind === 'clear') { note.style.display = 'none'; return; }
@@ -157,15 +155,13 @@
         },
         onLocated: function (me, nearest) {
             distances = {};
-            nearbyIds = nearest.map(function (n) { return n.church.id; });
-            hasLocation = true;
     const initialChurchId = Number(new URLSearchParams(window.location.search).get('church'));
     if (initialChurchId) {
         setTimeout(function () { map.focus(initialChurchId); }, 0);
     }
             nearest.forEach(function (n) { distances[n.church.id] = n.km; });
             renderList();
-            showNote('Showing your location. The nearest destinations are listed first.', 'info');
+            showNote(@json(__('giya.map.located')), 'info');
         },
         onSelect: function (id) {
             const row = document.querySelector('[data-church="' + id + '"]');
@@ -232,10 +228,7 @@
 
     function filtered() {
         return churches
-            .filter(function (c) {
-                if (category === 'Near') return nearbyIds.indexOf(c.id) !== -1;
-                return category === 'All' || c.category === category;
-            })
+            .filter(function (c) { return category === 'All' || category === 'Near' || c.category === category; })
             .filter(function (c) { return !flags.open   || c.open; })
             .filter(function (c) { return !flags.masses || c.masses; })
             .filter(function (c) { return !query || (c.name + ' ' + c.location).toLowerCase().indexOf(query) !== -1; })
@@ -347,7 +340,7 @@
         const ids = ordered.length ? ordered : map.selected();
 
         if (!ids.length) {
-            showNote('Pick at least one destination first.', 'error');
+            showNote(@json(__('giya.map.pick_first')), 'error');
             return;
         }
 
@@ -371,12 +364,8 @@
                 this.classList.add('is-active');
                 category = this.dataset.cat;
 
-                if (category === 'Near') {
-                    if (!hasLocation) {
-                        showNote('Finding nearby churches...', 'info');
-                    }
-                    map.locate();
-                }
+                // "Near" only means anything once we know where the devotee is.
+                if (category === 'Near' && !Object.keys(distances).length) map.locate();
             }
             renderList();
         });

@@ -174,7 +174,7 @@
                 <img src="{{ asset('images/logo/giya-icon.svg') }}" alt="" width="32" height="32">
             </span>
             <span class="nav-logo-name">Giya</span>
-            <span class="nav-logo-badge d-none d-sm-inline">Metro Cebu</span>
+            <span class="nav-logo-badge d-none d-sm-inline">{{ __('giya.nav.region') }}</span>
         </a>
 
         <div class="nav-links">
@@ -194,8 +194,8 @@
         <form class="nav-search" role="search" action="{{ route('map') }}" method="GET">
             <input type="search" name="q" id="navSearch"
                    value="{{ request()->routeIs('map') ? request('q') : '' }}"
-                   placeholder="Search churches…"
-                   autocomplete="off" aria-label="Search churches">
+                   placeholder="{{ __('giya.nav.search') }}"
+                   autocomplete="off" aria-label="{{ __('giya.nav.search_label') }}">
             <button type="submit" class="nav-search-go" aria-label="Search">
                 <i class="bi bi-search" aria-hidden="true"></i>
             </button>
@@ -207,7 +207,7 @@
 
                 <div class="nav-bell-wrap">
                     <button type="button" class="nav-bell" id="navBell"
-                            aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
+                            aria-haspopup="true" aria-expanded="false" aria-label="{{ __('giya.nav.notifications') }}">
                         <img src="{{ asset('images/icons/bell.svg') }}" alt="" width="16" height="16">
                         <span class="nav-bell-dot" id="navBellDot" @class(['is-hidden' => $unreadCount === 0])>
                             {{ $unreadCount > 9 ? '9+' : $unreadCount }}
@@ -216,11 +216,11 @@
 
                     <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifications">
                         <div class="notif-head">
-                            <span>Notifications</span>
-                            <button type="button" class="notif-readall" id="notifReadAll">Mark all read</button>
+                            <span>{{ __('giya.nav.notifications') }}</span>
+                            <button type="button" class="notif-readall" id="notifReadAll">{{ __('giya.nav.mark_all_read') }}</button>
                         </div>
                         <div class="notif-body" id="notifBody">
-                            <p class="notif-empty">Loading…</p>
+                            <p class="notif-empty">{{ __('giya.nav.loading') }}</p>
                         </div>
                     </div>
                 </div>
@@ -238,11 +238,11 @@
 
                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                     @csrf
-                    <button type="submit" class="btn-signout">Sign Out</button>
+                    <button type="submit" class="btn-signout">{{ __('giya.nav.sign_out') }}</button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="btn-signout">Sign In</a>
-                <a href="{{ route('register') }}" class="btn btn-gold btn-sm">Create Account</a>
+                <a href="{{ route('login') }}" class="btn-signout">{{ __('giya.nav.sign_in') }}</a>
+                <a href="{{ route('register') }}" class="btn btn-gold btn-sm">{{ __('giya.nav.create_account') }}</a>
             @endauth
 
             {{--
@@ -257,7 +257,7 @@
                 either way.
             --}}
             <label for="navHamburger" class="hamburger-btn" role="button" tabindex="0"
-                   aria-label="Toggle navigation" aria-controls="navMobileMenu">
+                   aria-label="{{ __('giya.nav.toggle') }}" aria-controls="navMobileMenu">
                 <i class="bi bi-list icon-open"  style="font-size: 1.25rem;color:var(--gold)"></i>
                 <i class="bi bi-x    icon-close" style="font-size: 1.25rem;color:var(--gold)"></i>
             </label>
@@ -278,7 +278,7 @@
                 <i class="bi bi-search" style="color:var(--gold);font-size:.8125rem"></i>
                 <input type="search" name="q"
                        value="{{ request()->routeIs('map') ? request('q') : '' }}"
-                       placeholder="Search churches…" autocomplete="off"
+                       placeholder="{{ __('giya.nav.search') }}" autocomplete="off"
                        aria-label="Search churches"
                        style="flex:1;min-width:0;background:none;border:0;outline:none;color:#fff;font-size:.8125rem">
             </form>
@@ -294,15 +294,15 @@
                 <form method="POST" action="{{ route('logout') }}" class="mt-2">
                     @csrf
                     <button type="submit" class="mobile-nav-link w-100 text-start bg-transparent border-0">
-                        <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                        <i class="bi bi-box-arrow-right me-2"></i>{{ __('giya.nav.sign_out') }}
                     </button>
                 </form>
             @else
                 <a href="{{ route('login') }}" class="mobile-nav-link">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                    <i class="bi bi-box-arrow-in-right me-2"></i>{{ __('giya.nav.sign_in') }}
                 </a>
                 <a href="{{ route('register') }}" class="mobile-nav-link">
-                    <i class="bi bi-person-plus me-2"></i>Create Account
+                    <i class="bi bi-person-plus me-2"></i>{{ __('giya.nav.create_account') }}
                 </a>
             @endauth
         </div>
