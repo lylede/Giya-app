@@ -31,7 +31,7 @@
             <div style="position:relative">
                 <a href="{{ route('plan.index') }}"
                    style="display:inline-flex;align-items:center;gap:4px;color:rgba(255,255,255,.7);font-size: 0.75rem;margin-bottom:10px">
-                    <i class="bi bi-chevron-left"></i> All itineraries
+                    <i class="bi bi-chevron-left"></i> {{ __('giya.plan.all_itineraries') }}
                 </a>
                 <h1 style="font-family:var(--font-display);color:#fff;font-size: 1.1875rem;margin:0 0 2px">{{ $itinerary->name }}</h1>
                 <p style="color:rgba(255,255,255,.7);font-size: 0.75rem;margin:0">
@@ -48,14 +48,14 @@
         </div>
 
         <div class="ap-banner" id="currentBanner">
-            <div style="font-size: 0.625rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Current stop</div>
+            <div style="font-size: 0.625rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">{{ __('giya.plan.current_stop') }}</div>
             <div id="currentName" style="font-size: 0.875rem;font-weight:700;color:var(--text)"></div>
             <div id="currentNext" style="font-size: 0.6875rem;color:var(--primary);margin-top:4px"></div>
         </div>
 
         <div class="ap-banner d-none" id="doneBanner" style="text-align:center">
             <i class="bi bi-award-fill" style="font-size: 1.625rem;color:var(--gold)"></i>
-            <div style="font-size: 0.875rem;font-weight:700;color:var(--text);margin-top:4px">Pilgrimage complete</div>
+            <div style="font-size: 0.875rem;font-weight:700;color:var(--text);margin-top:4px">{{ __('giya.plan.finished') }}</div>
             <div style="font-size: 0.75rem;color:var(--text-muted)">All {{ $stops->count() }} churches visited</div>
         </div>
 
@@ -63,14 +63,14 @@
 
         <div class="ap-foot">
             <button type="button" class="btn btn-primary btn-w-full" id="markBtn" onclick="GiyaActive.markCurrent()">
-                <i class="bi bi-check-lg"></i> Mark Current Visited
+                <i class="bi bi-check-lg"></i> {{ __('giya.plan.mark_visited') }}
             </button>
             <form method="POST" action="{{ route('plan.destroy', $itinerary) }}"
                   data-confirm-title="End this pilgrimage?"
                   data-confirm="Your progress and this itinerary are deleted. Visits you already recorded stay in your history."
                   data-confirm-ok="End pilgrimage">
                 @csrf @method('DELETE')
-                <button type="submit" class="btn btn-danger btn-w-full">End Pilgrimage</button>
+                <button type="submit" class="btn btn-danger btn-w-full">{{ __('giya.plan.end') }}</button>
             </form>
         </div>
     </aside>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 @php($giyaPrefs = auth()->check() ? auth()->user()->preferencesOrDefault() : null)
-<html lang="en"
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
       data-theme="{{ strtolower($giyaPrefs->theme_style ?? 'light') }}"
       data-font="{{ strtolower($giyaPrefs->font_size ?? 'medium') }}">
 <head>

@@ -13,27 +13,27 @@
             </div>
 
             <div>
-                <div class="footer-col-title">Explore</div>
-                <a href="{{ route('map') }}"          class="footer-link">Find Churches</a>
+                <div class="footer-col-title">{{ __('giya.footer.explore') }}</div>
+                <a href="{{ route('map') }}"          class="footer-link">{{ __('giya.footer.find_churches') }}</a>
                 @auth
-                    <a href="{{ route('plan.create') }}"  class="footer-link">Plan Route</a>
-                    <a href="{{ route('plan.visita') }}"  class="footer-link">Visita Iglesia</a>
-                    <a href="{{ route('chatbot') }}"      class="footer-link">AI Chatbot</a>
+                    <a href="{{ route('plan.create') }}"  class="footer-link">{{ __('giya.footer.plan_route') }}</a>
+                    <a href="{{ route('plan.visita') }}"  class="footer-link">{{ __('giya.footer.visita') }}</a>
+                    <a href="{{ route('chatbot') }}"      class="footer-link">{{ __('giya.footer.chatbot') }}</a>
                 @else
-                    <a href="{{ route('login') }}"    class="footer-link">Sign In to Plan</a>
-                    <a href="{{ route('register') }}" class="footer-link">Create an Account</a>
+                    <a href="{{ route('login') }}"    class="footer-link">{{ __('giya.footer.sign_in_plan') }}</a>
+                    <a href="{{ route('register') }}" class="footer-link">{{ __('giya.footer.create_account') }}</a>
                 @endauth
             </div>
 
             <div>
-                <div class="footer-col-title">Account</div>
+                <div class="footer-col-title">{{ __('giya.footer.account') }}</div>
                 @auth
-                    <a href="{{ route('profile') }}"    class="footer-link">My Profile</a>
-                    <a href="{{ route('plan.index') }}" class="footer-link">My Itineraries</a>
-                    <a href="{{ route('home') }}"       class="footer-link">Dashboard</a>
+                    <a href="{{ route('profile') }}"    class="footer-link">{{ __('giya.footer.my_profile') }}</a>
+                    <a href="{{ route('plan.index') }}" class="footer-link">{{ __('giya.footer.my_itineraries') }}</a>
+                    <a href="{{ route('home') }}"       class="footer-link">{{ __('giya.footer.dashboard') }}</a>
                 @else
-                    <a href="{{ route('login') }}"    class="footer-link">Sign In</a>
-                    <a href="{{ route('register') }}" class="footer-link">Register</a>
+                    <a href="{{ route('login') }}"    class="footer-link">{{ __('giya.nav.sign_in') }}</a>
+                    <a href="{{ route('register') }}" class="footer-link">{{ __('giya.footer.register') }}</a>
                 @endauth
             </div>
         </div>
