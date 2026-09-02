@@ -312,7 +312,7 @@ window.GiyaLeaflet = (function () {
                     return { church: c, km: km(from, { lat: c.lat, lng: c.lng }) };
                 })
                 .sort(function (a, b) { return a.km - b.km; })
-                .slice(0, 8);
+                .slice(0, 12);
         }
 
         /* ---- route ----
