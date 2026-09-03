@@ -4195,3 +4195,158 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 @media (max-width: 400px) {
     .report-summary-grid { grid-template-columns: 1fr; }
 }
+/* ════════════════════════════════════════════════════════════════
+   ADMIN - Reports, GIYA dressing
+   The page worked; it just looked like any admin panel. These give it
+   the app's own vocabulary and make five numbers scannable at a glance
+   instead of five identical gold squares.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Generator header ─────────────────────────────────────────── */
+.report-header-title { display: flex; align-items: flex-start; gap: 11px; }
+
+.report-header-icon {
+  width: 38px; height: 38px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--gold);
+  font-size: 1rem;
+}
+
+/* ── Section headings ─────────────────────────────────────────── */
+.report-section-title {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0;
+  font-family: var(--font-display); font-size: .85rem; color: var(--text);
+}
+.report-section-title .bi {
+  font-size: .8125rem; color: var(--primary);
+}
+
+/* ── The chosen report, beside its title ──────────────────────── */
+.report-result-icon {
+  font-size: .8125rem; color: var(--primary);
+  /* The row is baseline-aligned for the text; an icon needs nudging. */
+  position: relative; top: 1px;
+}
+
+/*
+   ── Summary tiles ────────────────────────────────────────────────
+   Every tile was --gold-bg with a --primary glyph, so five different
+   measurements read as one block of gold. A tint each makes them
+   scannable, and the hues follow what the rest of the app already
+   uses for these ideas: maroon for people, gold for a journey, green
+   for an arrival, blue for a conversation, deep gold for money.
+   -------------------------------------------------------------- */
+.report-summary-icon.is-users       { background: rgba(142,59,47,.12);  color: var(--primary); }
+.report-summary-icon.is-itineraries { background: rgba(215,169,74,.20); color: #8A6415; }
+.report-summary-icon.is-visits      { background: rgba(107,155,90,.18); color: #4A7238; }
+.report-summary-icon.is-feedback    { background: rgba(37,99,235,.12);  color: #2E5AA8; }
+.report-summary-icon.is-revenue     { background: rgba(107,45,34,.12);  color: var(--primary-dark); }
+
+.report-summary-card {
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.report-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(36,28,24,.10);
+}
+
+/*
+   ── Ranked destinations ──────────────────────────────────────────
+   The top three carry the pilgrimage: giving them medal colours says
+   which church the devotees actually walk to, without another column.
+   -------------------------------------------------------------- */
+.report-destination-item:nth-child(1) .report-rank {
+  background: linear-gradient(135deg, #E8C063, #C9973A); color: #4A3410;
+  box-shadow: 0 2px 6px rgba(201,151,58,.4);
+}
+.report-destination-item:nth-child(2) .report-rank {
+  background: linear-gradient(135deg, #DCDCDC, #B4B4B4); color: #4A4A4A;
+}
+.report-destination-item:nth-child(3) .report-rank {
+  background: linear-gradient(135deg, #D9A277, #B47A4E); color: #4A2E18;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-summary-card { transition: none; }
+  .report-summary-card:hover { transform: none; }
+}
+
+/* ── Reports: alignment ──────────────────────────────────────────
+   Four things the eye catches before it can name them. Measured, not
+   guessed - the numbers are in the commit message.
+   ---------------------------------------------------------------- */
+
+/*
+   1. The filter row did not sit on one line. .report-filter aligns to
+      `end`, so the bottoms matched while the tops were 6px apart: a
+      <select> came out 38px tall next to 44px date fields, and a short
+      control beside two tall ones reads as a mistake.
+
+      44px, not 38, because that is what the date fields already carry -
+      a global min-height that exists so iOS does not shrink a date
+      field to its content. Overriding it to match the select would
+      break touch targets on a phone to tidy a desktop row. Everything
+      in the row matches the tallest instead, buttons included.
+*/
+.report-field select,
+.report-field input,
+.report-generate-btn,
+.report-clear-btn {
+  box-sizing: border-box;
+  min-height: 44px;
+  line-height: 1.2;
+}
+
+/*
+   2. The five summary numbers did not share a line. Four labels fit on
+      one line and "Paid Revenue - 73 transactions" wrapped to two, and
+      because the card centred its contents the taller block pushed that
+      number 13px above its neighbours.
+
+      Aligning to the top fixes it for any label length, which matters
+      because these are counts - one more digit, or a longer month, and
+      centring goes ragged again. The icon is nudged to sit on the
+      number's own line rather than at the very top of the card.
+*/
+.report-summary-card { align-items: flex-start; }
+.report-summary-icon { margin-top: 1px; }
+
+/*
+   3. The result header aligned its icon on the text baseline, which put
+      the icon's middle 5px below the title's. Centring the row is what
+      was meant, and it removes the magic 1px nudge that was papering
+      over it.
+*/
+.report-result-info { align-items: center; }
+.report-result-icon { top: 0; }
+
+/*
+   4. The rank badge was NOT changed, having tried it.
+
+      It centres on the whole row rather than on the church's name, and
+      top-aligning it left 4px of drift that only a negative margin
+      would close - fragile the moment the font size moves. Centring a
+      rank against its row is a standard list pattern and it reads
+      fine; the 13px offset from the name is the pattern working, not a
+      mistake. Left alone deliberately.
+*/
+
+/*
+   ── Reports: the empty-state icons were hugging the left edge ────
+   giya-icons.css gives .bi an explicit width:1em. The empty states set
+   display:block on the icon to put it above its message, which makes
+   it a 1em-wide BLOCK box - and text-align centres inline content, not
+   block boxes. So the cell's text centred and its icon did not.
+
+   auto margins are what centres a block of known width. Done here
+   rather than in the three inline styles so the next empty state added
+   to this page is centred without anyone having to know this.
+   ---------------------------------------------------------------- */
+.report-table td > .bi,
+.report-placeholder > .bi {
+  margin-left: auto;
+  margin-right: auto;
+}

@@ -25,7 +25,7 @@
         </div>
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline" id="dmImportHere">
-                <i class="bi bi-upload"></i> Import
+                <i class="bi bi-folder2-open"></i> Import
             </button>
             <button type="button" class="btn btn-primary" id="dmAddHere">
                 <i class="bi bi-plus-lg"></i> Add Destination
@@ -240,7 +240,7 @@
         <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:26px;max-width:520px">
             <div class="dm-modal-head" style="margin-bottom:14px">
                 <div class="modal-title" style="margin:0">
-                    <i class="bi bi-upload" style="color:var(--primary)"></i>
+                    <i class="bi bi-folder2-open" style="color:var(--primary)"></i>
                     Import destinations
                 </div>
                 <button type="button" class="ai-panel-close" data-modal-close aria-label="Close">
