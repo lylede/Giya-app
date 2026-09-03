@@ -4,20 +4,49 @@
 @section('page-title', 'Reports & Analytics')
 @section('page-subtitle', 'Generate, review, and download administrative reports')
 
+@php
+    /*
+        One icon per report, named once so the select, the result header and
+        the placeholder cannot drift apart. These follow the vocabulary the
+        rest of GIYA already uses - a walking pilgrim for visits, a building
+        for a church, the same card and chat glyphs the admin sidebar shows -
+        rather than generic document icons, so a report reads as belonging to
+        this app rather than to any admin panel.
+    */
+    $reportIcons = [
+        'users'          => 'people-fill',
+        'transactions'   => 'credit-card-fill',
+        'feedback'       => 'chat-dots-fill',
+        'visits'         => 'person-walking',
+        'itineraries'    => 'journal-text',
+        'system-summary' => 'bar-chart',
+    ];
+
+    $currentIcon = $reportIcons[$selectedReport] ?? 'compass-fill';
+@endphp
+
 @section('content')
 
 {{-- REPORT GENERATOR --}}
 <div class="report-card">
 
     <div class="report-header">
-        <div>
-            <h3 style="margin: 0 0 3px; font-family: var(--font-display); font-size: 1rem; color: var(--text);">
-                Report Generator
-            </h3>
+        <div class="report-header-title">
+            {{-- Giya means guide, and a guide carries a compass. It becomes
+                 the chosen report's own icon once one is picked. --}}
+            <span class="report-header-icon">
+                <i class="bi bi-{{ $currentIcon }}"></i>
+            </span>
 
-            <p style="margin: 0; font-size: .72rem; color: var(--text-muted);">
-                Select a report type and date/time range, then generate your report.
-            </p>
+            <div>
+                <h3 style="margin: 0 0 3px; font-family: var(--font-display); font-size: 1rem; color: var(--text);">
+                    Report Generator
+                </h3>
+
+                <p style="margin: 0; font-size: .72rem; color: var(--text-muted);">
+                    Select a report type and date/time range, then generate your report.
+                </p>
+            </div>
         </div>
 
         @if ($selectedReport)
@@ -103,7 +132,7 @@
 
         <div class="report-actions">
             <button type="submit" class="report-generate-btn">
-                <i class="bi bi-file-earmark-bar-graph"></i>
+                <i class="bi bi-bar-chart"></i>
                 Generate Report
             </button>
 
@@ -135,6 +164,8 @@
         <div class="report-result-header">
 
             <div class="report-result-info">
+                <i class="bi bi-{{ $currentIcon }} report-result-icon"></i>
+
                 <strong style="font-size: .78rem; color: var(--text);">
                     {{ $reportTable['title'] }}
                 </strong>
@@ -200,7 +231,7 @@
                                 style="text-align: center; padding: 30px 15px;"
                             >
                                 <i
-                                    class="bi bi-file-earmark-x"
+                                    class="bi bi-inbox"
                                     style="display: block; font-size: 1.5rem; color: #aaa; margin-bottom: 7px;"
                                 ></i>
 
@@ -225,7 +256,7 @@
 
         <div class="report-placeholder">
 
-            <i class="bi bi-file-earmark-bar-graph"></i>
+            <i class="bi bi-compass-fill"></i>
 
             <div>
                 <strong style="display: block; font-size: .76rem; color: var(--text); margin-bottom: 2px;">
@@ -249,7 +280,7 @@
 <div class="report-summary-grid">
 
     <div class="report-summary-card">
-        <div class="report-summary-icon">
+        <div class="report-summary-icon is-users">
             <i class="bi bi-people-fill"></i>
         </div>
 
@@ -266,7 +297,7 @@
 
 
     <div class="report-summary-card">
-        <div class="report-summary-icon">
+        <div class="report-summary-icon is-itineraries">
             <i class="bi bi-journal-text"></i>
         </div>
 
@@ -283,8 +314,8 @@
 
 
     <div class="report-summary-card">
-        <div class="report-summary-icon">
-            <i class="bi bi-geo-alt-fill"></i>
+        <div class="report-summary-icon is-visits">
+            <i class="bi bi-person-walking"></i>
         </div>
 
         <div>
@@ -300,7 +331,7 @@
 
 
     <div class="report-summary-card">
-        <div class="report-summary-icon">
+        <div class="report-summary-icon is-feedback">
             <i class="bi bi-chat-dots-fill"></i>
         </div>
 
@@ -321,8 +352,8 @@
 
 
     <div class="report-summary-card">
-        <div class="report-summary-icon">
-            <i class="bi bi-cash-stack"></i>
+        <div class="report-summary-icon is-revenue">
+            <i class="bi bi-credit-card-fill"></i>
         </div>
 
         <div>
@@ -348,7 +379,8 @@
     <div class="report-section-card">
 
         <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-light, #eee);">
-            <h3 style="margin: 0; font-family: var(--font-display); font-size: .85rem; color: var(--text);">
+            <h3 class="report-section-title">
+                <i class="bi bi-credit-card-fill"></i>
                 Recent Transactions
             </h3>
         </div>
@@ -410,7 +442,7 @@
                                 style="height: 110px; text-align: center; color: var(--text-muted);"
                             >
                                 <i
-                                    class="bi bi-receipt"
+                                    class="bi bi-credit-card"
                                     style="display: block; font-size: 1.2rem; margin-bottom: 5px;"
                                 ></i>
 
@@ -433,7 +465,8 @@
     <div class="report-section-card">
 
         <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-light, #eee);">
-            <h3 style="margin: 0; font-family: var(--font-display); font-size: .85rem; color: var(--text);">
+            <h3 class="report-section-title">
+                <i class="bi bi-chat-dots-fill"></i>
                 Recent Feedback
             </h3>
         </div>
@@ -497,7 +530,7 @@
                                 style="height: 110px; text-align: center; color: var(--text-muted);"
                             >
                                 <i
-                                    class="bi bi-chat-left-text"
+                                    class="bi bi-chat-dots"
                                     style="display: block; font-size: 1.2rem; margin-bottom: 5px;"
                                 ></i>
 
@@ -522,7 +555,8 @@
 <div class="report-section-card">
 
     <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-light, #eee);">
-        <h3 style="margin: 0; font-family: var(--font-display); font-size: .85rem; color: var(--text);">
+        <h3 class="report-section-title">
+            <i class="bi bi-building"></i>
             Most Visited Destinations
         </h3>
     </div>
@@ -532,7 +566,7 @@
 
         <div class="report-placeholder">
 
-            <i class="bi bi-geo-alt"></i>
+            <i class="bi bi-building"></i>
 
             <div>
                 <strong style="display: block; font-size: .76rem; color: var(--text);">
