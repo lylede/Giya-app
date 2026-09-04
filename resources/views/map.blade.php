@@ -29,17 +29,21 @@
 
                 <label class="mx-search-field">
                     <i class="bi bi-search"></i>
-                    <input type="search" id="mapSearch" placeholder="{{ __('giya.nav.search') }}"
+                    <input type="search" id="mapSearch" placeholder="Search, or try &quot;open&quot; or &quot;mass&quot;"
                            aria-label="{{ __('giya.nav.search_label') }}">
                 </label>
 
                 <div class="mx-chips" role="group" aria-label="Filters">
                     <button type="button" class="cat-chip is-active" data-cat="Near">Near</button>
+
+                    {{-- Chapel and Heritage are hidden: chapels are not
+                         destinations a pilgrim travels to, and Heritage
+                         overlapped every other category. --}}
                     @foreach ($categories as $category)
+                        @continue (in_array($category, ['Chapel', 'Heritage']))
                         <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category }}</button>
                     @endforeach
-                    <button type="button" class="cat-chip is-toggle" data-flag="open">{{ __('giya.church.open_now') }}</button>
-                    <button type="button" class="cat-chip is-toggle" data-flag="masses">{{ __('giya.church.mass_schedule') }}</button>
+
                 </div>
             </div>
 
@@ -174,6 +178,22 @@
     query = query.trim().toLowerCase();
     let distances = {};
     let nearbyIds = [];
+
+    /* Near is a radius, not a count. Five kilometres is a reasonable walk or a
+       short ride in Metro Cebu, and wide enough that a devotee in the city
+       centre still sees several destinations. */
+    const NEAR_KM = 5;
+
+    /** Great-circle distance in kilometres. */
+    function haversineKm(lat1, lng1, lat2, lng2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
     let hasLocation = false;
 
     function showNote(message, kind) {
@@ -209,17 +229,29 @@
             // Offline tiles are a deployment concern, not something a devotee
             // can act on. The map works either way, so say nothing.
         },
-        onLocated: function (me, nearest) {
+        onLocated: function (me) {
+            /* Distance to EVERY church, not just the handful the map returns as
+               "nearest". Near is a radius, so it needs them all - otherwise a
+               church 200 m away is excluded because it fell outside an
+               arbitrary top-eight. */
             distances = {};
-            nearbyIds = nearest.map(function (n) { return n.church.id; });
             hasLocation = true;
-    const initialChurchId = Number(new URLSearchParams(window.location.search).get('church'));
-    if (initialChurchId) {
-        setTimeout(function () { map.focus(initialChurchId); }, 0);
-    }
-            nearest.forEach(function (n) { distances[n.church.id] = n.km; });
+
+            churches.forEach(function (c) {
+                distances[c.id] = haversineKm(me.lat, me.lng, c.lat, c.lng);
+            });
+
+            nearbyIds = churches
+                .filter(function (c) { return distances[c.id] <= NEAR_KM; })
+                .map(function (c) { return c.id; });
+
             renderList();
-            showNote(@json(__('giya.map.located')), 'info');
+
+            showNote(nearbyIds.length
+                ? nearbyIds.length + ' destination' + (nearbyIds.length === 1 ? '' : 's')
+                    + ' within ' + NEAR_KM + ' km'
+                : 'No destinations within ' + NEAR_KM + ' km. Showing the closest instead.',
+                'info');
         },
         onSelect: function (id) {
             const row = document.querySelector('[data-church="' + id + '"]');
@@ -282,17 +314,40 @@
             // Plan Route carries the selection into the planner - see below.
         }
     });
-    let flags = { open: false, masses: false };
+
+    /**
+     * Search across name, location, category - and the words the chips used to
+     * stand for.
+     *
+     * "open now" and "mass" were toggles taking permanent space for something
+     * asked occasionally. Typing them is one action instead of finding and
+     * pressing a chip, and it combines: "open basilica" narrows twice.
+     */
+    function matchesQuery(c) {
+        if (!query) return true;
+
+        const words = query.split(/\s+/).filter(Boolean);
+        const haystack = (c.name + ' ' + (c.location || '') + ' ' + (c.category || '')).toLowerCase();
+
+        return words.every(function (w) {
+            if (w === 'open' || w === 'now' || w === 'bukas') return c.open;
+            if (w === 'mass' || w === 'masses' || w === 'misa' || w === 'schedule') return c.masses;
+            return haystack.indexOf(w) !== -1;
+        });
+    }
 
     function filtered() {
         return churches
             .filter(function (c) {
-                if (category === 'Near') return nearbyIds.indexOf(c.id) !== -1;
+                if (category === 'Near') {
+                    // No position yet: show everything rather than an empty
+                    // page. Once located, only what is inside the radius.
+                    if (!hasLocation) return true;
+                    return distances[c.id] != null && distances[c.id] <= NEAR_KM;
+                }
                 return category === 'All' || c.category === category;
             })
-            .filter(function (c) { return !flags.open   || c.open; })
-            .filter(function (c) { return !flags.masses || c.masses; })
-            .filter(function (c) { return !query || (c.name + ' ' + c.location).toLowerCase().indexOf(query) !== -1; })
+            .filter(function (c) { return matchesQuery(c); })
             .sort(function (a, b) {
                 const da = distances[a.id], db = distances[b.id];
                 if (da != null && db != null) return da - db;
@@ -306,6 +361,12 @@
         const list = filtered();
         const chosen = map.selected();
 
+        // Say plainly when Near is showing everything because no position is
+        // known yet - a count with no explanation reads as a failed filter.
+        if (category === 'Near' && !nearbyIds.length) {
+            document.getElementById('listHeading').textContent =
+                list.length + ' destinations - turn on location to sort by distance';
+        } else
         document.getElementById('listHeading').textContent =
             list.length + ' result' + (list.length === 1 ? '' : 's');
 
@@ -436,7 +497,7 @@
 
                 if (category === 'Near') {
                     if (!hasLocation) {
-                        showNote('Finding nearby churches...', 'info');
+                        showNote('Finding churches near you...', 'info');
                     }
                     map.locate();
                 }
@@ -528,6 +589,14 @@
         known.forEach(function (id) { map.addStop(id); });
         renderList();
     })();
+
+    /* Focus a church passed as ?church=. This used to sit inside onLocated,
+       so it only ran when geolocation succeeded - a link to a church did
+       nothing if location was refused. */
+    const initialChurchId = Number(new URLSearchParams(window.location.search).get('church'));
+    if (initialChurchId) {
+        setTimeout(function () { map.focus(initialChurchId); }, 0);
+    }
 
     renderList();
 })();
