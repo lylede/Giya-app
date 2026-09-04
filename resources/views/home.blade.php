@@ -88,10 +88,14 @@
 
         <div class="home-grid home-grid-sm">
             @foreach ([
-                ['map-fill',       'Find Nearby Churches', 'Discover religious destinations close to your current location.', 'map'],
-                ['journal-text',   'Plan Pilgrimage',      'Create a custom itinerary tailored to your time and devotion.',   auth()->check() ? 'plan.create' : 'login'],
-                ['building',       'Visita Iglesia Route', 'Plan the traditional multi-church route with progress tracking.', auth()->check() ? 'plan.visita' : 'login'],
-                ['chat-dots-fill', 'Ask Giya AI',          'Get answers about churches, schedules, and pilgrimage routes.',   auth()->check() ? 'chatbot' : 'login'],
+                /* GIYA's own icons: a church inside a place marker, a route
+                   with its stops and a flag, the seven churches, and Giya's
+                   own head - rather than a map, a notebook, an office block
+                   and a speech bubble standing in for them. */
+                ['giya-nearby',    'Find Nearby Churches', 'Discover religious destinations close to your current location.', 'map'],
+                ['giya-route',     'Plan Pilgrimage',      'Create a custom itinerary tailored to your time and devotion.',   auth()->check() ? 'plan.create' : 'login'],
+                ['giya-seven',     'Visita Iglesia Route', 'Plan the traditional multi-church route with progress tracking.', auth()->check() ? 'plan.visita' : 'login'],
+                ['giya-assistant', 'Ask Giya AI',          'Get answers about churches, schedules, and pilgrimage routes.',   auth()->check() ? 'chatbot' : 'login'],
             ] as [$icon, $title, $desc, $route])
                 <a href="{{ route($route) }}" class="card card-hover"
                    style="padding:20px;display:flex;flex-direction:column;gap:12px;text-decoration:none">

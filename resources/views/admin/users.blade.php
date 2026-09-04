@@ -41,6 +41,17 @@
     </div>
 
     <div class="card um-stat">
+        <span class="um-stat-icon" style="background:#FBEED2;color:#B8860B"><i class="bi bi-gem"></i></span>
+        <div>
+            <span class="um-stat-label">Premium Users</span>
+            <span class="um-stat-value">{{ number_format($summary['premium']) }}</span>
+            <span class="um-stat-sub">
+                <strong style="color:#B8860B">{{ $summary['premium_pct'] }}%</strong> of total users
+            </span>
+        </div>
+    </div>
+
+    <div class="card um-stat">
         <span class="um-stat-icon" style="background:#F7E2E2;color:#B3182F"><i class="bi bi-x-circle"></i></span>
         <div>
             <span class="um-stat-label">Suspended Users</span>
@@ -105,6 +116,7 @@
                     <th>Joined</th>
                     <th>Saved Destinations</th>
                     <th>Itineraries Created</th>
+                    <th>Plan</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -132,6 +144,21 @@
                         <td>{{ $u->created_at?->format('F j, Y') ?? '-' }}</td>
                         <td>{{ $u->favorites_count }}</td>
                         <td>{{ $u->itineraries_count }}</td>
+                        <td>
+                            {{-- $premium is a user id => expiry map built in one
+                                 query; $u->is_premium would be a query per row. --}}
+                            @isset ($premium[$u->id])
+                                <span class="badge badge-amber"
+                                      title="Premium until {{ $premium[$u->id]->format('F j, Y') }}">
+                                    <i class="bi bi-gem"></i> Premium
+                                </span>
+                                <div style="font-size:.6875rem;color:var(--text-muted);margin-top:3px">
+                                    until {{ $premium[$u->id]->format('M j, Y') }}
+                                </div>
+                            @else
+                                <span class="badge badge-brown">Free</span>
+                            @endisset
+                        </td>
                         <td>
                             <span @class(['badge',
                                 'badge-published'  => $u->status === 'Active',
@@ -169,7 +196,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" style="padding:0">
+                    <tr><td colspan="9" style="padding:0">
                         <x-empty-state icon="people-fill" title="No users match"
                                        desc="Adjust the search or filters above." />
                     </td></tr>

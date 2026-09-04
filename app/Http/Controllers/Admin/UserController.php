@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,11 +24,20 @@ class UserController extends Controller
         $newWeek   = User::where('created_at', '>=', now()->subWeek())->count();
         $prevWeek  = User::whereBetween('created_at', [now()->subWeeks(2), now()->subWeek()])->count();
 
+        $users = $this->filtered($request)
+                      ->withCount(['favorites', 'itineraries'])
+                      ->paginate($perPage)
+                      ->withQueryString();
+
+        // Two queries for the whole column: one for the devotees on this page,
+        // one for the headline count across everyone. Reading $u->is_premium
+        // per row would have been a query each.
+        $premium    = Transaction::premiumExpiryByUser($users->pluck('id')->all());
+        $premiumAll = count(Transaction::premiumExpiryByUser());
+
         return view('admin.users', [
-            'users'   => $this->filtered($request)
-                              ->withCount(['favorites', 'itineraries'])
-                              ->paginate($perPage)
-                              ->withQueryString(),
+            'users'   => $users,
+            'premium' => $premium,
             'perPage' => $perPage,
             'summary' => [
                 'total'         => $total,
@@ -37,6 +47,8 @@ class UserController extends Controller
                 'new_delta'     => $newWeek - $prevWeek,
                 'suspended'     => $suspended,
                 'suspended_pct' => $total ? round($suspended / $total * 100, 2) : 0,
+                'premium'       => $premiumAll,
+                'premium_pct'   => $total ? round($premiumAll / $total * 100, 2) : 0,
             ],
         ]);
     }
@@ -74,13 +86,15 @@ class UserController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
-        $rows = $this->filtered($request)->withCount(['favorites', 'itineraries'])->get();
+        $rows    = $this->filtered($request)->withCount(['favorites', 'itineraries'])->get();
+        $premium = Transaction::premiumExpiryByUser($rows->pluck('id')->all());
 
-        return response()->streamDownload(function () use ($rows) {
+        return response()->streamDownload(function () use ($rows, $premium) {
             $out = fopen('php://output', 'w');
 
             fputcsv($out, ['No.', 'Name', 'Email', 'Role', 'Joined',
-                           'Saved Destinations', 'Itineraries Created', 'Status']);
+                           'Saved Destinations', 'Itineraries Created', 'Status',
+                           'Plan', 'Premium Until']);
 
             foreach ($rows as $i => $u) {
                 fputcsv($out, [
@@ -92,6 +106,8 @@ class UserController extends Controller
                     $u->favorites_count,
                     $u->itineraries_count,
                     $u->status,
+                    isset($premium[$u->id]) ? 'Premium' : 'Free',
+                    $premium[$u->id]?->format('F j, Y') ?? '',
                 ]);
             }
 

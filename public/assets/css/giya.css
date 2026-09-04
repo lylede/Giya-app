@@ -353,8 +353,24 @@ img { max-width: 100%; display: block; }
   background: rgba(215,169,74,0.1);
   border: 1px solid rgba(215,169,74,0.3); color: #7a5c00;
 }
+/* Neither good news nor bad - "we are still confirming your payment". */
+.alert-info {
+  background: rgba(58,90,120,0.08);
+  border: 1px solid rgba(58,90,120,0.25); color: #2c4359;
+}
+html[data-theme="dark"] .alert-info {
+  background: rgba(126,170,210,0.12);
+  border-color: rgba(126,170,210,0.32); color: #cfe2f2;
+}
 @media (max-width: 767px) {
   .flash-container { top: 72px; right: 12px; width: calc(100vw - 24px); }
+}
+
+/* Marks a church name a guest cannot open yet. Small and quiet - it sets
+   expectation before the click without turning the list into a wall. */
+.mx-lock {
+  font-size: .6875em; color: var(--text-muted);
+  margin-left: 5px; vertical-align: 1px;
 }
 
 /* ── CARDS ──────────────────────────────────────────────────── */
@@ -691,6 +707,126 @@ img { max-width: 100%; display: block; }
   transition: box-shadow .2s;
 }
 .history-item:hover { box-shadow: var(--shadow-md); }
+
+/* The church name and place. flex-basis 0 with min-width 0 lets it take the
+   room left over and lets long names wrap, rather than forcing the row wider
+   than the screen. */
+.history-body { flex: 1 1 0; min-width: 0; }
+.history-name {
+  font-size: .875rem; font-weight: 700; color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* Whatever the row lets you do - View Details and the remove cross, or the
+   rating and Review. Grouped so it can move as one. */
+.history-actions {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  /*
+     On a phone the buttons would not shrink, so the name was squeezed into a
+     column one word wide - "Cebu / Metropolitan / Cathedral" down the side of
+     a View Details button.
+
+     The row wraps instead: photograph and name keep the first line, and the
+     controls take a line of their own underneath, right-aligned. flex-basis
+     100% is what forces that second line; without it they would simply sit
+     back on the first one and crush the name again.
+  */
+  .history-item { flex-wrap: wrap; row-gap: 12px; padding: 14px; }
+  .history-actions { flex: 1 0 100%; justify-content: flex-end; }
+
+  /* Where the row has a main control and a small one after it - View Details
+     and the remove cross - the main one takes the width, so the new line
+     reads as a bar rather than two buttons floating against a bare left
+     half. A lone Review button is last, so it keeps its own size. */
+  .history-actions > .btn:not(:last-child) { flex: 1 1 auto; justify-content: center; }
+}
+/* A pilgrimage tip: icon and sentence on one baseline. The icon gets a box
+   exactly one line tall, so it aligns with the first line of the tip rather
+   than centring itself against the whole wrapped paragraph. */
+.plan-tip {
+  display: grid; grid-template-columns: 20px 1fr; gap: 12px;
+  align-items: start; padding: 14px; margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.plan-tip-icon {
+  font-size: 1.125rem; color: var(--gold);
+  height: 1.275rem; align-self: start; justify-self: center;
+}
+.plan-tip-text {
+  font-size: .75rem; color: var(--text-muted);
+  line-height: 1.7; margin: 0;
+}
+
+/* ── Avatar upload ───────────────────────────────────────────
+   The photograph is the control: a label over a hidden file input, with
+   the camera surfacing on hover, on keyboard focus, and while a file is
+   being dragged over it. Focus is visible because the label is the only
+   thing a keyboard user can reach - the input itself is hidden. */
+.avatar-edit { display: flex; align-items: center; gap: 16px; }
+
+.avatar-drop {
+  position: relative; width: 84px; height: 84px; flex-shrink: 0;
+  border-radius: 20px; overflow: hidden; cursor: pointer;
+  border: 2px solid var(--border); background: var(--gold-bg);
+  transition: border-color .18s, transform .18s;
+}
+.avatar-drop:hover { border-color: var(--gold); }
+.avatar-drop:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.avatar-drop.is-dragging { border-color: var(--gold); border-style: dashed; transform: scale(1.03); }
+
+.avatar-drop-face, .avatar-drop-face img, .avatar-drop-initials {
+  display: block; width: 100%; height: 100%;
+}
+.avatar-drop-face img { object-fit: cover; }
+.avatar-drop-initials {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gold); color: var(--primary-dark);
+  font-family: var(--font-display); font-size: 1.75rem; font-weight: 700;
+}
+
+.avatar-drop-veil {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; background: rgba(36,28,24,.62); color: #fff;
+  font-size: .625rem; font-weight: 700; letter-spacing: .04em;
+  opacity: 0; transition: opacity .18s;
+}
+.avatar-drop-veil .bi { font-size: 1.125rem; }
+.avatar-drop:hover .avatar-drop-veil,
+.avatar-drop:focus-visible .avatar-drop-veil,
+.avatar-drop.is-dragging .avatar-drop-veil { opacity: 1; }
+
+.avatar-edit-text { min-width: 0; }
+.avatar-edit-lead {
+  font-size: .8125rem; font-weight: 600; color: var(--text); margin: 0 0 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.avatar-edit-hint { font-size: .75rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-drop, .avatar-drop-veil { transition: none; }
+  .avatar-drop.is-dragging { transform: none; }
+}
+
+/* A church's photograph in a history or favourites row, sized to match the
+   icon tile it replaced so the rows keep their rhythm. */
+.history-thumb {
+  width: 42px; height: 42px; border-radius: var(--radius-md);
+  object-fit: cover; flex-shrink: 0;
+  background: var(--gold-bg); border: 1px solid var(--border);
+}
+.history-thumb-wrap { position: relative; flex-shrink: 0; line-height: 0; }
+.history-thumb-badge {
+  position: absolute; right: -3px; bottom: -3px;
+  font-size: .625rem; color: #D4183D;
+  background: var(--bg-card, #fff); border-radius: 50%;
+  padding: 3px; box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+html[data-theme="dark"] .history-thumb-badge { background: var(--bg); }
+
 .history-icon {
   width: 42px; height: 42px; border-radius: var(--radius-md);
   background: var(--gold-bg); display: flex;

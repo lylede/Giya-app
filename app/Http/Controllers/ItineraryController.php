@@ -40,8 +40,14 @@ class ItineraryController extends Controller
            Stops chosen on the map arrive as ?stops=3,7,1 - in the order the
            map worked out, which is the nearest-neighbour order it drew. That
            order is the useful part, so it is preserved rather than re-sorted.
+
+           old('stop_ids') comes first, and is why a rejected form no longer
+           costs the devotee their route. The planner posts the chosen ids
+           alongside the names, so when validation sends them back here the
+           route is rebuilt exactly as they left it instead of the page
+           reloading empty and every church having to be picked again.
         */
-        $preset = collect(explode(',', (string) $request->query('stops')))
+        $preset = collect(explode(',', (string) old('stop_ids', $request->query('stops'))))
             ->map(fn ($id) => (int) trim($id))
             ->filter()
             ->unique()
@@ -51,6 +57,7 @@ class ItineraryController extends Controller
                 'id'       => $c->id,
                 'name'     => $c->name,
                 'location' => $c->location,
+                'image'    => $c->imagePath(),
             ])
             ->values();
 
@@ -78,7 +85,9 @@ class ItineraryController extends Controller
 
         return view('plan.my-itineraries', [
             'itineraries' => $itineraries,
-            'used'        => $itineraries->count(),
+            // Deleted ones are not in the list above but still spend a slot,
+            // so the meter is counted separately rather than from the list.
+            'used'        => Itinerary::countingAgainstFreeLimit(Auth::id()),
             'limit'       => self::FREE_LIMIT,
             'atLimit'     => $this->atLimit(),
         ]);
@@ -230,12 +239,18 @@ class ItineraryController extends Controller
     {
         $this->authorizeOwner($itinerary);
 
-        DB::transaction(function () use ($itinerary) {
-            $itinerary->stops()->delete();
-            $itinerary->delete();
-        });
+        // A soft delete, so the stops stay with it. Removing them would gut
+        // the record we are deliberately keeping, and a deleted itinerary
+        // still has to be a real itinerary for the allowance count and for
+        // anything an admin looks at later.
+        $itinerary->delete();
 
-        return redirect()->route('plan.index')->with('success', 'Itinerary deleted.');
+        return redirect()->route('plan.index')->with(
+            'success',
+            Auth::user()->is_premium
+                ? 'Itinerary deleted.'
+                : 'Itinerary deleted. It still counts towards your '.self::FREE_LIMIT.' free itineraries.'
+        );
     }
 
     private function atLimit(): bool
@@ -243,7 +258,7 @@ class ItineraryController extends Controller
         $user = Auth::user();
 
         return ! $user->is_premium
-            && Itinerary::where('user_id', $user->id)->count() >= self::FREE_LIMIT;
+            && Itinerary::countingAgainstFreeLimit($user->id) >= self::FREE_LIMIT;
     }
 
     private function authorizeOwner(Itinerary $itinerary): void

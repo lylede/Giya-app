@@ -79,20 +79,115 @@
                         <span style="font-size: 0.8125rem;font-weight:600;color:var(--text);text-align:right">{{ $value }}</span>
                     </div>
                 @endforeach
+
+                {{--
+                    Where the free allowance stands.
+
+                    Every itinerary counted here is one the devotee has saved,
+                    of either kind - a custom route and a Visita Iglesia both
+                    take a slot. That needs saying, because the Pilgrimages
+                    figure at the top of this page counts only COMPLETED trips,
+                    so a devotee who has just planned three still sees 0 there
+                    and reasonably concludes nothing was recorded.
+                --}}
+                @php
+                    $freeLimit = \App\Http\Controllers\ItineraryController::FREE_LIMIT;
+                    $used      = $itinerariesUsed;   // deleted ones included
+                    $left      = max(0, $freeLimit - $used);
+                    $atLimit   = $used >= $freeLimit;
+                @endphp
+
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border-light)">
+
+                    @if ($user->is_premium)
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <i class="bi bi-gem" style="color:var(--gold);font-size:1.125rem"></i>
+                            <div>
+                                <div style="font-size:.8125rem;font-weight:700;color:var(--text)">
+                                    Unlimited itineraries
+                                </div>
+                                <div style="font-size:.75rem;color:var(--text-muted)">
+                                    {{ $used }} {{ \Illuminate\Support\Str::plural('itinerary', $used) }} planned
+                                    @if ($premiumUntil) · Premium until {{ $premiumUntil->format('M j, Y') }} @endif
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="d-flex justify-content-between align-items-center" style="margin-bottom:8px">
+                            <span style="font-size:.8125rem;color:var(--text-muted)">Free itineraries</span>
+                            <span style="font-size:.8125rem;font-weight:700;color:{{ $atLimit ? 'var(--primary)' : 'var(--text)' }}">
+                                {{ $used }} of {{ $freeLimit }} used
+                            </span>
+                        </div>
+
+                        <div style="height:6px;border-radius:999px;background:var(--border-light);overflow:hidden">
+                            <div style="height:100%;border-radius:999px;width:{{ min(100, $freeLimit ? $used / $freeLimit * 100 : 0) }}%;
+                                        background:{{ $atLimit
+                                            ? 'linear-gradient(to right,#8E3B2F,#C04030)'
+                                            : 'linear-gradient(to right,#D7A94A,#F0C76C)' }}"></div>
+                        </div>
+
+                        <p style="font-size:.75rem;color:var(--text-muted);margin:8px 0 0;line-height:1.55">
+                            @if ($atLimit)
+                                You have used all {{ $freeLimit }}. Go Premium for unlimited routes -
+                                deleting one will not give the slot back.
+                            @else
+                                {{ $left }} {{ \Illuminate\Support\Str::plural('slot', $left) }} left.
+                                Custom routes and Visita Iglesia both use one, and a slot is
+                                not returned if you delete an itinerary.
+                            @endif
+                        </p>
+
+                        {{-- Available before the limit is reached, so a devotee who
+                             already knows they want Premium can buy it now. --}}
+                        <a href="{{ route('upgrade') }}"
+                           class="btn {{ $atLimit ? 'btn-primary' : 'btn-outline-gold' }}"
+                           style="width:100%;justify-content:center;margin-top:14px">
+                            <i class="bi bi-gem"></i><span>Go Premium</span>
+                        </a>
+                    @endif
+                </div>
             </div>
 
-            <div class="card card-body">
+            {{--
+                The two cards sit in a stretching grid, so this one is always as
+                tall as Account Information beside it. What changed is where the
+                spare height goes: the badge grid now takes it, rather than the
+                badges staying their own size and leaving a band of nothing
+                underneath. The rows share whatever is left over, so the card
+                ends level with its neighbour whether that neighbour is showing
+                a Premium line or a free account's usage bar and button.
+            --}}
+            <div class="card card-body" style="display:flex;flex-direction:column">
                 <div class="form-label-sm" style="margin-bottom:14px">{{ __('giya.profile.achievements') }}</div>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                {{-- Rows grow into the spare height but stop at 132px: let them
+                     take all of it and a free account's taller card stretched
+                     each badge to 183px, leaving the icon adrift in the middle
+                     of a mostly empty tile. Whatever is left over after the cap
+                     becomes even spacing above, between and below the rows, so
+                     the card still ends level with its neighbour. --}}
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);
+                            grid-template-rows:repeat(2,minmax(74px,132px));
+                            gap:10px;flex:1;min-height:0;align-content:space-evenly">
                     @foreach ([
-                        ['sunrise-fill',    'First Steps',   $user->total_churches_visited >= 1],
-                        ['building',        'Church Hopper', $user->total_churches_visited >= 5],
-                        ['award-fill',      'Devoted',       $user->total_pilgrimages >= 3],
-                        ['stars',           'Visita Iglesia',$user->total_churches_visited >= 7],
-                        ['trophy-fill',     'Holy Traveler', $user->total_km_walked >= 50],
-                        ['compass-fill',    'Explorer',      $user->total_churches_visited >= 15],
+                        /*
+                           Drawn for these badges rather than picked from a
+                           general-purpose set, so each one says what it is for
+                           instead of standing in for it: one footprint for the
+                           first church, three spires for five, a votive candle
+                           for devotion, the seven churches as seven lights,
+                           the road ahead for distance walked, and Magellan's
+                           Cross - which is in Cebu, a few minutes from the
+                           Basilica - for having seen fifteen.
+                        */
+                        ['giya-footprint', 'First Steps',   $user->total_churches_visited >= 1],
+                        ['giya-spires',    'Church Hopper', $user->total_churches_visited >= 5],
+                        ['giya-candle',    'Devoted',       $user->total_pilgrimages >= 3],
+                        ['giya-seven',     'Visita Iglesia',$user->total_churches_visited >= 7],
+                        ['giya-road',      'Holy Traveler', $user->total_km_walked >= 50],
+                        ['giya-magellan',  'Explorer',      $user->total_churches_visited >= 15],
                     ] as [$icon, $name, $earned])
-                        <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:12px;text-align:center;border:1.5px solid var(--border);{{ $earned ? 'background:rgba(215,169,74,0.09);border-color:rgba(215,169,74,0.35)' : 'background:var(--bg);opacity:.45' }}">
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12px 6px;border-radius:12px;text-align:center;border:1.5px solid var(--border);{{ $earned ? 'background:rgba(215,169,74,0.09);border-color:rgba(215,169,74,0.35)' : 'background:var(--bg);opacity:.45' }}">
                             <i class="bi bi-{{ $icon }}" style="font-size: 1.25rem;color:{{ $earned ? 'var(--gold)' : 'var(--text-muted)' }}"></i>
                             <span style="font-size: 0.625rem;font-weight:700;color:var(--text);line-height:1.25">{{ $name }}</span>
                             @unless ($earned)<i class="bi bi-lock-fill" style="font-size: 0.5625rem;color:var(--text-muted)"></i>@endunless
@@ -112,7 +207,14 @@
 
             @forelse ($visits->take(4) as $visit)
                 <div class="history-item" style="margin-bottom:8px">
+                    {{-- The church's own photograph. It is already loaded for this
+                     row, and it tells a devotee which church this was far
+                     faster than the same building glyph on every line. --}}
+                @if ($visit->church)
+                    <img class="history-thumb" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
+                @else
                     <span class="history-icon"><i class="bi bi-building" style="font-size: 1.125rem;color:var(--primary)"></i></span>
+                @endif
                     <div style="flex:1;min-width:0">
                         <div style="font-size: 0.875rem;font-weight:700;color:var(--text)">{{ $visit->church_name }}</div>
                         <div style="font-size: 0.75rem;color:var(--text-muted)">{{ $visit->visited_at?->format('M j, Y') }}</div>
@@ -134,25 +236,34 @@
 
         @forelse ($visits as $visit)
             <div class="history-item">
-                <span class="history-icon"><i class="bi bi-building" style="font-size: 1.125rem;color:var(--primary)"></i></span>
-                <div style="flex:1;min-width:0">
-                    <div style="font-size: 0.875rem;font-weight:700;color:var(--text)">{{ $visit->church_name }}</div>
+                {{-- The church's own photograph. It is already loaded for this
+                     row, and it tells a devotee which church this was far
+                     faster than the same building glyph on every line. --}}
+                @if ($visit->church)
+                    <img class="history-thumb" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
+                @else
+                    <span class="history-icon"><i class="bi bi-building" style="font-size: 1.125rem;color:var(--primary)"></i></span>
+                @endif
+                <div class="history-body">
+                    <div class="history-name">{{ $visit->church_name }}</div>
                     <div class="d-flex align-items-center gap-1" style="font-size: 0.75rem;color:var(--text-muted);margin-top:2px">
                         <img src="{{ asset('images/icons/location.svg') }}" alt="" width="10" height="10">
                         Cebu · {{ $visit->visited_at?->format('M j, Y') }}
                     </div>
                 </div>
                 @if ($visit->rating)
-                    <span class="d-flex align-items-center gap-2">
+                    <span class="history-actions">
                         <x-stars :rating="$visit->rating" />
                         <span style="font-size: 0.75rem;color:var(--text-muted)">Reviewed</span>
                     </span>
                 @else
-                    <button type="button" class="btn btn-ghost btn-sm"
-                            style="color:var(--primary);font-weight:700"
-                            onclick="GiyaProfile.review({{ $visit->id }}, @js($visit->church_name))">
-                        Review <i class="bi bi-chevron-right" style="font-size: 0.625rem"></i>
-                    </button>
+                    <span class="history-actions">
+                        <button type="button" class="btn btn-ghost btn-sm"
+                                style="color:var(--primary);font-weight:700"
+                                onclick="GiyaProfile.review({{ $visit->id }}, @js($visit->church_name))">
+                            Review <i class="bi bi-chevron-right" style="font-size: 0.625rem"></i>
+                        </button>
+                    </span>
                 @endif
             </div>
         @empty
@@ -173,7 +284,7 @@
         @forelse ($itineraries as $itinerary)
             <div class="history-item">
                 <span class="history-icon">
-                    <i class="bi bi-{{ $itinerary->type === 'Visita Iglesia' ? 'building' : 'journal-text' }}"
+                    <i class="bi bi-{{ $itinerary->type === 'Visita Iglesia' ? 'giya-seven' : 'giya-route' }}"
                        style="font-size: 1.125rem;color:var(--primary)"></i>
                 </span>
                 <div style="flex:1;min-width:0">
@@ -189,7 +300,7 @@
                 </a>
             </div>
         @empty
-            <x-empty-state icon="journal-text" title="No itineraries yet"
+            <x-empty-state icon="giya-route" title="No itineraries yet"
                            desc="Plan a route in the Plan Hub and it will be listed here.">
                 <a href="{{ route('plan.hub') }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.profile.open_plan_hub') }}</a>
             </x-empty-state>
@@ -204,11 +315,15 @@
         @forelse ($favorites as $favorite)
             @continue (! $favorite->church)
             <div class="history-item" data-favorite-row="{{ $favorite->church_id }}">
-                <span class="history-icon" style="background:rgba(212,24,61,0.08)">
-                    <i class="bi bi-heart-fill" style="font-size: 1rem;color:#D4183D"></i>
+                {{-- Photograph, with the heart tucked into its corner: the row
+                     is already in the Favorites tab, so a whole tile spent
+                     saying "favourite" told the devotee nothing new. --}}
+                <span class="history-thumb-wrap">
+                    <img class="history-thumb" src="{{ $favorite->church->imagePath() }}" alt="" loading="lazy">
+                    <i class="bi bi-heart-fill history-thumb-badge"></i>
                 </span>
-                <div style="flex:1;min-width:0">
-                    <div style="font-size: 0.875rem;font-weight:700;color:var(--text)">{{ $favorite->church->name }}</div>
+                <div class="history-body">
+                    <div class="history-name">{{ $favorite->church->name }}</div>
                     <div style="font-size: 0.75rem;color:var(--text-muted);margin-top:2px">
                         <i class="bi bi-geo-alt-fill" style="font-size: 0.625rem;color:var(--gold)"></i>
                         {{ $favorite->church->location }}
@@ -218,12 +333,14 @@
                         @endif
                     </div>
                 </div>
-                <a href="{{ route('churches.show', $favorite->church_id) }}" class="btn btn-ghost btn-sm">View Details</a>
-                <button type="button" class="btn btn-ghost btn-sm" style="color:#D4183D"
-                        onclick="GiyaProfile.unfavorite({{ $favorite->church_id }})"
-                        aria-label="Remove from favorites">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+                <span class="history-actions">
+                    <a href="{{ route('churches.show', $favorite->church_id) }}" class="btn btn-ghost btn-sm">View Details</a>
+                    <button type="button" class="btn btn-ghost btn-sm" style="color:#D4183D"
+                            onclick="GiyaProfile.unfavorite({{ $favorite->church_id }})"
+                            aria-label="Remove from favorites">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </span>
             </div>
         @empty
             <x-empty-state icon="heart" title="No saved destinations yet"
@@ -368,25 +485,47 @@
             <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                 @csrf @method('PATCH')
 
+                {{--
+                    The photograph is the control.
+
+                    It was a thumbnail sitting beside a file input and a Choose
+                    photo button - three things to explain one action. Clicking
+                    the picture is what people already try, so the picture is
+                    now the button: a label wrapping a hidden input, with the
+                    camera appearing over it on hover or focus. It takes a drop
+                    too, since dragging a photo onto it is the other thing
+                    people try.
+                --}}
                 <div class="field">
-                    <label class="form-label-sm">Profile Photo</label>
-                    <div class="d-flex align-items-center gap-3">
-                        <span id="avatarPreviewWrap">
-                            @if ($user->avatarPath())
-                                <img id="avatarPreview" src="{{ $user->avatarPath() }}" alt=""
-                                     style="width:64px;height:64px;border-radius:14px;object-fit:cover;border:2px solid var(--border)">
-                            @else
-                                <span id="avatarPreview" style="width:64px;height:64px;border-radius:14px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size: 1.5rem;font-weight:700;color:var(--primary-dark)">
-                                    {{ $user->initials() }}
-                                </span>
-                            @endif
-                        </span>
-                        <div style="flex:1">
-                            <input id="pf-avatar" type="file" name="avatar" class="giya-input"
-                                   accept="image/jpeg,image/png,image/webp">
-                            <p style="font-size: 0.75rem;color:var(--text-muted);margin:4px 0 0">{{ __('giya.profile.avatar_hint') }}</p>
+                    <label class="form-label-sm" for="pf-avatar">Profile Photo</label>
+
+                    <div class="avatar-edit">
+                        <label class="avatar-drop" id="avatarDrop" for="pf-avatar"
+                               tabindex="0" role="button"
+                               aria-label="Change profile photo. Choose an image, or drop one here.">
+                            <span id="avatarPreviewWrap" class="avatar-drop-face">
+                                @if ($user->avatarPath())
+                                    <img id="avatarPreview" src="{{ $user->avatarPath() }}" alt="">
+                                @else
+                                    <span id="avatarPreview" class="avatar-drop-initials">{{ $user->initials() }}</span>
+                                @endif
+                            </span>
+
+                            <span class="avatar-drop-veil" aria-hidden="true">
+                                <i class="bi bi-camera-fill"></i>
+                                <span>Change</span>
+                            </span>
+                        </label>
+
+                        <div class="avatar-edit-text">
+                            <p class="avatar-edit-lead" id="avatarName">Click the photo to change it</p>
+                            <p class="avatar-edit-hint">{{ __('giya.profile.avatar_hint') }}</p>
                         </div>
                     </div>
+
+                    <input id="pf-avatar" type="file" name="avatar" class="visually-hidden"
+                           accept="image/jpeg,image/png,image/webp">
+
                     @error('avatar')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
 
@@ -562,10 +701,14 @@ const GiyaProfile = {
 
         const reader = new FileReader();
         reader.onload = e => {
-            wrap.innerHTML = '<img alt="" src="' + e.target.result +
-                '" style="width:64px;height:64px;border-radius:14px;object-fit:cover;border:2px solid var(--border)">';
+            wrap.innerHTML = '<img id="avatarPreview" alt="" src="' + e.target.result + '">';
         };
         reader.readAsDataURL(file);
+
+        // Confirm in words what the picture now shows, so it is clear the file
+        // was taken and not merely opened.
+        const name = document.getElementById('avatarName');
+        if (name) name.textContent = file.name;
     },
 };
 
@@ -573,6 +716,39 @@ const GiyaProfile = {
    Each control writes its own field the moment it changes, and theme
    and font size apply to the page immediately - no reload, no Save.
    ---------------------------------------------------------------- */
+/* Dropping a photo onto the avatar does the same as choosing one. The label
+   already opens the picker on click and on Enter, so this only adds the drop:
+   the file is handed to the hidden input through a DataTransfer, which means
+   it submits with the form exactly as a chosen file does. */
+(function () {
+    const drop  = document.getElementById('avatarDrop');
+    const input = document.getElementById('pf-avatar');
+    if (!drop || !input) return;
+
+    const stop = e => { e.preventDefault(); e.stopPropagation(); };
+
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+        stop(e);
+        drop.classList.add('is-dragging');
+    }));
+
+    ['dragleave', 'dragend', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+        stop(e);
+        drop.classList.remove('is-dragging');
+    }));
+
+    drop.addEventListener('drop', e => {
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+
+        const carrier = new DataTransfer();
+        carrier.items.add(file);
+        input.files = carrier.files;
+
+        GiyaProfile.previewAvatar(input);
+    });
+})();
+
 const PrefSaver = (function () {
     const form = document.getElementById('prefForm');
     if (!form) return { save() {} };

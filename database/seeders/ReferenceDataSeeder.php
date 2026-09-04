@@ -41,24 +41,29 @@ class ReferenceDataSeeder extends Seeder
             ]);
         }
 
+        /*
+         * The paid tiers, straight from the business model canvas. Free is not
+         * one of them: a free account is simply an account with no valid paid
+         * transaction, capped at ItineraryController::FREE_LIMIT itineraries.
+         * There is deliberately no row for it - a plan row is something a
+         * devotee can buy, and a PHP 0.00 plan would show up on the upgrade
+         * page with a Pay button.
+         *
+         * Both paid tiers unlock every feature; they differ only in how long
+         * they last.
+         */
         $plans = [
             [
-                'name'          => 'Free',
-                'description'   => 'One active itinerary at a time, full destination browsing.',
-                'price'         => 0.00,
-                'duration_days' => 0,
+                'name'          => 'Pilgrim Weekly',
+                'description'   => 'Every GIYA feature, unlimited itineraries, for one week.',
+                'price'         => 49.00,
+                'duration_days' => 7,
             ],
             [
-                'name'          => 'Additional Itinerary Access',
-                'description'   => 'Unlimited active itineraries for 30 days.',
+                'name'          => 'Pilgrim Monthly',
+                'description'   => 'Every GIYA feature, unlimited itineraries, for one month.',
                 'price'         => 99.00,
                 'duration_days' => 30,
-            ],
-            [
-                'name'          => 'Pilgrim Annual',
-                'description'   => 'Unlimited itineraries and priority chat assistance for one year.',
-                'price'         => 899.00,
-                'duration_days' => 365,
             ],
         ];
 

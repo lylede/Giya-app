@@ -19,7 +19,8 @@
         <div class="alert alert-warning">
             <i class="bi bi-lock-fill"></i>
             <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.
-                  Delete one from <a href="{{ route('plan.index') }}" style="font-weight:700;color:inherit;text-decoration:underline">My Itineraries</a> to create another.</span>
+                  <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">Go Premium</a>
+                  for unlimited routes - deleting an itinerary does not free a slot.</span>
         </div>
     @endif
 
@@ -35,11 +36,16 @@
         <input type="hidden" name="type" value="Custom">
         <div id="stopsInputs"></div>
 
-        <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:28px" class="create-grid">
+        {{--
+            The route is the thing being built, so it gets the wide column on
+            the left and the destinations to pick from sit on the right - the
+            workspace-and-palette arrangement, rather than the route being the
+            far column you glance across to.
+        --}}
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:28px" class="create-grid">
 
-            {{-- Left column --}}
-            <div>
-                <div class="card card-body mb-3">
+            {{-- 1. Trip details --}}
+            <div class="card card-body pane-details">
                     <div class="card-title" style="color:var(--primary)">Trip Details</div>
 
                     <div class="field">
@@ -66,45 +72,32 @@
                         <textarea id="pl-notes" name="notes" class="giya-input" rows="2"
                                   placeholder="Anything to remember for this trip…">{{ old('notes') }}</textarea>
                     </div>
-                </div>
-
-                <div class="card card-body mb-3">
-                    <div class="card-title" style="color:var(--primary)">Add Destinations</div>
-                    <div style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto">
-                        @foreach ($churches as $church)
-                            <button type="button" class="dest-item" id="dest-{{ $church->id }}"
-                                    data-name="{{ $church->name }}" data-location="{{ $church->location }}"
-                                    onclick="GiyaPlanner.add({{ $church->id }})">
-                                <span style="width:34px;height:34px;border-radius:9px;background:var(--gold-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                                    <i class="bi bi-building" style="font-size: 0.9375rem;color:{{ $church->color() }}"></i>
-                                </span>
-                                <span style="flex:1;min-width:0;text-align:left">
-                                    <span style="display:block;font-size: 0.75rem;font-weight:600;color:var(--text)">{{ $church->name }}</span>
-                                    <span style="display:block;font-size: 0.625rem;color:var(--text-muted)">{{ $church->location }}</span>
-                                </span>
-                                <span class="dest-mark" style="color:var(--primary);font-size: 1.0625rem;font-weight:700">+</span>
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
             </div>
 
-            {{-- Right column --}}
-            <div>
+            {{-- 2. The route being built --}}
+            <div class="pane-route">
                 <div class="card card-body mb-3">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="card-title" style="margin:0">Route (<span id="stopCount">0</span> stops)</div>
+                    {{--
+                        Title, estimate and the map note used to sit in one
+                        un-wrapping flex row. On a phone that squeezed the
+                        title into a three-line column beside the note. They
+                        are now a wrapping row with the note on its own line.
+                    --}}
+                    <div class="route-head mb-3">
+                        <div class="route-head-top">
+                            <div class="card-title" style="margin:0">Route (<span id="stopCount">0</span> stops)</div>
+                            <div id="routeEstimate" class="route-est" style="display:none"></div>
+                        </div>
                         <p id="presetNote" class="plan-preset-note" hidden>
                             <i class="bi bi-check-circle-fill"></i>
                             Brought over from the map - add or remove any stop before saving.
                         </p>
-                        <div id="routeEstimate" style="font-size: 0.75rem;color:var(--text-muted);display:none"></div>
                     </div>
 
                     <div id="routeEmpty" class="empty-state" style="padding:56px 20px">
                         <div class="empty-icon"><i class="bi bi-signpost-2" style="color:var(--gold)"></i></div>
                         <div class="empty-title" style="font-size: 0.9375rem">No stops yet</div>
-                        <div class="empty-desc">Add destinations from the panel on the left.</div>
+                        <div class="empty-desc">Pick destinations from the panel beside this one.</div>
                     </div>
 
                     <div id="routeList" class="d-none"></div>
@@ -118,6 +111,32 @@
                     <button type="button" class="btn btn-outline" id="planViewMap">
                         <i class="bi bi-map-fill"></i> View on Map
                     </button>
+                </div>
+            </div>
+
+            {{-- 3. The destinations to choose from --}}
+            <div class="pane-picker">
+                <div class="card card-body picker-card">
+                    <div class="card-title" style="color:var(--primary)">Add Destinations</div>
+                    <div class="dest-list">
+                        @foreach ($churches as $church)
+                            <button type="button" class="dest-item" id="dest-{{ $church->id }}"
+                                    data-name="{{ $church->name }}" data-location="{{ $church->location }}"
+                                    data-image="{{ $church->imagePath() }}"
+                                    onclick="GiyaPlanner.add({{ $church->id }})">
+                                {{-- A photograph identifies a church far faster than the
+                                     generic building glyph that was here. imagePath()
+                                     falls back to a local placeholder, so it never
+                                     points at a remote URL and never renders broken. --}}
+                                <img class="dest-thumb" src="{{ $church->imagePath() }}" alt="" loading="lazy">
+                                <span style="flex:1;min-width:0;text-align:left">
+                                    <span style="display:block;font-size: 0.75rem;font-weight:600;color:var(--text)">{{ $church->name }}</span>
+                                    <span style="display:block;font-size: 0.625rem;color:var(--text-muted)">{{ $church->location }}</span>
+                                </span>
+                                <span class="dest-mark" style="color:var(--primary);font-size: 1.0625rem;font-weight:700">+</span>
+                            </button>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
@@ -141,7 +160,68 @@
     .route-card { display:flex; align-items:flex-start; gap:10px; padding:12px; border-radius:13px;
                   background:var(--bg); border:1px solid var(--border); }
     .route-btn  { background:none; border:none; cursor:pointer; font-size: 0.8125rem; line-height:1; padding:2px; }
-    @media (max-width: 950px) { .create-grid { grid-template-columns: 1fr !important; } }
+
+    /* Set by the renderer once the route passes ROUTE_VISIBLE stops. The
+       height itself is measured from the last visible row rather than
+       hard-coded, so it stays exactly N rows on any viewport - a route row is
+       98px wide-screen and 119px on a phone, where the name wraps. */
+    .route-list-scrolls { overflow-y: auto; padding-right: 8px; scrollbar-gutter: stable; }
+
+    /* Church photographs, in the picker and in the route. object-fit keeps
+       portrait and landscape shots square without squashing either. */
+    .dest-thumb, .route-thumb {
+        border-radius:9px; object-fit:cover; flex-shrink:0;
+        background:var(--gold-bg); border:1px solid var(--border);
+    }
+    .dest-thumb  { width:40px; height:40px; }
+    .route-thumb { width:44px; height:44px; }
+
+    .dest-list { display:flex; flex-direction:column; gap:8px; max-height:420px; overflow-y:auto; }
+
+    /* The header wraps instead of crushing the title into a narrow column. */
+    .route-head     { display:flex; flex-direction:column; gap:6px; }
+    .route-head-top { display:flex; align-items:baseline; justify-content:space-between;
+                      gap:10px; flex-wrap:wrap; }
+    .route-est      { font-size: 0.75rem; color:var(--text-muted); white-space:nowrap; }
+
+    /* Three panes, placed explicitly. Trip Details and the Route stack down
+       the wide left column; the picker fills the narrow right one beside
+       them both, so it stays in view while stops are being added. */
+    .pane-details { grid-column: 1; grid-row: 1; align-self: start; }
+    .pane-route   { grid-column: 1; grid-row: 2; }
+
+    /* The picker runs the full height of the two panes beside it, so the
+       column ends level instead of stopping short.
+       The grid item is an empty positioned box and the card is absolutely
+       placed inside it. That is what keeps a long church list from sizing
+       the rows: min-height:0 alone was not enough - the list still counted
+       towards the tracks it spans, which grew row 1 and left a gap between
+       Trip Details and the Route. With the card out of flow the rows are
+       sized by those two panes alone, and the card fills whatever they
+       come to, scrolling inside itself. */
+    .pane-picker { grid-column: 2; grid-row: 1 / span 2; position: relative; }
+    .picker-card {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column; min-height: 0;
+    }
+    .picker-card .dest-list { flex: 1 1 auto; min-height: 0; max-height: none; }
+
+    @media (max-width: 950px) {
+        .create-grid { grid-template-columns: 1fr !important; }
+        /* Stacked, the order is the order of the work: name the trip, pick
+           the churches, then look at the route they made. Placing them by
+           grid-area rather than reordering whole columns is what lets the
+           picker sit between the other two here but beside them above. */
+        .pane-details, .pane-route, .pane-picker { grid-column: 1; }
+        .pane-details { grid-row: 1; }
+        .pane-picker  { grid-row: 2; }
+        .pane-route   { grid-row: 3; }
+
+        /* Stacked there is nothing to match heights with, so the card returns
+           to normal flow and the list to a fixed scrolling height. */
+        .picker-card { position: static; }
+        .picker-card .dest-list { flex: 0 1 auto; max-height: 300px; }
+    }
 </style>
 @endpush
 
@@ -149,6 +229,20 @@
 <script>
 const GiyaPlanner = (function () {
     let stops = [];
+
+    /* Past this many stops the route scrolls instead of growing. That also
+       stops the whole left column growing, which is what keeps the Add
+       Destinations panel beside it from stretching any further. */
+    const ROUTE_VISIBLE = 7;
+
+    /* Church names reach innerHTML below. They come from our own database, but
+       an apostrophe in "Our Lady's" is enough to break the markup on its own,
+       so everything interpolated is escaped. */
+    function esc(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
 
     /* Stops chosen on the map arrive already ordered. Adding them through the
        same add() the buttons use means the list, the counter and the hidden
@@ -158,7 +252,8 @@ const GiyaPlanner = (function () {
     function add(id) {
         if (stops.some(s => s.id === id)) return;
         const el = document.getElementById('dest-' + id);
-        stops.push({ id: id, name: el.dataset.name, location: el.dataset.location });
+        stops.push({ id: id, name: el.dataset.name, location: el.dataset.location,
+                     image: el.dataset.image });
         el.classList.add('added');
         el.querySelector('.dest-mark').textContent = '✓';
         el.querySelector('.dest-mark').style.color = 'var(--gold)';
@@ -183,6 +278,45 @@ const GiyaPlanner = (function () {
         if (target < 0 || target >= stops.length) return;
         [stops[index], stops[target]] = [stops[target], stops[index]];
         render();
+    }
+
+    /*
+       Show the first ROUTE_VISIBLE stops and scroll the rest.
+
+       The cap is measured from the bottom of the last row that should be
+       visible, not calculated from a row height. Rows are not all the same
+       height - the final one has no connector beneath it - and they grow when
+       a long church name wraps on a narrow screen, so any fixed number would
+       cut a row in half on some device.
+    */
+    function capRouteHeight(list) {
+        list.classList.remove('route-list-scrolls');
+        list.style.maxHeight = '';
+
+        if (stops.length <= ROUTE_VISIBLE) return;
+
+        /*
+           Reserve the scrollbar's width BEFORE measuring. Measuring first and
+           adding the scrollbar afterwards narrows the rows, which rewraps a
+           long church name onto a second line and makes every row taller than
+           the height just measured - enough that the seventh row ended up
+           half cut off on a phone. scrollbar-gutter holds the space open, so
+           what is measured is the width the rows will actually have.
+        */
+        list.classList.add('route-list-scrolls');
+        list.style.maxHeight = 'none';
+
+        const lastVisible = list.children[ROUTE_VISIBLE - 1];
+
+        if (!lastVisible) {
+            list.classList.remove('route-list-scrolls');
+            return;
+        }
+
+        const height = lastVisible.getBoundingClientRect().bottom
+                     - list.getBoundingClientRect().top;
+
+        list.style.maxHeight = Math.ceil(height) + 'px';
     }
 
     function render() {
@@ -219,9 +353,10 @@ const GiyaPlanner = (function () {
                   (last ? '' : '<div class="route-line"></div>') +
                 '</div>' +
                 '<div class="route-body"><div class="route-card">' +
+                  '<img class="route-thumb" src="' + esc(stop.image) + '" alt="" loading="lazy">' +
                   '<div style="flex:1;min-width:0">' +
-                    '<div style="font-size: 0.8125rem;font-weight:700;color:var(--text)">' + stop.name + '</div>' +
-                    '<div style="font-size: 0.6875rem;color:var(--text-muted)">' + stop.location + '</div>' +
+                    '<div style="font-size: 0.8125rem;font-weight:700;color:var(--text)">' + esc(stop.name) + '</div>' +
+                    '<div style="font-size: 0.6875rem;color:var(--text-muted)">' + esc(stop.location) + '</div>' +
                     '<div style="font-size: 0.6875rem;color:var(--primary);font-weight:700;margin-top:4px">Arrive ~' + hh + ':' + mm + '</div>' +
                   '</div>' +
                   '<div style="display:flex;flex-direction:column;gap:3px">' +
@@ -234,6 +369,7 @@ const GiyaPlanner = (function () {
         });
 
         list.innerHTML = html;
+        capRouteHeight(list);
 
         const total = stops.length * 30 + (stops.length - 1) * 10;
         const est   = document.getElementById('routeEstimate');
@@ -279,11 +415,34 @@ const GiyaPlanner = (function () {
     return {
         add: add, remove: remove, move: move, render: render,
         submit: function () {
-            if (!stops.length) { GiyaConfirm.ask({ title: 'No destinations yet', message: 'Add at least one destination to this itinerary before starting it.', ok: 'Got it', cancel: 'Close', tone: 'primary' }); return; }
+            if (!stops.length) { GiyaConfirm.ask({ title: 'No destinations yet', message: 'Add at least one destination to this itinerary before starting it.', ok: 'Got it', cancel: 'Close', tone: 'primary', icon: 'signpost-2-fill' }); return; }
+
+            /* The names are what the server saves. The ids ride along so that
+               if the server does reject the form, the route can be rebuilt
+               from them rather than the devotee having to add every church
+               again - see $preset in ItineraryController::create(). */
             document.getElementById('stopsInputs').innerHTML = stops
-                .map(s => '<input type="hidden" name="stops[]" value="' + s.name.replace(/"/g, '&quot;') + '">')
-                .join('');
-            document.getElementById('planForm').submit();
+                .map(s => '<input type="hidden" name="stops[]" value="' + esc(s.name) + '">')
+                .join('')
+                + '<input type="hidden" name="stop_ids" value="' + stops.map(s => s.id).join(',') + '">';
+
+            const form = document.getElementById('planForm');
+
+            /*
+               requestSubmit(), not submit().
+
+               form.submit() posts without running the browser's own checks, so
+               leaving the itinerary name empty sent the form anyway; the server
+               rejected it, the page reloaded, and the route was gone.
+               requestSubmit() validates first, so the name field is flagged in
+               place and nothing is lost. Older browsers fall back to asking for
+               the same check explicitly.
+            */
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else if (form.reportValidity()) {
+                form.submit();
+            }
         },
     };
 })();

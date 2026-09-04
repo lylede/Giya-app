@@ -41,7 +41,10 @@ class LoginController extends Controller
                 'success',
                 'Welcome back, '.$user->firstName().'!'
             )
-            : redirect()->route('home')->with(
+            // intended(), not a fixed route: a guest sent here from a church
+            // page should arrive back at that church, not at the home page
+            // wondering where the thing they clicked went.
+            : redirect()->intended(route('home'))->with(
                 'success',
                 'Welcome back, '.$user->firstName().'!'
             );

@@ -7,6 +7,7 @@ use App\Models\Itinerary;
 use App\Models\User;
 use App\Models\VisitHistory;
 use App\Models\Favorite;
+use App\Models\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,13 @@ class ProfileController extends Controller
 
         return view('profile', [
             'user'        => $user,
+            // When their Premium runs out, so the overview can say so rather
+            // than only that they have it. Null for a free account.
+            'premiumUntil' => Transaction::premiumExpiryByUser([$user->id])[$user->id] ?? null,
+            // Includes deleted itineraries: the free tier is three per account
+            // for the life of the account, so deleting one does not give the
+            // slot back. The list below deliberately excludes them.
+            'itinerariesUsed' => Itinerary::countingAgainstFreeLimit($user->id),
             'visits'      => VisitHistory::with('church')
                                 ->where('user_id', $user->id)
                                 ->orderByDesc('visited_at')->get(),

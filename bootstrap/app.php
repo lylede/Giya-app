@@ -18,6 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
         ]);
 
+        // Maya's server posts the webhook. It has no session and therefore no
+        // CSRF token, so the check has to be lifted for that one path. What
+        // replaces it is in PaymentController::webhook - the body is used only
+        // to pick a reference number, and the payment is then re-fetched from
+        // Maya with the secret key before anything is written.
+        $middleware->validateCsrfTokens(except: [
+            'maya/webhook',
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
