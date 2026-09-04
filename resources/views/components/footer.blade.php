@@ -7,8 +7,7 @@
                     <span class="footer-logo-name">Giya</span>
                 </div>
                 <p class="footer-desc">
-                    Your localized travel companion for pilgrimage and religious tourism
-                    in Metro Cebu, Philippines.
+                    {{ __('giya.misc.footer_lead') }}
                 </p>
             </div>
 
@@ -39,10 +38,10 @@
         </div>
 
         <div class="footer-bottom">
-            <span class="footer-copy">&copy; {{ date('Y') }} Giya · Metro Cebu Religious Tourism</span>
+            <span class="footer-copy">&copy; {{ date('Y') }} Giya · {{ __('giya.hub.copyright') }}</span>
             <span class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.3);font-size: 0.6875rem">
                 <span style="width:6px;height:6px;border-radius:50%;background:var(--gold)"></span>
-                Made with faith in Cebu
+                {{ __('giya.misc.made_with') }}
             </span>
         </div>
     </div>

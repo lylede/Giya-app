@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Active Pilgrimage')
+@section('title', __('giya.plan.title_active'))
 @section('no-footer', true)
 
 @push('head')
@@ -24,6 +24,17 @@
 @endpush
 
 @section('content')
+@php
+    // Same as the map page: built outside @json(...) because Blade matches the
+    // directive's brackets textually and a multi-line array defeats it.
+    $mapLabels = [
+        'youAreHere' => __('giya.map.you_are_here'),
+        'finding'    => __('giya.map.finding'),
+        'noGeo'      => __('giya.map.no_geo'),
+        'denied'     => __('giya.map.denied'),
+        'noFix'      => __('giya.map.no_fix'),
+    ];
+@endphp
 <div class="active-layout">
 
     <aside class="active-sidebar">
@@ -66,7 +77,7 @@
                 <i class="bi bi-check-lg"></i> {{ __('giya.plan.mark_visited') }}
             </button>
             <form method="POST" action="{{ route('plan.destroy', $itinerary) }}"
-                  data-confirm-title="End this pilgrimage?"
+                  data-confirm-title="{{ __('giya.plan.end_q') }}"
                   data-confirm="Your progress and this itinerary are removed. Visits you already recorded stay in your history, and on a free account this itinerary still counts towards your 3."
                   data-confirm-ok="End pilgrimage">
                 @csrf @method('DELETE')
@@ -96,15 +107,15 @@
 
         <div class="map-tools">
             <button type="button" class="map-tool" id="apLocate"
-                    title="Find my location" aria-label="Find my location">
+                    title="{{ __('giya.map.locate') }}" aria-label="{{ __('giya.map.locate') }}">
                 <i class="bi bi-geo-alt-fill"></i>
             </button>
             <button type="button" class="map-tool" id="apFullscreen"
-                    title="Fullscreen" aria-label="Toggle fullscreen">
+                    title="{{ __('giya.map.fullscreen') }}" aria-label="{{ __('giya.common.fullscreen_t') }}">
                 <i class="bi bi-arrows-fullscreen"></i>
             </button>
             <button type="button" class="map-tool" id="apRecenter"
-                    title="Show whole route" aria-label="Show the whole route">
+                    title="{{ __('giya.plan.show_route') }}" aria-label="{{ __('giya.plan.show_route') }}">
                 <i class="bi bi-map"></i>
             </button>
         </div>
@@ -115,10 +126,10 @@
         <div class="arrive-toast" id="arriveToast" hidden role="status" aria-live="polite">
             <span class="arrive-icon"><i class="bi bi-check-lg"></i></span>
             <div class="arrive-body">
-                <strong>You have arrived</strong>
+                <strong>{{ __('giya.plan.arrived') }}</strong>
                 <span id="arriveName"></span>
             </div>
-            <button type="button" class="arrive-undo" id="arriveUndo">Not yet</button>
+            <button type="button" class="arrive-undo" id="arriveUndo">{{ __('giya.plan.not_yet') }}</button>
         </div>
 
         {{-- The corner button is gone: a stop is marked from its own pin, or
@@ -178,6 +189,8 @@ const GiyaActive = (function () {
     const liveMap = GiyaLeaflet.pilgrimage({
         element: 'activeMap',
         stops: points,
+
+        labels: @json($mapLabels),
         currentId: (stops.find(s => !s.visited) || {}).id,
         onArrive: announceArrival,
         onStatus: function (message, kind) {
@@ -215,7 +228,7 @@ const GiyaActive = (function () {
         apFull.innerHTML = on
             ? '<i class="bi bi-fullscreen-exit"></i>'
             : '<i class="bi bi-arrows-fullscreen"></i>';
-        apFull.title = on ? 'Exit fullscreen' : 'Fullscreen';
+        apFull.title = on ? @json(__('giya.common.exit_full')) : @json(__('giya.map.fullscreen'));
         document.body.style.overflow = on ? 'hidden' : '';
         setTimeout(function () { liveMap.map.invalidateSize(); }, 120);
     });
@@ -269,7 +282,7 @@ const GiyaActive = (function () {
             markBtn.classList.remove('d-none');
             document.getElementById('currentName').textContent = cur.name;
             document.getElementById('currentNext').textContent =
-                next ? 'Next → ' + next.name : 'Final stop of your route';
+                next ? @json(__('giya.common.next')) + ' → ' + next.name : @json(__('giya.plan.final_stop'));
         } else {
             banner.classList.add('d-none');
             doneB.classList.remove('d-none');
@@ -347,10 +360,10 @@ const GiyaActive = (function () {
             if (data.all_done) {
                 setTimeout(function () {
                     GiyaConfirm.ask({
-                        title: 'Pilgrimage complete',
-                        message: 'You have visited every stop on this route. View your saved itineraries?',
-                        ok: 'View itineraries',
-                        cancel: 'Stay here',
+                        title: @json(__('giya.plan.done_title')),
+                        message: @json(__('giya.plan.done_body')),
+                        ok: @json(__('giya.plan.view_itin')),
+                        cancel: @json(__('giya.plan.stay_here')),
                         tone: 'primary'
                     }).then(function (go) { if (go) window.location = doneUrl; });
                 }, 350);
@@ -358,9 +371,9 @@ const GiyaActive = (function () {
         })
         .catch(function () {
             GiyaConfirm.ask({
-                title: 'Could not save that stop',
-                message: 'The change was not recorded. Check that the local server is running, then try again.',
-                ok: 'Got it',
+                title: @json(__('giya.plan.stop_fail_t')),
+                message: @json(__('giya.plan.stop_fail_b')),
+                ok: @json(__('giya.common.got_it')),
                 cancel: 'Dismiss',
                 tone: 'primary'
             });

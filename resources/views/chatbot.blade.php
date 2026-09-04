@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Giya AI')
+@section('title', __('giya.chat.title'))
 
 @push('head')
 <style>
@@ -113,9 +113,7 @@
     <div class="guide" id="guide" data-online="{{ $online ? '1' : '0' }}">
         <div class="guide-bubble" id="guideBubble">
             <span id="guideSay">
-                {{ $online
-                    ? 'Maayong buntag. Ask me about any church in Metro Cebu.'
-                    : 'I am offline, so I answer from the destination records only.' }}
+                {{ $online ? __('giya.chat.guide_online') : __('giya.chat.guide_offline') }}
             </span>
         </div>
 
@@ -156,7 +154,7 @@
 
             @if ($messages->isNotEmpty())
                 <form method="POST" action="{{ route('chatbot.reset') }}"
-                      data-confirm-title="Start a new conversation?"
+                      data-confirm-title="{{ __('giya.chat.new_q') }}"
                       data-confirm="This conversation is closed and cleared from view."
                       data-confirm-ok="Start new"
                       data-confirm-tone="primary">
@@ -181,8 +179,7 @@
                         </span>
                     </span>
                     <div class="chat-bubble chat-bubble-bot">
-                        Maayong buntag! I am Giya AI. Ask me about churches in Metro Cebu,
-                        mass schedules, or let me plan a Visita Iglesia route for you.
+                        {{ __('giya.chat.greeting_long') }}
                     </div>
                 </div>
             @else
@@ -230,15 +227,14 @@
             <input type="text" id="chatInput" name="message" maxlength="1000"
                    placeholder="{{ __('giya.chat.placeholder') }}"
                    aria-label="{{ __('giya.chat.placeholder') }}" required>
-            <button type="submit" class="chat-send" id="chatSend" aria-label="Send">
+            <button type="submit" class="chat-send" id="chatSend" aria-label="{{ __('giya.chat.send') }}">
                 <i class="bi bi-arrow-right"></i>
             </button>
         </form>
     </div>
 
     <p class="chat-note">
-        Giya AI answers from GIYA's destination records. Mass schedules change -
-        please confirm with the parish before travelling.
+        {{ __('giya.chat.note') }}
     </p>
 </div>
 @endsection
@@ -467,8 +463,8 @@
             body: JSON.stringify({ message: text }),
         })
             .then(r => r.json())
-            .then(d => addBot(d.reply || 'Something went wrong. Try again.', d.ok))
-            .catch(() => addBot('I could not reach the server. Check that it is running and try again.', false))
+            .then(d => addBot(d.reply || @json(__('giya.chat.error')), d.ok))
+            .catch(() => addBot(@json(__('giya.chat.unreachable')), false))
             .finally(() => {
                 input.disabled = send.disabled = false;
                 input.focus();
@@ -527,8 +523,8 @@
         clearTimeout(restTimer);
         restTimer = setTimeout(function () {
             setState('is-idle', guide.dataset.online === '1'
-                ? 'Ask me anything about Metro Cebu.'
-                : 'Offline, but I still know the destinations.');
+                ? @json(__('giya.chat.ph_1'))
+                : @json(__('giya.chat.ph_2')));
         }, delay || 4000);
     }
 
@@ -538,11 +534,11 @@
             if (!input.value.trim()) { rest(1200); return; }
 
             clearTimeout(restTimer);
-            setState('is-typing', 'Go on, I am listening.');
+            setState('is-typing', @json(__('giya.chat.ph_3')));
         });
 
         input.addEventListener('focus', function () {
-            if (!input.value.trim()) setState('is-typing', 'What would you like to know?');
+            if (!input.value.trim()) setState('is-typing', @json(__('giya.chat.ph_4')));
         });
     }
 
@@ -557,7 +553,7 @@
                     if (!node.classList) return;
 
                     if (node.classList.contains('is-user')) {
-                        setState('is-thinking', 'Let me look through the churches...');
+                        setState('is-thinking', @json(__('giya.chat.thinking')));
                         return;
                     }
 
@@ -567,9 +563,9 @@
                     if (!bot) return;
 
                     if (bot.classList.contains('is-offline')) {
-                        setState('is-sorry', 'I could not reach the AI, so that came from the records.');
+                        setState('is-sorry', @json(__('giya.chat.from_records')));
                     } else {
-                        setState('is-happy', 'Here you go.');
+                        setState('is-happy', @json(__('giya.chat.here_you_go')));
                     }
                     rest(5000);
                 });

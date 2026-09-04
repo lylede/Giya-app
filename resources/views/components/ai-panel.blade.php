@@ -8,7 +8,7 @@
     The full page at /chatbot still exists for a longer conversation.
 --}}
 <div class="ai-panel" id="giyaPanel" role="dialog" aria-modal="false"
-     aria-label="Giya AI assistant" hidden>
+     aria-label="{{ __('giya.chat.panel_aria') }}" hidden>
 
     {{-- The guide's face is the conversation's profile picture: it sits in the
          head beside the name, rather than floating off the panel's corner. --}}
@@ -27,13 +27,13 @@
         </span>
         <div class="ai-panel-title">
             <strong>Giya AI</strong>
-            <span>Pilgrimage guide for Metro Cebu</span>
+            <span>{{ __('giya.chat.subtitle') }}</span>
         </div>
-        <a href="{{ route('chatbot') }}" class="ai-panel-expand" title="Open full page"
-           aria-label="Open the full chat page">
+        <a href="{{ route('chatbot') }}" class="ai-panel-expand" title="{{ __('giya.chat.open_full_t') }}"
+           aria-label="{{ __('giya.chat.open_full') }}">
             <i class="bi bi-arrows-fullscreen"></i>
         </a>
-        <button type="button" class="ai-panel-close" id="giyaPanelClose" aria-label="Close">
+        <button type="button" class="ai-panel-close" id="giyaPanelClose" aria-label="{{ __('giya.common.close') }}">
             <i class="bi bi-x"></i>
         </button>
     </div>
@@ -53,21 +53,21 @@
                 </span>
             </span>
             <div class="chat-bubble chat-bubble-bot">
-                Maayong buntag! Ask me about churches, mass schedules, or a Visita Iglesia route.
+                {{ __('giya.chat.greeting_panel') }}
             </div>
         </div>
     </div>
 
     <div class="ai-panel-starters" id="giyaPanelStarters">
-        @foreach (['What churches can I visit in Cebu?', 'Plan a Visita Iglesia for me', 'How do I plan a pilgrimage day?'] as $starter)
+        @foreach ([__('giya.chat.suggest_1'), __('giya.chat.suggest_2'), __('giya.chat.suggest_3')] as $starter)
             <button type="button" class="chat-starter" data-ai-ask="{{ $starter }}">{{ $starter }}</button>
         @endforeach
     </div>
 
     <form class="ai-panel-composer" id="giyaPanelForm" autocomplete="off">
         <input type="text" id="giyaPanelInput" maxlength="1000"
-               placeholder="Ask Giya AI…" aria-label="Ask Giya AI" required>
-        <button type="submit" class="chat-send" id="giyaPanelSend" aria-label="Send">
+               placeholder="{{ __('giya.chat.ask_ph') }}" aria-label="{{ __('giya.home.card_ask') }}" required>
+        <button type="submit" class="chat-send" id="giyaPanelSend" aria-label="{{ __('giya.chat.send') }}">
             <i class="bi bi-arrow-right"></i>
         </button>
     </form>

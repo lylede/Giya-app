@@ -15,6 +15,24 @@
 window.GiyaLeaflet = (function () {
     'use strict';
 
+    /* Every phrase this file puts in front of a devotee.
+       It is a plain script, so it cannot call Laravel's translator: the page
+       passes translated copy in as cfg.labels and these are the fallback. */
+    var TEXT = {
+        seeDetails:  'See details',
+        directions:  'Directions',
+        addToRoute:  'Add to route',
+        youAreHere:  'You are here',
+        finding:     'Finding your location\u2026',
+        noGeo:       'This browser cannot share a location.',
+        denied:      'Location permission was denied. Allow it in the address bar to use this.',
+        noFix:       'Could not get a location fix. Try again outdoors or check GPS.'
+    };
+
+    function say(cfg, key) {
+        return (cfg && cfg.labels && cfg.labels[key]) || TEXT[key];
+    }
+
     var CEBU = { lat: 10.3157, lng: 123.8854 };
 
     /* ---------------------------------------------------------------- tiles */
@@ -259,23 +277,23 @@ window.GiyaLeaflet = (function () {
                 (c.details
                     ? '<a class="giya-popup-btn is-secondary" href="' + escapeHtml(c.details) + '"' +
                           ' data-details="' + escapeHtml(c.details) + '"' +
-                          ' data-church="' + escapeHtml(c.name) + '">See details</a>'
+                          ' data-church="' + escapeHtml(c.name) + '">' + escapeHtml(say(cfg, 'seeDetails')) + '</a>'
                     : '') +
                 '<button type="button" class="giya-popup-btn"' +
-                        ' onclick="GiyaLeaflet.directionsTo(' + c.id + ')">Directions</button>' +
+                        ' onclick="GiyaLeaflet.directionsTo(' + c.id + ')">' + escapeHtml(say(cfg, 'directions')) + '</button>' +
                 '<button type="button" class="giya-popup-btn is-secondary"' +
-                        ' onclick="GiyaLeaflet.addStop(' + c.id + ')">Add to route</button>' +
+                        ' onclick="GiyaLeaflet.addStop(' + c.id + ')">' + escapeHtml(say(cfg, 'addToRoute')) + '</button>' +
                 '</div>';
         }
 
         /* ---- locate me ---- */
         function locate(onDone) {
             if (!navigator.geolocation) {
-                if (cfg.onStatus) cfg.onStatus('This browser cannot share a location.', 'error');
+                if (cfg.onStatus) cfg.onStatus(say(cfg, 'noGeo'), 'error');
                 return;
             }
 
-            if (cfg.onStatus) cfg.onStatus('Finding your location…', 'info');
+            if (cfg.onStatus) cfg.onStatus(say(cfg, 'finding'), 'info');
 
             navigator.geolocation.getCurrentPosition(
                 function (pos) {
@@ -283,7 +301,7 @@ window.GiyaLeaflet = (function () {
 
                     if (meMarker) map.removeLayer(meMarker);
                     meMarker = L.marker([me.lat, me.lng], { icon: userIcon(), zIndexOffset: 900 })
-                        .bindPopup('You are here')
+                        .bindPopup(say(cfg, 'youAreHere'))
                         .addTo(map);
 
                     L.circle([me.lat, me.lng], {
@@ -299,9 +317,7 @@ window.GiyaLeaflet = (function () {
                     if (onDone) onDone();
                 },
                 function (err) {
-                    var msg = err.code === 1
-                        ? 'Location permission was denied. Allow it in the address bar to use this.'
-                        : 'Could not get a location fix. Try again outdoors or check GPS.';
+                    var msg = err.code === 1 ? say(cfg, 'denied') : say(cfg, 'noFix');
                     if (cfg.onStatus) cfg.onStatus(msg, 'error');
                 },
                 { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
@@ -552,7 +568,7 @@ window.GiyaLeaflet = (function () {
 
             if (me) { draw(); return; }
 
-            if (cfg.onStatus) cfg.onStatus('Finding your location\u2026', 'info');
+            if (cfg.onStatus) cfg.onStatus(say(cfg, 'finding'), 'info');
             locate(function () { if (me) draw(); });
         }
 
@@ -765,12 +781,12 @@ window.GiyaLeaflet = (function () {
 
             meMarker = L.marker([here.lat, here.lng], {
                 icon: userIcon(), zIndexOffset: 900
-            }).bindPopup('You are here').addTo(map);
+            }).bindPopup(say(cfg, 'youAreHere')).addTo(map);
         }
 
         function locate(done) {
             if (!navigator.geolocation) {
-                if (cfg.onStatus) cfg.onStatus('This browser cannot share a location.', 'error');
+                if (cfg.onStatus) cfg.onStatus(say(cfg, 'noGeo'), 'error');
                 if (done) done();
                 return;
             }
@@ -790,7 +806,7 @@ window.GiyaLeaflet = (function () {
 
                     meMarker = L.marker([here.lat, here.lng], {
                         icon: userIcon(), zIndexOffset: 900
-                    }).bindPopup('You are here').addTo(map);
+                    }).bindPopup(say(cfg, 'youAreHere')).addTo(map);
 
                     map.setView([here.lat, here.lng], 15);
 

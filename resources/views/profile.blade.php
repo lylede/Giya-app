@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Profile')
+@section('title', __('giya.nav.profile'))
 
 @section('content')
 @php $activeTab = request('tab', 'overview'); @endphp
@@ -67,11 +67,11 @@
             <div class="card card-body">
                 <div class="form-label-sm" style="margin-bottom:14px">{{ __('giya.profile.account_info') }}</div>
                 @foreach ([
-                    ['Full Name',    $user->name],
-                    ['Email',        $user->email],
-                    ['Role',         ucfirst($user->role)],
-                    ['Member Since', ($user->member_since ?? $user->created_at)?->format('M Y')],
-                    ['Plan',         $user->is_premium ? 'Premium' : 'Free'],
+                    [__('giya.profile.full_name'),    $user->name],
+                    [__('giya.profile.email'),        $user->email],
+                    [__('giya.profile.role'),         ucfirst($user->role)],
+                    [__('giya.profile.member_since'), ($user->member_since ?? $user->created_at)?->format('M Y')],
+                    [__('giya.profile.plan_label'),   $user->is_premium ? __('giya.upgrade.premium') : __('giya.profile.free_plan')],
                 ] as $i => [$label, $value])
                     <div class="d-flex justify-content-between align-items-center"
                          style="padding:9px 0;{{ $i < 4 ? 'border-bottom:1px solid var(--border-light)' : '' }}">
@@ -104,19 +104,19 @@
                             <i class="bi bi-gem" style="color:var(--gold);font-size:1.125rem"></i>
                             <div>
                                 <div style="font-size:.8125rem;font-weight:700;color:var(--text)">
-                                    Unlimited itineraries
+                                    {{ __('giya.profile.unlimited') }}
                                 </div>
                                 <div style="font-size:.75rem;color:var(--text-muted)">
-                                    {{ $used }} {{ \Illuminate\Support\Str::plural('itinerary', $used) }} planned
-                                    @if ($premiumUntil) · Premium until {{ $premiumUntil->format('M j, Y') }} @endif
+                                    {{ __('giya.profile.planned', ['count' => $used]) }}
+                                    @if ($premiumUntil) · {{ __('giya.profile.premium_until', ['date' => $premiumUntil->format('M j, Y')]) }} @endif
                                 </div>
                             </div>
                         </div>
                     @else
                         <div class="d-flex justify-content-between align-items-center" style="margin-bottom:8px">
-                            <span style="font-size:.8125rem;color:var(--text-muted)">Free itineraries</span>
+                            <span style="font-size:.8125rem;color:var(--text-muted)">{{ __('giya.profile.free_itin') }}</span>
                             <span style="font-size:.8125rem;font-weight:700;color:{{ $atLimit ? 'var(--primary)' : 'var(--text)' }}">
-                                {{ $used }} of {{ $freeLimit }} used
+                                {{ __('giya.profile.used_of', ['used' => $used, 'limit' => $freeLimit]) }}
                             </span>
                         </div>
 
@@ -129,12 +129,10 @@
 
                         <p style="font-size:.75rem;color:var(--text-muted);margin:8px 0 0;line-height:1.55">
                             @if ($atLimit)
-                                You have used all {{ $freeLimit }}. Go Premium for unlimited routes -
-                                deleting one will not give the slot back.
+                                {{ __('giya.profile.at_limit_note', ['limit' => $freeLimit]) }}
                             @else
-                                {{ $left }} {{ \Illuminate\Support\Str::plural('slot', $left) }} left.
-                                Custom routes and Visita Iglesia both use one, and a slot is
-                                not returned if you delete an itinerary.
+                                {{ trans_choice('giya.profile.slots_note', $left, ['count' => $left]) }}
+                                {{ __('giya.profile.slots_hint') }}
                             @endif
                         </p>
 
@@ -143,7 +141,7 @@
                         <a href="{{ route('upgrade') }}"
                            class="btn {{ $atLimit ? 'btn-primary' : 'btn-outline-gold' }}"
                            style="width:100%;justify-content:center;margin-top:14px">
-                            <i class="bi bi-gem"></i><span>Go Premium</span>
+                            <i class="bi bi-gem"></i><span>{{ __('giya.profile.go_premium') }}</span>
                         </a>
                     @endif
                 </div>
@@ -180,12 +178,12 @@
                            Cross - which is in Cebu, a few minutes from the
                            Basilica - for having seen fifteen.
                         */
-                        ['giya-footprint', 'First Steps',   $user->total_churches_visited >= 1],
-                        ['giya-spires',    'Church Hopper', $user->total_churches_visited >= 5],
-                        ['giya-candle',    'Devoted',       $user->total_pilgrimages >= 3],
-                        ['giya-seven',     'Visita Iglesia',$user->total_churches_visited >= 7],
-                        ['giya-road',      'Holy Traveler', $user->total_km_walked >= 50],
-                        ['giya-magellan',  'Explorer',      $user->total_churches_visited >= 15],
+                        ['giya-footprint', __('giya.profile.ach_first'),    $user->total_churches_visited >= 1],
+                        ['giya-spires',    __('giya.profile.ach_hopper'),   $user->total_churches_visited >= 5],
+                        ['giya-candle',    __('giya.profile.ach_devoted'),  $user->total_pilgrimages >= 3],
+                        ['giya-seven',     __('giya.plan.visita'),          $user->total_churches_visited >= 7],
+                        ['giya-road',      __('giya.profile.ach_traveler'), $user->total_km_walked >= 50],
+                        ['giya-magellan',  __('giya.profile.ach_explorer'), $user->total_churches_visited >= 15],
                     ] as [$icon, $name, $earned])
                         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12px 6px;border-radius:12px;text-align:center;border:1.5px solid var(--border);{{ $earned ? 'background:rgba(215,169,74,0.09);border-color:rgba(215,169,74,0.35)' : 'background:var(--bg);opacity:.45' }}">
                             <i class="bi bi-{{ $icon }}" style="font-size: 1.25rem;color:{{ $earned ? 'var(--gold)' : 'var(--text-muted)' }}"></i>
@@ -199,9 +197,9 @@
 
         <div class="card card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
-                <div class="form-label-sm" style="margin:0">Recent Visits</div>
+                <div class="form-label-sm" style="margin:0">{{ __('giya.profile.recent_visits') }}</div>
                 <button type="button" class="section-link" onclick="GiyaProfile.show('visits', document.querySelector('[data-tab=visits]'))">
-                    View all →
+                    {{ __('giya.common.view_all') }} →
                 </button>
             </div>
 
@@ -224,15 +222,15 @@
                     @endif
                 </div>
             @empty
-                <x-empty-state icon="building" title="No visits recorded yet"
-                               desc="Start a pilgrimage to begin tracking the churches you visit." />
+                <x-empty-state icon="building" :title="__('giya.profile.no_visits')"
+                               :desc="__('giya.profile.no_visits_d')" />
             @endforelse
         </div>
     </section>
 
     {{-- ── Visit history ── --}}
     <section class="profile-panel @if($activeTab !== 'visits') d-none @endif" id="panel-visits">
-        <h2 class="section-title" style="font-size: 1.25rem">Visit History</h2>
+        <h2 class="section-title" style="font-size: 1.25rem">{{ __('giya.profile.visit_history') }}</h2>
 
         @forelse ($visits as $visit)
             <div class="history-item">
@@ -254,30 +252,30 @@
                 @if ($visit->rating)
                     <span class="history-actions">
                         <x-stars :rating="$visit->rating" />
-                        <span style="font-size: 0.75rem;color:var(--text-muted)">Reviewed</span>
+                        <span style="font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.profile.reviewed') }}</span>
                     </span>
                 @else
                     <span class="history-actions">
                         <button type="button" class="btn btn-ghost btn-sm"
                                 style="color:var(--primary);font-weight:700"
                                 onclick="GiyaProfile.review({{ $visit->id }}, @js($visit->church_name))">
-                            Review <i class="bi bi-chevron-right" style="font-size: 0.625rem"></i>
+                            {{ __('giya.profile.review') }} <i class="bi bi-chevron-right" style="font-size: 0.625rem"></i>
                         </button>
                     </span>
                 @endif
             </div>
         @empty
-            <x-empty-state icon="clock-history" title="No visits recorded yet"
-                           desc="Churches you mark as visited during a pilgrimage appear here." />
+            <x-empty-state icon="clock-history" :title="__('giya.profile.no_visits')"
+                           :desc="__('giya.profile.no_visits_d2')" />
         @endforelse
     </section>
 
     {{-- ── Itineraries ── --}}
     <section class="profile-panel @if($activeTab !== 'itineraries') d-none @endif" id="panel-itineraries">
         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-            <h2 class="section-title" style="font-size: 1.25rem;margin:0">My Itineraries</h2>
+            <h2 class="section-title" style="font-size: 1.25rem;margin:0">{{ __('giya.plan.my_title') }}</h2>
             <a href="{{ route('plan.create') }}" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-lg"></i> New Itinerary
+                <i class="bi bi-plus-lg"></i> {{ __('giya.profile.new_itinerary') }}
             </a>
         </div>
 
@@ -295,13 +293,13 @@
                     </div>
                 </div>
                 <span class="badge status-{{ $itinerary->status }}">{{ $itinerary->status }}</span>
-                <a href="{{ route('plan.show', $itinerary) }}" style="color:var(--primary)" aria-label="Open itinerary">
+                <a href="{{ route('plan.show', $itinerary) }}" style="color:var(--primary)" aria-label="{{ __('giya.profile.open_itin') }}">
                     <i class="bi bi-chevron-right"></i>
                 </a>
             </div>
         @empty
-            <x-empty-state icon="giya-route" title="No itineraries yet"
-                           desc="Plan a route in the Plan Hub and it will be listed here.">
+            <x-empty-state icon="giya-route" :title="__('giya.plan.no_itineraries')"
+                           :desc="__('giya.profile.no_itin_d')">
                 <a href="{{ route('plan.hub') }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.profile.open_plan_hub') }}</a>
             </x-empty-state>
         @endforelse
@@ -310,7 +308,7 @@
     {{-- ── Settings ── --}}
     {{-- ── Favorites ── --}}
     <section class="profile-panel @if($activeTab !== 'favorites') d-none @endif" id="panel-favorites">
-        <h2 class="section-title" style="font-size: 1.25rem">Favorites</h2>
+        <h2 class="section-title" style="font-size: 1.25rem">{{ __('giya.profile.favorites') }}</h2>
 
         @forelse ($favorites as $favorite)
             @continue (! $favorite->church)
@@ -334,17 +332,17 @@
                     </div>
                 </div>
                 <span class="history-actions">
-                    <a href="{{ route('churches.show', $favorite->church_id) }}" class="btn btn-ghost btn-sm">View Details</a>
+                    <a href="{{ route('churches.show', $favorite->church_id) }}" class="btn btn-ghost btn-sm">{{ __('giya.common.view') }}</a>
                     <button type="button" class="btn btn-ghost btn-sm" style="color:#D4183D"
                             onclick="GiyaProfile.unfavorite({{ $favorite->church_id }})"
-                            aria-label="Remove from favorites">
+                            aria-label="{{ __('giya.profile.remove_fav') }}">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </span>
             </div>
         @empty
-            <x-empty-state icon="heart" title="No saved destinations yet"
-                           desc="Tap the heart on any church to save it here for later.">
+            <x-empty-state icon="heart" :title="__('giya.profile.no_favorites')"
+                           :desc="__('giya.profile.no_fav_d')">
                 <a href="{{ route('map') }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.profile.find_churches') }}</a>
             </x-empty-state>
         @endforelse
@@ -352,7 +350,7 @@
 
     {{-- ── Preferences ── --}}
     <section class="profile-panel @if($activeTab !== 'preferences') d-none @endif" id="panel-preferences">
-        <h2 class="section-title" style="font-size: 1.25rem">Preferences</h2>
+        <h2 class="section-title" style="font-size: 1.25rem">{{ __('giya.profile.preferences') }}</h2>
 
         <form method="POST" action="{{ route('profile.preferences') }}" id="prefForm"
               data-save-url="{{ route('profile.preference') }}">
@@ -366,23 +364,23 @@
                 </div>
 
                 <label class="form-label-sm" style="display:block;margin-bottom:6px">{{ __('giya.profile.font_size') }}</label>
-                <div class="d-flex gap-2 mb-3" role="radiogroup" aria-label="Font size">
-                    @foreach (['Small', 'Medium', 'Large'] as $size)
+                <div class="d-flex gap-2 mb-3" role="radiogroup" aria-label="{{ __('giya.profile.font_aria') }}">
+                    @foreach (['Small' => __('giya.profile.small'), 'Medium' => __('giya.profile.medium'), 'Large' => __('giya.profile.large')] as $size => $sizeLabel)
                         <label @class(['pref-choice', 'is-active' => $prefs->font_size === $size])>
                             <input type="radio" name="font_size" value="{{ $size }}"
                                    @checked($prefs->font_size === $size) class="visually-hidden">
-                            {{ $size }}
+                            {{ $sizeLabel }}
                         </label>
                     @endforeach
                 </div>
 
-                <label class="form-label-sm" style="display:block;margin-bottom:6px">Theme Style</label>
-                <div class="d-flex gap-2" role="radiogroup" aria-label="Theme style">
-                    @foreach ([['Light', 'sun-fill'], ['Dark', 'moon-fill']] as [$theme, $icon])
+                <label class="form-label-sm" style="display:block;margin-bottom:6px">{{ __('giya.profile.theme_style') }}</label>
+                <div class="d-flex gap-2" role="radiogroup" aria-label="{{ __('giya.profile.theme_aria') }}">
+                    @foreach ([['Light', 'sun-fill', __('giya.profile.light')], ['Dark', 'moon-fill', __('giya.profile.dark')]] as [$theme, $icon, $themeLabel])
                         <label @class(['pref-choice', 'is-active' => $prefs->theme_style === $theme])>
                             <input type="radio" name="theme_style" value="{{ $theme }}"
                                    @checked($prefs->theme_style === $theme) class="visually-hidden">
-                            <i class="bi bi-{{ $icon }}"></i> {{ $theme }}
+                            <i class="bi bi-{{ $icon }}"></i> {{ $themeLabel }}
                         </label>
                     @endforeach
                 </div>
@@ -410,14 +408,14 @@
             <div class="card card-body mb-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <i class="bi bi-bell-fill" style="color:var(--gold)"></i>
-                    <span style="font-size: 0.9375rem;font-weight:700;color:var(--text)">Notifications</span>
+                    <span style="font-size: 0.9375rem;font-weight:700;color:var(--text)">{{ __('giya.profile.notifications') }}</span>
                 </div>
 
                 @foreach ([
-                    ['notify_mass_schedule',     'Mass Schedule Reminders'],
-                    ['notify_itinerary',         'Itinerary Reminders'],
-                    ['notify_feast_day',         'Feast Day Alerts'],
-                    ['notify_saved_destination', 'Saved Destination Updates'],
+                    ['notify_mass_schedule',     __('giya.profile.notify_mass')],
+                    ['notify_itinerary',         __('giya.profile.notify_itin')],
+                    ['notify_feast_day',         __('giya.profile.notify_feast')],
+                    ['notify_saved_destination', __('giya.profile.notify_saved')],
                 ] as [$field, $label])
                     <label class="pref-toggle-row">
                         <span>{{ $label }}</span>
@@ -432,18 +430,18 @@
             {{-- No Save button: every control writes as soon as it changes.
                  The submit is kept for a browser with JavaScript disabled. --}}
             <noscript>
-                <button type="submit" class="btn btn-primary btn-w-full">Save Preferences</button>
+                <button type="submit" class="btn btn-primary btn-w-full">{{ __('giya.profile.save_prefs') }}</button>
             </noscript>
 
             <p class="pref-status" id="prefStatus" role="status" aria-live="polite"></p>
         </form>
 
         {{-- Account actions kept from the old Settings tab --}}
-        <h2 class="section-title" style="font-size: 1.25rem;margin-top:28px">Account</h2>
+        <h2 class="section-title" style="font-size: 1.25rem;margin-top:28px">{{ __('giya.profile.account') }}</h2>
         <div class="card card-body">
             @foreach ([
-                ['shield-lock-fill', 'Change Password', 'Update the password used to sign in.', 'changePasswordModal'],
-                ['pencil-square',    'Edit Profile',    'Update your display name and email address.', 'editProfileModal'],
+                ['shield-lock-fill', __('giya.profile.change_pw'), __('giya.profile.pw_hint_card'), 'changePasswordModal'],
+                ['pencil-square',    __('giya.profile.edit'),      __('giya.profile.edit_hint'),   'editProfileModal'],
             ] as [$icon, $label, $desc, $target])
                 <button type="button" class="d-flex align-items-center gap-3 w-100 text-start bg-transparent border-0"
                         style="padding:12px;border-radius:12px" data-modal-open="{{ $target }}">
@@ -466,7 +464,7 @@
                         <i class="bi bi-box-arrow-right" style="color:#D4183D"></i>
                     </span>
                     <span style="flex:1">
-                        <span style="display:block;font-size: 0.875rem;font-weight:600;color:#D4183D">Sign Out</span>
+                        <span style="display:block;font-size: 0.875rem;font-weight:600;color:#D4183D">{{ __('giya.nav.sign_out') }}</span>
                         <span style="display:block;font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.profile.sign_out_note') }}</span>
                     </span>
                     <i class="bi bi-chevron-right" style="color:var(--text-muted)"></i>
@@ -481,7 +479,7 @@
 <div class="modal" id="editProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px">
-            <div class="modal-title"><i class="bi bi-pencil-fill" style="color:var(--primary)"></i> Edit Profile</div>
+            <div class="modal-title"><i class="bi bi-pencil-fill" style="color:var(--primary)"></i> {{ __('giya.profile.edit') }}</div>
             <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                 @csrf @method('PATCH')
 
@@ -497,12 +495,12 @@
                     people try.
                 --}}
                 <div class="field">
-                    <label class="form-label-sm" for="pf-avatar">Profile Photo</label>
+                    <label class="form-label-sm" for="pf-avatar">{{ __('giya.profile.photo') }}</label>
 
                     <div class="avatar-edit">
                         <label class="avatar-drop" id="avatarDrop" for="pf-avatar"
                                tabindex="0" role="button"
-                               aria-label="Change profile photo. Choose an image, or drop one here.">
+                               aria-label="{{ __('giya.profile.photo_aria') }}">
                             <span id="avatarPreviewWrap" class="avatar-drop-face">
                                 @if ($user->avatarPath())
                                     <img id="avatarPreview" src="{{ $user->avatarPath() }}" alt="">
@@ -513,12 +511,12 @@
 
                             <span class="avatar-drop-veil" aria-hidden="true">
                                 <i class="bi bi-camera-fill"></i>
-                                <span>Change</span>
+                                <span>{{ __('giya.common.change') }}</span>
                             </span>
                         </label>
 
                         <div class="avatar-edit-text">
-                            <p class="avatar-edit-lead" id="avatarName">Click the photo to change it</p>
+                            <p class="avatar-edit-lead" id="avatarName">{{ __('giya.profile.photo_hint') }}</p>
                             <p class="avatar-edit-hint">{{ __('giya.profile.avatar_hint') }}</p>
                         </div>
                     </div>
@@ -544,15 +542,15 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary" style="flex:1">Save Changes</button>
-                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1">{{ __('giya.profile.save_changes') }}</button>
+                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>{{ __('giya.common.cancel') }}</button>
                 </div>
             </form>
             @if ($user->avatarPath())
                 <form method="POST" action="{{ route('profile.avatar.remove') }}" style="margin-top:10px">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-ghost btn-sm" style="color:#D4183D">
-                        <i class="bi bi-trash3"></i> Remove photo
+                        <i class="bi bi-trash3"></i> {{ __('giya.profile.remove_photo') }}
                     </button>
                 </form>
             @endif
@@ -563,7 +561,7 @@
 <div class="modal" id="changePasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px">
-            <div class="modal-title"><i class="bi bi-shield-lock-fill" style="color:var(--primary)"></i> Change Password</div>
+            <div class="modal-title"><i class="bi bi-shield-lock-fill" style="color:var(--primary)"></i> {{ __('giya.profile.change_pw') }}</div>
             <form method="POST" action="{{ route('profile.password') }}">
                 @csrf @method('PATCH')
                 <div class="field">
@@ -580,7 +578,7 @@
                     <label class="form-label-sm" for="cp-new">{{ __('giya.profile.new_pw') }}</label>
                     <div class="input-wrap">
                         <input id="cp-new" type="password" name="password" class="giya-input"
-                               placeholder="Minimum 8 characters" required>
+                               placeholder="{{ __('giya.profile.pw_hint') }}" required>
                         <button type="button" class="input-suffix" onclick="giyaTogglePassword('cp-new', this)">
                             <i class="bi bi-eye"></i>
                         </button>
@@ -597,8 +595,8 @@
                     </div>
                 </div>
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary" style="flex:1">Update Password</button>
-                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1">{{ __('giya.profile.update_pw') }}</button>
+                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>{{ __('giya.common.cancel') }}</button>
                 </div>
             </form>
         </div>
@@ -609,14 +607,14 @@
         <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px">
             <div class="modal-title">
                 <i class="bi bi-star-fill" style="color:var(--gold)"></i>
-                Review <span id="reviewChurchName"></span>
+                {{ __('giya.profile.review') }} <span id="reviewChurchName"></span>
             </div>
             <form method="POST" action="{{ route('profile.review') }}">
                 @csrf
                 <input type="hidden" name="visit_id" id="reviewVisitId">
 
                 <div class="field">
-                    <label class="form-label-sm">Your Rating</label>
+                    <label class="form-label-sm">{{ __('giya.profile.your_rating') }}</label>
                     <div class="star-picker" id="starPicker">
                         @for ($i = 5; $i >= 1; $i--)
                             <input type="radio" name="rating" id="star-{{ $i }}" value="{{ $i }}"
@@ -632,16 +630,16 @@
                 <div class="field">
                     <label class="form-label-sm" for="review-comment">Comment (optional)</label>
                     <textarea id="review-comment" name="comment" class="giya-input" rows="3"
-                              placeholder="What made this visit meaningful?"></textarea>
+                              placeholder="{{ __('giya.profile.comment_ph') }}"></textarea>
                 </div>
 
                 <p style="font-size: 0.75rem;color:var(--text-muted);margin:0 0 12px">
-                    Reviews are published once an administrator approves them.
+                    {{ __('giya.profile.review_note') }}
                 </p>
 
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary" style="flex:1">Submit Review</button>
-                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1">{{ __('giya.profile.submit_review') }}</button>
+                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>{{ __('giya.common.cancel') }}</button>
                 </div>
             </form>
         </div>
@@ -781,7 +779,7 @@ const PrefSaver = (function () {
     */
     function save(field, value, reload) {
         apply(field, value);          // instant, before the round trip
-        say('Saving…');
+        say(@json(__('giya.common.saving')));
 
         fetch(form.dataset.saveUrl, {
             method: 'PATCH',
@@ -794,7 +792,7 @@ const PrefSaver = (function () {
         })
             .then(r => r.json())
             .then(d => {
-                say(d.ok ? 'Saved' : 'Could not save that', d.ok ? 'ok' : 'error');
+                say(d.ok ? @json(__('giya.profile.saved_ok')) : @json(__('giya.profile.save_fail')), d.ok ? 'ok' : 'error');
 
                 // Come back on the same tab rather than dumping the devotee
                 // on Overview - ?tab= is already how this page picks one.
@@ -804,7 +802,7 @@ const PrefSaver = (function () {
                     window.location.replace(url.toString());
                 }
             })
-            .catch(() => say('Could not save - check your connection', 'error'));
+            .catch(() => say(@json(__('giya.profile.save_fail_net')), 'error'));
     }
 
     return { save };

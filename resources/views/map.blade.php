@@ -1,12 +1,66 @@
 @extends('layouts.app')
 
-@section('title', 'Map')
+@section('title', __('giya.nav.map'))
 
 @push('head')
     <link rel="stylesheet" href="{{ asset('assets/css/leaflet.css') }}?v={{ filemtime(public_path('assets/css/leaflet.css')) }}">
 @endpush
 
 @section('content')
+@php
+    /* Built here rather than inside @json(...): Blade matches a directive's
+       brackets textually, and a multi-line array literal defeats that parser -
+       the same trap the home page carries a note about.
+
+       giya-leaflet.js is a plain script and cannot reach the translator, so
+       the phrases it puts on screen are handed to it already translated. */
+    $mapLabels = [
+        'seeDetails' => __('giya.church.see_details'),
+        'directions' => __('giya.church.directions'),
+        'addToRoute' => __('giya.church.add_to_route'),
+        'youAreHere' => __('giya.map.you_are_here'),
+        'finding'    => __('giya.map.finding'),
+        'noGeo'      => __('giya.map.no_geo'),
+        'denied'     => __('giya.map.denied'),
+        'noFix'      => __('giya.map.no_fix'),
+    ];
+
+    /* The phrases the page's own script writes, already translated. It counts
+       things, so two of them are plural forms and go through trans_choice. */
+    $mapStrings = [
+        'results'        => trans_choice('giya.church.results', 2, ['count' => ':count']),
+        'near_unlocated' => trans_choice('giya.map.near_unlocated', 2, ['count' => ':count']),
+        'near_unsorted'  => __('giya.map.near_unsorted'),
+        'none_within'    => __('giya.map.none_within', ['km' => ':km']),
+        'within'         => trans_choice('giya.map.within', 2, ['count' => ':count', 'km' => ':km']),
+        'select_route'   => __('giya.map.select_route', ['church' => ':church']),
+        'selected'       => __('giya.map.selected', ['count' => ':count']),
+        'following'      => __('giya.map.following'),
+        'add_another'    => __('giya.map.add_another'),
+        'no_match'       => __('giya.map.no_match'),
+        'exit_full'      => __('giya.common.exit_full'),
+        'fullscreen'     => __('giya.map.fullscreen'),
+        'signin_title'   => __('giya.map.signin_title'),
+        'signin_body'    => __('giya.map.signin_body', ['what' => ':what']),
+        'sign_in'        => __('giya.nav.sign_in'),
+        'not_now'        => __('giya.common.not_now'),
+        'this_church'    => __('giya.map.this_church'),
+        'act_directions' => __('giya.map.act_directions', ['church' => ':church']),
+        'act_add'        => __('giya.map.act_add', ['church' => ':church']),
+        'act_details'    => __('giya.map.act_details', ['church' => ':church']),
+        'act_plan'       => __('giya.map.act_plan'),
+        'pick_first'     => __('giya.map.pick_first'),
+    ];
+
+    /* Typing "open" or "mass" filters, so the two toggle chips could go. The
+       words are listed for all three languages at once rather than for the
+       current one: a devotee reading Cebuano may still type "open", and one
+       reading English may type "misa", and neither should come up empty. */
+    $searchKeywords = [
+        'open'   => ['open', 'now', 'abli', 'bukas', 'ablihan'],
+        'masses' => ['mass', 'masses', 'misa', 'schedule', 'iskedyul'],
+    ];
+@endphp
 <div style="max-width:1280px;margin:0 auto;padding:24px 20px 48px">
 
     <header class="mx-head">
@@ -17,7 +71,7 @@
 
     <div id="mapNote" class="map-note" style="display:none">
         <span id="mapNoteText"></span>
-        <button type="button" class="map-note-close" aria-label="Dismiss">&times;</button>
+        <button type="button" class="map-note-close" aria-label="{{ __('giya.common.dismiss') }}">&times;</button>
     </div>
 
     <div class="map-grid">
@@ -29,31 +83,31 @@
 
                 <label class="mx-search-field">
                     <i class="bi bi-search"></i>
-                    <input type="search" id="mapSearch" placeholder="Search, or try &quot;open&quot; or &quot;mass&quot;"
+                    <input type="search" id="mapSearch" placeholder="{{ __('giya.map.search_ph') }}"
                            aria-label="{{ __('giya.nav.search_label') }}">
                 </label>
 
-                <div class="mx-chips" role="group" aria-label="Filters">
-                    <button type="button" class="cat-chip is-active" data-cat="Near">Near</button>
+<div class="mx-chips" role="group" aria-label="{{ __('giya.map.filters') }}">
+                    {{-- No is-active: the script starts at 'All', so a lit
+                         Near chip claims a filter that is not running. --}}
+                    <button type="button" class="cat-chip" data-cat="Near">{{ __('giya.church.near') }}</button>
 
-                    {{-- Chapel and Heritage are hidden: chapels are not
-                         destinations a pilgrim travels to, and Heritage
-                         overlapped every other category. --}}
+                    {{-- Chapel and Heritage do not get a chip. The list comes
+                         from MapController::CHIPS_HIDDEN so the reason lives in
+                         one place rather than being repeated here. --}}
                     @foreach ($categories as $category)
-                        @continue (in_array($category, ['Chapel', 'Heritage']))
                         <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category }}</button>
                     @endforeach
-
                 </div>
             </div>
 
-            <div class="mx-list-head" id="listHeading">{{ count($markers) }} results</div>
+            <div class="mx-list-head" id="listHeading">{{ __('giya.church.results', ['count' => count($markers)]) }}</div>
             <div id="churchList" class="mx-list"></div>
 
             {{-- Selection tray: rises from the bottom once churches are picked --}}
-            <section id="routeBox" class="mx-tray" style="display:none" aria-label="Selected churches">
+            <section id="routeBox" class="mx-tray" style="display:none" aria-label="{{ __('giya.map.selected_aria') }}">
                 <div class="mx-tray-head">
-                    <span id="traySummary">0 churches selected</span>
+                    <span id="traySummary">{{ __('giya.map.selected_none') }}</span>
                     <span id="routeDistance" class="mx-tray-distance"></span>
                 </div>
 
@@ -111,6 +165,17 @@
        and explains before sending anyone to a login form. */
     const GUEST = @json(! auth()->check());
 
+    /* Every phrase this script writes into the page, already translated.
+       Placeholders are :name style, the same as Laravel's, so the strings in
+       lang/ read the same whether PHP or JavaScript substitutes them. */
+    const T = @json($mapStrings);
+
+    function trans(key, values) {
+        let out = T[key] || '';
+        for (const k in (values || {})) out = out.split(':' + k).join(values[k]);
+        return out;
+    }
+
     /*
        Everything a guest cannot do yet goes through here, so the wording and
        the behaviour are the same wherever they hit it - the list, a marker
@@ -124,10 +189,10 @@
     */
     function askToSignIn(what, next) {
         GiyaConfirm.ask({
-            title:   'Sign in to continue',
-            message: what + ' is for members. Creating an account is free, and you can keep browsing the map without one.',
-            ok:      'Sign in',
-            cancel:  'Not now',
+            title:   trans('signin_title'),
+            message: trans('signin_body', { what: what }),
+            ok:      trans('sign_in'),
+            cancel:  trans('not_now'),
             tone:    'primary',
             icon:    'person-plus-fill',
         }).then(function (ok) {
@@ -139,7 +204,7 @@
 
     function churchName(id) {
         const match = churches.filter(function (c) { return c.id === id; })[0];
-        return match ? match.name : 'this church';
+        return match ? match.name : trans('this_church');
     }
 
     function churchUrl(id) {
@@ -150,13 +215,7 @@
     /* A rotating reminder. It advances each time the devotee dismisses it, so
        it stays worth reading instead of becoming wallpaper, and it remembers
        where it left off between visits. */
-    const REMINDERS = [
-        'Travel safely today, and may every church you enter bring you a little more peace than the last.',
-        'Mass schedules change without notice, so it is always worth calling the parish before you set out.',
-        'Dress modestly when you visit, with shoulders and knees covered, and remember that some chapels ask for silence.',
-        'Start early and carry water with you. The midday heat in Cebu is unforgiving, especially on foot.',
-        'Keep your belongings close in crowded churches, particularly during fiesta and on feast days.',
-    ];
+    const REMINDERS = @json(array_values(__('giya.reminders')));
 
     let reminderIndex = Number(localStorage.getItem('giya_reminder') || 0) % REMINDERS.length;
 
@@ -213,9 +272,8 @@
     if (GUEST) {
         GiyaLeaflet.requireAccess(function (action, id) {
             return askToSignIn(
-                action === 'directions'
-                    ? 'Directions to ' + churchName(id)
-                    : 'Adding ' + churchName(id) + ' to a route',
+                trans(action === 'directions' ? 'act_directions' : 'act_add',
+                      { church: churchName(id) }),
                 churchUrl(id)
             );
         });
@@ -224,15 +282,29 @@
     const map = GiyaLeaflet.browse({
         element: 'giyaMap',
         churches: churches,
-        onStatus: showNote,
+
+        labels: @json($mapLabels),
+
+        /* A refused location is only an error if it left the devotee with
+           nothing. Near falls back to the whole list, so when the prompt is
+           denied - or the browser never asks, which is what happens over
+           plain http from a phone - we say what is missing instead of
+           throwing a red banner at a screenful of churches. */
+        onStatus: function (message, kind) {
+            if (kind === 'error' && category === 'Near') {
+                showNote(trans('near_unsorted'), 'info');
+                return;
+            }
+            showNote(message, kind);
+        },
         onFallback: function () {
             // Offline tiles are a deployment concern, not something a devotee
             // can act on. The map works either way, so say nothing.
         },
-        onLocated: function (me) {
-            /* Distance to EVERY church, not just the handful the map returns as
-               "nearest". Near is a radius, so it needs them all - otherwise a
-               church 200 m away is excluded because it fell outside an
+onLocated: function (me) {
+            /* Distance to EVERY church, not just the handful the map returns
+               as "nearest". Near is a radius, so it needs them all - otherwise
+               a church 200 m away is excluded because it fell outside an
                arbitrary top-eight. */
             distances = {};
             hasLocation = true;
@@ -248,10 +320,8 @@
             renderList();
 
             showNote(nearbyIds.length
-                ? nearbyIds.length + ' destination' + (nearbyIds.length === 1 ? '' : 's')
-                    + ' within ' + NEAR_KM + ' km'
-                : 'No destinations within ' + NEAR_KM + ' km. Showing the closest instead.',
-                'info');
+                ? trans('within', { count: nearbyIds.length, km: NEAR_KM })
+                : trans('none_within', { km: NEAR_KM }), 'info');
         },
         onSelect: function (id) {
             const row = document.querySelector('[data-church="' + id + '"]');
@@ -272,18 +342,18 @@
 
             routeBox.style.display = 'block';
             document.getElementById('traySummary').textContent =
-                stops.length + ' church' + (stops.length === 1 ? '' : 'es') + ' selected';
+                trans('selected', { count: stops.length });
             document.getElementById('routeDistance').textContent =
                 stops.length < 2 ? '' : totalKm.toFixed(1) + ' km';
 
             meta = meta || {};
 
             if (meta.mode === 'road') {
-                note.textContent = 'Following roads' +
+                note.textContent = trans('following') +
                     (meta.minutes ? ' \u00b7 about ' + meta.minutes + ' min by car' : '');
                 note.className = 'route-mode is-road';
             } else if (stops.length < 2) {
-                note.textContent = 'Add another church to build a route.';
+                note.textContent = trans('add_another');
                 note.className = 'route-mode';
             } else if (meta.pending) {
                 note.textContent = 'Straight-line estimate \u2014 checking roads\u2026';
@@ -315,14 +385,22 @@
         }
     });
 
-    /**
+/**
      * Search across name, location, category - and the words the chips used to
      * stand for.
      *
      * "open now" and "mass" were toggles taking permanent space for something
      * asked occasionally. Typing them is one action instead of finding and
      * pressing a chip, and it combines: "open basilica" narrows twice.
+     *
+     * The keywords are listed per language rather than hardcoded in English,
+     * so a devotee reading Cebuano can type "bukas" or "misa" and a devotee
+     * reading English can type "open" or "mass" - and either works whichever
+     * language the interface happens to be in, because all three lists are
+     * loaded at once.
      */
+    const KEYWORDS = @json($searchKeywords);
+
     function matchesQuery(c) {
         if (!query) return true;
 
@@ -330,8 +408,8 @@
         const haystack = (c.name + ' ' + (c.location || '') + ' ' + (c.category || '')).toLowerCase();
 
         return words.every(function (w) {
-            if (w === 'open' || w === 'now' || w === 'bukas') return c.open;
-            if (w === 'mass' || w === 'masses' || w === 'misa' || w === 'schedule') return c.masses;
+            if (KEYWORDS.open.indexOf(w) !== -1)   return c.open;
+            if (KEYWORDS.masses.indexOf(w) !== -1) return c.masses;
             return haystack.indexOf(w) !== -1;
         });
     }
@@ -361,14 +439,13 @@
         const list = filtered();
         const chosen = map.selected();
 
-        // Say plainly when Near is showing everything because no position is
-        // known yet - a count with no explanation reads as a failed filter.
-        if (category === 'Near' && !nearbyIds.length) {
-            document.getElementById('listHeading').textContent =
-                list.length + ' destinations - turn on location to sort by distance';
-        } else
-        document.getElementById('listHeading').textContent =
-            list.length + ' result' + (list.length === 1 ? '' : 's');
+        /* Say plainly when Near is showing everything because no position is
+           known yet - a count with no explanation reads as a failed filter. */
+        const unlocated = category === 'Near' && !hasLocation;
+
+        document.getElementById('listHeading').textContent = unlocated
+            ? trans('near_unlocated', { count: list.length })
+            : trans('results', { count: list.length });
 
         // Keep the map showing exactly what the list shows.
         if (map.showOnly) {
@@ -376,7 +453,7 @@
         }
 
         if (!list.length) {
-            listBox.innerHTML = '<p class="mx-empty">No churches match these filters.</p>';
+            listBox.innerHTML = '<p class="mx-empty">' + trans('no_match') + '</p>';
             return;
         }
 
@@ -399,7 +476,12 @@
                     '</h3>' +
                     '<p class="mx-row-place">' +
                         '<i class="bi bi-geo-alt-fill"></i>' + c.location +
-                        (distances[c.id] != null ? ' &middot; ' + distances[c.id].toFixed(1) + ' km' : '') +
+                        /* A bare "12.3 km" reads as "from you". It only is
+                           when we have the devotee's own position; measured
+                           from the middle of the map it would be a false
+                           claim, so the order stands and the number waits. */
+                        (hasLocation && distances[c.id] != null
+                            ? ' &middot; ' + distances[c.id].toFixed(1) + ' km' : '') +
                     '</p>' +
                     '<p class="mx-row-tags">' +
                         (c.rating > 0 ? '<span class="mx-star"><i class="bi bi-star-fill"></i>' + c.rating.toFixed(1) + '</span>' : '') +
@@ -409,7 +491,7 @@
                 '</div>' +
                 '<button type="button" class="mx-pick' + (picked ? ' is-on' : '') + '" ' +
                         'data-add="' + c.id + '" role="switch" aria-checked="' + picked + '" ' +
-                        'aria-label="Select ' + c.name + ' for the route">' +
+                        'aria-label="' + trans('select_route', { church: c.name }) + '">' +
                     '<i class="bi bi-check-lg"></i>' +
                 '</button>' +
             '</article>';
@@ -430,7 +512,7 @@
         fsBtn.innerHTML = on
             ? '<i class="bi bi-fullscreen-exit"></i>'
             : '<i class="bi bi-arrows-fullscreen"></i>';
-        fsBtn.title = on ? 'Exit fullscreen' : 'Fullscreen';
+        fsBtn.title = on ? trans('exit_full') : trans('fullscreen');
 
         // Stop the page behind scrolling while the map covers it.
         document.body.style.overflow = on ? 'hidden' : '';
@@ -464,7 +546,7 @@
         const ids = ordered.length ? ordered : map.selected();
 
         if (!ids.length) {
-            showNote(@json(__('giya.map.pick_first')), 'error');
+            showNote(trans('pick_first'), 'error');
             return;
         }
 
@@ -473,7 +555,7 @@
         // Sending a guest to the planner URL rather than to /login is what
         // saves their selection: the planner is behind auth, so it becomes
         // the intended page and they land there with these churches ready.
-        if (GUEST) { askToSignIn('Planning a route', planner); return; }
+        if (GUEST) { askToSignIn(trans('act_plan'), planner); return; }
 
         window.location.href = planner;
     });
@@ -483,25 +565,29 @@
         renderList();
     });
 
+    /* Open Now and Mass Schedule are gone - the search box answers both, so
+       every chip left is a category and this handler no longer needs the
+       toggle branch. */
     document.querySelectorAll('.cat-chip').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            if (this.dataset.flag) {
-                flags[this.dataset.flag] = !flags[this.dataset.flag];
-                this.classList.toggle('is-active', flags[this.dataset.flag]);
-            } else {
-                document.querySelectorAll('.cat-chip:not(.is-toggle)').forEach(function (b) {
-                    b.classList.remove('is-active');
-                });
-                this.classList.add('is-active');
-                category = this.dataset.cat;
+            document.querySelectorAll('.cat-chip').forEach(function (b) {
+                b.classList.remove('is-active');
+            });
+            this.classList.add('is-active');
+            category = this.dataset.cat;
 
-                if (category === 'Near') {
-                    if (!hasLocation) {
-                        showNote('Finding churches near you...', 'info');
-                    }
-                    map.locate();
-                }
+            if (category === 'Near') {
+                map.locate();
+
+                /* Said AFTER locate(), which posts a "finding your location"
+                   note of its own. On a phone over plain http the prompt is
+                   never shown and never answered, so that note would sit there
+                   forever describing something that is not happening - while
+                   the list below it is perfectly usable, just unsorted. If a
+                   fix does arrive, onLocated replaces this with the count. */
+                if (!hasLocation) showNote(trans('near_unsorted'), 'info');
             }
+
             renderList();
         });
     });
@@ -515,7 +601,7 @@
 
             if (GUEST) {
                 const id = Number(pick.dataset.add);
-                askToSignIn('Adding ' + churchName(id) + ' to a route', churchUrl(id));
+                askToSignIn(trans('act_add', { church: churchName(id) }), churchUrl(id));
                 return;
             }
 
@@ -549,7 +635,7 @@
                explanation of what they clicked or why. */
             if (GUEST) {
                 askToSignIn(
-                    'Mass schedules, reviews and photos for ' + (link.dataset.church || 'this church'),
+                    trans('act_details', { church: link.dataset.church || trans('this_church') }),
                     link.dataset.details
                 );
                 return;
@@ -590,9 +676,10 @@
         renderList();
     })();
 
-    /* Focus a church passed as ?church=. This used to sit inside onLocated,
-       so it only ran when geolocation succeeded - a link to a church did
-       nothing if location was refused. */
+    /* Arriving from ?church=<id> - a "View Details" in Favorites, a link in
+       the planner. It used to sit inside onLocated, so the church was only
+       focused if geolocation succeeded: deny the prompt, or open the page
+       over plain http on a phone, and the deep link did nothing at all. */
     const initialChurchId = Number(new URLSearchParams(window.location.search).get('church'));
     if (initialChurchId) {
         setTimeout(function () { map.focus(initialChurchId); }, 0);

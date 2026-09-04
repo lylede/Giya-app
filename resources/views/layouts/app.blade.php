@@ -31,7 +31,7 @@
 @auth
     @unless (request()->routeIs('chatbot'))
         <button type="button" class="giya-fab" id="giyaFab"
-                aria-label="Ask Giya AI" aria-expanded="false" aria-controls="giyaPanel"
+                aria-label="{{ __('giya.home.card_ask') }}" aria-expanded="false" aria-controls="giyaPanel"
                 data-send-url="{{ route('chatbot.send') }}">
             {{-- The assistant's own head, reused exactly: same classes, same
                  CSS, just scaled down. Restyling the guide restyles this too. --}}
@@ -54,7 +54,7 @@
             {{-- Appears on hover. The head alone is friendly but silent;
                  a line of greeting says what pressing it will do. --}}
             <span class="fab-say" id="fabSay" aria-hidden="true">
-                Hi, I'm Giya. Ask me anything.
+                {{ __('giya.chat.starter') }}
             </span>
         </button>
 

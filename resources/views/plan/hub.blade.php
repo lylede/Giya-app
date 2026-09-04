@@ -10,38 +10,38 @@
     </div>
     <h1 style="font-family:var(--font-display);font-size: 2rem;margin:0 0 10px">{{ __('giya.plan.hub') }}</h1>
     <p style="color:var(--text-muted);font-size: 0.9375rem;line-height:1.7;max-width:580px;margin:0 0 40px">
-        Choose how you want to plan your religious journey across Metro Cebu - build a custom
-        route, follow the Visita Iglesia tradition, or continue where you left off.
+        {{ __('giya.plan.hub_lead') }}
     </p>
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:48px" class="plan-grid">
         @php
             $cards = [
                 [
-                    'icon' => 'giya-route', 'title' => 'Create Custom Itinerary', 'badge' => 'Flexible',
-                    'desc' => 'Build a personalised route. Pick destinations, set the date, and order your stops.',
-                    'points' => ['Choose any destinations', 'Date and start time', 'Reorder stops freely', 'Estimated timings'],
-                    'cta' => 'Create Itinerary', 'route' => route('plan.create'), 'accent' => 'var(--primary)', 'featured' => false,
+                    'icon' => 'giya-route', 'title' => __('giya.hub.c1_title'), 'badge' => __('giya.hub.c1_badge'),
+                    'desc' => __('giya.hub.c1_desc'),
+                    'points' => [__('giya.hub.c1_p1'), __('giya.hub.c1_p2'), __('giya.hub.c1_p3'), __('giya.hub.c1_p4')],
+                    'cta' => __('giya.hub.c1_cta'), 'route' => route('plan.create'), 'accent' => 'var(--primary)', 'featured' => false,
                 ],
                 [
-                    'icon' => 'giya-seven', 'title' => 'Visita Iglesia Route', 'badge' => 'Traditional',
-                    'desc' => 'The traditional multi-church pilgrimage. Seven churches by default, adjustable to your devotion.',
-                    'points' => ['7 churches by default', 'Adjust the count', 'Track each stop', 'Mark as visited'],
-                    'cta' => 'Plan Visita Iglesia', 'route' => route('plan.visita'), 'accent' => '#6B4C2A', 'featured' => false,
+                    'icon' => 'giya-seven', 'title' => __('giya.plan.card_visita_title'), 'badge' => __('giya.hub.c2_badge'),
+                    'desc' => __('giya.hub.c2_desc'),
+                    'points' => [__('giya.hub.c2_p1'), __('giya.hub.c2_p2'), __('giya.hub.c2_p3'), __('giya.hub.c2_p4')],
+                    'cta' => __('giya.hub.c2_cta'), 'route' => route('plan.visita'), 'accent' => '#6B4C2A', 'featured' => false,
                 ],
                 [
-                    'icon' => 'giya-saved', 'title' => 'My Itineraries', 'badge' => 'Saved',
-                    'desc' => 'Review saved pilgrimages, resume a route, or revisit completed journeys.',
-                    'points' => ['All saved routes', 'Completed history', 'Resume anytime', 'Deleted ones still count'],
-                    'cta' => 'View Saved Plans', 'route' => route('plan.index'), 'accent' => '#5A3E28', 'featured' => false,
+                    'icon' => 'giya-saved', 'title' => __('giya.plan.my_title'), 'badge' => __('giya.hub.c3_badge'),
+                    'desc' => __('giya.hub.c3_desc'),
+                    'points' => [__('giya.hub.c3_p1'), __('giya.hub.c3_p2'), __('giya.hub.c3_p3'), __('giya.hub.c3_p4')],
+                    'cta' => __('giya.hub.c3_cta'), 'route' => route('plan.index'), 'accent' => '#5A3E28', 'featured' => false,
                 ],
                 [
-                    'icon' => 'giya-pilgrim', 'title' => 'Active Pilgrimage', 'badge' => $activeItinerary ? 'In Progress' : 'None Active',
+                    'icon' => 'giya-pilgrim', 'title' => __('giya.hub.c4_title'),
+                    'badge' => $activeItinerary ? __('giya.hub.c4_badge_on') : __('giya.hub.c4_badge_off'),
                     'desc' => $activeItinerary
-                        ? 'Continue "' . $activeItinerary->name . '" and keep tracking your progress.'
-                        : 'Start a route from any of the options here and it will appear in this card.',
-                    'points' => ['Live route map', 'Mark stops visited', 'Progress tracker', 'Automatic completion'],
-                    'cta' => $activeItinerary ? 'Continue Pilgrimage' : 'Start a Route',
+                        ? __('giya.hub.c4_desc_on', ['name' => $activeItinerary->name])
+                        : __('giya.hub.c4_desc_off'),
+                    'points' => [__('giya.hub.c4_p1'), __('giya.hub.c4_p2'), __('giya.hub.c4_p3'), __('giya.hub.c4_p4')],
+                    'cta' => $activeItinerary ? __('giya.hub.c4_cta_on') : __('giya.hub.c4_cta_off'),
                     'route' => $activeItinerary ? route('plan.show', $activeItinerary) : route('plan.create'),
                     'accent' => 'var(--gold)', 'featured' => (bool) $activeItinerary,
                 ],
@@ -108,8 +108,8 @@
                     <i class="bi bi-chevron-right" style="color:var(--text-muted)"></i>
                 </a>
             @empty
-                <x-empty-state icon="giya-route" title="No itineraries yet"
-                               desc="Create your first pilgrimage route to see it listed here.">
+                <x-empty-state icon="giya-route" :title="__('giya.plan.no_itineraries')"
+                               :desc="__('giya.plan.no_itin_desc')">
                     <a href="{{ route('plan.create') }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.plan.create_first') }}</a>
                 </x-empty-state>
             @endforelse
@@ -121,10 +121,10 @@
                 /* What each tip actually means here: a mantilla, a candle, a
                    jeepney and a water bottle - not the vcard, flame, coach and
                    droplet a general-purpose set had to offer. */
-                ['giya-veil',    'Dress modestly - cover shoulders and knees when entering a church.'],
-                ['giya-candle',  'Light a candle and offer a prayer at each stop for a fuller experience.'],
-                ['giya-jeepney', 'Arrange transport ahead of time for destinations outside Cebu City.'],
-                ['giya-bottle',  'Bring water, especially for hilltop shrines such as Simala.'],
+                ['giya-veil',    __('giya.tips.dress')],
+                ['giya-candle',  __('giya.tips.candle')],
+                ['giya-jeepney', __('giya.tips.transport')],
+                ['giya-bottle',  __('giya.tips.water')],
             ] as [$icon, $tip])
                 {{-- A two-column grid rather than a flex row. The icon and the
                      text sat on different baselines because the icon centred

@@ -18,15 +18,15 @@
         <input type="hidden" name="email" value="{{ $email }}">
 
         <div class="field">
-            <label class="form-label">Email Address</label>
+            <label class="form-label">{{ __('giya.profile.email') }}</label>
             <input type="email" class="giya-input" value="{{ $email }}" disabled>
         </div>
 
         <div class="field">
-            <label class="form-label" for="password">New Password</label>
+            <label class="form-label" for="password">{{ __('giya.auth.new_pw') }}</label>
             <div class="input-wrap">
                 <input id="password" type="password" name="password" class="giya-input"
-                       placeholder="Minimum 8 characters" required autofocus autocomplete="new-password">
+                       placeholder="{{ __('giya.auth.pw_min') }}" required autofocus autocomplete="new-password">
                 <button type="button" class="input-suffix" onclick="giyaTogglePassword('password', this)">
                     <i class="bi bi-eye"></i>
                 </button>
@@ -35,17 +35,17 @@
         </div>
 
         <div class="field">
-            <label class="form-label" for="password_confirmation">Confirm New Password</label>
+            <label class="form-label" for="password_confirmation">{{ __('giya.auth.confirm_new_pw') }}</label>
             <div class="input-wrap">
                 <input id="password_confirmation" type="password" name="password_confirmation"
-                       class="giya-input" placeholder="Re-enter new password" required autocomplete="new-password">
+                       class="giya-input" placeholder="{{ __('giya.auth.new_pw_again') }}" required autocomplete="new-password">
                 <button type="button" class="input-suffix" onclick="giyaTogglePassword('password_confirmation', this)">
                     <i class="bi bi-eye"></i>
                 </button>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-w-full">Reset Password</button>
+        <button type="submit" class="btn btn-primary btn-w-full">{{ __('giya.auth.reset_pw') }}</button>
     </form>
 @endsection
     <livewire:auth.reset-password :token="$token" :email="$email" />

@@ -44,7 +44,7 @@
 @endphp
 
 <svg class="offline-map" viewBox="0 0 {{ $W }} {{ $H }}" preserveAspectRatio="xMidYMid slice"
-     role="img" aria-label="Map of pilgrimage destinations in Metro Cebu">
+     role="img" aria-label="{{ __('giya.misc.offline_aria') }}">
 
     <rect width="{{ $W }}" height="{{ $H }}" class="om-water"/>
 
@@ -86,6 +86,6 @@
     <circle id="omMe" class="om-me" r="8" cx="-100" cy="-100" style="display:none"/>
 
     <text class="om-attrib" x="12" y="{{ $H - 12 }}">
-        Offline schematic map · coordinates projected from the GIYA database
+        {{ __('giya.misc.offline_map') }}
     </text>
 </svg>

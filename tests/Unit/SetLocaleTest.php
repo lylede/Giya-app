@@ -142,9 +142,19 @@ class SetLocaleTest extends TestCase
         // Not a hard rule - proper nouns are meant to match - but anything
         // outside this list being identical means a string was missed.
         $sameOnPurpose = [
-            'nav.region', 'footer.visita', 'footer.chatbot', 'footer.account',
-            'footer.dashboard', 'plan.visita', 'profile.account', 'profile.email',
-            'chat.title', 'common.optional',
+            // Proper nouns and brand names.
+            'nav.region', 'footer.visita', 'plan.visita', 'plan.visita_title',
+            'chat.title', 'chat.panel_aria', 'upgrade.premium',
+            'profile.ach_hopper',
+
+            // Words Cebuano and Filipino speakers use unchanged. "Akawnt"
+            // for Account is not an improvement, and nobody writes it.
+            'footer.chatbot', 'footer.account', 'footer.dashboard',
+            'profile.account', 'profile.email', 'profile.review',
+            'church.access', 'auth.password', 'common.optional',
+
+            // A sample name and a sample email printed in a placeholder.
+            'auth.name_ph', 'auth.email_ph',
         ];
 
         $english = require base_path('lang/en/giya.php');

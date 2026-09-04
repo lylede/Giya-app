@@ -8,16 +8,36 @@ use Illuminate\View\View;
 
 class MapController extends Controller
 {
+    /**
+     * Categories that exist on churches but do not get a chip of their own.
+     *
+     * Chapels are not destinations a pilgrim travels to, and Heritage
+     * overlapped every other category. Removing the chip is not the same as
+     * removing the category: a church filed under either keeps it, still
+     * carries it on its own page, and still appears on the map and under All.
+     * It simply stops taking a slot in a filter bar that has to fit on a
+     * phone.
+     */
+    private const CHIPS_HIDDEN = ['Chapel', 'Heritage'];
+
     public function index(): View
     {
         $churches = Church::with('churchCategory', 'primaryImage')
+            /* One subquery in the main statement rather than an exists()
+               per church while building the marker list - that was a query
+               for every destination on a page that shows all of them. */
+            ->withExists(['schedules as has_mass' => fn ($q) => $q->where('event_type', 'Mass')])
             ->active()
             ->orderBy('name')
             ->get();
 
         return view('map', [
             'churches'   => $churches,
-            'categories' => ChurchCategory::orderBy('name')->pluck('name')->prepend('All')->all(),
+            'categories' => ChurchCategory::orderBy('name')
+                ->whereNotIn('name', self::CHIPS_HIDDEN)
+                ->pluck('name')
+                ->prepend('All')
+                ->all(),
 
             // Plain array for Leaflet - no Eloquent objects cross into JS.
             'markers' => $churches
@@ -35,7 +55,11 @@ class MapController extends Controller
                     'rating'   => (float) $c->rating,
                     'hours'    => $c->hours_label,
                     'open'     => $c->isOpenNow(),
-                    'masses'   => $c->schedules()->where('event_type', 'Mass')->exists(),
+
+                    // The search box reads this: typing "mass" or "misa"
+                    // filters to churches that hold one, which is what the
+                    // Mass Schedule chip used to do.
+                    'masses'   => (bool) $c->has_mass,
                 ])
                 ->values()
                 ->all(),

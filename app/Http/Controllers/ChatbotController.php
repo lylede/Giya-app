@@ -26,11 +26,14 @@ class ChatbotController extends Controller
             'session'   => $session,
             'messages'  => $session->messages,
             'online'    => $this->assistant->configured(),
+            // Translated here rather than in the view: the same four strings
+            // are both the button label and the question that gets asked, so
+            // a devotee reading Cebuano should also be asking in Cebuano.
             'starters'  => [
-                'What churches can I visit in Cebu?',
-                'Plan a Visita Iglesia for me',
-                'How do I plan a pilgrimage day?',
-                'What should I know before visiting a church?',
+                __('giya.chat.suggest_1'),
+                __('giya.chat.suggest_2'),
+                __('giya.chat.suggest_3'),
+                __('giya.chat.suggest_4'),
             ],
         ]);
     }
