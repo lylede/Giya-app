@@ -1,17 +1,17 @@
 @extends('layouts.app')
-@section('title', 'Create Itinerary')
+@section('title', __('giya.plan.title_create'))
 
 @section('content')
 <div class="page-wrap">
 
     <a href="{{ route('plan.hub') }}" class="back-link">
-        <i class="bi bi-chevron-left"></i> Back to Plan Hub
+        <i class="bi bi-chevron-left"></i> {{ __('giya.plan.back_hub') }}
     </a>
 
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
         <div>
-            <h1 style="font-family:var(--font-display);font-size: 1.75rem;margin:0 0 4px">Custom Itinerary Planner</h1>
-            <p style="color:var(--text-muted);font-size: 0.875rem;margin:0">Build a personalised pilgrimage route across Metro Cebu</p>
+            <h1 style="font-family:var(--font-display);font-size: 1.75rem;margin:0 0 4px">{{ __('giya.plan.custom_title') }}</h1>
+            <p style="color:var(--text-muted);font-size: 0.875rem;margin:0">{{ __('giya.plan.custom_lead') }}</p>
         </div>
     </div>
 
@@ -19,8 +19,8 @@
         <div class="alert alert-warning">
             <i class="bi bi-lock-fill"></i>
             <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.
-                  <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">Go Premium</a>
-                  for unlimited routes - deleting an itinerary does not free a slot.</span>
+                  <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">{{ __('giya.plan.go_premium') }}</a>
+                  {{ __('giya.plan.premium_note') }}</span>
         </div>
     @endif
 
@@ -46,22 +46,22 @@
 
             {{-- 1. Trip details --}}
             <div class="card card-body pane-details">
-                    <div class="card-title" style="color:var(--primary)">Trip Details</div>
+                    <div class="card-title" style="color:var(--primary)">{{ __('giya.plan.trip_details') }}</div>
 
                     <div class="field">
-                        <label class="form-label-sm" for="pl-name">Itinerary Name</label>
+                        <label class="form-label-sm" for="pl-name">{{ __('giya.plan.itinerary_name') }}</label>
                         <input id="pl-name" type="text" name="name" class="giya-input"
-                               value="{{ old('name') }}" placeholder="e.g. Cebu City Pilgrimage" required maxlength="200">
+                               value="{{ old('name') }}" placeholder="{{ __('giya.plan.name_ph') }}" required maxlength="200">
                     </div>
 
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                         <div class="field">
-                            <label class="form-label-sm" for="pl-date">Date</label>
+                            <label class="form-label-sm" for="pl-date">{{ __('giya.plan.date') }}</label>
                             <input id="pl-date" type="date" name="scheduled_date" class="giya-input"
                                    value="{{ old('scheduled_date') }}" min="{{ now()->toDateString() }}">
                         </div>
                         <div class="field">
-                            <label class="form-label-sm" for="pl-time">Start Time</label>
+                            <label class="form-label-sm" for="pl-time">{{ __('giya.plan.start_time') }}</label>
                             <input id="pl-time" type="time" class="giya-input" value="08:00"
                                    onchange="GiyaPlanner.render()">
                         </div>
@@ -70,7 +70,7 @@
                     <div class="field" style="margin-bottom:0">
                         <label class="form-label-sm" for="pl-notes">Notes (optional)</label>
                         <textarea id="pl-notes" name="notes" class="giya-input" rows="2"
-                                  placeholder="Anything to remember for this trip…">{{ old('notes') }}</textarea>
+                                  placeholder="{{ __('giya.plan.notes_ph') }}">{{ old('notes') }}</textarea>
                     </div>
             </div>
 
@@ -90,14 +90,14 @@
                         </div>
                         <p id="presetNote" class="plan-preset-note" hidden>
                             <i class="bi bi-check-circle-fill"></i>
-                            Brought over from the map - add or remove any stop before saving.
+                            {{ __('giya.plan.from_map') }}
                         </p>
                     </div>
 
                     <div id="routeEmpty" class="empty-state" style="padding:56px 20px">
                         <div class="empty-icon"><i class="bi bi-signpost-2" style="color:var(--gold)"></i></div>
-                        <div class="empty-title" style="font-size: 0.9375rem">No stops yet</div>
-                        <div class="empty-desc">Pick destinations from the panel beside this one.</div>
+                        <div class="empty-title" style="font-size: 0.9375rem">{{ __('giya.plan.no_stops') }}</div>
+                        <div class="empty-desc">{{ __('giya.plan.no_stops_lead') }}</div>
                     </div>
 
                     <div id="routeList" class="d-none"></div>
@@ -106,10 +106,10 @@
                 <div id="routeActions" class="d-none gap-2 flex-wrap">
                     <button type="button" class="btn btn-primary" style="flex:1;min-width:180px"
                             onclick="GiyaPlanner.submit()" @disabled($atLimit)>
-                        <i class="bi bi-person-walking"></i> Start Pilgrimage
+                        <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
                     </button>
                     <button type="button" class="btn btn-outline" id="planViewMap">
-                        <i class="bi bi-map-fill"></i> View on Map
+                        <i class="bi bi-map-fill"></i> {{ __('giya.plan.view_on_map') }}
                     </button>
                 </div>
             </div>
@@ -117,7 +117,7 @@
             {{-- 3. The destinations to choose from --}}
             <div class="pane-picker">
                 <div class="card card-body picker-card">
-                    <div class="card-title" style="color:var(--primary)">Add Destinations</div>
+                    <div class="card-title" style="color:var(--primary)">{{ __('giya.plan.destinations') }}</div>
                     <div class="dest-list">
                         @foreach ($churches as $church)
                             <button type="button" class="dest-item" id="dest-{{ $church->id }}"
@@ -415,7 +415,7 @@ const GiyaPlanner = (function () {
     return {
         add: add, remove: remove, move: move, render: render,
         submit: function () {
-            if (!stops.length) { GiyaConfirm.ask({ title: 'No destinations yet', message: 'Add at least one destination to this itinerary before starting it.', ok: 'Got it', cancel: 'Close', tone: 'primary', icon: 'signpost-2-fill' }); return; }
+            if (!stops.length) { GiyaConfirm.ask({ title: @json(__('giya.plan.no_dest_title')), message: @json(__('giya.plan.no_dest_body')), ok: @json(__('giya.common.got_it')), cancel: @json(__('giya.common.close')), tone: 'primary', icon: 'signpost-2-fill' }); return; }
 
             /* The names are what the server saves. The ids ride along so that
                if the server does reject the form, the route can be rebuilt

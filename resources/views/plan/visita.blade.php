@@ -1,26 +1,26 @@
 @extends('layouts.app')
-@section('title', 'Visita Iglesia')
+@section('title', __('giya.plan.visita'))
 
 @section('content')
 <div class="page-wrap">
 
     <a href="{{ route('plan.hub') }}" class="back-link">
-        <i class="bi bi-chevron-left"></i> Back to Plan Hub
+        <i class="bi bi-chevron-left"></i> {{ __('giya.plan.back_hub') }}
     </a>
 
     <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
-        <h1 style="font-family:var(--font-display);font-size: 1.75rem;margin:0">Visita Iglesia Planner</h1>
-        <span class="badge badge-brown">Traditionally 7 churches</span>
+        <h1 style="font-family:var(--font-display);font-size: 1.75rem;margin:0">{{ __('giya.plan.visita_title') }}</h1>
+        <span class="badge badge-brown">{{ __('giya.plan.traditionally') }}</span>
     </div>
     <p style="color:var(--text-muted);font-size: 0.875rem;margin:0 0 32px">
-        The traditional multi-church pilgrimage - adjust the number of stops to suit your devotion and schedule.
+        {{ __('giya.plan.visita_lead') }}
     </p>
 
     @if ($atLimit)
         <div class="alert alert-warning">
             <i class="bi bi-lock-fill"></i>
             <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.
-                  <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">Go Premium</a> for unlimited routes.</span>
+                  <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">{{ __('giya.plan.go_premium') }}</a> {{ __('giya.plan.premium_short') }}</span>
         </div>
     @endif
 
@@ -42,40 +42,40 @@
             <div>
                 <div class="upgrade-card mb-3">
                     <div style="position:relative">
-                        <div style="color:rgba(255,255,255,0.7);font-size: 0.75rem;margin-bottom:4px">Route Progress</div>
+                        <div style="color:rgba(255,255,255,0.7);font-size: 0.75rem;margin-bottom:4px">{{ __('giya.plan.route_progress') }}</div>
                         <div style="font-family:var(--font-display);color:var(--gold);font-size: 1.875rem;font-weight:700;line-height:1">
                             <span id="visitedCount">0</span> of <span id="totalCountA">7</span>
                         </div>
-                        <div style="color:rgba(255,255,255,0.8);font-size: 0.8125rem;margin-top:2px">churches marked visited</div>
+                        <div style="color:rgba(255,255,255,0.8);font-size: 0.8125rem;margin-top:2px">{{ __('giya.plan.marked_visited') }}</div>
                         <div class="progress-track" style="margin-top:14px">
                             <div class="progress-fill" id="progressBar" style="width:0%"></div>
                         </div>
-                        <div id="progressLabel" style="color:var(--gold);font-size: 0.75rem;font-weight:700;margin-top:6px">0% complete</div>
+                        <div id="progressLabel" style="color:var(--gold);font-size: 0.75rem;font-weight:700;margin-top:6px">{{ __('giya.plan.complete', ['percent' => 0]) }}</div>
                     </div>
                 </div>
 
                 <div class="card card-body mb-3">
-                    <div class="card-title">Itinerary Details</div>
+                    <div class="card-title">{{ __('giya.plan.itin_details') }}</div>
                     <div class="field">
-                        <label class="form-label-sm" for="vi-name">Route Name</label>
+                        <label class="form-label-sm" for="vi-name">{{ __('giya.plan.route_name') }}</label>
                         <input id="vi-name" type="text" name="name" class="giya-input"
-                               value="{{ old('name', 'Visita Iglesia Route') }}" required maxlength="200">
+                               value="{{ old('name', __('giya.plan.card_visita_title')) }}" required maxlength="200">
                     </div>
                     <div class="field" style="margin-bottom:0">
-                        <label class="form-label-sm" for="vi-date">Date</label>
+                        <label class="form-label-sm" for="vi-date">{{ __('giya.plan.date') }}</label>
                         <input id="vi-date" type="date" name="scheduled_date" class="giya-input"
                                value="{{ old('scheduled_date') }}" min="{{ now()->toDateString() }}">
                     </div>
                 </div>
 
                 <div class="card card-body mb-3">
-                    <div class="card-title">Adjust Church Count</div>
+                    <div class="card-title">{{ __('giya.plan.adjust_count') }}</div>
                     <div class="d-flex align-items-center gap-4 mb-3">
                         <button type="button" onclick="GiyaVisita.step(-1)"
                                 style="width:40px;height:40px;border-radius:12px;border:none;cursor:pointer;font-size: 1.25rem;font-weight:700;background:var(--gold-bg);color:var(--primary)">−</button>
                         <div class="text-center">
                             <div id="countValue" style="font-family:var(--font-display);font-size: 1.875rem;font-weight:700;color:var(--primary);line-height:1">7</div>
-                            <div style="font-size: 0.6875rem;color:var(--text-muted)">churches</div>
+                            <div style="font-size: 0.6875rem;color:var(--text-muted)">{{ __('giya.plan.churches_word') }}</div>
                         </div>
                         <button type="button" onclick="GiyaVisita.step(1)"
                                 style="width:40px;height:40px;border-radius:12px;border:none;cursor:pointer;font-size: 1.25rem;font-weight:700;background:var(--primary);color:#fff">+</button>
@@ -90,7 +90,7 @@
 
                 <div class="card card-body mb-3 d-none" id="addPicker">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span style="font-size: 0.875rem;font-weight:700;color:var(--primary)">Add a Church</span>
+                        <span style="font-size: 0.875rem;font-weight:700;color:var(--primary)">{{ __('giya.plan.add_a_church') }}</span>
                         <button type="button" class="route-btn" onclick="document.getElementById('addPicker').classList.add('d-none')">
                             <i class="bi bi-x" style="font-size: 1.125rem;color:var(--text-muted)"></i>
                         </button>
@@ -99,7 +99,7 @@
                 </div>
 
                 <button type="button" class="btn btn-primary btn-w-full" onclick="GiyaVisita.submit()" @disabled($atLimit)>
-                    <i class="bi bi-person-walking"></i> Start Pilgrimage
+                    <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
                 </button>
             </div>
 
@@ -107,15 +107,15 @@
             <div>
                 <div class="card card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <div class="card-title" style="margin:0">Your Visita Iglesia Route</div>
-                        <span id="countLabel" style="font-size: 0.75rem;color:var(--text-muted)">7 churches</span>
+                        <div class="card-title" style="margin:0">{{ __('giya.plan.your_visita') }}</div>
+                        <span id="countLabel" style="font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.plan.stops_count', ['count' => 7]) }}</span>
                     </div>
 
                     <div id="churchList" style="display:flex;flex-direction:column;gap:10px"></div>
 
                     <button type="button" onclick="GiyaVisita.openPicker()"
                             style="width:100%;margin-top:12px;padding:12px;border-radius:13px;border:2px dashed rgba(215,169,74,.45);color:var(--primary);font-weight:600;font-size: 0.8125rem;background:rgba(215,169,74,.05);cursor:pointer;font-family:var(--font-body)">
-                        <i class="bi bi-plus-lg"></i> Add Church
+                        <i class="bi bi-plus-lg"></i> {{ __('giya.plan.add_church') }}
                     </button>
                 </div>
             </div>
@@ -135,7 +135,12 @@
     .vi-row.current { background:rgba(142,59,47,.04); border:2px solid var(--primary); }
     .vi-row.todo    { background:var(--bg); }
     .route-btn { background:none; border:none; cursor:pointer; padding:2px; line-height:1; }
-    @media (max-width: 950px) { .visita-grid { grid-template-columns: 1fr !important; } }
+    /* minmax(0, 1fr), not 1fr: a grid column's default min-width is auto,
+       so it refuses to shrink below the widest thing inside it. On a phone
+       that pushed this column to 397px inside a 358px grid and scrolled the
+       whole page sideways - in English, and 7px further in Cebuano, where
+       the words are longer. */
+    @media (max-width: 950px) { .visita-grid { grid-template-columns: minmax(0, 1fr) !important; } }
 </style>
 @endpush
 
@@ -155,9 +160,9 @@ const GiyaVisita = (function () {
         document.getElementById('visitedCount').textContent = done;
         document.getElementById('totalCountA').textContent  = total;
         document.getElementById('countValue').textContent   = total;
-        document.getElementById('countLabel').textContent   = total + (total === 1 ? ' church' : ' churches');
+        document.getElementById('countLabel').textContent   = @json(__('giya.plan.stops_count', ['count' => ':count'])).replace(':count', total);
         document.getElementById('progressBar').style.width  = pct + '%';
-        document.getElementById('progressLabel').textContent = pct + '% complete';
+        document.getElementById('progressLabel').textContent = @json(__('giya.plan.complete', ['percent' => ':percent'])).replace(':percent', pct);
 
         document.getElementById('churchList').innerHTML = list.map(function (c, i) {
             const isCurrent = current && current.id === c.id;
@@ -179,7 +184,7 @@ const GiyaVisita = (function () {
                     '<button type="button" class="route-btn" onclick="GiyaVisita.move(' + i + ',-1)" style="color:' + (i === 0 ? '#D8C4BC' : 'var(--primary)') + ';font-size: 0.75rem">▲</button>' +
                     '<button type="button" class="route-btn" onclick="GiyaVisita.move(' + i + ',1)" style="color:' + (i === list.length - 1 ? '#D8C4BC' : 'var(--primary)') + ';font-size: 0.75rem">▼</button>' +
                   '</span>' +
-                  '<button type="button" onclick="GiyaVisita.toggle(' + i + ')" style="padding:8px 13px;border-radius:10px;font-size: 0.75rem;font-weight:700;border:none;cursor:pointer;min-width:100px;font-family:var(--font-body);background:' + (c.visited ? 'var(--gold-bg)' : 'var(--primary)') + ';color:' + (c.visited ? 'var(--primary)' : '#fff') + '">' + (c.visited ? 'Visited' : 'Mark Visited') + '</button>' +
+                  '<button type="button" onclick="GiyaVisita.toggle(' + i + ')" style="padding:8px 13px;border-radius:10px;font-size: 0.75rem;font-weight:700;border:none;cursor:pointer;min-width:100px;font-family:var(--font-body);background:' + (c.visited ? 'var(--gold-bg)' : 'var(--primary)') + ';color:' + (c.visited ? 'var(--primary)' : '#fff') + '">' + (c.visited ? @json(__('giya.plan.visited_b')) : @json(__('giya.plan.mark_visited_b'))) + '</button>' +
                   '<button type="button" onclick="GiyaVisita.drop(' + i + ')" style="width:28px;height:28px;border-radius:8px;background:rgba(212,24,61,.08);color:#D4183D;border:none;cursor:pointer;font-size: 0.9375rem">×</button>' +
                 '</span></div>';
         }).join('');
@@ -230,7 +235,7 @@ const GiyaVisita = (function () {
             document.getElementById('addPicker').classList.add('d-none');
         },
         submit: function () {
-            if (!list.length) { GiyaConfirm.ask({ title: 'No churches selected', message: 'Add at least one church to your Visita Iglesia route before saving it.', ok: 'Got it', cancel: 'Close', tone: 'primary' }); return; }
+            if (!list.length) { GiyaConfirm.ask({ title: @json(__('giya.plan.no_churches_t')), message: @json(__('giya.plan.no_churches_b')), ok: @json(__('giya.common.got_it')), cancel: @json(__('giya.common.close')), tone: 'primary' }); return; }
             document.getElementById('stopsInputs').innerHTML = list
                 .map(c => '<input type="hidden" name="stops[]" value="' + c.name.replace(/"/g, '&quot;') + '">')
                 .join('');

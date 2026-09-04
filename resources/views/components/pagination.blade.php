@@ -1,11 +1,11 @@
 @props(['paginator'])
 
 @if ($paginator->hasPages())
-    <nav class="giya-pagination" role="navigation" aria-label="Pagination">
+    <nav class="giya-pagination" role="navigation" aria-label="{{ __('giya.misc.pagination') }}">
         @if ($paginator->onFirstPage())
             <span class="is-disabled" aria-hidden="true"><i class="bi bi-chevron-left"></i></span>
         @else
-            <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Previous page">
+            <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="{{ __('giya.misc.prev_page') }}">
                 <i class="bi bi-chevron-left"></i>
             </a>
         @endif
@@ -20,7 +20,7 @@
         @endforeach
 
         @if ($paginator->hasMorePages())
-            <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Next page">
+            <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="{{ __('giya.misc.next_page') }}">
                 <i class="bi bi-chevron-right"></i>
             </a>
         @else

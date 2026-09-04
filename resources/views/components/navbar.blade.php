@@ -1,9 +1,9 @@
 @php
     $user = auth()->user();
     $links = [
-        ['url' => route(auth()->check() ? 'home' : 'root'), 'label' => 'Home',    'icon' => 'house-fill',     'match' => auth()->check() ? 'home' : 'root'],
-        ['url' => route('map'),                            'label' => 'Map',     'icon' => 'map-fill',       'match' => 'map'],
-        ['url' => route('plan.hub'),                       'label' => 'Plan',    'icon' => 'journal-text',   'match' => 'plan.*'],
+        ['url' => route(auth()->check() ? 'home' : 'root'), 'label' => __('giya.nav.home'), 'icon' => 'house-fill',   'match' => auth()->check() ? 'home' : 'root'],
+        ['url' => route('map'),                            'label' => __('giya.nav.map'),  'icon' => 'map-fill',     'match' => 'map'],
+        ['url' => route('plan.hub'),                       'label' => __('giya.nav.plan'), 'icon' => 'journal-text', 'match' => 'plan.*'],
     ];
 @endphp
 
@@ -196,7 +196,7 @@
                    value="{{ request()->routeIs('map') ? request('q') : '' }}"
                    placeholder="{{ __('giya.nav.search') }}"
                    autocomplete="off" aria-label="{{ __('giya.nav.search_label') }}">
-            <button type="submit" class="nav-search-go" aria-label="Search">
+            <button type="submit" class="nav-search-go" aria-label="{{ __('giya.misc.search_aria') }}">
                 <i class="bi bi-search" aria-hidden="true"></i>
             </button>
         </form>
@@ -214,7 +214,7 @@
                         </span>
                     </button>
 
-                    <div class="notif-panel" id="notifPanel" role="dialog" aria-label="Notifications">
+                    <div class="notif-panel" id="notifPanel" role="dialog" aria-label="{{ __('giya.misc.notif_aria') }}">
                         <div class="notif-head">
                             <span>{{ __('giya.nav.notifications') }}</span>
                             <button type="button" class="notif-readall" id="notifReadAll">{{ __('giya.nav.mark_all_read') }}</button>
@@ -279,7 +279,7 @@
                 <input type="search" name="q"
                        value="{{ request()->routeIs('map') ? request('q') : '' }}"
                        placeholder="{{ __('giya.nav.search') }}" autocomplete="off"
-                       aria-label="Search churches"
+                       aria-label="{{ __('giya.misc.search_ch_aria') }}"
                        style="flex:1;min-width:0;background:none;border:0;outline:none;color:#fff;font-size:.8125rem">
             </form>
 

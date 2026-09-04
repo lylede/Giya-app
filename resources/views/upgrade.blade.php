@@ -1,22 +1,19 @@
 @extends('layouts.app')
-@section('title', 'Go Premium')
+@section('title', __('giya.profile.go_premium'))
 
 @section('content')
 <div class="page-wrap">
 
     <div class="eyebrow">
         <span class="eyebrow-bar"></span>
-        <span class="eyebrow-text">Premium</span>
+        <span class="eyebrow-text">{{ __('giya.upgrade.premium') }}</span>
     </div>
 
     <h1 style="font-family:var(--font-display);font-size:2rem;margin:0 0 10px">
-        Walk further with GIYA
+        {{ __('giya.upgrade.title') }}
     </h1>
     <p style="color:var(--text-muted);font-size:0.9375rem;line-height:1.7;max-width:580px;margin:0 0 32px">
-        A free account plans up to {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} itineraries.
-        Once those are used, a Premium pass lifts the limit for as long as it lasts -
-        both passes unlock every feature, so the only choice is how long you need it.
-        Payment is handled by Maya, so GIYA never sees your card.
+        {{ __('giya.upgrade.lead', ['limit' => \App\Http\Controllers\ItineraryController::FREE_LIMIT]) }}
     </p>
 
     @if ($user->is_premium)
@@ -24,9 +21,9 @@
                     border-color:rgba(215,169,74,.45);background:rgba(215,169,74,.08)">
             <i class="bi bi-gem" style="font-size:1.5rem;color:var(--gold)"></i>
             <div>
-                <div style="font-weight:700;color:var(--text)">You are a Premium pilgrim.</div>
+                <div style="font-weight:700;color:var(--text)">{{ __('giya.upgrade.already') }}</div>
                 <div style="font-size:.8125rem;color:var(--text-muted)">
-                    Unlimited itineraries are already active on this account.
+                    {{ __('giya.upgrade.already_note') }}
                 </div>
             </div>
         </div>
@@ -35,7 +32,7 @@
     @unless ($ready)
         <div class="alert alert-warning" style="margin-bottom:28px">
             <i class="bi bi-exclamation-triangle-fill"></i>
-            <span>Payments are temporarily unavailable. Please try again later.</span>
+            <span>{{ __('giya.upgrade.unavailable') }}</span>
         </div>
     @endunless
 
@@ -66,7 +63,7 @@
                     @if ($featured)
                         <span style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;
                                      text-transform:uppercase;color:#7a5c00;background:rgba(215,169,74,.18);
-                                     padding:4px 10px;border-radius:999px">Best value</span>
+                                     padding:4px 10px;border-radius:999px">{{ __('giya.upgrade.best_value') }}</span>
                     @endif
                 </div>
 
@@ -103,9 +100,9 @@
                      how long they last, not in what they unlock. --}}
                 <ul style="list-style:none;padding:0;margin:0 0 22px;display:grid;gap:9px">
                     @foreach ([
-                        'Unlimited itineraries',
-                        'Full Visita Iglesia planning',
-                        'Every GIYA feature unlocked',
+                        __('giya.upgrade.perk_unl'),
+                        __('giya.upgrade.perk_visita'),
+                        __('giya.upgrade.perk_all'),
                     ] as $perk)
                         <li style="display:flex;gap:9px;align-items:flex-start;font-size:.8125rem;color:var(--text)">
                             <i class="bi bi-check-lg" style="color:var(--gold);flex:none;margin-top:2px"></i>
@@ -130,16 +127,14 @@
     <div class="card card-body" style="display:flex;gap:12px;align-items:flex-start;margin-bottom:32px">
         <i class="bi bi-shield-lock-fill" style="color:var(--gold);flex:none;margin-top:2px"></i>
         <p style="font-size:.8125rem;color:var(--text-muted);line-height:1.7;margin:0">
-            You will be taken to Maya's secure payment page to complete your purchase.
-            Your card details are entered there and are never seen or stored by GIYA.
-            Your pass starts as soon as Maya confirms the payment.
+            {{ __('giya.upgrade.maya_note') }}
         </p>
     </div>
 
     {{-- ── Their own transactions ──────────────────────────────────────── --}}
     @if ($history->isNotEmpty())
         <div class="card card-body">
-            <div class="form-label-sm" style="margin-bottom:14px">Recent transactions</div>
+            <div class="form-label-sm" style="margin-bottom:14px">{{ __('giya.upgrade.transactions') }}</div>
 
             @foreach ($history as $t)
                 @php

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Home')
+@section('title', __('giya.nav.home'))
 
 @section('content')
 
@@ -36,32 +36,31 @@
         <div style="max-width:680px">
             <div class="eyebrow">
                 <span class="eyebrow-bar"></span>
-                <span class="eyebrow-text" style="color:var(--gold)">Metro Cebu Religious Tourism</span>
+                <span class="eyebrow-text" style="color:var(--gold)">{{ __('giya.home.eyebrow') }}</span>
             </div>
 
             <h1 style="font-family:var(--font-display);color:#fff;font-size:clamp(32px,5vw,54px);line-height:1.15;font-weight:700;margin:0 0 16px">
-                Discover the Sacred Heart of Cebu
+                {{ __('giya.home.title') }}
             </h1>
 
             <p style="color:rgba(255,255,255,0.8);font-size: 1rem;line-height:1.75;max-width:560px;margin:0 0 24px">
-                Giya is your companion for pilgrimage and religious tourism across Metro Cebu 
-                find churches, plan routes, and walk in faith through the Philippines' oldest diocese.
+                {{ __('giya.home.lead') }}
             </p>
 
             <div class="d-flex flex-wrap gap-3 mb-4">
                 <a href="{{ route('map') }}" class="btn btn-gold">
-                    <i class="bi bi-map-fill"></i> Explore the Map
+                    <i class="bi bi-map-fill"></i> {{ __('giya.home.explore_map') }}
                 </a>
                 <a href="{{ auth()->check() ? route('plan.hub') : route('login') }}" class="btn btn-ghost btn-ghost-inverse">
-                    <i class="bi bi-journal-text"></i> {{ auth()->check() ? 'Plan a Pilgrimage' : 'Sign in to plan' }}
+                    <i class="bi bi-journal-text"></i> {{ auth()->check() ? __('giya.home.plan_pilgrimage') : __('giya.home.sign_in_plan') }}
                 </a>
             </div>
 
             <div class="hero-stats">
                 @foreach ([
-                    [$stats['churches'] . '+', 'Churches & Shrines'],
-                    [auth()->check() ? number_format(auth()->user()->total_churches_visited) : $stats['churches'], auth()->check() ? 'Your Visits' : 'Places to Discover'],
-                    [$stats['cities'], 'Cities Covered'],
+                    [$stats['churches'] . '+', __('giya.home.stat_churches')],
+                    [auth()->check() ? number_format(auth()->user()->total_churches_visited) : $stats['churches'], auth()->check() ? __('giya.home.stat_visits') : __('giya.home.stat_places')],
+                    [$stats['cities'], __('giya.home.stat_cities')],
                 ] as [$value, $label])
                     <div class="hero-stat">
                         <span class="hero-stat-value">{{ $value }}</span>
@@ -81,8 +80,8 @@
     <section style="margin-bottom:56px">
         <div class="section-header">
             <div>
-                <h2 class="section-title">Start Your Journey</h2>
-                <p class="section-subtitle">Choose how you want to explore Metro Cebu's sacred places</p>
+                <h2 class="section-title">{{ __('giya.home.journey') }}</h2>
+                <p class="section-subtitle">{{ __('giya.home.journey_lead') }}</p>
             </div>
         </div>
 
@@ -92,10 +91,10 @@
                    with its stops and a flag, the seven churches, and Giya's
                    own head - rather than a map, a notebook, an office block
                    and a speech bubble standing in for them. */
-                ['giya-nearby',    'Find Nearby Churches', 'Discover religious destinations close to your current location.', 'map'],
-                ['giya-route',     'Plan Pilgrimage',      'Create a custom itinerary tailored to your time and devotion.',   auth()->check() ? 'plan.create' : 'login'],
-                ['giya-seven',     'Visita Iglesia Route', 'Plan the traditional multi-church route with progress tracking.', auth()->check() ? 'plan.visita' : 'login'],
-                ['giya-assistant', 'Ask Giya AI',          'Get answers about churches, schedules, and pilgrimage routes.',   auth()->check() ? 'chatbot' : 'login'],
+                ['giya-nearby',    __('giya.home.card_nearby'), __('giya.home.card_nearby_d'), 'map'],
+                ['giya-route',     __('giya.home.card_plan'),   __('giya.home.card_plan_d'),   auth()->check() ? 'plan.create' : 'login'],
+                ['giya-seven',     __('giya.home.card_visita'), __('giya.home.card_visita_d'), auth()->check() ? 'plan.visita' : 'login'],
+                ['giya-assistant', __('giya.home.card_ask'),    __('giya.home.card_ask_d'),    auth()->check() ? 'chatbot' : 'login'],
             ] as [$icon, $title, $desc, $route])
                 <a href="{{ route($route) }}" class="card card-hover"
                    style="padding:20px;display:flex;flex-direction:column;gap:12px;text-decoration:none">
@@ -107,7 +106,7 @@
                         <span style="display:block;font-size: 0.75rem;color:var(--text-muted);margin-top:4px;line-height:1.6">{{ $desc }}</span>
                     </span>
                     <span style="margin-top:auto;font-size: 0.75rem;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:4px">
-                        {{ $route === 'login' ? 'Sign in to continue' : 'Get started' }} <i class="bi bi-chevron-right" style="font-size: 0.6875rem"></i>
+                        {{ $route === 'login' ? __('giya.home.sign_in_go') : __('giya.home.get_started') }} <i class="bi bi-chevron-right" style="font-size: 0.6875rem"></i>
                     </span>
                 </a>
             @endforeach
@@ -118,15 +117,15 @@
     <section style="margin-bottom:56px;border-top:1px solid var(--border-light);padding-top:48px">
         <div class="section-header">
             <div>
-                <h2 class="section-title">Featured Destinations</h2>
-                <p class="section-subtitle">Sacred places awaiting your visit in Metro Cebu</p>
+                <h2 class="section-title">{{ __('giya.home.featured') }}</h2>
+                <p class="section-subtitle">{{ __('giya.home.featured_lead') }}</p>
             </div>
-            <a href="{{ route('map') }}" class="section-link">View all on map →</a>
+            <a href="{{ route('map') }}" class="section-link">{{ __('giya.home.view_all_map') }} →</a>
         </div>
 
         @if ($featured->isEmpty())
-            <x-empty-state icon="building" title="No featured destinations yet"
-                           desc="An administrator can feature destinations from the admin panel." />
+            <x-empty-state icon="building" :title="__('giya.home.no_featured')"
+                           :desc="__('giya.home.no_featured_d')" />
         @else
             {{--
                 A procession: one church at a time, filling the frame, advancing
@@ -151,7 +150,7 @@
                     <h3 id="procName"></h3>
                     <p class="proc-loc" id="procLoc"></p>
                     <p class="proc-desc" id="procDesc"></p>
-                    <a class="btn btn-gold btn-sm" id="procLink">See More</a>
+                    <a class="btn btn-gold btn-sm" id="procLink">{{ __('giya.common.see_more') }}</a>
                 </div>
 
                 {{-- One bar per destination: position, remaining time, and a
@@ -171,8 +170,8 @@
         <div style="display:grid;grid-template-columns:2fr 1fr;gap:32px" class="home-bottom-grid">
 
             <div>
-                <h2 class="section-title" style="margin-bottom:4px">Upcoming Religious Activities</h2>
-                <p class="section-subtitle" style="margin-bottom:20px">Masses, feast days, and celebrations across Metro Cebu</p>
+                <h2 class="section-title" style="margin-bottom:4px">{{ __('giya.home.events') }}</h2>
+                <p class="section-subtitle" style="margin-bottom:20px">{{ __('giya.home.events_lead') }}</p>
 
                 @forelse ($upcoming as $i => $event)
                     <div class="d-flex align-items-center gap-3 card"
@@ -190,12 +189,12 @@
                             </div>
                         </div>
                         <div style="font-size: 0.75rem;font-weight:700;color:var(--primary);white-space:nowrap">
-                            {{ $event->schedule_date?->format('M j, Y') ?? ($event->recurrence ?? 'Recurring') }}
+                            {{ $event->schedule_date?->format('M j, Y') ?? ($event->recurrence ?? __('giya.home.recurring')) }}
                         </div>
                     </div>
                 @empty
-                    <x-empty-state icon="calendar-event" title="No upcoming activities"
-                                   desc="Schedules added in the admin panel will appear here." />
+                    <x-empty-state icon="calendar-event" :title="__('giya.home.no_events')"
+                                   :desc="__('giya.home.no_events_d')" />
                 @endforelse
             </div>
 
@@ -205,16 +204,16 @@
                         <i class="bi bi-stars" style="font-size: 1.375rem;color:var(--gold)"></i>
                     </span>
                     <h3 style="font-family:var(--font-display);color:#fff;font-size: 1.375rem;line-height:1.3;margin:0 0 12px">
-                        Ready to begin your pilgrimage?
+                        {{ __('giya.home.cta_title') }}
                     </h3>
                     <p style="color:rgba(255,255,255,0.7);font-size: 0.8125rem;line-height:1.7;margin:0">
-                        Build a personalised route based on your available time, location, and devotion.
+                        {{ __('giya.home.cta_lead') }}
                     </p>
                 </div>
 
                 <div class="d-flex flex-column gap-2 mt-auto pt-4" style="position:relative">
-                    <a href="{{ auth()->check() ? route('plan.create') : route('login') }}" class="btn btn-gold btn-w-full">{{ auth()->check() ? 'Plan My Pilgrimage' : 'Sign in to plan' }}</a>
-                    <a href="{{ auth()->check() ? route('chatbot') : route('login') }}" class="btn btn-ghost btn-ghost-inverse btn-w-full">{{ auth()->check() ? 'Ask Giya AI' : 'Create an account' }}</a>
+                    <a href="{{ auth()->check() ? route('plan.create') : route('login') }}" class="btn btn-gold btn-w-full">{{ auth()->check() ? __('giya.home.plan_mine') : __('giya.home.sign_in_plan') }}</a>
+                    <a href="{{ auth()->check() ? route('chatbot') : route('login') }}" class="btn btn-ghost btn-ghost-inverse btn-w-full">{{ auth()->check() ? __('giya.home.card_ask') : __('giya.home.create_acct') }}</a>
                 </div>
             </div>
 

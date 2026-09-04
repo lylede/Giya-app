@@ -12,7 +12,7 @@
         @auth
             <button type="button" @class(['fav-btn', 'is-saved' => $church->isFavorited()])
                     data-fav="{{ $church->id }}"
-                    aria-label="Save {{ $church->name }}"
+                    aria-label="{{ __('giya.misc.save_church', ['church' => $church->name]) }}"
                     onclick="GiyaFav.toggle(this)">
                 <i class="bi bi-heart-fill"></i>
             </button>
@@ -32,7 +32,7 @@
         </p>
         <div class="d-flex align-items-center justify-content-between mt-3">
             <span style="font-size: 0.6875rem;color:var(--primary);font-weight:700">{{ $church->daily_visits ?? '-' }} visitors</span>
-            <a href="{{ route('map') }}" style="font-size: 0.6875rem;color:var(--primary);font-weight:700">View on map →</a>
+            <a href="{{ route('map') }}" style="font-size: 0.6875rem;color:var(--primary);font-weight:700">{{ __('giya.church.view_on_map') }} →</a>
         </div>
     </div>
 </article>

@@ -14,7 +14,7 @@
 
     <div class="church-hero-top">
         <a href="{{ url()->previous() ?: route('map') }}"
-           aria-label="Back to map"
+           aria-label="{{ __('giya.church.back_map') }}"
            class="church-back-link">
             <i class="bi bi-chevron-left" aria-hidden="true"></i>
         </a>
@@ -40,12 +40,12 @@
 
         <div class="church-hero-actions d-flex flex-wrap gap-3">
             <a href="{{ route('map') }}?church={{ $church->id }}" class="btn btn-ghost btn-ghost-inverse">
-                <i class="bi bi-map" aria-hidden="true"></i> View Map
+                <i class="bi bi-map" aria-hidden="true"></i> {{ __('giya.church.view_map') }}
             </a>
 
             @auth
                 <a href="{{ route('plan.create', ['stops' => $church->id]) }}" class="btn btn-ghost btn-ghost-inverse">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add to Itinerary
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('giya.church.add_itinerary') }}
                 </a>
 
                 {{-- Saving a destination belongs beside the other actions, not
@@ -56,14 +56,14 @@
                         aria-pressed="{{ $church->isFavorited() ? 'true' : 'false' }}"
                         onclick="GiyaChurchFav.toggle(this)">
                     <i class="bi bi-heart-fill" aria-hidden="true"></i>
-                    <span class="church-fav-text">{{ $church->isFavorited() ? 'Saved' : 'Save' }}</span>
+                    <span class="church-fav-text">{{ $church->isFavorited() ? __('giya.church.saved') : __('giya.common.save') }}</span>
                 </button>
             @else
                 <a href="{{ route('login') }}" class="btn btn-ghost btn-ghost-inverse">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add to Itinerary
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('giya.church.add_itinerary') }}
                 </a>
                 <a href="{{ route('login') }}" class="btn btn-ghost btn-ghost-inverse">
-                    <i class="bi bi-heart" aria-hidden="true"></i> Save
+                    <i class="bi bi-heart" aria-hidden="true"></i> {{ __('giya.common.save') }}
                 </a>
             @endauth
         </div>
@@ -102,7 +102,7 @@
                     <i class="bi bi-people-fill" aria-hidden="true"></i>
                     {{ $church->daily_visits }}
                 </div>
-                <div class="church-stat-label">Visits this month</div>
+                <div class="church-stat-label">{{ __('giya.church.visits_month') }}</div>
             </div>
         @endif
 
@@ -111,7 +111,7 @@
                 <i class="bi bi-check-circle-fill" style="color:#4E9C6B" aria-hidden="true"></i>
                 {{ $church->access ?? 'Yes' }}
             </div>
-            <div class="church-stat-label">Access</div>
+            <div class="church-stat-label">{{ __('giya.church.access') }}</div>
         </div>
     </div>
 </div>
@@ -119,11 +119,11 @@
 <div class="church-detail-page page-wrap">
 
     {{-- ───────────────────────────── Tabs ─────────────────────────────── --}}
-    <div class="church-tabs" role="tablist" aria-label="Church details">
-        <a href="#church-info" class="church-tab is-active" id="church-info-tab" role="tab" aria-selected="true" aria-controls="church-info">Info</a>
-        <a href="#church-schedule" class="church-tab" id="church-schedule-tab" role="tab" aria-selected="false" aria-controls="church-schedule" tabindex="-1">Schedule</a>
-        <a href="#church-reviews" class="church-tab" id="church-reviews-tab" role="tab" aria-selected="false" aria-controls="church-reviews" tabindex="-1">Reviews</a>
-        <a href="#church-guidelines" class="church-tab" id="church-guidelines-tab" role="tab" aria-selected="false" aria-controls="church-guidelines" tabindex="-1">Guidelines</a>
+    <div class="church-tabs" role="tablist" aria-label="{{ __('giya.church.details_aria') }}">
+        <a href="#church-info" class="church-tab is-active" id="church-info-tab" role="tab" aria-selected="true" aria-controls="church-info">{{ __('giya.church.info') }}</a>
+        <a href="#church-schedule" class="church-tab" id="church-schedule-tab" role="tab" aria-selected="false" aria-controls="church-schedule" tabindex="-1">{{ __('giya.church.schedule') }}</a>
+        <a href="#church-reviews" class="church-tab" id="church-reviews-tab" role="tab" aria-selected="false" aria-controls="church-reviews" tabindex="-1">{{ __('giya.church.reviews') }}</a>
+        <a href="#church-guidelines" class="church-tab" id="church-guidelines-tab" role="tab" aria-selected="false" aria-controls="church-guidelines" tabindex="-1">{{ __('giya.church.guidelines') }}</a>
     </div>
 
     {{-- ─────────────────────────── Info section ───────────────────────── --}}
@@ -133,7 +133,7 @@
         @if ($church->description)
             <p class="church-description">{{ $church->description }}</p>
         @else
-            <p class="church-description is-empty">No description is available for this church yet.</p>
+            <p class="church-description is-empty">{{ __('giya.church.no_desc') }}</p>
         @endif
 
         <p class="church-info-meta is-address">
@@ -151,7 +151,7 @@
     <div id="church-schedule" role="tabpanel" aria-labelledby="church-schedule-tab" data-church-panel hidden class="church-detail-grid">
 
         <section>
-            <h2 class="section-title church-section-title">Mass Schedule</h2>
+            <h2 class="section-title church-section-title">{{ __('giya.church.mass_schedule') }}</h2>
 
             @php
                 $massSchedules = $church->schedules
@@ -172,14 +172,14 @@
                         </div>
                     </div>
                 @empty
-                    <x-empty-state icon="calendar-x" title="No schedule available yet"
-                                    desc="Mass schedules added in the admin panel will appear here." />
+                    <x-empty-state icon="calendar-x" :title="__('giya.church.no_schedule')"
+                                    :desc="__('giya.church.no_schedule_d')" />
                 @endforelse
             </div>
         </section>
 
         <section id="church-events">
-            <h2 class="section-title church-section-title">Upcoming Events</h2>
+            <h2 class="section-title church-section-title">{{ __('giya.church.events') }}</h2>
 
             @php
                 $upcomingEvents = $church->schedules
@@ -211,8 +211,8 @@
                     </div>
                 </div>
             @empty
-                <x-empty-state icon="calendar-x" title="No upcoming events"
-                                desc="Events added in the admin panel will appear here." />
+                <x-empty-state icon="calendar-x" :title="__('giya.church.no_events')"
+                                :desc="__('giya.church.no_events_d')" />
             @endforelse
         </section>
     </div>
@@ -225,7 +225,7 @@
             $reviewCount = $approvedFeedback->count();
         @endphp
 
-        <h2 class="section-title church-section-title">Reviews</h2>
+        <h2 class="section-title church-section-title">{{ __('giya.church.reviews') }}</h2>
 
         @if ($reviewCount)
             <div class="church-reviews-layout">
@@ -238,7 +238,7 @@
                         <span>{{ number_format($reviewCount) }} {{ $reviewCount === 1 ? 'review' : 'reviews' }}</span>
                     </div>
 
-                    <div class="church-rating-breakdown" aria-label="Rating breakdown">
+                    <div class="church-rating-breakdown" aria-label="{{ __('giya.church.rating_aria') }}">
                         @for ($rating = 5; $rating >= 1; $rating--)
                             @php
                                 $ratingCount = $ratedFeedback->where('rating', $rating)->count();
@@ -279,14 +279,14 @@
                 </div>
             </div>
         @else
-            <x-empty-state icon="chat-square-text" title="No reviews yet"
-                           desc="Approved reviews for this church will appear here." />
+            <x-empty-state icon="chat-square-text" :title="__('giya.church.no_reviews')"
+                           :desc="__('giya.church.no_reviews_d')" />
         @endif
     </section>
 
     <section id="church-guidelines" role="tabpanel" aria-labelledby="church-guidelines-tab" data-church-panel hidden class="church-detail-section">
-        <x-empty-state icon="info-circle" title="Guidelines coming soon"
-                       desc="Visit guidelines for this church will appear here when available." />
+        <x-empty-state icon="info-circle" :title="__('giya.church.no_guidelines')"
+                       :desc="__('giya.church.no_guide_d')" />
     </section>
 </div>
 
@@ -322,7 +322,7 @@ window.GiyaChurchFav = {
            broken; if the request fails the button is put back. */
         btn.classList.toggle('is-saved', saved);
         btn.setAttribute('aria-pressed', String(saved));
-        btn.querySelector('.church-fav-text').textContent = saved ? 'Saved' : 'Save';
+        btn.querySelector('.church-fav-text').textContent = saved ? @json(__('giya.church.saved')) : @json(__('giya.common.save'));
 
         fetch('{{ route('favorites.toggle') }}', {
             method: 'POST',
@@ -341,7 +341,7 @@ window.GiyaChurchFav = {
             .catch(() => {
                 btn.classList.toggle('is-saved', !saved);
                 btn.setAttribute('aria-pressed', String(!saved));
-                btn.querySelector('.church-fav-text').textContent = !saved ? 'Saved' : 'Save';
+                btn.querySelector('.church-fav-text').textContent = !saved ? @json(__('giya.church.saved')) : @json(__('giya.common.save'));
             });
     },
 };
