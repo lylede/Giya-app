@@ -33,11 +33,8 @@
                            aria-label="{{ __('giya.nav.search_label') }}">
                 </label>
 
-                <div class="mx-chips" role="group" aria-label="{{ __('giya.map.filters') }}">
-                    {{-- No is-active: Near now filters to churches around the
-                         devotee, so it cannot be the default before there is a
-                         location to be near. Josh's change; label translated. --}}
-                    <button type="button" class="cat-chip" data-cat="Near">{{ __('giya.church.near') }}</button>
+                <div class="mx-chips" role="group" aria-label="Filters">
+                    <button type="button" class="cat-chip is-active" data-cat="Near">Near</button>
                     @foreach ($categories as $category)
                         <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category }}</button>
                     @endforeach
