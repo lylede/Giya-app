@@ -14,6 +14,7 @@ use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ItineraryController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -75,8 +76,32 @@ Route::get('/search/churches', [HomeController::class, 'search'])->name('search.
     });
 });
 
+/* ------------------------------------------------------- Premium / Maya */
+Route::middleware('auth')->group(function () {
+    Route::get('/upgrade',                 [PaymentController::class, 'upgrade'])->name('upgrade');
+    Route::post('/upgrade/{plan}/checkout',[PaymentController::class, 'checkout'])->name('upgrade.checkout');
+
+    // Where Maya sends the devotee back to. They are behind auth because the
+    // devotee is signed in throughout - Maya opens in the same browser.
+    Route::get('/upgrade/success', [PaymentController::class, 'success'])->name('upgrade.success');
+    Route::get('/upgrade/failure', [PaymentController::class, 'failure'])->name('upgrade.failure');
+    Route::get('/upgrade/cancel',  [PaymentController::class, 'cancel'])->name('upgrade.cancel');
+});
+
+// Maya's server posts here. No session, no CSRF token, no auth - see the
+// exemption in bootstrap/app.php and the reasoning in PaymentController.
+Route::post('/maya/webhook', [PaymentController::class, 'webhook'])->name('maya.webhook');
+
+/*
+   The map itself is open to everyone - a guest can browse Metro Cebu, search,
+   and see where the churches are. A church's own page is where the schedules,
+   reviews and visit history live, so that needs an account.
+*/
 Route::get('/map', [MapController::class, 'index'])->name('map');
-Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
+});
 
 /* --------------------------------------------------------------- Admin */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {

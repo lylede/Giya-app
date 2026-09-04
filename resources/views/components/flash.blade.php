@@ -1,4 +1,4 @@
-@if (session('success') || session('error') || session('warning'))
+@if (session('success') || session('error') || session('warning') || session('info'))
     <div class="flash-container" aria-live="polite" id="giyaFlash">
         @if (session('success'))
             <div class="alert alert-success">
@@ -18,6 +18,13 @@
             <div class="alert alert-warning">
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <span>{{ session('warning') }}</span>
+            </div>
+        @endif
+
+        @if (session('info'))
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <span>{{ session('info') }}</span>
             </div>
         @endif
     </div>

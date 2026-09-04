@@ -45,7 +45,8 @@ class ChurchReviewsTest extends TestCase
             'created_at' => '2026-08-22 10:00:00',
         ]);
 
-        $response = $this->get(route('churches.show', $church));
+        $response = $this->actingAs($this->createUser('Visitor'))
+                         ->get(route('churches.show', $church));
 
         $response->assertOk()
             ->assertSee('Approved Reviewer')
@@ -70,7 +71,8 @@ class ChurchReviewsTest extends TestCase
             'status' => 'Pending',
         ]);
 
-        $response = $this->get(route('churches.show', $church));
+        $response = $this->actingAs($this->createUser('Visitor'))
+                         ->get(route('churches.show', $church));
 
         $response->assertOk()
             ->assertSee('No reviews yet')
@@ -82,7 +84,8 @@ class ChurchReviewsTest extends TestCase
     {
         $church = $this->createChurch(false);
 
-        $this->get(route('churches.show', $church))->assertNotFound();
+        $this->actingAs($this->createUser('Visitor'))
+             ->get(route('churches.show', $church))->assertNotFound();
     }
 
     private function createChurch(bool $isActive = true): Church

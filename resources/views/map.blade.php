@@ -105,6 +105,47 @@
 (function () {
     const churches = @json($markers);
 
+    /* Everyone may browse the map. Opening a church's own page - schedules,
+       reviews, visit history - needs an account, so the list marks those links
+       and explains before sending anyone to a login form. */
+    const GUEST = @json(! auth()->check());
+
+    /*
+       Everything a guest cannot do yet goes through here, so the wording and
+       the behaviour are the same wherever they hit it - the list, a marker
+       popup, or the Plan Route button.
+
+       `next` is where they are sent when they choose Sign in, and it is always
+       the page they were trying to reach rather than /login. Those pages are
+       behind auth, so the middleware records them as the intended page and
+       returns the devotee there after signing in - which for Plan Route means
+       arriving in the planner with the churches they had already picked.
+    */
+    function askToSignIn(what, next) {
+        GiyaConfirm.ask({
+            title:   'Sign in to continue',
+            message: what + ' is for members. Creating an account is free, and you can keep browsing the map without one.',
+            ok:      'Sign in',
+            cancel:  'Not now',
+            tone:    'primary',
+            icon:    'person-plus-fill',
+        }).then(function (ok) {
+            if (ok && next) window.location.href = next;
+        });
+
+        return false;
+    }
+
+    function churchName(id) {
+        const match = churches.filter(function (c) { return c.id === id; })[0];
+        return match ? match.name : 'this church';
+    }
+
+    function churchUrl(id) {
+        const match = churches.filter(function (c) { return c.id === id; })[0];
+        return match ? match.details : null;
+    }
+
     /* A rotating reminder. It advances each time the devotee dismisses it, so
        it stays worth reading instead of becoming wallpaper, and it remembers
        where it left off between visits. */
@@ -149,6 +190,19 @@
         note.style.display = 'none';
         nextReminder();
     });
+
+    /* Directions and Add to route come from the marker popups, which the map
+       engine builds. It asks this before either one runs. */
+    if (GUEST) {
+        GiyaLeaflet.requireAccess(function (action, id) {
+            return askToSignIn(
+                action === 'directions'
+                    ? 'Directions to ' + churchName(id)
+                    : 'Adding ' + churchName(id) + ' to a route',
+                churchUrl(id)
+            );
+        });
+    }
 
     const map = GiyaLeaflet.browse({
         element: 'giyaMap',
@@ -280,7 +334,9 @@
                 '<div class="mx-row-body">' +
                     '<h3>' +
                         (c.details
-                            ? '<a href="' + c.details + '" data-details="' + c.details + '">' + c.name + '</a>'
+                            ? '<a href="' + c.details + '" data-details="' + c.details + '" data-church="' + c.name + '">' +
+                                  c.name + (GUEST ? ' <i class="bi bi-lock-fill mx-lock" title="Sign in to view"></i>' : '') +
+                              '</a>'
                             : c.name) +
                     '</h3>' +
                     '<p class="mx-row-place">' +
@@ -354,7 +410,14 @@
             return;
         }
 
-        window.location.href = @json(route('plan.create')) + '?stops=' + ids.join(',');
+        const planner = @json(route('plan.create')) + '?stops=' + ids.join(',');
+
+        // Sending a guest to the planner URL rather than to /login is what
+        // saves their selection: the planner is behind auth, so it becomes
+        // the intended page and they land there with these churches ready.
+        if (GUEST) { askToSignIn('Planning a route', planner); return; }
+
+        window.location.href = planner;
     });
 
     document.getElementById('mapSearch').addEventListener('input', function () {
@@ -392,6 +455,12 @@
             e.preventDefault();
             e.stopPropagation();
 
+            if (GUEST) {
+                const id = Number(pick.dataset.add);
+                askToSignIn('Adding ' + churchName(id) + ' to a route', churchUrl(id));
+                return;
+            }
+
             // Flip the control immediately, so it responds even if the route
             // callback takes a different path afterwards.
             const on = !pick.classList.contains('is-on');
@@ -410,6 +479,24 @@
         const link = e.target.closest('[data-details]');
         if (link) {
             e.stopPropagation();
+
+            /* The name is a real <a href>, so the browser would follow it
+               before any of this ran. Both branches below navigate for
+               themselves, and the guest branch has a dialog to show first. */
+            e.preventDefault();
+
+            /* A guest may browse the map freely, but a church's own page -
+               its schedules, reviews and visit history - needs an account.
+               Saying so here beats bouncing them to a login form with no
+               explanation of what they clicked or why. */
+            if (GUEST) {
+                askToSignIn(
+                    'Mass schedules, reviews and photos for ' + (link.dataset.church || 'this church'),
+                    link.dataset.details
+                );
+                return;
+            }
+
             window.location.href = link.dataset.details;
             return;
         }

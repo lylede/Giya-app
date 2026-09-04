@@ -257,7 +257,9 @@ window.GiyaLeaflet = (function () {
                 '<span>' + escapeHtml(c.category || '') + ' &middot; ' + escapeHtml(c.location || '') + '</span>' +
                 (c.hours ? '<span>' + escapeHtml(c.hours) + '</span>' : '') +
                 (c.details
-                    ? '<a class="giya-popup-btn is-secondary" href="' + escapeHtml(c.details) + '">See details</a>'
+                    ? '<a class="giya-popup-btn is-secondary" href="' + escapeHtml(c.details) + '"' +
+                          ' data-details="' + escapeHtml(c.details) + '"' +
+                          ' data-church="' + escapeHtml(c.name) + '">See details</a>'
                     : '') +
                 '<button type="button" class="giya-popup-btn"' +
                         ' onclick="GiyaLeaflet.directionsTo(' + c.id + ')">Directions</button>' +
@@ -892,12 +894,31 @@ window.GiyaLeaflet = (function () {
     /* Popup buttons call through this; the page assigns the live instance. */
     var current = null;
 
+    /*
+       An optional gate the host page installs with requireAccess().
+       It is asked before an action that needs an account and returns false to
+       stop it, having explained itself to the devotee. The engine knows
+       nothing about sessions or sign-in; it only knows to ask.
+    */
+    var access = null;
+
+    function allowed(action, id) {
+        return !access || access(action, id) !== false;
+    }
+
     return {
         browse: function (cfg) { current = browse(cfg); return current; },
         picker: picker,
         pilgrimage: pilgrimage,
-        addStop: function (id) { if (current) current.addStop(id); },
-        directionsTo: function (id) { if (current) current.directionsTo(id); },
+        requireAccess: function (fn) { access = fn; },
+        addStop: function (id) {
+            if (!allowed('add', id)) return;
+            if (current) current.addStop(id);
+        },
+        directionsTo: function (id) {
+            if (!allowed('directions', id)) return;
+            if (current) current.directionsTo(id);
+        },
         churchIcon: churchIcon,
         km: km
     };

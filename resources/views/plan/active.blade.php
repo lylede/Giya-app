@@ -67,7 +67,7 @@
             </button>
             <form method="POST" action="{{ route('plan.destroy', $itinerary) }}"
                   data-confirm-title="End this pilgrimage?"
-                  data-confirm="Your progress and this itinerary are deleted. Visits you already recorded stay in your history."
+                  data-confirm="Your progress and this itinerary are removed. Visits you already recorded stay in your history, and on a free account this itinerary still counts towards your 3."
                   data-confirm-ok="End pilgrimage">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-w-full">{{ __('giya.plan.end') }}</button>

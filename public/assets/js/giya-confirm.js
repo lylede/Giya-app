@@ -100,6 +100,17 @@ window.GiyaConfirm = (function (window, document) {
         ok.textContent = options.ok || 'Confirm';
 
         var danger = options.tone === 'danger';
+
+        /* The icon was always a warning triangle, which is right for "delete
+           this" and wrong for "sign in to see more" - it made an invitation
+           look like something had gone wrong. Callers can now name one. The
+           value is matched against a plain icon-name pattern before it reaches
+           innerHTML, so a caller cannot inject markup through it. */
+        var icon = /^[a-z0-9-]+$/.test(options.icon || '')
+            ? options.icon
+            : 'exclamation-triangle-fill';
+
+        host.querySelector('#gcIcon').innerHTML = '<i class="bi bi-' + icon + '"></i>';
         ok.className = 'btn gc-ok ' + (danger ? 'btn-danger-solid' : 'btn-primary');
         host.querySelector('#gcIcon').className = 'gc-icon' + (danger ? ' is-danger' : '');
         document.getElementById('gcCancel').textContent = options.cancel || 'Cancel';

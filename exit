@@ -1,0 +1,1623 @@
+---
+ .env.example                                  |  17 +
+ app/Console/Commands/MayaWebhooks.php         |  78 +++
+ app/Http/Controllers/PaymentController.php    | 268 +++++++++++
+ app/Models/Transaction.php                    |  39 ++
+ app/Services/MayaService.php                  | 248 ++++++++++
+ bootstrap/app.php                             |   9 +
+ config/services.php                           |  31 ++
+ ...1_add_payment_provider_to_transactions.php |  50 ++
+ public/assets/css/giya.css                    |   9 +
+ resources/views/components/flash.blade.php    |   9 +-
+ resources/views/plan/create.blade.php         |   3 +-
+ resources/views/plan/my-itineraries.blade.php |   6 +-
+ resources/views/plan/visita.blade.php         |   3 +-
+ resources/views/profile.blade.php             |   7 +
+ resources/views/upgrade.blade.php             | 177 +++++++
+ routes/web.php                                |  17 +
+ tests/Feature/MayaPaymentTest.php             | 450 ++++++++++++++++++
+ 17 files changed, 1417 insertions(+), 4 deletions(-)
+ create mode 100644 app/Console/Commands/MayaWebhooks.php
+ create mode 100644 app/Http/Controllers/PaymentController.php
+ create mode 100644 app/Services/MayaService.php
+ create mode 100644 database/migrations/2026_09_03_000001_add_payment_provider_to_transactions.php
+ create mode 100644 resources/views/upgrade.blade.php
+ create mode 100644 tests/Feature/MayaPaymentTest.php
+
+diff --git a/.env.example b/.env.example
+index 3df19d9..3a59cc6 100644
+--- a/.env.example
++++ b/.env.example
+@@ -29,3 +29,20 @@ CACHE_STORE=database
+ MAIL_MAILER=log
+ MAIL_FROM_ADDRESS="no-reply@giya.local"
+ MAIL_FROM_NAME="${APP_NAME}"
++
++# ── Maya (PayMaya) Checkout ───────────────────────────────────
++# GIYA never handles card details - the devotee pays on Maya's own
++# hosted page. Two keys, and they are not interchangeable: the public
++# key creates a checkout, the secret key reads a payment's real status.
++#
++# The values below are Maya's published SANDBOX pair, so the repo runs
++# and pays with a test card out of the box. LIVE keys belong in .env
++# only and must never be committed.
++#
++# Sandbox test card: 5123 4567 8901 2346 · 12/25 · CVV 111 · OTP 123456
++MAYA_BASE_URL=https://pg-sandbox.paymaya.com
++MAYA_PUBLIC_KEY=pk-Z0OSzLvIcOI2UIvDhdTGVVfRSSeiGStnceqwUE7n0Ah
++MAYA_SECRET_KEY=sk-X8qolYjy62kIzEbr0QRK1h4b4KDVHaNcwMYk39jInSl
++
++# Going live: swap the base URL to https://pg.maya.ph and paste the
++# keys from the Maya Business dashboard.
+diff --git a/app/Console/Commands/MayaWebhooks.php b/app/Console/Commands/MayaWebhooks.php
+new file mode 100644
+index 0000000..8d7ba69
+--- /dev/null
++++ b/app/Console/Commands/MayaWebhooks.php
+@@ -0,0 +1,78 @@
++<?php
++
++namespace App\Console\Commands;
++
++use App\Services\MayaService;
++use Illuminate\Console\Command;
++
++/**
++ * Maya webhooks are registered through the API, not through a dashboard, so
++ * without this there is a manual curl in the setup notes that somebody will
++ * get wrong the week of the defense.
++ *
++ *   php artisan giya:maya-webhooks                     list what is registered
++ *   php artisan giya:maya-webhooks --register=<url>    point Maya at a URL
++ *
++ * The URL has to be reachable from the public internet. On a laptop that
++ * means a tunnel (ngrok, cloudflared) - Maya cannot post to 127.0.0.1. The
++ * app works without any webhook at all, because the return from Maya verifies
++ * too; the webhook is what catches the devotee who closes the tab mid-payment.
++ */
++class MayaWebhooks extends Command
++{
++    protected $signature = 'giya:maya-webhooks {--register= : Public URL of /maya/webhook}';
++
++    protected $description = 'List or register the Maya payment webhooks';
++
++    /** The events worth hearing about. CHECKOUT_* are Maya's deprecated set. */
++    private const EVENTS = [
++        'PAYMENT_SUCCESS',
++        'PAYMENT_FAILED',
++        'PAYMENT_EXPIRED',
++        'PAYMENT_CANCELLED',
++    ];
++
++    public function handle(): int
++    {
++        $maya = MayaService::fromConfig();
++
++        if (! $maya->isConfigured()) {
++            $this->error('No Maya keys. Set MAYA_PUBLIC_KEY and MAYA_SECRET_KEY in .env.');
++
++            return self::FAILURE;
++        }
++
++        if ($url = $this->option('register')) {
++            if (! str_starts_with($url, 'https://')) {
++                $this->warn('Maya will only post to https. A tunnel gives you one.');
++            }
++
++            foreach (self::EVENTS as $event) {
++                $result = $maya->registerWebhook($event, $url);
++
++                $result['ok']
++                    ? $this->info("registered  $event")
++                    : $this->error("failed      $event  ".json_encode($result['body']));
++            }
++
++            $this->newLine();
++        }
++
++        $registered = $maya->listWebhooks();
++
++        if (! $registered) {
++            $this->line('No webhooks registered. Payments still verify when the devotee returns.');
++
++            return self::SUCCESS;
++        }
++
++        $this->table(
++            ['Event', 'Callback URL', 'ID'],
++            array_map(fn ($w) => [
++                $w['name'] ?? '?', $w['callbackUrl'] ?? '?', $w['id'] ?? '?',
++            ], $registered)
++        );
++
++        return self::SUCCESS;
++    }
++}
+diff --git a/app/Http/Controllers/PaymentController.php b/app/Http/Controllers/PaymentController.php
+new file mode 100644
+index 0000000..5d765e6
+--- /dev/null
++++ b/app/Http/Controllers/PaymentController.php
+@@ -0,0 +1,268 @@
++<?php
++
++namespace App\Http\Controllers;
++
++use App\Models\SubscriptionPlan;
++use App\Models\Transaction;
++use App\Services\MayaService;
++use Illuminate\Http\Request;
++use Illuminate\Support\Facades\Auth;
++use Illuminate\Support\Facades\DB;
++use Illuminate\Support\Facades\Log;
++use Illuminate\Support\Str;
++use Throwable;
++
++/**
++ * Upgrading a devotee to Premium, through Maya's hosted checkout.
++ *
++ * The shape of the flow, and why:
++ *
++ *   GET  /upgrade            the plans, and what Premium changes
++ *   POST /upgrade/{plan}     write a Pending transaction, ask Maya for a
++ *                            checkout, send the devotee there
++ *   GET  /upgrade/success    they came back - VERIFY, then say what happened
++ *   GET  /upgrade/failure    "                "
++ *   GET  /upgrade/cancel     "                "
++ *   POST /maya/webhook       Maya says something changed - VERIFY, then act
++ *
++ * The word doing the work is VERIFY. Both the return URLs and the webhook are
++ * inputs GIYA does not control: a devotee can type the success URL into the
++ * address bar, and Maya's webhooks carry no signature at all, so anyone who
++ * learns the URL can post whatever JSON they like to it. Neither is ever
++ * allowed to say a transaction is Paid. Both are only permitted to say "look
++ * again at transaction X", after which GIYA asks Maya directly, with the
++ * secret key, and believes only that answer.
++ *
++ * GIYA never sees a card number. The devotee types it on Maya's page.
++ */
++class PaymentController extends Controller
++{
++    /** The plans, and where the devotee stands today. */
++    public function upgrade()
++    {
++        $maya = MayaService::fromConfig();
++
++        return view('upgrade', [
++            'plans'     => SubscriptionPlan::active()->orderBy('price')->get(),
++            'user'      => Auth::user(),
++            'isSandbox' => $maya->isSandbox(),
++            'ready'     => $maya->isConfigured(),
++            'history'   => Transaction::where('user_id', Auth::id())
++                ->with('subscriptionPlan')
++                ->orderByDesc('created_at')
++                ->limit(5)
++                ->get(),
++        ]);
++    }
++
++    /**
++     * Start a payment.
++     *
++     * The plan arrives as a route-model-bound id, and the amount is read off
++     * that plan. Nothing about the price comes from the request body - a form
++     * field holding an amount is a form field a devotee can edit before it is
++     * posted, and 899.00 would become 1.00.
++     */
++    public function checkout(Request $request, SubscriptionPlan $plan)
++    {
++        abort_unless($plan->is_active, 404);
++
++        $maya = MayaService::fromConfig();
++
++        if (! $maya->isConfigured()) {
++            return back()->with('error', 'Payments are not configured yet. Add your Maya keys to .env.');
++        }
++
++        $user = $request->user();
++
++        if ($user->is_premium) {
++            return redirect()->route('upgrade')->with('success', 'You are already a Premium pilgrim.');
++        }
++
++        // Maya caps requestReferenceNumber at 36 characters and rejects a
++        // repeat, so this is short and carries randomness rather than a
++        // counter that a retry could land on twice.
++        $reference = 'GIYA-'.now()->format('ymd').'-'.strtoupper(Str::random(10));
++
++        $transaction = Transaction::create([
++            'user_id'      => $user->id,
++            'plan_type_id' => $plan->id,
++            'amount'       => $plan->price,
++            'currency'     => $plan->currency,
++            'method'       => 'Maya',
++            'provider'     => 'maya',
++            'status'       => 'Pending',
++            'reference_no' => $reference,
++            'notes'        => 'Maya Checkout started.',
++            'created_at'   => now(),
++            'updated_at'   => now(),
++        ]);
++
++        try {
++            $checkout = $maya->createCheckout($transaction, [
++                'success' => route('upgrade.success'),
++                'failure' => route('upgrade.failure'),
++                'cancel'  => route('upgrade.cancel'),
++            ]);
++        } catch (Throwable $e) {
++            Log::error('Maya checkout failed to start.', [
++                'transaction' => $transaction->id,
++                'message'     => $e->getMessage(),
++            ]);
++
++            $transaction->settle('Failed', null, 'Could not reach Maya: '.$e->getMessage());
++
++            return back()->with('error', 'We could not reach Maya just now. Nothing was charged - please try again.');
++        }
++
++        $transaction->provider_checkout_id = $checkout['id'];
++        $transaction->save();
++
++        // Remembered so the return URLs know which transaction to verify.
++        // Maya's redirect carries no identifier of its own that we can trust.
++        $request->session()->put('maya.transaction', $transaction->id);
++
++        return redirect()->away($checkout['url']);
++    }
++
++    /* ── Coming back from Maya ─────────────────────────────────────────── */
++
++    public function success(Request $request)
++    {
++        $transaction = $this->verifyFromSession($request);
++
++        if ($transaction?->status === 'Paid') {
++            return redirect()->route('upgrade')
++                ->with('success', 'Payment received - you are now a Premium pilgrim. Reference '.$transaction->reference_no.'.');
++        }
++
++        // Maya sent them to the success URL but our own check has not caught
++        // up, or disagreed. Say so plainly rather than promising Premium.
++        return redirect()->route('upgrade')
++            ->with('info', 'Maya has your payment and we are still confirming it. This page will show Premium once it clears.');
++    }
++
++    public function failure(Request $request)
++    {
++        $this->verifyFromSession($request);
++
++        return redirect()->route('upgrade')
++            ->with('error', 'The payment did not go through. Nothing was charged - you can try again.');
++    }
++
++    public function cancel(Request $request)
++    {
++        $this->verifyFromSession($request);
++
++        return redirect()->route('upgrade')
++            ->with('info', 'Payment cancelled. Nothing was charged.');
++    }
++
++    /**
++     * Maya's webhook.
++     *
++     * Unauthenticated by necessity - Maya will not send a token or a
++     * signature - so it is written to be harmless when abused. The body is
++     * read for exactly one thing: which reference number to look up. Every
++     * other field in it is ignored. The verdict comes from asking Maya.
++     *
++     * Always 200. A webhook that gets an error back is a webhook Maya will
++     * retry, and there is nothing a retry can fix here.
++     */
++    public function webhook(Request $request)
++    {
++        $allowed = (array) config('services.maya.webhook_ips', []);
++
++        if ($allowed && ! in_array($request->ip(), $allowed, true)) {
++            Log::warning('Maya webhook from an unexpected address.', ['ip' => $request->ip()]);
++
++            return response()->json(['received' => true]);
++        }
++
++        $reference = $request->input('requestReferenceNumber');
++
++        if (! is_string($reference) || $reference === '') {
++            return response()->json(['received' => true]);
++        }
++
++        $transaction = Transaction::where('reference_no', $reference)
++            ->where('provider', 'maya')
++            ->first();
++
++        if (! $transaction) {
++            Log::info('Maya webhook for an unknown reference.', ['reference' => $reference]);
++
++            return response()->json(['received' => true]);
++        }
++
++        $this->verify($transaction);
++
++        return response()->json(['received' => true]);
++    }
++
++    /* ── The one place a transaction's status is decided ───────────────── */
++
++    private function verifyFromSession(Request $request): ?Transaction
++    {
++        $id = $request->session()->pull('maya.transaction');
++
++        if (! $id) {
++            return null;
++        }
++
++        $transaction = Transaction::where('id', $id)
++            ->where('user_id', Auth::id())   // a session id is not a licence
++            ->first();
++
++        return $transaction ? $this->verify($transaction) : null;
++    }
++
++    /**
++     * Ask Maya about this transaction and write down the answer.
++     *
++     * Wrapped in a transaction with a row lock so the webhook and the devotee's
++     * return - which routinely arrive within the same second - cannot both read
++     * "Pending", both decide "Paid", and both stamp processed_at.
++     */
++    private function verify(Transaction $transaction): Transaction
++    {
++        if (! $transaction->provider_checkout_id) {
++            return $transaction;
++        }
++
++        $maya = MayaService::fromConfig();
++        $body = $maya->retrieveCheckout($transaction->provider_checkout_id);
++
++        if ($body === null) {
++            return $transaction;   // Maya unreachable; leave it Pending
++        }
++
++        $mapped    = MayaService::mapStatus(MayaService::statusFrom($body));
++        $paymentId = MayaService::paymentIdFrom($body);
++
++        DB::transaction(function () use ($transaction, $mapped, $paymentId, $body) {
++            $fresh = Transaction::lockForUpdate()->find($transaction->id);
++
++            if (! $fresh) {
++                return;
++            }
++
++            $changed = $fresh->settle(
++                $mapped,
++                $paymentId,
++                'Maya reported '.(MayaService::statusFrom($body) ?? 'no status').'.'
++            );
++
++            if ($changed) {
++                Log::info('Maya settled a transaction.', [
++                    'transaction' => $fresh->id,
++                    'status'      => $fresh->status,
++                ]);
++            }
++
++            $transaction->setRawAttributes($fresh->getAttributes(), true);
++        });
++
++        return $transaction;
++    }
++}
+diff --git a/app/Models/Transaction.php b/app/Models/Transaction.php
+index 7917a90..46ce6a4 100644
+--- a/app/Models/Transaction.php
++++ b/app/Models/Transaction.php
+@@ -20,6 +20,7 @@ class Transaction extends Model
+ 
+     protected $fillable = [
+         'user_id', 'plan_type_id', 'amount', 'currency', 'method',
++        'provider', 'provider_checkout_id', 'provider_payment_id',
+         'status', 'reference_no', 'notes', 'created_at', 'processed_at', 'updated_at',
+     ];
+ 
+@@ -67,6 +68,44 @@ public function amountLabel(): string
+         return $this->currency.' '.number_format((float) $this->amount, 2);
+     }
+ 
++    /**
++     * Record the outcome Maya reported, once.
++     *
++     * A webhook can arrive twice, and the devotee usually lands on the return
++     * URL at roughly the same moment, so this is written to be safe to call
++     * repeatedly: a row that has already settled is left exactly as it is.
++     * Without that, a second call would move processed_at forward and quietly
++     * extend the devotee's subscription by however long the gap was.
++     *
++     * @param  string|null  $status  one of Paid | Failed | Refunded, or null
++     *                               when Maya said something we do not act on
++     */
++    public function settle(?string $status, ?string $paymentId = null, ?string $note = null): bool
++    {
++        if ($paymentId && ! $this->provider_payment_id) {
++            $this->provider_payment_id = $paymentId;
++        }
++
++        if ($status === null || $this->status !== 'Pending') {
++            $this->updated_at = now();
++            $this->save();
++
++            return false;
++        }
++
++        $this->status       = $status;
++        $this->processed_at = now();
++        $this->updated_at   = now();
++
++        if ($note) {
++            $this->notes = $note;
++        }
++
++        $this->save();
++
++        return true;
++    }
++
+     /** Has this paid transaction's coverage window expired yet? */
+     public function isStillValid(): bool
+     {
+diff --git a/app/Services/MayaService.php b/app/Services/MayaService.php
+new file mode 100644
+index 0000000..02cd2de
+--- /dev/null
++++ b/app/Services/MayaService.php
+@@ -0,0 +1,248 @@
++<?php
++
++namespace App\Services;
++
++use App\Models\Transaction;
++use Illuminate\Support\Facades\Http;
++use Illuminate\Support\Facades\Log;
++use RuntimeException;
++
++/**
++ * Every call GIYA makes to Maya lives here.
++ *
++ * Two things about Maya shape this class:
++ *
++ * 1. Authentication is HTTP Basic with the key as the USERNAME and an empty
++ *    password - base64("pk-xxx:"). The trailing colon matters.
++ *
++ * 2. Creating a checkout uses the PUBLIC key; reading a payment uses the
++ *    SECRET one. Sending the wrong key gives a 401 that looks like a bad key
++ *    rather than a wrong key, which is a miserable half hour to debug, so the
++ *    two are separated into named methods instead of a shared client.
++ */
++class MayaService
++{
++    public function __construct(
++        private readonly string $baseUrl,
++        private readonly string $publicKey,
++        private readonly string $secretKey,
++    ) {
++    }
++
++    public static function fromConfig(): self
++    {
++        return new self(
++            rtrim((string) config('services.maya.base_url'), '/'),
++            (string) config('services.maya.public'),
++            (string) config('services.maya.secret'),
++        );
++    }
++
++    public function isConfigured(): bool
++    {
++        return $this->publicKey !== '' && $this->secretKey !== '';
++    }
++
++    /** True when pointed at the sandbox - the upgrade page says so out loud. */
++    public function isSandbox(): bool
++    {
++        return str_contains($this->baseUrl, 'sandbox');
++    }
++
++    /**
++     * Hand Maya a transaction and get back the URL to send the devotee to.
++     *
++     * The amount comes from the transaction row, which was created from the
++     * plan's price - never from the request. A price that arrives in a form
++     * field is a price the devotee can edit.
++     *
++     * @return array{id: string, url: string}
++     */
++    public function createCheckout(Transaction $transaction, array $urls): array
++    {
++        $user = $transaction->user;
++        $plan = $transaction->subscriptionPlan;
++
++        $response = Http::withBasicAuth($this->publicKey, '')
++            ->acceptJson()
++            ->timeout(20)
++            ->post($this->baseUrl.'/checkout/v1/checkouts', [
++                'totalAmount' => [
++                    'value'    => (float) $transaction->amount,
++                    'currency' => $transaction->currency,
++                    'details'  => [
++                        'subtotal' => (float) $transaction->amount,
++                    ],
++                ],
++                'buyer' => [
++                    'firstName' => $this->firstName($user?->name),
++                    'lastName'  => $this->lastName($user?->name),
++                    'contact'   => ['email' => $user?->email],
++                ],
++                'items' => [[
++                    'name'        => 'GIYA '.($plan?->name ?? 'Subscription'),
++                    'quantity'    => 1,
++                    'description' => $plan?->description,
++                    'totalAmount' => ['value' => (float) $transaction->amount],
++                ]],
++                // Maya echoes this back on every webhook and every payment we
++                // fetch, which is how a payment finds its way home to a row.
++                'requestReferenceNumber' => $transaction->reference_no,
++                'redirectUrl'            => $urls,
++                'metadata'               => [
++                    'transactionId' => (string) $transaction->id,
++                    'planId'        => (string) $transaction->plan_type_id,
++                ],
++            ]);
++
++        if ($response->failed()) {
++            Log::error('Maya checkout could not be created.', [
++                'transaction' => $transaction->id,
++                'status'      => $response->status(),
++                'body'        => $response->body(),
++            ]);
++
++            throw new RuntimeException('Maya refused the checkout ('.$response->status().').');
++        }
++
++        $body = $response->json();
++
++        if (empty($body['checkoutId']) || empty($body['redirectUrl'])) {
++            throw new RuntimeException('Maya returned a checkout with no id or URL.');
++        }
++
++        return ['id' => $body['checkoutId'], 'url' => $body['redirectUrl']];
++    }
++
++    /**
++     * Ask Maya what actually happened to a checkout.
++     *
++     * This is the only thing in the whole flow that is allowed to decide a
++     * transaction is Paid. Not the return URL the devotee lands on - a devotee
++     * can type that URL. Not the webhook body - it is unsigned. Only this.
++     *
++     * GET /checkout/v1/checkouts/{id} with the SECRET key. The reply carries
++     * paymentStatus (PAYMENT_SUCCESS, PAYMENT_FAILED, ...) and, once a payment
++     * exists, its id.
++     */
++    public function retrieveCheckout(string $checkoutId): ?array
++    {
++        return $this->getJson('/checkout/v1/checkouts/'.$checkoutId, 'checkout '.$checkoutId);
++    }
++
++    /** GET /payments/v1/payments/{id} - a payment on its own, SECRET key. */
++    public function retrievePayment(string $paymentId): ?array
++    {
++        return $this->getJson('/payments/v1/payments/'.$paymentId, 'payment '.$paymentId);
++    }
++
++    /**
++     * Pull the payment id out of a checkout body.
++     *
++     * Maya has moved this field around between API versions, so rather than
++     * betting on one spelling we look in the places it has lived. Failing to
++     * find it is not fatal - it is stored for the audit trail, and the status
++     * itself comes from paymentStatus.
++     */
++    public static function paymentIdFrom(array $checkout): ?string
++    {
++        foreach ([
++            $checkout['paymentDetails']['paymentId'] ?? null,
++            $checkout['paymentDetails']['id'] ?? null,
++            $checkout['paymentId'] ?? null,
++            $checkout['payments'][0]['id'] ?? null,
++        ] as $candidate) {
++            if (is_string($candidate) && $candidate !== '') {
++                return $candidate;
++            }
++        }
++
++        return null;
++    }
++
++    /** paymentStatus is the checkout wording; status is the payment wording. */
++    public static function statusFrom(array $body): ?string
++    {
++        return $body['paymentStatus'] ?? $body['status'] ?? null;
++    }
++
++    private function getJson(string $path, string $what): ?array
++    {
++        $response = Http::withBasicAuth($this->secretKey, '')
++            ->acceptJson()
++            ->timeout(20)
++            ->get($this->baseUrl.$path);
++
++        if ($response->failed()) {
++            Log::warning('Maya lookup failed.', [
++                'what'   => $what,
++                'status' => $response->status(),
++            ]);
++
++            return null;
++        }
++
++        return $response->json();
++    }
++
++    /** Register a webhook. Used by the giya:maya-webhooks command. */
++    public function registerWebhook(string $name, string $callbackUrl): array
++    {
++        $response = Http::withBasicAuth($this->secretKey, '')
++            ->acceptJson()
++            ->post($this->baseUrl.'/payments/v1/webhooks', [
++                'name'        => $name,
++                'callbackUrl' => $callbackUrl,
++            ]);
++
++        return ['ok' => $response->successful(), 'body' => $response->json() ?? []];
++    }
++
++    public function listWebhooks(): array
++    {
++        $response = Http::withBasicAuth($this->secretKey, '')
++            ->acceptJson()
++            ->get($this->baseUrl.'/payments/v1/webhooks');
++
++        return $response->successful() ? (array) $response->json() : [];
++    }
++
++    public function deleteWebhook(string $id): bool
++    {
++        return Http::withBasicAuth($this->secretKey, '')
++            ->delete($this->baseUrl.'/payments/v1/webhooks/'.$id)
++            ->successful();
++    }
++
++    /**
++     * Maya's payment status -> the words the ERD's Transactions.status uses.
++     *
++     * Anything unrecognised returns null, which the caller reads as "leave the
++     * row alone". A payment sitting in PENDING_TOKEN is not a failure; writing
++     * Failed over it would lock a devotee out of a payment still in progress.
++     */
++    public static function mapStatus(?string $mayaStatus): ?string
++    {
++        return match (strtoupper((string) $mayaStatus)) {
++            'PAYMENT_SUCCESS', 'AUTHORIZED', 'CAPTURED'  => 'Paid',
++            'PAYMENT_FAILED', 'PAYMENT_EXPIRED',
++            'PAYMENT_CANCELLED', 'VOIDED'                => 'Failed',
++            'REFUNDED'                                   => 'Refunded',
++            default                                      => null,
++        };
++    }
++
++    private function firstName(?string $name): string
++    {
++        $parts = preg_split('/\s+/', trim((string) $name)) ?: [];
++
++        return $parts[0] ?? 'Devotee';
++    }
++
++    private function lastName(?string $name): string
++    {
++        $parts = preg_split('/\s+/', trim((string) $name)) ?: [];
++
++        return count($parts) > 1 ? (string) end($parts) : 'Pilgrim';
++    }
++}
+diff --git a/bootstrap/app.php b/bootstrap/app.php
+index 18e2399..29494c5 100644
+--- a/bootstrap/app.php
++++ b/bootstrap/app.php
+@@ -18,6 +18,15 @@
+             \App\Http\Middleware\SetLocale::class,
+         ]);
+ 
++        // Maya's server posts the webhook. It has no session and therefore no
++        // CSRF token, so the check has to be lifted for that one path. What
++        // replaces it is in PaymentController::webhook - the body is used only
++        // to pick a reference number, and the payment is then re-fetched from
++        // Maya with the secret key before anything is written.
++        $middleware->validateCsrfTokens(except: [
++            'maya/webhook',
++        ]);
++
+         $middleware->alias([
+             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+         ]);
+diff --git a/config/services.php b/config/services.php
+index 4dd47e2..672a5b2 100644
+--- a/config/services.php
++++ b/config/services.php
+@@ -40,6 +40,37 @@
+         'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+     ],
+ 
++    /*
++    |--------------------------------------------------------------------------
++    | Maya (PayMaya) - Checkout
++    |--------------------------------------------------------------------------
++    | GIYA never handles card numbers. The devotee is sent to Maya's own hosted
++    | checkout page, pays there, and comes back. Two keys, and they are not
++    | interchangeable:
++    |
++    |   public  - creates a checkout. Safe to send in a request the devotee
++    |             could in principle observe; it can only start a payment.
++    |   secret  - reads a payment's real status and registers webhooks. This
++    |             one must never reach the browser or a public repository.
++    |
++    | Sandbox keys are the published test pair from Maya's documentation, so a
++    | teammate can clone the repo and pay with a test card without waiting for
++    | credentials. Live keys go in .env only.
++    */
++    'maya' => [
++        'base_url' => env('MAYA_BASE_URL', 'https://pg-sandbox.paymaya.com'),
++        'public'   => env('MAYA_PUBLIC_KEY',  'pk-Z0OSzLvIcOI2UIvDhdTGVVfRSSeiGStnceqwUE7n0Ah'),
++        'secret'   => env('MAYA_SECRET_KEY',  'sk-X8qolYjy62kIzEbr0QRK1h4b4KDVHaNcwMYk39jInSl'),
++
++        // Maya posts webhooks from a fixed set of addresses and signs nothing,
++        // so the address is the only cheap filter available. It is a filter,
++        // not the security boundary - the payment is still re-fetched.
++        'webhook_ips' => [
++            '13.229.160.234', '3.1.199.75',       // sandbox
++            '18.138.50.235',  '3.1.207.200',      // production
++        ],
++    ],
++
+     'slack' => [
+         'notifications' => [
+             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
+diff --git a/database/migrations/2026_09_03_000001_add_payment_provider_to_transactions.php b/database/migrations/2026_09_03_000001_add_payment_provider_to_transactions.php
+new file mode 100644
+index 0000000..0f56c5a
+--- /dev/null
++++ b/database/migrations/2026_09_03_000001_add_payment_provider_to_transactions.php
+@@ -0,0 +1,50 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\Schema;
++
++/**
++ * ERD entity: Transactions (extended)
++ *
++ * The ERD's Transactions table records WHAT was paid - amount, method, status,
++ * and our own reference_no. It has nowhere to keep the identifiers the payment
++ * provider gives back, and without those we cannot ask Maya later whether a
++ * payment actually succeeded.
++ *
++ * That question has to be answerable, because Maya's webhooks carry no
++ * signature. Anyone who learns the URL can post to it. So the webhook is
++ * treated as a nudge, not as evidence: it tells us a payment id changed, and
++ * we then fetch that payment from Maya with our secret key and take the status
++ * from the answer. Storing provider_payment_id is what makes that possible.
++ *
++ *   provider              which processor handled it ('maya'); nullable so the
++ *                         Cash and manual rows the seeder writes stay valid
++ *   provider_checkout_id  the id Maya returns when the checkout is created
++ *   provider_payment_id   the id of the payment itself, learned at return or
++ *                         from the webhook; unique, so a webhook replayed ten
++ *                         times cannot create ten paid transactions
++ */
++return new class extends Migration
++{
++    public function up(): void
++    {
++        Schema::table('transactions', function (Blueprint $table) {
++            $table->string('provider', 30)->nullable()->after('method');
++            $table->string('provider_checkout_id', 64)->nullable()->after('provider');
++            $table->string('provider_payment_id', 64)->nullable()->after('provider_checkout_id');
++
++            $table->unique('provider_checkout_id');
++            $table->unique('provider_payment_id');
++        });
++    }
++
++    public function down(): void
++    {
++        Schema::table('transactions', function (Blueprint $table) {
++            $table->dropUnique(['provider_payment_id']);
++            $table->dropUnique(['provider_checkout_id']);
++            $table->dropColumn(['provider', 'provider_checkout_id', 'provider_payment_id']);
++        });
++    }
++};
+diff --git a/public/assets/css/giya.css b/public/assets/css/giya.css
+index 817bee4..889cbd4 100644
+--- a/public/assets/css/giya.css
++++ b/public/assets/css/giya.css
+@@ -353,6 +353,15 @@ .alert-warning {
+   background: rgba(215,169,74,0.1);
+   border: 1px solid rgba(215,169,74,0.3); color: #7a5c00;
+ }
++/* Neither good news nor bad - "we are still confirming your payment". */
++.alert-info {
++  background: rgba(58,90,120,0.08);
++  border: 1px solid rgba(58,90,120,0.25); color: #2c4359;
++}
++html[data-theme="dark"] .alert-info {
++  background: rgba(126,170,210,0.12);
++  border-color: rgba(126,170,210,0.32); color: #cfe2f2;
++}
+ @media (max-width: 767px) {
+   .flash-container { top: 72px; right: 12px; width: calc(100vw - 24px); }
+ }
+diff --git a/resources/views/components/flash.blade.php b/resources/views/components/flash.blade.php
+index 382f6ce..839b65c 100644
+--- a/resources/views/components/flash.blade.php
++++ b/resources/views/components/flash.blade.php
+@@ -1,4 +1,4 @@
+-@if (session('success') || session('error') || session('warning'))
++@if (session('success') || session('error') || session('warning') || session('info'))
+     <div class="flash-container" aria-live="polite" id="giyaFlash">
+         @if (session('success'))
+             <div class="alert alert-success">
+@@ -20,6 +20,13 @@
+                 <span>{{ session('warning') }}</span>
+             </div>
+         @endif
++
++        @if (session('info'))
++            <div class="alert alert-info">
++                <i class="bi bi-info-circle"></i>
++                <span>{{ session('info') }}</span>
++            </div>
++        @endif
+     </div>
+ 
+     {{--
+diff --git a/resources/views/plan/create.blade.php b/resources/views/plan/create.blade.php
+index 16758ca..5867678 100644
+--- a/resources/views/plan/create.blade.php
++++ b/resources/views/plan/create.blade.php
+@@ -19,7 +19,8 @@
+         <div class="alert alert-warning">
+             <i class="bi bi-lock-fill"></i>
+             <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.
+-                  Delete one from <a href="{{ route('plan.index') }}" style="font-weight:700;color:inherit;text-decoration:underline">My Itineraries</a> to create another.</span>
++                  Delete one from <a href="{{ route('plan.index') }}" style="font-weight:700;color:inherit;text-decoration:underline">My Itineraries</a>,
++                  or <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">go Premium</a> for unlimited routes.</span>
+         </div>
+     @endif
+ 
+diff --git a/resources/views/plan/my-itineraries.blade.php b/resources/views/plan/my-itineraries.blade.php
+index f21807f..9078d8a 100644
+--- a/resources/views/plan/my-itineraries.blade.php
++++ b/resources/views/plan/my-itineraries.blade.php
+@@ -49,7 +49,11 @@
+             </div>
+ 
+             @if ($atLimit)
+-                <span class="badge badge-primary" style="padding:10px 18px;font-size: 0.75rem">Upgrade for unlimited</span>
++                {{-- This badge told devotees to upgrade and led nowhere. --}}
++                <a href="{{ route('upgrade') }}" class="btn btn-primary"
++                   style="padding:10px 18px;font-size: 0.75rem;flex:none;white-space:nowrap">
++                    <i class="bi bi-gem"></i><span>Upgrade for unlimited</span>
++                </a>
+             @else
+                 <span class="badge badge-amber" style="padding:10px 18px;font-size: 0.75rem">Free plan active</span>
+             @endif
+diff --git a/resources/views/plan/visita.blade.php b/resources/views/plan/visita.blade.php
+index 3c5287e..38a231d 100644
+--- a/resources/views/plan/visita.blade.php
++++ b/resources/views/plan/visita.blade.php
+@@ -19,7 +19,8 @@
+     @if ($atLimit)
+         <div class="alert alert-warning">
+             <i class="bi bi-lock-fill"></i>
+-            <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.</span>
++            <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.
++                  <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">Go Premium</a> for unlimited routes.</span>
+         </div>
+     @endif
+ 
+diff --git a/resources/views/profile.blade.php b/resources/views/profile.blade.php
+index 471e1f1..ea1c971 100644
+--- a/resources/views/profile.blade.php
++++ b/resources/views/profile.blade.php
+@@ -79,6 +79,13 @@
+                         <span style="font-size: 0.8125rem;font-weight:600;color:var(--text);text-align:right">{{ $value }}</span>
+                     </div>
+                 @endforeach
++
++                @unless ($user->is_premium)
++                    <a href="{{ route('upgrade') }}" class="btn btn-outline-gold"
++                       style="width:100%;justify-content:center;margin-top:14px">
++                        <i class="bi bi-gem"></i><span>Go Premium</span>
++                    </a>
++                @endunless
+             </div>
+ 
+             <div class="card card-body">
+diff --git a/resources/views/upgrade.blade.php b/resources/views/upgrade.blade.php
+new file mode 100644
+index 0000000..05ac53b
+--- /dev/null
++++ b/resources/views/upgrade.blade.php
+@@ -0,0 +1,177 @@
++@extends('layouts.app')
++@section('title', 'Go Premium')
++
++@section('content')
++<div class="page-wrap">
++
++    <div class="eyebrow">
++        <span class="eyebrow-bar"></span>
++        <span class="eyebrow-text">Premium</span>
++    </div>
++
++    <h1 style="font-family:var(--font-display);font-size:2rem;margin:0 0 10px">
++        Walk further with GIYA
++    </h1>
++    <p style="color:var(--text-muted);font-size:0.9375rem;line-height:1.7;max-width:580px;margin:0 0 32px">
++        A free account plans up to three itineraries. Premium lifts that limit and
++        opens the rest of the guide. Payment is handled by Maya - GIYA never sees
++        your card.
++    </p>
++
++    @if ($user->is_premium)
++        <div class="card card-body" style="display:flex;gap:14px;align-items:center;margin-bottom:32px;
++                    border-color:rgba(215,169,74,.45);background:rgba(215,169,74,.08)">
++            <i class="bi bi-gem" style="font-size:1.5rem;color:var(--gold)"></i>
++            <div>
++                <div style="font-weight:700;color:var(--text)">You are a Premium pilgrim.</div>
++                <div style="font-size:.8125rem;color:var(--text-muted)">
++                    Unlimited itineraries are already active on this account.
++                </div>
++            </div>
++        </div>
++    @endif
++
++    @unless ($ready)
++        <div class="alert alert-warning" style="margin-bottom:28px">
++            <i class="bi bi-exclamation-triangle-fill"></i>
++            <span>
++                Maya keys are not set. Add <code>MAYA_PUBLIC_KEY</code> and
++                <code>MAYA_SECRET_KEY</code> to <code>.env</code> before taking a payment.
++            </span>
++        </div>
++    @endunless
++
++    {{-- ── Plans ──────────────────────────────────────────────────────── --}}
++    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:40px">
++        @foreach ($plans as $plan)
++            @php $featured = $plan->duration_days >= 365; @endphp
++
++            <div class="card card-body" style="display:flex;flex-direction:column;
++                 {{ $featured ? 'border-color:rgba(215,169,74,.5);box-shadow:0 6px 24px rgba(215,169,74,.12)' : '' }}">
++
++                {{--
++                    The badge row is rendered on every card, empty where there
++                    is no badge. Only the featured card having one pushed its
++                    title 50px below the other card's, and two plan names at
++                    different heights read as a mistake rather than emphasis.
++                --}}
++                <div style="height:24px;margin-bottom:12px;display:flex;align-items:center">
++                    @if ($featured)
++                        <span style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;
++                                     text-transform:uppercase;color:#7a5c00;background:rgba(215,169,74,.18);
++                                     padding:4px 10px;border-radius:999px">Best value</span>
++                    @endif
++                </div>
++
++                <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
++                    <i class="bi {{ $featured ? 'bi-gem' : 'bi-stars' }}"
++                       style="font-size:1.125rem;color:var(--gold)"></i>
++                    <span style="font-family:var(--font-display);font-size:1.125rem;color:var(--text)">
++                        {{ $plan->name }}
++                    </span>
++                </div>
++
++                <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px">
++                    <span style="font-size:2rem;font-weight:700;color:var(--text)">
++                        ₱{{ number_format((float) $plan->price, 0) }}
++                    </span>
++                    <span style="font-size:.8125rem;color:var(--text-muted)">
++                        / {{ $plan->duration_days >= 365 ? 'year' : $plan->duration_days.' days' }}
++                    </span>
++                </div>
++
++                <p style="font-size:.8125rem;color:var(--text-muted);line-height:1.65;margin:0 0 18px">
++                    {{ $plan->description }}
++                </p>
++
++                <ul style="list-style:none;padding:0;margin:0 0 22px;display:grid;gap:9px">
++                    @foreach ([
++                        'Unlimited itineraries',
++                        'Full Visita Iglesia planning',
++                        'Priority answers from the Giya assistant',
++                    ] as $perk)
++                        <li style="display:flex;gap:9px;align-items:flex-start;font-size:.8125rem;color:var(--text)">
++                            <i class="bi bi-check-lg" style="color:var(--gold);flex:none;margin-top:2px"></i>
++                            <span>{{ $perk }}</span>
++                        </li>
++                    @endforeach
++                </ul>
++
++                <form method="POST" action="{{ route('upgrade.checkout', $plan) }}" style="margin-top:auto">
++                    @csrf
++                    <button type="submit" class="btn {{ $featured ? 'btn-primary' : 'btn-outline' }}"
++                            style="width:100%;justify-content:center"
++                            @disabled($user->is_premium || ! $ready)>
++                        <i class="bi bi-credit-card-fill"></i>
++                        <span>{{ $user->is_premium ? 'Already active' : 'Pay with Maya' }}</span>
++                    </button>
++                </form>
++            </div>
++        @endforeach
++    </div>
++
++    {{-- ── What actually happens, for the panel ────────────────────────── --}}
++    <div class="card card-body" style="margin-bottom:32px">
++        <div class="form-label-sm" style="margin-bottom:14px">How the payment works</div>
++        <ol style="margin:0;padding-left:20px;display:grid;gap:8px;font-size:.8125rem;
++                   color:var(--text-muted);line-height:1.6">
++            <li>GIYA records a <strong>Pending</strong> transaction with its own reference number.</li>
++            <li>Maya is asked for a checkout and you are sent to <strong>Maya's own page</strong> to pay.
++                Your card details are typed there, never here.</li>
++            <li>When you come back, GIYA asks Maya what happened - it does not take the
++                landing page's word for it - and only then marks the transaction Paid.</li>
++            <li>Maya also notifies GIYA directly, which catches a payment finished after
++                the browser was closed.</li>
++        </ol>
++    </div>
++
++    @if ($isSandbox)
++        <div class="card card-body" style="margin-bottom:32px;border-style:dashed">
++            <div style="display:flex;gap:9px;align-items:center;margin-bottom:10px">
++                <i class="bi bi-cone-striped" style="color:var(--gold)"></i>
++                <span style="font-weight:700;font-size:.875rem;color:var(--text)">Sandbox mode - no real money moves</span>
++            </div>
++            <p style="font-size:.8125rem;color:var(--text-muted);margin:0 0 10px;line-height:1.6">
++                Pay with Maya's test card. Any future expiry and any 3-digit CVV work.
++            </p>
++            <div style="font-family:ui-monospace,monospace;font-size:.8125rem;color:var(--text);
++                        background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px">
++                5123 4567 8901 2346 &nbsp;·&nbsp; 12/25 &nbsp;·&nbsp; CVV 111 &nbsp;·&nbsp; OTP 123456
++            </div>
++        </div>
++    @endif
++
++    {{-- ── Their own transactions ──────────────────────────────────────── --}}
++    @if ($history->isNotEmpty())
++        <div class="card card-body">
++            <div class="form-label-sm" style="margin-bottom:14px">Recent transactions</div>
++
++            @foreach ($history as $t)
++                @php
++                    $tone = match ($t->status) {
++                        'Paid'     => ['bi-check-circle-fill',        'var(--gold)'],
++                        'Failed'   => ['bi-exclamation-circle-fill',  '#8e3b2f'],
++                        'Refunded' => ['bi-arrow-repeat',             'var(--text-muted)'],
++                        default    => ['bi-hourglass-split',          'var(--text-muted)'],
++                    };
++                @endphp
++                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;
++                            {{ ! $loop->last ? 'border-bottom:1px solid var(--border-light)' : '' }}">
++                    <i class="bi {{ $tone[0] }}" style="color:{{ $tone[1] }};flex:none"></i>
++                    <div style="flex:1;min-width:0">
++                        <div style="font-size:.8125rem;font-weight:600;color:var(--text)">{{ $t->plan }}</div>
++                        <div style="font-size:.75rem;color:var(--text-muted)">
++                            {{ $t->reference_no }} · {{ $t->created_at?->format('d M Y, g:i A') }}
++                        </div>
++                    </div>
++                    <div style="text-align:right;flex:none">
++                        <div style="font-size:.8125rem;font-weight:600;color:var(--text)">{{ $t->amountLabel() }}</div>
++                        <div style="font-size:.75rem;color:{{ $tone[1] }}">{{ $t->status }}</div>
++                    </div>
++                </div>
++            @endforeach
++        </div>
++    @endif
++
++</div>
++@endsection
+diff --git a/routes/web.php b/routes/web.php
+index db0521d..5b009d8 100644
+--- a/routes/web.php
++++ b/routes/web.php
+@@ -14,6 +14,7 @@
+ use App\Http\Controllers\HomeController;
+ use App\Http\Controllers\ItineraryController;
+ use App\Http\Controllers\MapController;
++use App\Http\Controllers\PaymentController;
+ use App\Http\Controllers\ProfileController;
+ use Illuminate\Support\Facades\Route;
+ 
+@@ -75,6 +76,22 @@
+     });
+ });
+ 
++/* ------------------------------------------------------- Premium / Maya */
++Route::middleware('auth')->group(function () {
++    Route::get('/upgrade',                 [PaymentController::class, 'upgrade'])->name('upgrade');
++    Route::post('/upgrade/{plan}/checkout',[PaymentController::class, 'checkout'])->name('upgrade.checkout');
++
++    // Where Maya sends the devotee back to. They are behind auth because the
++    // devotee is signed in throughout - Maya opens in the same browser.
++    Route::get('/upgrade/success', [PaymentController::class, 'success'])->name('upgrade.success');
++    Route::get('/upgrade/failure', [PaymentController::class, 'failure'])->name('upgrade.failure');
++    Route::get('/upgrade/cancel',  [PaymentController::class, 'cancel'])->name('upgrade.cancel');
++});
++
++// Maya's server posts here. No session, no CSRF token, no auth - see the
++// exemption in bootstrap/app.php and the reasoning in PaymentController.
++Route::post('/maya/webhook', [PaymentController::class, 'webhook'])->name('maya.webhook');
++
+ Route::get('/map', [MapController::class, 'index'])->name('map');
+ Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
+ 
+diff --git a/tests/Feature/MayaPaymentTest.php b/tests/Feature/MayaPaymentTest.php
+new file mode 100644
+index 0000000..76c6696
+--- /dev/null
++++ b/tests/Feature/MayaPaymentTest.php
+@@ -0,0 +1,450 @@
++<?php
++
++namespace Tests\Feature;
++
++use App\Models\SubscriptionPlan;
++use App\Models\Transaction;
++use App\Models\User;
++use Illuminate\Foundation\Testing\RefreshDatabase;
++use Illuminate\Support\Facades\Http;
++use Tests\TestCase;
++
++/**
++ * The payment flow, tested at the two points where getting it wrong costs
++ * somebody money:
++ *
++ *   - the amount charged must come from the plan, not from the request
++ *   - only Maya, asked directly with the secret key, may mark a row Paid
++ *
++ * Maya's webhooks are unsigned. That means the webhook endpoint is, in
++ * practice, a public "please mark this Paid" button unless the payload is
++ * treated as untrusted. Several tests below post exactly the sort of thing an
++ * attacker would and assert that nothing moves.
++ */
++class MayaPaymentTest extends TestCase
++{
++    use RefreshDatabase;
++
++    private SubscriptionPlan $plan;
++
++    protected function setUp(): void
++    {
++        parent::setUp();
++
++        config([
++            'services.maya.base_url'    => 'https://pg-sandbox.paymaya.com',
++            'services.maya.public'      => 'pk-test',
++            'services.maya.secret'      => 'sk-test',
++            'services.maya.webhook_ips' => [],   // no IP filter in tests
++        ]);
++
++        $this->plan = SubscriptionPlan::create([
++            'name' => 'Pilgrim Annual', 'description' => 'One year.',
++            'price' => 899.00, 'currency' => 'PHP', 'duration_days' => 365,
++            'is_active' => true, 'created_at' => now(), 'updated_at' => now(),
++        ]);
++    }
++
++    private function devotee(string $name = 'Lyle'): User
++    {
++        return User::create([
++            'name' => $name, 'email' => strtolower($name).'@example.com',
++            'password_hash' => bcrypt('secret'), 'role' => 'devotee',
++            'status' => 'Active', 'created_at' => now(), 'updated_at' => now(),
++        ]);
++    }
++
++    /** A checkout creation that succeeds, plus a checkout lookup reply. */
++    private function fakeMaya(string $paymentStatus = 'PAYMENT_SUCCESS'): void
++    {
++        Http::fake([
++            '*/checkout/v1/checkouts' => Http::response([
++                'checkoutId'  => 'chk-abc-123',
++                'redirectUrl' => 'https://pg-sandbox.paymaya.com/checkout/chk-abc-123',
++            ], 200),
++            '*/checkout/v1/checkouts/*' => Http::response([
++                'id'                     => 'chk-abc-123',
++                'paymentStatus'          => $paymentStatus,
++                'paymentDetails'         => ['paymentId' => 'pay-xyz-789'],
++                'requestReferenceNumber' => 'irrelevant',
++            ], 200),
++        ]);
++    }
++
++    /* ── Starting a payment ────────────────────────────────────────────── */
++
++    public function test_starting_a_checkout_writes_a_pending_transaction_and_redirects_to_maya(): void
++    {
++        $this->fakeMaya();
++        $user = $this->devotee();
++
++        $response = $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++
++        $response->assertRedirect('https://pg-sandbox.paymaya.com/checkout/chk-abc-123');
++
++        $transaction = Transaction::firstOrFail();
++
++        $this->assertSame('Pending', $transaction->status);
++        $this->assertSame('Maya', $transaction->method);
++        $this->assertSame('maya', $transaction->provider);
++        $this->assertSame('chk-abc-123', $transaction->provider_checkout_id);
++        $this->assertSame('899.00', (string) $transaction->amount);
++        $this->assertNull($transaction->processed_at);
++        $this->assertFalse($user->fresh()->is_premium, 'Pending must not confer Premium.');
++    }
++
++    /**
++     * The amount is read off the plan, never off the request. If it were taken
++     * from a form field, a devotee could post amount=1 and be Premium for a
++     * peso. Posting exactly that must change nothing.
++     */
++    public function test_the_amount_comes_from_the_plan_not_the_request(): void
++    {
++        $this->fakeMaya();
++
++        $this->actingAs($this->devotee())->post(route('upgrade.checkout', $this->plan), [
++            'amount' => 1, 'price' => 1, 'totalAmount' => 1,
++        ]);
++
++        $this->assertSame('899.00', (string) Transaction::firstOrFail()->amount);
++
++        Http::assertSent(function ($request) {
++            return $request['totalAmount']['value'] === 899.0;
++        });
++    }
++
++    /** Maya's reference number field is capped at 36 characters. */
++    public function test_the_reference_number_fits_mayas_limit_and_is_unique(): void
++    {
++        $this->fakeMaya();
++
++        $references = [];
++
++        foreach ([$this->devotee('One'), $this->devotee('Two'), $this->devotee('Three')] as $user) {
++            $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        }
++
++        foreach (Transaction::all() as $transaction) {
++            $this->assertLessThanOrEqual(36, strlen($transaction->reference_no));
++            $references[] = $transaction->reference_no;
++        }
++
++        $this->assertCount(3, array_unique($references));
++    }
++
++    public function test_maya_being_unreachable_fails_the_row_and_charges_nothing(): void
++    {
++        Http::fake(['*' => Http::response(['error' => 'nope'], 500)]);
++
++        $user = $this->devotee();
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan))->assertRedirect();
++
++        $this->assertSame('Failed', Transaction::firstOrFail()->status);
++        $this->assertFalse($user->fresh()->is_premium);
++    }
++
++    /* ── Coming back from Maya ─────────────────────────────────────────── */
++
++    public function test_a_successful_return_is_verified_against_maya_and_grants_premium(): void
++    {
++        $this->fakeMaya('PAYMENT_SUCCESS');
++        $user = $this->devotee();
++
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $this->actingAs($user)->get(route('upgrade.success'))->assertRedirect(route('upgrade'));
++
++        $transaction = Transaction::firstOrFail();
++
++        $this->assertSame('Paid', $transaction->status);
++        $this->assertSame('pay-xyz-789', $transaction->provider_payment_id);
++        $this->assertNotNull($transaction->processed_at);
++        $this->assertTrue($user->fresh()->is_premium);
++    }
++
++    /**
++     * The heart of it. A devotee who never pays can still type the success URL
++     * into the address bar - the browser is theirs. What stops that is that
++     * the landing page is not evidence: GIYA asks Maya, Maya says the payment
++     * failed, and the row stays unpaid no matter which URL was visited.
++     */
++    public function test_landing_on_the_success_url_without_paying_grants_nothing(): void
++    {
++        $this->fakeMaya('PAYMENT_FAILED');
++        $user = $this->devotee();
++
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $this->actingAs($user)->get(route('upgrade.success'));
++
++        $this->assertSame('Failed', Transaction::firstOrFail()->status);
++        $this->assertFalse($user->fresh()->is_premium);
++    }
++
++    public function test_visiting_the_success_url_with_no_payment_in_flight_does_nothing(): void
++    {
++        Http::fake();
++
++        $user = $this->devotee();
++        $this->actingAs($user)->get(route('upgrade.success'))->assertRedirect(route('upgrade'));
++
++        $this->assertSame(0, Transaction::count());
++        $this->assertFalse($user->fresh()->is_premium);
++        Http::assertNothingSent();
++    }
++
++    /* ── The webhook ───────────────────────────────────────────────────── */
++
++    public function test_the_webhook_verifies_with_maya_before_marking_anything_paid(): void
++    {
++        $this->fakeMaya('PAYMENT_SUCCESS');
++        $user = $this->devotee();
++
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $reference = Transaction::firstOrFail()->reference_no;
++
++        // Maya's own callback, arriving with no session and no CSRF token.
++        $this->postJson(route('maya.webhook'), [
++            'id'                     => 'pay-xyz-789',
++            'requestReferenceNumber' => $reference,
++            'paymentStatus'          => 'PAYMENT_SUCCESS',
++        ])->assertOk();
++
++        $this->assertSame('Paid', Transaction::firstOrFail()->status);
++        $this->assertTrue($user->fresh()->is_premium);
++
++        // It did not take the body's word for it.
++        Http::assertSent(fn ($request) => str_contains($request->url(), '/checkout/v1/checkouts/chk-abc-123'));
++    }
++
++    /**
++     * The attack the missing signature makes possible: anyone who learns the
++     * webhook URL posts a PAYMENT_SUCCESS body for a reference they guessed or
++     * observed. Here Maya says the payment failed, and the forged body claims
++     * success. Maya wins.
++     */
++    public function test_a_forged_webhook_body_cannot_mark_a_transaction_paid(): void
++    {
++        $this->fakeMaya('PAYMENT_FAILED');
++        $user = $this->devotee();
++
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $reference = Transaction::firstOrFail()->reference_no;
++
++        $this->postJson(route('maya.webhook'), [
++            'requestReferenceNumber' => $reference,
++            'paymentStatus'          => 'PAYMENT_SUCCESS',
++            'status'                 => 'COMPLETED',
++            'isPaid'                 => true,
++        ])->assertOk();
++
++        $this->assertSame('Failed', Transaction::firstOrFail()->status);
++        $this->assertFalse($user->fresh()->is_premium);
++    }
++
++    /**
++     * Laravel skips CSRF verification inside tests, so posting to the webhook
++     * above proves nothing about it. The exemption is asserted directly
++     * instead: without it Maya - which has no session and therefore no token -
++     * would get a 419 on every callback, and payments finished after the tab
++     * was closed would never be recorded.
++     */
++    public function test_the_webhook_path_is_exempt_from_csrf(): void
++    {
++        $middleware = app(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
++
++        $property = (new \ReflectionClass($middleware))->getProperty('neverVerify');
++        $property->setAccessible(true);
++
++        $this->assertContains(
++            'maya/webhook',
++            $property->getValue(),
++            'Maya cannot send a CSRF token, so its callback would 419.'
++        );
++    }
++
++    /**
++     * Maya posts from a fixed set of addresses. It is a cheap first filter,
++     * not the security boundary - the re-fetch is that - but a body from
++     * somewhere else should not even cost us an API call.
++     */
++    public function test_a_webhook_from_an_unexpected_address_is_ignored(): void
++    {
++        $this->fakeMaya('PAYMENT_SUCCESS');
++        config(['services.maya.webhook_ips' => ['13.229.160.234']]);
++
++        $user = $this->devotee();
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $reference = Transaction::firstOrFail()->reference_no;
++
++        $this->postJson(route('maya.webhook'), ['requestReferenceNumber' => $reference], [
++            'REMOTE_ADDR' => '203.0.113.9',
++        ])->assertOk();
++
++        $this->assertSame('Pending', Transaction::firstOrFail()->status);
++        $this->assertFalse($user->fresh()->is_premium);
++    }
++
++    public function test_a_webhook_for_an_unknown_reference_is_shrugged_off(): void
++    {
++        Http::fake();
++
++        $this->postJson(route('maya.webhook'), [
++            'requestReferenceNumber' => 'GIYA-000000-MADEUP0000',
++            'paymentStatus'          => 'PAYMENT_SUCCESS',
++        ])->assertOk();
++
++        Http::assertNothingSent();
++    }
++
++    /**
++     * Maya retries a webhook it thinks was not acknowledged, and the devotee's
++     * return usually lands at about the same moment. Neither may re-stamp a
++     * settled row: processed_at is what the subscription's expiry is measured
++     * from, so moving it silently extends Premium.
++     */
++    public function test_a_replayed_webhook_does_not_move_the_paid_date(): void
++    {
++        $this->fakeMaya('PAYMENT_SUCCESS');
++        $user = $this->devotee();
++
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $reference = Transaction::firstOrFail()->reference_no;
++
++        $this->postJson(route('maya.webhook'), ['requestReferenceNumber' => $reference])->assertOk();
++        $first = Transaction::firstOrFail()->processed_at;
++
++        $this->travel(2)->hours();
++
++        $this->postJson(route('maya.webhook'), ['requestReferenceNumber' => $reference])->assertOk();
++        $this->postJson(route('maya.webhook'), ['requestReferenceNumber' => $reference])->assertOk();
++
++        $this->assertSame(1, Transaction::count());
++        $this->assertEquals(
++            $first->timestamp,
++            Transaction::firstOrFail()->processed_at->timestamp,
++            'A replayed webhook moved processed_at, quietly extending the subscription.'
++        );
++    }
++
++    /**
++     * A payment still working its way through 3-D Secure is not a failure.
++     * Writing Failed over it would strand a devotee mid-payment.
++     */
++    public function test_an_in_progress_payment_is_left_pending(): void
++    {
++        $this->fakeMaya('PENDING_TOKEN');
++        $user = $this->devotee();
++
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $this->postJson(route('maya.webhook'), [
++            'requestReferenceNumber' => Transaction::firstOrFail()->reference_no,
++        ])->assertOk();
++
++        $this->assertSame('Pending', Transaction::firstOrFail()->status);
++    }
++
++    /** Maya unreachable during verification must not decide anything. */
++    public function test_maya_being_down_leaves_the_row_pending(): void
++    {
++        Http::fake([
++            '*/checkout/v1/checkouts' => Http::response([
++                'checkoutId' => 'chk-abc-123', 'redirectUrl' => 'https://example.test/pay',
++            ], 200),
++            '*/checkout/v1/checkouts/*' => Http::response('', 503),
++        ]);
++
++        $user = $this->devotee();
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $this->actingAs($user)->get(route('upgrade.success'));
++
++        $this->assertSame('Pending', Transaction::firstOrFail()->status);
++        $this->assertFalse($user->fresh()->is_premium);
++    }
++
++    /* ── Access ────────────────────────────────────────────────────────── */
++
++    public function test_a_guest_cannot_start_a_payment(): void
++    {
++        Http::fake();
++
++        $this->post(route('upgrade.checkout', $this->plan))->assertRedirect(route('login'));
++
++        $this->assertSame(0, Transaction::count());
++        Http::assertNothingSent();
++    }
++
++    /**
++     * The session remembers which transaction to verify. It must still be
++     * checked against the signed-in devotee, or a copied session value would
++     * let one account settle another's payment.
++     */
++    public function test_a_devotee_cannot_verify_another_devotees_transaction(): void
++    {
++        $this->fakeMaya('PAYMENT_SUCCESS');
++
++        $payer     = $this->devotee('Payer');
++        $bystander = $this->devotee('Bystander');
++
++        $this->actingAs($payer)->post(route('upgrade.checkout', $this->plan));
++        $transaction = Transaction::firstOrFail();
++
++        $this->actingAs($bystander)
++            ->withSession(['maya.transaction' => $transaction->id])
++            ->get(route('upgrade.success'));
++
++        $this->assertSame('Pending', $transaction->fresh()->status);
++        $this->assertFalse($bystander->fresh()->is_premium);
++        $this->assertFalse($payer->fresh()->is_premium);
++    }
++
++    public function test_an_inactive_plan_cannot_be_bought(): void
++    {
++        Http::fake();
++
++        $this->plan->update(['is_active' => false]);
++
++        $this->actingAs($this->devotee())
++            ->post(route('upgrade.checkout', $this->plan))
++            ->assertNotFound();
++
++        $this->assertSame(0, Transaction::count());
++    }
++
++    public function test_premium_expires_when_the_plans_window_closes(): void
++    {
++        $this->fakeMaya('PAYMENT_SUCCESS');
++        $user = $this->devotee();
++
++        $this->actingAs($user)->post(route('upgrade.checkout', $this->plan));
++        $this->actingAs($user)->get(route('upgrade.success'));
++
++        $this->assertTrue($user->fresh()->is_premium);
++
++        $this->travel(366)->days();
++
++        $this->assertFalse($user->fresh()->is_premium, 'A year-old payment still grants Premium.');
++    }
++
++    /* ── The upgrade page ──────────────────────────────────────────────── */
++
++    public function test_the_upgrade_page_lists_active_plans_and_says_it_is_sandbox(): void
++    {
++        $this->actingAs($this->devotee())
++            ->get(route('upgrade'))
++            ->assertOk()
++            ->assertSee('Pilgrim Annual')
++            ->assertSee('Sandbox mode', false);
++    }
++
++    public function test_the_page_refuses_to_take_money_with_no_keys_configured(): void
++    {
++        config(['services.maya.public' => '', 'services.maya.secret' => '']);
++        Http::fake();
++
++        $this->actingAs($this->devotee())
++            ->post(route('upgrade.checkout', $this->plan))
++            ->assertRedirect();
++
++        $this->assertSame(0, Transaction::count());
++        Http::assertNothingSent();
++    }
++}
+-- 
+2.43.0
+
+

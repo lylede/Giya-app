@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * ERD entity: Itineraries
@@ -15,6 +16,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Itinerary extends Model
 {
+    /*
+     * Deleting an itinerary hides it, it does not erase it. The free tier is
+     * three per ACCOUNT for the life of the account, so a deleted one still
+     * has to be countable - see countingAgainstFreeLimit() below.
+     */
+    use SoftDeletes;
+
     protected $table = 'itineraries';
 
     public $timestamps = false;
@@ -32,7 +40,20 @@ class Itinerary extends Model
             'schedule_date' => 'date',
             'created_at'    => 'datetime',
             'updated_at'    => 'datetime',
+            'deleted_at'    => 'datetime',
         ];
+    }
+
+    /**
+     * Every itinerary a devotee has ever saved, deleted ones included.
+     *
+     * This is the one query that must look past the soft delete, and the one
+     * definition of what "used" means - the profile, My Itineraries and the
+     * limit check all read it, so they can never disagree with each other.
+     */
+    public static function countingAgainstFreeLimit(int $userId): int
+    {
+        return static::withTrashed()->where('user_id', $userId)->count();
     }
 
     public function user(): BelongsTo

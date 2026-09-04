@@ -41,15 +41,19 @@
                 </div>
                 <p style="font-size: 0.75rem;color:var(--text-muted);margin:6px 0 0">
                     @if ($atLimit)
-                        Delete an itinerary to free a slot, or upgrade for unlimited routes.
+                        Go Premium for unlimited routes - deleting one does not free a slot.
                     @else
-                        {{ $limit - $used }} {{ \Illuminate\Support\Str::plural('slot', $limit - $used) }} remaining on the free plan.
+                        {{ max(0, $limit - $used) }} {{ \Illuminate\Support\Str::plural('slot', max(0, $limit - $used)) }} remaining on the free plan - deleted itineraries still count.
                     @endif
                 </p>
             </div>
 
             @if ($atLimit)
-                <span class="badge badge-primary" style="padding:10px 18px;font-size: 0.75rem">Upgrade for unlimited</span>
+                {{-- This badge told devotees to upgrade and led nowhere. --}}
+                <a href="{{ route('upgrade') }}" class="btn btn-primary"
+                   style="padding:10px 18px;font-size: 0.75rem;flex:none;white-space:nowrap">
+                    <i class="bi bi-gem"></i><span>Upgrade for unlimited</span>
+                </a>
             @else
                 <span class="badge badge-amber" style="padding:10px 18px;font-size: 0.75rem">Free plan active</span>
             @endif
@@ -59,7 +63,7 @@
     {{-- Cards --}}
     @if ($itineraries->isEmpty())
         <div class="card">
-            <x-empty-state icon="journal-text" title="No itineraries yet"
+            <x-empty-state icon="giya-route" title="No itineraries yet"
                            desc="Create your first pilgrimage route and it will be saved here.">
                 <a href="{{ route('plan.create') }}" class="btn btn-primary mt-3">Create First Itinerary</a>
             </x-empty-state>
@@ -72,7 +76,7 @@
                     <div style="padding:20px">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <span class="badge badge-brown">
-                                <i class="bi bi-{{ $itinerary->type === 'Visita Iglesia' ? 'building' : 'journal-text' }}"></i>
+                                <i class="bi bi-{{ $itinerary->type === 'Visita Iglesia' ? 'giya-seven' : 'giya-route' }}"></i>
                                 {{ $itinerary->type }}
                             </span>
                             <span class="badge status-{{ $itinerary->status }}">{{ $itinerary->status }}</span>

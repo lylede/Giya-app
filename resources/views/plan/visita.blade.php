@@ -19,7 +19,8 @@
     @if ($atLimit)
         <div class="alert alert-warning">
             <i class="bi bi-lock-fill"></i>
-            <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.</span>
+            <span>You have reached the free limit of {{ \App\Http\Controllers\ItineraryController::FREE_LIMIT }} saved itineraries.
+                  <a href="{{ route('upgrade') }}" style="font-weight:700;color:inherit;text-decoration:underline">Go Premium</a> for unlimited routes.</span>
         </div>
     @endif
 
