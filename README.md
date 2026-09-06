@@ -100,32 +100,7 @@ public/tiles/            offline map tiles
 public/assets/css/       giya.css (design system + dark theme)
 ```
 
-**Design decisions worth defending:**
 
-- Counters like `rating` and `total_churches_visited` are computed from related
-  tables, not stored — they cannot drift out of sync.
-- Font sizes are in `rem`, so the Preferences size setting actually rescales the UI.
-- CSS and JS carry `?v=filemtime(...)`, so edits appear without a hard refresh.
-- Leaflet, fonts and icons are self-hosted; nothing loads from a CDN.
 
----
 
-## Limitations
 
-For the manuscript:
-
-- Routes are straight lines with distances, not driving directions. Turn-by-turn
-  hands off to Google Maps and needs a connection.
-- Language preference saves but does not translate yet — no `lang/` files.
-- Uploaded images sit on local disk; they vanish on redeploy on hosts like Render.
-- Two additions beyond the original ERD: `devotee_preferences` and
-  `churches.address`. **Both need adding to the diagram and Data Dictionary.**
-
----
-
-## Before the defence
-
-Disconnect from the internet and confirm: login renders styled, `/map` draws
-tiles and pins, routes build, `/plan/create` saves, `/profile` switches theme and
-font size, `/admin/destinations` shows the picker map, and the browser console is
-clean.
