@@ -83,6 +83,18 @@ class MapController extends Controller
             'categories' => ChurchCategory::orderBy('name')
                 ->whereNotIn('name', self::CHIPS_HIDDEN)
                 ->pluck('name')
+                ->map(function (string $name) {
+                    if (in_array($name, ['Parish', 'Parishes'], true)) {
+                        return 'Church';
+                    }
+
+                    if (stripos($name, 'Shrine') !== false) {
+                        return 'Shrine';
+                    }
+
+                    return $name;
+                })
+                ->unique()
                 ->prepend('All')
                 ->all(),
 
@@ -94,7 +106,19 @@ class MapController extends Controller
                     'details'  => route('churches.show', $c),
                     'name'     => $c->name,
                     'location' => $c->location,
-                    'category' => $c->category,
+                    'category' => (function () use ($c) {
+                        $name = $c->category;
+
+                        if (in_array($name, ['Parish', 'Parishes'], true)) {
+                            return 'Church';
+                        }
+
+                        if (stripos($name, 'Shrine') !== false) {
+                            return 'Shrine';
+                        }
+
+                        return $name;
+                    })(),
                     'lat'      => (float) $c->latitude,
                     'lng'      => (float) $c->longitude,
                     'image'    => $c->imagePath(),
