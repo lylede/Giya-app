@@ -23,7 +23,17 @@
         'noGeo'      => __('giya.map.no_geo'),
         'denied'     => __('giya.map.denied'),
         'noFix'      => __('giya.map.no_fix'),
+
+        // Written by the engine when a Directions request comes back.
+        'kmToRoads'  => __('giya.plan.km_roads_min_to', ['km' => ':km', 'name' => ':name', 'min' => ':min']),
     ];
+
+    /* Whether the trip's details start open. ?plan= arrives that way, and so
+       does a route handed over from a planner; so does a save the server sent
+       back, wherever it was made from - the errors belong to that bar, and
+       hiding it would hide them. Otherwise the bar is on the page but closed,
+       and Plan Route opens it. */
+    $openPlan = $planning || $errors->any();
 
     /* The phrases the page's own script writes, already translated. It counts
        things, so two of them are plural forms and go through trans_choice. */
@@ -34,7 +44,9 @@
         'none_within'    => __('giya.map.none_within', ['km' => ':km']),
         'within'         => trans_choice('giya.map.within', 2, ['count' => ':count', 'km' => ':km']),
         'select_route'   => __('giya.map.select_route', ['church' => ':church']),
-        'selected'       => __('giya.map.selected', ['count' => ':count']),
+        // Plural: "1 churches selected" is the kind of thing a panel notices.
+        'selected'       => trans_choice('giya.map.selected', 2, ['count' => ':count']),
+        'selected_one'   => trans_choice('giya.map.selected', 1, ['count' => ':count']),
         'following'      => __('giya.map.following'),
         'add_another'    => __('giya.map.add_another'),
         'no_match'       => __('giya.map.no_match'),
@@ -52,6 +64,20 @@
         'pick_first'     => __('giya.map.pick_first'),
     ];
 
+    /* Written when Plan Route opens the trip's details in place - so only sent
+       when there is a closed bar to open. A guest has none, and a bar that is
+       already open never opens again; in both cases these would put wording on
+       the page that nothing can ever show, including a Custom heading on a
+       Visita Iglesia trip. */
+    if ($canPlan && ! $openPlan) {
+        $mapStrings += [
+            'custom_title'     => __('giya.plan.custom_title'),
+            'plan_lead'        => __('giya.map.plan_lead'),
+            'start_pilgrimage' => __('giya.plan.start'),
+            'limit_title'      => __('giya.plan.limit_title'),
+        ];
+    }
+
     /* Typing "open" or "mass" filters, so the two toggle chips could go. The
        words are listed for all three languages at once rather than for the
        current one: a devotee reading Cebuano may still type "open", and one
@@ -60,14 +86,81 @@
         'open'   => ['open', 'now', 'abli', 'bukas', 'ablihan'],
         'masses' => ['mass', 'masses', 'misa', 'schedule', 'iskedyul'],
     ];
+
+    /* The route a rejected save is carrying back. Built here rather than
+       inside @json(...), because Blade matches that directive's brackets
+       textually and a call with its own brackets defeats the parser - the
+       same trap the home page carries a note about. */
+    $rejectedStops = (string) old('stop_ids', '');
+
 @endphp
 <div style="max-width:1280px;margin:0 auto;padding:24px 20px 48px">
 
     <header class="mx-head">
-        <span class="eyebrow">{{ __('giya.map.eyebrow') }}</span>
-        <h1>{{ __('giya.map.title') }}</h1>
-        <p>{{ __('giya.map.lead') }}</p>
+        {{-- Back to whichever planner sent us. For a Visita Iglesia route
+             that is its own screen, and the link carries the current stops,
+             so a church added or dropped here travels back with the devotee
+             rather than being lost on the way. --}}
+        <a href="{{ $isVisita ? route('plan.visita') : route('plan.hub') }}" class="back-link" id="planBack"
+           style="margin-bottom:10px" @unless ($openPlan) hidden @endunless>
+            <i class="bi bi-chevron-left"></i>
+            {{ $isVisita ? __('giya.plan.back_visita') : __('giya.plan.back_hub') }}
+        </a>
+        <span class="eyebrow" id="mapEyebrow" @if ($openPlan) hidden @endif>{{ __('giya.map.eyebrow') }}</span>
+        <h1 id="mapTitle">
+            @if (! $openPlan) {{ __('giya.map.title') }}
+            @elseif ($isVisita) {{ __('giya.plan.visita_title') }}
+            @else {{ __('giya.plan.custom_title') }}
+            @endif
+        </h1>
+        <p id="mapLead">{{ $openPlan ? __('giya.map.plan_lead') : __('giya.map.lead') }}</p>
     </header>
+
+    @if ($canPlan)
+        {{--
+            The trip's own details, above the map that fills them.
+
+            This used to be its own screen with a list of churches beside it.
+            Choosing a destination is a question about where things are, so it
+            belongs on the map; the name and the date are the only part that is
+            not, and they fit in a bar. One screen instead of two.
+
+            It is a real <form>: the fields post themselves, and the stops are
+            written into it as hidden inputs the moment Start Pilgrimage is
+            pressed, so a rejected save comes back with everything intact.
+        --}}
+        <form method="POST" action="{{ route('plan.store') }}" id="planForm" class="card card-body plan-bar"
+              @unless ($openPlan) hidden @endunless>
+            @csrf
+            <input type="hidden" name="type" value="{{ $planType }}">
+            <div id="planStops"></div>
+
+            @if ($errors->any())
+                <div class="alert alert-danger" style="grid-column:1/-1">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <span>{{ $errors->first() }}</span>
+                </div>
+            @endif
+
+            <label class="plan-field" style="flex:2 1 240px">
+                <span class="form-label-sm">{{ __('giya.plan.itinerary_name') }}</span>
+                <input type="text" name="name" class="giya-input" required maxlength="200"
+                       value="{{ old('name') }}" placeholder="{{ __('giya.plan.name_ph') }}">
+            </label>
+
+            <label class="plan-field" style="flex:1 1 150px">
+                <span class="form-label-sm">{{ __('giya.plan.date') }}</span>
+                <input type="date" name="scheduled_date" class="giya-input"
+                       value="{{ old('scheduled_date') }}" min="{{ now()->toDateString() }}">
+            </label>
+
+            <label class="plan-field" style="flex:2 1 220px">
+                <span class="form-label-sm">{{ __('giya.plan.notes') }}</span>
+                <input type="text" name="notes" class="giya-input" maxlength="2000"
+                       value="{{ old('notes') }}" placeholder="{{ __('giya.plan.notes_ph') }}">
+            </label>
+        </form>
+    @endif
 
     <div id="mapNote" class="map-note" style="display:none">
         <span id="mapNoteText"></span>
@@ -96,7 +189,11 @@
                          from MapController::CHIPS_HIDDEN so the reason lives in
                          one place rather than being repeated here. --}}
                     @foreach ($categories as $category)
-                        <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category }}</button>
+                        {{-- data-cat stays the raw category, because the script
+                             matches it against church.category. Only the label
+                             is translated, and only "All" has one - the rest
+                             are the church's own category name. --}}
+                        <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category === 'All' ? __('giya.map.cat_all') : $category }}</button>
                     @endforeach
                 </div>
             </div>
@@ -115,8 +212,17 @@
                 <p id="routeMode" class="route-mode"></p>
 
                 <div class="mx-tray-actions">
-                    <button type="button" id="btnDirections" class="btn btn-primary mx-plan">
-                        <i class="bi bi-signpost-fill"></i> {{ __('giya.map.plan_route') }}
+                    {{-- Planning mode saves from here; browsing mode carries
+                         the selection over to the planner, as it always did.
+                         One button, because the tray only ever has one thing
+                         worth doing with what is in it. --}}
+                    <button type="button" id="btnDirections" class="btn btn-primary mx-plan"
+                            @if ($openPlan && $atLimit) disabled title="{{ __('giya.plan.limit_title') }}" @endif>
+                        @if ($openPlan)
+                            <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
+                        @else
+                            <i class="bi bi-signpost-fill"></i> {{ __('giya.map.plan_route') }}
+                        @endif
                     </button>
                     <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm">{{ __('giya.common.clear') }}</button>
                 </div>
@@ -165,6 +271,14 @@
        and explains before sending anyone to a login form. */
     const GUEST = @json(! auth()->check());
 
+    /* The map doubles as the custom itinerary planner: the details bar above
+       it is a real form, and once it is open the tray's button saves rather
+       than handing the selection to another screen.
+
+       At the free limit there is nothing to save, so the button says so
+       instead of posting something the controller would only refuse. */
+    const AT_LIMIT = @json($atLimit);
+
     /* Every phrase this script writes into the page, already translated.
        Placeholders are :name style, the same as Laravel's, so the strings in
        lang/ read the same whether PHP or JavaScript substitutes them. */
@@ -200,6 +314,11 @@
         });
 
         return false;
+    }
+
+    function escapeAttr(value) {
+        return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+                            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function churchName(id) {
@@ -336,13 +455,20 @@ onLocated: function (me) {
             // even though nothing is selected any more.
             if (!stops.length) {
                 routeBox.style.display = 'none';
+                rememberRoute([]);
                 renderList();
                 return;
             }
 
             routeBox.style.display = 'block';
+
+            /* The way back keeps the route. A devotee who drops a church here
+               and then returns to the planner they came from should find the
+               six they have, not the seven they arrived with. */
+            rememberRoute(stops);
+
             document.getElementById('traySummary').textContent =
-                trans('selected', { count: stops.length });
+                trans(stops.length === 1 ? 'selected_one' : 'selected', { count: stops.length });
             document.getElementById('routeDistance').textContent =
                 stops.length < 2 ? '' : totalKm.toFixed(1) + ' km';
 
@@ -536,8 +662,69 @@ onLocated: function (me) {
     });
     document.getElementById('btnClearRoute').addEventListener('click', function () { map.clearRoute(); });
 
-    /* Plan Route hands the selection to the itinerary planner, in the order the
-       map worked out - so the planner receives a route, not a bag of churches. */
+    /* Plan Route opens the trip's details above the map rather than leaving for
+       a second screen. The churches are already picked and the distances are
+       already on screen; all that is missing is a name, so that is all that
+       appears. The next press of the same button saves. */
+    let planOpen = @json($openPlan);
+
+    /* Where the back link points, kept in step with what is picked.
+
+       BACK_BASE is the planner that sent us here; the stops are appended so
+       the two screens stay one trip. Written on every route change rather
+       than read at the moment of the click, because the link is a plain <a>
+       and the browser follows it without asking us anything. */
+    const BACK_BASE = @json($isVisita ? route('plan.visita') : route('plan.hub'));
+    const BACK_KEEPS_STOPS = @json($isVisita);
+
+    function rememberRoute(stops) {
+        if (!BACK_KEEPS_STOPS) { return; }
+
+        const link = document.getElementById('planBack');
+        const ids  = (stops || []).map(function (s) { return s.id; }).filter(Boolean);
+
+        link.href = ids.length ? BACK_BASE + '?stops=' + ids.join(',') : BACK_BASE;
+    }
+
+    function openPlanBar() {
+        const form = document.getElementById('planForm');
+        if (!form) { return false; }
+
+        form.hidden = false;
+
+        /* The link back to the hub stays hidden. Opening the details here is
+           not arriving from the hub, and a back link pointing somewhere the
+           devotee has not been is worse than none at all.
+
+           Written without quoting the link's own wording, because the
+           translation-coverage test reads the whole page - comments included -
+           and cannot tell copy in a comment from copy on screen. It is right
+           not to: a phrase worth writing twice is a phrase worth a key. */
+        document.getElementById('mapEyebrow').hidden = true;
+        document.getElementById('mapTitle').textContent = trans('custom_title');
+        document.getElementById('mapLead').textContent  = trans('plan_lead');
+
+        const btn = document.getElementById('btnDirections');
+        btn.innerHTML = '<i class="bi bi-person-walking"></i> ';
+        btn.appendChild(document.createTextNode(trans('start_pilgrimage')));
+
+        // The allowance is only in the way once there is something to save.
+        if (AT_LIMIT) {
+            btn.disabled = true;
+            btn.title = trans('limit_title');
+        }
+
+        planOpen = true;
+
+        /* The button that opened this is at the bottom of the sidebar, and the
+           bar is at the top of the page - without this the devotee presses
+           Plan Route and, as far as they can see, nothing happens. */
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(function () { form.querySelector('input[name=name]').focus(); }, 350);
+
+        return true;
+    }
+
     document.getElementById('btnDirections').addEventListener('click', function () {
         const ordered = (map.orderedStops ? map.orderedStops() : [])
             .map(function (s) { return s.id; })
@@ -550,14 +737,35 @@ onLocated: function (me) {
             return;
         }
 
-        const planner = @json(route('plan.create')) + '?stops=' + ids.join(',');
+        /* Where a guest is sent to sign in. The map in planning mode, not the
+           old form: it is behind auth, so it becomes the intended page and
+           they come back to it with these churches already picked. */
+        const planner = @json(route('map', ['plan' => 1])) + '&stops=' + ids.join(',');
 
-        // Sending a guest to the planner URL rather than to /login is what
-        // saves their selection: the planner is behind auth, so it becomes
-        // the intended page and they land there with these churches ready.
         if (GUEST) { askToSignIn(trans('act_plan'), planner); return; }
 
-        window.location.href = planner;
+        // First press opens the details. Nothing is saved yet - there is no
+        // name yet, and asking for one after saving is the wrong order.
+        if (!planOpen) { openPlanBar(); return; }
+
+        /* Second press saves. The stops are written into the details form as
+           hidden inputs at the moment of submitting rather than kept in sync
+           as they change - there is only one moment that matters, and syncing
+           on every tick is a second source of truth waiting to disagree with
+           the tray. */
+        const form = document.getElementById('planForm');
+
+        document.getElementById('planStops').innerHTML =
+            ids.map(function (id) {
+                const c = churches.filter(function (x) { return x.id === id; })[0];
+                return '<input type="hidden" name="stops[]" value="' + escapeAttr(c ? c.name : '') + '">';
+            }).join('') +
+            '<input type="hidden" name="stop_ids" value="' + ids.join(',') + '">';
+
+        // requestSubmit, not submit: submit() skips validation, so an empty
+        // name would post and come back as a server error instead of the
+        // browser saying so on the spot.
+        form.requestSubmit();
     });
 
     document.getElementById('mapSearch').addEventListener('input', function () {
@@ -659,7 +867,12 @@ onLocated: function (me) {
        frame the map on them, so the devotee sees their route rather than a
        fresh map they have to rebuild. */
     (function () {
-        const raw = new URLSearchParams(window.location.search).get('stops');
+        /* old('stop_ids') first: when a save is rejected - a missing name, a
+           date in the past - Laravel sends the devotee back here, and without
+           this the map would reload empty and every church would have to be
+           picked again. The URL is the other way in, from a planner. */
+        const raw = @json($rejectedStops) ||
+                    new URLSearchParams(window.location.search).get('stops');
         if (!raw) return;
 
         const ids = raw.split(',')

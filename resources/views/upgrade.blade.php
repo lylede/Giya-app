@@ -152,6 +152,12 @@
                         <div style="font-size:.8125rem;font-weight:600;color:var(--text)">{{ $t->plan }}</div>
                         <div style="font-size:.75rem;color:var(--text-muted)">
                             {{ $t->reference_no }} · {{ $t->created_at?->format('d M Y, g:i A') }}
+                            {{-- How they paid, once Maya has told us. Channel
+                                 names are Maya's own - QR Ph, GCash - so they
+                                 read the same in every language. --}}
+                            @if ($t->method && $t->method !== 'Maya')
+                                · {{ $t->method }}
+                            @endif
                         </div>
                     </div>
                     <div style="text-align:right;flex:none">

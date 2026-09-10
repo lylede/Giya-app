@@ -56,6 +56,23 @@ class Itinerary extends Model
         return static::withTrashed()->where('user_id', $userId)->count();
     }
 
+    /**
+     * Has this devotee used up the free allowance?
+     *
+     * Lives here rather than on a controller because two of them ask it now -
+     * the planner and the map, which is also the planner - and the answer is
+     * about the devotee's itineraries, not about either screen.
+     */
+    public static function atFreeLimit(?User $user): bool
+    {
+        if (! $user || $user->is_premium) {
+            return false;
+        }
+
+        return static::countingAgainstFreeLimit($user->id)
+            >= \App\Http\Controllers\ItineraryController::FREE_LIMIT;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

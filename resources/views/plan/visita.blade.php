@@ -98,9 +98,21 @@
                     <div id="pickerList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto"></div>
                 </div>
 
-                <button type="button" class="btn btn-primary btn-w-full" onclick="GiyaVisita.submit()" @disabled($atLimit)>
-                    <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-primary" style="flex:1;min-width:170px"
+                            onclick="GiyaVisita.submit()" @disabled($atLimit)>
+                        <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
+                    </button>
+
+                    {{-- The same trip on the map, before committing to it. The
+                         planner lists names; the map answers "how far apart are
+                         these actually", which is the question a seven-church
+                         route raises. Not disabled at the free limit: looking is
+                         not saving. --}}
+                    <button type="button" class="btn btn-outline" onclick="GiyaVisita.viewOnMap()">
+                        <i class="bi bi-map-fill"></i> {{ __('giya.plan.view_on_map') }}
+                    </button>
+                </div>
             </div>
 
             {{-- Right --}}
@@ -149,7 +161,14 @@
 const GiyaVisita = (function () {
         const all = {!! $churches->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 
         'location' => $c->location, 'color' => $c->color()])->values()->toJson() !!};
-    let list = all.slice(0, Math.min(7, all.length)).map(c => Object.assign({ visited: false }, c));
+    /* Seven churches is the tradition, and the starting point. A route
+       coming back from the map replaces it - the devotee has already chosen
+       there, and re-imposing seven would throw their choice away. */
+    const returning = @json($preset);
+
+    let list = returning.length
+        ? returning.map(c => Object.assign({ visited: false }, c))
+        : all.slice(0, Math.min(7, all.length)).map(c => Object.assign({ visited: false }, c));
 
     function render() {
         const done  = list.filter(c => c.visited).length;
@@ -229,6 +248,21 @@ const GiyaVisita = (function () {
             render(); refreshPicker();
         },
         openPicker: function () { refreshPicker(); document.getElementById('addPicker').classList.remove('d-none'); },
+
+        /* Hand the route to the map by id. The map already knows how to read
+           ?stops= - it ticks each one, opens the tray and draws the line - so
+           this needs to do nothing more than name them, and the two screens
+           cannot drift apart because only one of them implements it. */
+        viewOnMap: function () {
+            /* plan=visita, so the map plans THIS trip rather than a Custom
+               one. It keeps the name, saves as a Visita Iglesia itinerary,
+               and offers a way back here - which it could not do when all it
+               received was a list of ids. */
+            const base = @json(route('map', ['plan' => 'visita']));
+            const ids  = list.map(c => c.id).filter(id => id != null);
+
+            window.location.href = ids.length ? base + '&stops=' + ids.join(',') : base;
+        },
         pick: function (id) {
             const c = all.find(x => x.id === id);
             if (c) { list.push(Object.assign({ visited: false }, c)); render(); refreshPicker(); }

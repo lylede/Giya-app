@@ -20,7 +20,10 @@
                     'icon' => 'giya-route', 'title' => __('giya.hub.c1_title'), 'badge' => __('giya.hub.c1_badge'),
                     'desc' => __('giya.hub.c1_desc'),
                     'points' => [__('giya.hub.c1_p1'), __('giya.hub.c1_p2'), __('giya.hub.c1_p3'), __('giya.hub.c1_p4')],
-                    'cta' => __('giya.hub.c1_cta'), 'route' => route('plan.create'), 'accent' => 'var(--primary)', 'featured' => false,
+                    /* The map, in planning mode. Choosing a destination is a
+                       question about where things are, so it happens on the
+                       map rather than on a separate screen with a list. */
+                    'cta' => __('giya.hub.c1_cta'), 'route' => route('map', ['plan' => 1]), 'accent' => 'var(--primary)', 'featured' => false,
                 ],
                 [
                     'icon' => 'giya-seven', 'title' => __('giya.plan.card_visita_title'), 'badge' => __('giya.hub.c2_badge'),
@@ -42,7 +45,7 @@
                         : __('giya.hub.c4_desc_off'),
                     'points' => [__('giya.hub.c4_p1'), __('giya.hub.c4_p2'), __('giya.hub.c4_p3'), __('giya.hub.c4_p4')],
                     'cta' => $activeItinerary ? __('giya.hub.c4_cta_on') : __('giya.hub.c4_cta_off'),
-                    'route' => $activeItinerary ? route('plan.show', $activeItinerary) : route('plan.create'),
+                    'route' => $activeItinerary ? route('plan.show', $activeItinerary) : route('map', ['plan' => 1]),
                     'accent' => 'var(--gold)', 'featured' => (bool) $activeItinerary,
                 ],
             ];
@@ -110,7 +113,7 @@
             @empty
                 <x-empty-state icon="giya-route" :title="__('giya.plan.no_itineraries')"
                                :desc="__('giya.plan.no_itin_desc')">
-                    <a href="{{ route('plan.create') }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.plan.create_first') }}</a>
+                    <a href="{{ route('map', ['plan' => 1]) }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.plan.create_first') }}</a>
                 </x-empty-state>
             @endforelse
         </div>

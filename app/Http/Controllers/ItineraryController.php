@@ -36,23 +36,7 @@ class ItineraryController extends Controller
     {
         $churches = Church::active()->orderBy('name')->get();
 
-        /*
-           Stops chosen on the map arrive as ?stops=3,7,1 - in the order the
-           map worked out, which is the nearest-neighbour order it drew. That
-           order is the useful part, so it is preserved rather than re-sorted.
-
-           old('stop_ids') comes first, and is why a rejected form no longer
-           costs the devotee their route. The planner posts the chosen ids
-           alongside the names, so when validation sends them back here the
-           route is rebuilt exactly as they left it instead of the page
-           reloading empty and every church having to be picked again.
-        */
-        $preset = collect(explode(',', (string) old('stop_ids', $request->query('stops'))))
-            ->map(fn ($id) => (int) trim($id))
-            ->filter()
-            ->unique()
-            ->map(fn ($id) => $churches->firstWhere('id', $id))
-            ->filter()
+        $preset = $this->presetFrom($request, $churches)
             ->map(fn (Church $c) => [
                 'id'       => $c->id,
                 'name'     => $c->name,
@@ -68,12 +52,54 @@ class ItineraryController extends Controller
         ]);
     }
 
-    public function visita(): View
+    public function visita(Request $request): View
     {
+        $churches = Church::active()->orderBy('name')->get();
+
+        /* A route coming back from the map. The map is the other half of this
+           planner now - a Visita trip sent there keeps its type and can be
+           saved from either screen - so a church added or dropped over there
+           has to arrive here, or the two views would quietly disagree about
+           what the trip is. */
+        $preset = $this->presetFrom($request, $churches)
+            ->map(fn (Church $c) => [
+                'id'       => $c->id,
+                'name'     => $c->name,
+                'location' => $c->location,
+                'color'    => $c->color(),
+            ])
+            ->values();
+
         return view('plan.visita', [
-            'churches' => Church::active()->orderBy('name')->get(),
+            'churches' => $churches,
             'atLimit'  => $this->atLimit(),
+            'preset'   => $preset,
         ]);
+    }
+
+    /**
+     * The route a planner is being opened with, in the order it was given.
+     *
+     * Stops chosen on the map arrive as ?stops=3,7,1 - in the order the map
+     * worked out, which is the nearest-neighbour order it drew. That order is
+     * the useful part, so it is preserved rather than re-sorted.
+     *
+     * old('stop_ids') comes first, and is why a rejected form no longer costs
+     * the devotee their route: the planners post the chosen ids alongside the
+     * names, so when validation sends them back the route is rebuilt exactly
+     * as they left it instead of the page reloading empty.
+     *
+     * @param  \Illuminate\Support\Collection<int, Church>  $churches
+     * @return \Illuminate\Support\Collection<int, Church>
+     */
+    private function presetFrom(Request $request, $churches)
+    {
+        return collect(explode(',', (string) old('stop_ids', $request->query('stops'))))
+            ->map(fn ($id) => (int) trim($id))
+            ->filter()
+            ->unique()
+            ->map(fn ($id) => $churches->firstWhere('id', $id))
+            ->filter();
     }
 
     public function index(): View
@@ -107,6 +133,14 @@ class ItineraryController extends Controller
             'notes'          => ['nullable', 'string', 'max:2000'],
             'stops'          => ['required', 'array', 'min:1', 'max:20'],
             'stops.*'        => ['required', 'string', 'max:200'],
+
+            /* Ids when the caller has them - the map does, and the planner
+               already posts them for repopulating a rejected form. Names alone
+               cannot tell two "San Roque Chapel" apart, and a renamed church
+               would drop out of a route silently. A comma-joined string, the
+               shape the planner has always used, so old('stop_ids') means one
+               thing everywhere. */
+            'stop_ids'       => ['nullable', 'string', 'max:200'],
         ], [
             'stops.required' => 'Add at least one destination to your route.',
             'scheduled_date.after_or_equal' => 'The pilgrimage date cannot be in the past.',
@@ -131,17 +165,27 @@ class ItineraryController extends Controller
             ]);
 
             // ERD: itinerary_stops.church_id is required, and church_name is gone.
-            $churchIds = Church::whereIn('name', $data['stops'])->pluck('id', 'name');
+            $wanted = collect(explode(',', (string) ($data['stop_ids'] ?? '')))
+                ->map(fn ($id) => (int) trim($id))
+                ->filter()
+                ->values()
+                ->all();
+
+            $ids = $wanted
+                ? Church::whereIn('id', $wanted)->pluck('id')
+                    ->sortBy(fn ($id) => array_search($id, $wanted))
+                    ->values()
+                : Church::whereIn('name', $data['stops'])
+                    ->pluck('id', 'name')
+                    ->only($data['stops'])
+                    ->sortBy(fn ($id, $name) => array_search($name, $data['stops']))
+                    ->values();
 
             $order = 1;
-            foreach (array_values($data['stops']) as $churchName) {
-                if (! isset($churchIds[$churchName])) {
-                    continue;   // skip anything that is not a real destination
-                }
-
+            foreach ($ids as $churchId) {
                 ItineraryStop::create([
                     'itinerary_id' => $itinerary->id,
-                    'church_id'    => $churchIds[$churchName],
+                    'church_id'    => $churchId,
                     'stop_order'   => $order++,
                     'is_visited'   => false,
                 ]);
@@ -255,10 +299,7 @@ class ItineraryController extends Controller
 
     private function atLimit(): bool
     {
-        $user = Auth::user();
-
-        return ! $user->is_premium
-            && Itinerary::countingAgainstFreeLimit($user->id) >= self::FREE_LIMIT;
+        return Itinerary::atFreeLimit(Auth::user());
     }
 
     private function authorizeOwner(Itinerary $itinerary): void
