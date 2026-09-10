@@ -192,8 +192,11 @@
                         {{-- data-cat stays the raw category, because the script
                              matches it against church.category. Only the label
                              is translated, and only "All" has one - the rest
-                             are the church's own category name. --}}
-                        <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category === 'All' ? __('giya.map.cat_all') : $category }}</button>
+                             are the church's own category name. Parish is folded
+                             into Church because the app stores it as the same
+                             destination type and we do not want a duplicate broad
+                             filter. --}}
+                        <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category === 'All' ? __('giya.map.cat_all') : ($category === 'Church' ? __('giya.church.churches') : $category) }}</button>
                     @endforeach
                 </div>
             </div>
@@ -369,17 +372,17 @@
     const listBox  = document.getElementById('churchList');
     const routeBox = document.getElementById('routeBox');
 
-    let category = 'All';
+    let category = 'Near';
     // A search from the home page arrives as ?q= - start from it.
     let query = new URLSearchParams(window.location.search).get('q') || '';
     query = query.trim().toLowerCase();
     let distances = {};
     let nearbyIds = [];
 
-    /* Near is a radius, not a count. Five kilometres is a reasonable walk or a
-       short ride in Metro Cebu, and wide enough that a devotee in the city
-       centre still sees several destinations. */
-    const NEAR_KM = 5;
+    /* Near is a radius, not a count. Ten kilometres gives a slightly wider
+       local area in Metro Cebu while still keeping the map focused and not
+       city-wide. */
+    const NEAR_KM = 10;
 
     /** Great-circle distance in kilometres. */
     function haversineKm(lat1, lng1, lat2, lng2) {
@@ -545,6 +548,15 @@ onLocated: function (me) {
      * loaded at once.
      */
     const KEYWORDS = @json($searchKeywords);
+    const FALLBACK_CATEGORIES = ['Basilica', 'Shrine', 'Church'];
+    const FALLBACK_LIMIT = 12;
+
+    function normalizeCategory(cat) {
+        if (!cat) return cat;
+        if (cat === 'Parish' || cat === 'Parishes') return 'Church';
+        if (cat.toLowerCase().indexOf('shrine') !== -1) return 'Shrine';
+        return cat;
+    }
 
     function matchesQuery(c) {
         if (!query) return true;
@@ -560,24 +572,52 @@ onLocated: function (me) {
     }
 
     function filtered() {
-        return churches
-            .filter(function (c) {
+        const normalizedCategory = normalizeCategory(category);
+
+        let list = churches.filter(function (c) {
+            const normalizedChurchCategory = normalizeCategory(c.category);
+            const inRadius = distances[c.id] != null && distances[c.id] <= NEAR_KM;
+
+            if (!hasLocation) {
                 if (category === 'Near') {
-                    // No position yet: show everything rather than an empty
-                    // page. Once located, only what is inside the radius.
-                    if (!hasLocation) return true;
-                    return distances[c.id] != null && distances[c.id] <= NEAR_KM;
+                    return FALLBACK_CATEGORIES.indexOf(normalizedChurchCategory) !== -1;
                 }
-                return category === 'All' || c.category === category;
-            })
-            .filter(function (c) { return matchesQuery(c); })
-            .sort(function (a, b) {
-                const da = distances[a.id], db = distances[b.id];
-                if (da != null && db != null) return da - db;
-                if (da != null) return -1;
-                if (db != null) return 1;
-                return a.name.localeCompare(b.name);
-            });
+                if (category === 'All') {
+                    return FALLBACK_CATEGORIES.indexOf(normalizedChurchCategory) !== -1;
+                }
+                return normalizedChurchCategory === normalizedCategory;
+            }
+
+            if (category === 'Near') {
+                return inRadius;
+            }
+
+            if (category === 'All') {
+                return inRadius;
+            }
+
+            return inRadius && normalizedChurchCategory === normalizedCategory;
+        });
+
+        list = list.filter(function (c) { return matchesQuery(c); });
+
+        if (!hasLocation && category !== 'Near' && category !== 'All') {
+            list = list
+                .sort(function (a, b) {
+                    if (a.open !== b.open) return Number(b.open) - Number(a.open);
+                    return (b.rating || 0) - (a.rating || 0) || a.name.localeCompare(b.name);
+                })
+                .slice(0, FALLBACK_LIMIT);
+            return list;
+        }
+
+        return list.sort(function (a, b) {
+            const da = distances[a.id], db = distances[b.id];
+            if (da != null && db != null) return da - db;
+            if (da != null) return -1;
+            if (db != null) return 1;
+            return a.name.localeCompare(b.name);
+        });
     }
 
     function renderList() {
@@ -818,6 +858,9 @@ onLocated: function (me) {
             renderList();
         });
     });
+
+    document.querySelector('[data-cat="Near"]').classList.add('is-active');
+    map.locate();
 
     document.addEventListener('click', function (e) {
         // The tick toggles: a second press deselects, no Clear needed.
