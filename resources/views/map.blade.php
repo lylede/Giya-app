@@ -199,7 +199,21 @@
             </div>
 
             <div class="mx-list-head" id="listHeading">{{ __('giya.church.results', ['count' => count($markers)]) }}</div>
-            <div id="churchList" class="mx-list"></div>
+            {{-- The list is drawn by the script once the markers exist, so
+                 until then it holds rows the size of the real ones. They
+                 are replaced wholesale by the first render, which is why
+                 nothing has to clear them. --}}
+            <div id="churchList" class="mx-list">
+                @for ($i = 0; $i < 4; $i++)
+                    <div class="gs-row" aria-hidden="true">
+                        <span class="gs gs-thumb"></span>
+                        <span class="gs-row-body">
+                            <span class="gs gs-line is-title" style="width:{{ [78, 64, 82, 70][$i] }}%"></span>
+                            <span class="gs gs-line" style="width:{{ [46, 54, 40, 50][$i] }}%"></span>
+                        </span>
+                    </div>
+                @endfor
+            </div>
 
             {{-- Selection tray: rises from the bottom once churches are picked --}}
             <section id="routeBox" class="mx-tray" style="display:none" aria-label="{{ __('giya.map.selected_aria') }}">
@@ -231,6 +245,11 @@
 
         <div class="giya-map-shell">
             <div class="giya-map-canvas" id="giyaMap"></div>
+
+            {{-- Removed by the engine when Leaflet says the tiles are on
+                 screen, so what the devotee sees while waiting is GIYA's
+                 pin turning rather than a grey checkerboard. --}}
+            <x-map-loading />
 
             <div class="map-tools">
                 <button type="button" class="map-tool" id="btnFullscreen"

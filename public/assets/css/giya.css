@@ -945,6 +945,171 @@ html[data-theme="dark"] .history-thumb-badge { background: var(--bg); }
   background: var(--gold); opacity: .15;
 }
 
+/* ── LOADING: the pin, turning ──────────────────────────────────
+   GIYA's mark is a map pin, and a pin is a physical thing, so it turns
+   like one rather than fading in place. Two planes at right angles - the
+   face and a thin edge - give it a thickness that survives the moment it
+   is side-on, which is what separates a solid object from a flipping
+   sticker. The shadow underneath breathes with the bob, so the pin reads
+   as being above the ground rather than drawn on it.
+
+   Everything is CSS. A loading indicator that needs JavaScript to run is
+   a loading indicator that is not there for the part of the wait that
+   matters.
+   ───────────────────────────────────────────────────────────── */
+.giya-loading {
+  position: absolute; inset: 0; z-index: 700;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+
+  /* The map's own frame, borrowed. The panel covers the canvas, so without
+     these the border and the rounded corners the devotee is looking at
+     simply vanish for the length of the wait and come back afterwards. */
+  background: #F3EADB;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+
+  transition: opacity .45s ease, visibility .45s ease;
+}
+/* Full-bleed maps - the pilgrimage, and anything gone fullscreen - have no
+   frame of their own to imitate. */
+.map-wrap > .giya-loading,
+.is-fullscreen .giya-loading { border: 0; border-radius: 0; }
+/* Ready is a state, not a moment: the tiles have arrived, the panel
+   fades, and the map underneath was never covered by anything opaque
+   again. */
+.is-map-ready .giya-loading { opacity: 0; visibility: hidden; }
+
+.giya-loading-scene {
+  width: 62px; height: 78px;
+  perspective: 520px;
+  display: flex; align-items: flex-end; justify-content: center;
+  position: relative;
+}
+
+.giya-loading-pin {
+  width: 56px; height: 56px;
+  position: absolute; top: 0; left: 3px;
+  transform-style: preserve-3d;
+  animation: giya-pin-turn 2.6s cubic-bezier(.62,.02,.38,.98) infinite,
+             giya-pin-bob 1.3s ease-in-out infinite alternate;
+}
+/* The two faces, half a thickness either side of the middle.
+
+   Both parts matter. The offset is what keeps the edge - a plane with no
+   width when seen end-on, which a browser still draws as a hairline -
+   from appearing as a line down the middle of the logo. And hiding each
+   face's own reverse is what stops the far one showing through the near
+   one as a mirror image while the pin turns. */
+.giya-loading-face {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+}
+/* 5px, against an edge that reaches 4px: a whole pixel of clearance on
+   each side. Sitting the faces exactly on the edge's outermost sliver put
+   the two at the same depth, and coplanar surfaces fight - which is the
+   hairline down the middle of the logo, back again in a subtler form. */
+.giya-loading-face.is-front { transform: translateZ(5px); }
+.giya-loading-face.is-back  { transform: rotateY(180deg) translateZ(5px); }
+.giya-loading-face svg { width: 100%; height: 100%; display: block; }
+
+/* The edge, in the middle, a quarter turn from the faces - so as they go
+   side-on this comes round to meet the eye and the pin has a thickness
+   instead of vanishing into nothing. */
+.giya-loading-edge {
+  position: absolute; top: 3px; left: 50%;
+  width: 8px; height: 50px; margin-left: -4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #C9993A 0%, #D7A94A 45%, #A87B2C 100%);
+  transform: rotateY(90deg);
+}
+
+.giya-loading-shadow {
+  width: 34px; height: 8px; border-radius: 50%;
+  background: rgba(142, 59, 47, .22);
+  filter: blur(1px);
+  animation: giya-pin-shadow 1.3s ease-in-out infinite alternate;
+}
+
+.giya-loading-text {
+  font-size: 0.8125rem; color: var(--text-muted);
+  font-weight: 600; margin: 0; text-align: center;
+}
+
+@keyframes giya-pin-turn { to { transform: rotateY(360deg); } }
+@keyframes giya-pin-bob    { from { translate: 0 0; } to { translate: 0 -7px; } }
+@keyframes giya-pin-shadow {
+  from { transform: scale(1);   opacity: .28; }
+  to   { transform: scale(.72); opacity: .16; }
+}
+
+html[data-theme="dark"] .giya-loading { background: var(--bg); }
+
+/* ── LOADING: skeletons ─────────────────────────────────────────
+   A skeleton is a promise about what is coming, so it is only honest
+   where something really is on its way: a list JavaScript has not built
+   yet, an image still crossing the network. Server-rendered pages
+   arrive complete and get none - a skeleton there is a delay we would
+   be inventing.
+   ───────────────────────────────────────────────────────────── */
+.gs {
+  background: linear-gradient(100deg,
+    var(--bg-secondary) 30%, rgba(255,255,255,.65) 50%, var(--bg-secondary) 70%);
+  background-size: 220% 100%;
+  animation: giya-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes giya-shimmer {
+  from { background-position: 130% 0; }
+  to   { background-position: -30% 0; }
+}
+
+.gs-line   { height: 11px; }
+.gs-line.is-title { height: 13px; }
+.gs-thumb  { width: 44px; height: 44px; border-radius: var(--radius-md); flex-shrink: 0; }
+.gs-dot    { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
+
+/* One row of a church list, shaped like the real thing so nothing jumps
+   when the real thing replaces it. */
+.gs-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 13px; margin-bottom: 8px;
+  border: 1px solid var(--border-light); border-radius: var(--radius-lg);
+  background: #fff;
+}
+.gs-row-body { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+
+html[data-theme="dark"] .gs-row { background: transparent; }
+html[data-theme="dark"] .gs {
+  background: linear-gradient(100deg,
+    rgba(255,255,255,.05) 30%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.05) 70%);
+  background-size: 220% 100%;
+}
+
+/* A photo that has not landed yet.
+
+   The shimmer goes on the image itself, as its own background, rather than
+   on a wrapper around it: an unloaded <img> is transparent, so its
+   background is exactly what shows through, and it stops showing the moment
+   the photo covers it. No extra element, no change to any layout, and
+   nothing to go wrong in a page that has already positioned its own image -
+   which is what a wrapper here did do. */
+img.gs-img {
+  background: linear-gradient(100deg,
+    var(--bg-secondary) 30%, rgba(255,255,255,.6) 50%, var(--bg-secondary) 70%);
+  background-size: 220% 100%;
+  animation: giya-shimmer 1.5s ease-in-out infinite;
+}
+img.gs-img.is-loaded { background: none; animation: none; }
+
+/* Nobody should be made queasy by a loading state. */
+@media (prefers-reduced-motion: reduce) {
+  .giya-loading-pin, .giya-loading-shadow, .gs, img.gs-img { animation: none; }
+  .gs, img.gs-img { background: var(--bg-secondary); }
+}
+
 /* ── SPINNER ────────────────────────────────────────────────── */
 .spinner {
   width: 20px; height: 20px;

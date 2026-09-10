@@ -4,6 +4,10 @@
 @section('content')
 
 {{-- ─────────────────────────────── Hero ─────────────────────────────── --}}
+{{-- No shimmer on the hero. Its image is absolutely positioned inside a
+     section that already has a solid brown behind it and a fixed minimum
+     height, so there is no white flash and nothing can shift when the photo
+     lands - a shimmer here would be decoration, not a fix. --}}
 <section class="church-hero">
     @if ($church->imagePath())
         <img src="{{ $church->imagePath() }}" alt="{{ $church->name }}"

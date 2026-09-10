@@ -209,7 +209,7 @@
                      row, and it tells a devotee which church this was far
                      faster than the same building glyph on every line. --}}
                 @if ($visit->church)
-                    <img class="history-thumb" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
+                    <img class="history-thumb gs-img" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
                 @else
                     <span class="history-icon"><i class="bi bi-building" style="font-size: 1.125rem;color:var(--primary)"></i></span>
                 @endif
@@ -238,7 +238,7 @@
                      row, and it tells a devotee which church this was far
                      faster than the same building glyph on every line. --}}
                 @if ($visit->church)
-                    <img class="history-thumb" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
+                    <img class="history-thumb gs-img" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
                 @else
                     <span class="history-icon"><i class="bi bi-building" style="font-size: 1.125rem;color:var(--primary)"></i></span>
                 @endif
@@ -317,7 +317,7 @@
                      is already in the Favorites tab, so a whole tile spent
                      saying "favourite" told the devotee nothing new. --}}
                 <span class="history-thumb-wrap">
-                    <img class="history-thumb" src="{{ $favorite->church->imagePath() }}" alt="" loading="lazy">
+                    <img class="history-thumb gs-img" src="{{ $favorite->church->imagePath() }}" alt="" loading="lazy">
                     <i class="bi bi-heart-fill history-thumb-badge"></i>
                 </span>
                 <div class="history-body">

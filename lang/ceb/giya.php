@@ -176,6 +176,7 @@ return [
         'no_fix'         => 'Wala makakuha ug lokasyon. Sulayi pag-usab sa gawas o susiha ang GPS.',
         'no_ticking'       => 'Naka-off ang lokasyon, mao nga dili awtomatik nga matiman-an ang mga hunonganan. I-on kini aron awtomatik nga makacheck-in.',
         'no_follow'        => 'Dili masubay ang imong lokasyon.',
+        'loading'        => 'Gikarga ang mapa…',
         'this_church'    => 'kini nga simbahan',
         'act_plan'       => 'Pagplano ug ruta',
         'following'      => 'Nagsunod sa kadalanan',

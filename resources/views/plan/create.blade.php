@@ -128,7 +128,7 @@
                                      generic building glyph that was here. imagePath()
                                      falls back to a local placeholder, so it never
                                      points at a remote URL and never renders broken. --}}
-                                <img class="dest-thumb" src="{{ $church->imagePath() }}" alt="" loading="lazy">
+                                <img class="dest-thumb gs-img" src="{{ $church->imagePath() }}" alt="" loading="lazy">
                                 <span style="flex:1;min-width:0;text-align:left">
                                     <span style="display:block;font-size: 0.75rem;font-weight:600;color:var(--text)">{{ $church->name }}</span>
                                     <span style="display:block;font-size: 0.625rem;color:var(--text-muted)">{{ $church->location }}</span>
