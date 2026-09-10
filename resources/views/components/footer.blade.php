@@ -15,7 +15,7 @@
                 <div class="footer-col-title">{{ __('giya.footer.explore') }}</div>
                 <a href="{{ route('map') }}"          class="footer-link">{{ __('giya.footer.find_churches') }}</a>
                 @auth
-                    <a href="{{ route('plan.create') }}"  class="footer-link">{{ __('giya.footer.plan_route') }}</a>
+                    <a href="{{ route('map', ['plan' => 1]) }}"  class="footer-link">{{ __('giya.footer.plan_route') }}</a>
                     <a href="{{ route('plan.visita') }}"  class="footer-link">{{ __('giya.footer.visita') }}</a>
                     <a href="{{ route('chatbot') }}"      class="footer-link">{{ __('giya.footer.chatbot') }}</a>
                 @else

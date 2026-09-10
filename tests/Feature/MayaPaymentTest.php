@@ -99,6 +99,19 @@ class MayaPaymentTest extends TestCase
                     'requestReferenceNumber' => 'irrelevant',
                 ], 200);
             },
+
+            /* The checkout above deliberately carries no fundSource, which is
+               one of the two shapes Maya sends. A paid transaction then asks
+               the payment for the channel, so that endpoint has to answer
+               here too - otherwise these tests would be exercising a request
+               that never happens in production. */
+            '*/payments/v1/payments/*' => function ($request) use ($paymentStatus) {
+                return Http::response([
+                    'id'         => basename((string) parse_url($request->url(), PHP_URL_PATH)),
+                    'status'     => $paymentStatus,
+                    'fundSource' => ['type' => 'card', 'details' => ['scheme' => 'master-card', 'last4' => '2346']],
+                ], 200);
+            },
         ]);
     }
 

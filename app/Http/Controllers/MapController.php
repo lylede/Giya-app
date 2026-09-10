@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Church;
 use App\Models\ChurchCategory;
+use App\Models\Itinerary;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MapController extends Controller
@@ -20,8 +22,48 @@ class MapController extends Controller
      */
     private const CHIPS_HIDDEN = ['Chapel', 'Heritage'];
 
-    public function index(): View
+    /**
+     * ?plan= values, and the itinerary type each one plans.
+     *
+     * The keys are what a link may carry; the values must match
+     * itinerary_types.name, because that is what plan.store validates.
+     */
+    private const PLAN_TYPES = [
+        '1'      => 'Custom',
+        'custom' => 'Custom',
+        'visita' => 'Visita Iglesia',
+    ];
+
+    public function index(Request $request): View
     {
+        /* The map doubles as the custom itinerary planner. ?plan=1 puts the
+           trip's details above it and turns the selection tray into a save,
+           so choosing destinations happens where the distances are visible
+           instead of on a separate screen with a list. */
+        /* Only for someone who could actually save. A guest gets the ordinary
+           map rather than a details form that would bounce them to a login
+           and lose everything they had picked. */
+        /* Signed in is what decides whether the trip's details can be on the
+           page at all. They are rendered for anyone who could save - hidden
+           until wanted - so Plan Route on the ordinary map opens them where
+           the devotee is standing instead of navigating to a second screen
+           and making them pick their churches again. ?plan=1 only decides
+           whether they start open. */
+        $canPlan  = $request->user() !== null;
+
+        /* Which kind of trip the map is planning.
+
+           A Visita Iglesia route that came here to be looked at used to lose
+           its name: the map only ever planned a Custom trip, so a devotee who
+           adjusted their seven churches on the map saved a Custom itinerary
+           and had no way back to the planner they came from. The type travels
+           in the URL, and the trip keeps it wherever it is saved. */
+        $planType = self::PLAN_TYPES[strtolower((string) $request->query('plan'))] ?? null;
+
+        /* Arriving with a route is arriving mid-plan, whoever sent it - the
+           churches are already chosen, so the bar has no reason to be shut. */
+        $planning = $canPlan && ($planType !== null || $request->filled('stops'));
+        $planType ??= 'Custom';
         $churches = Church::with('churchCategory', 'primaryImage')
             /* One subquery in the main statement rather than an exists()
                per church while building the marker list - that was a query
@@ -32,6 +74,11 @@ class MapController extends Controller
             ->get();
 
         return view('map', [
+            'planning'   => $planning,
+            'canPlan'    => $canPlan,
+            'planType'   => $planType,
+            'isVisita'   => $planType === 'Visita Iglesia',
+            'atLimit'    => $canPlan && Itinerary::atFreeLimit($request->user()),
             'churches'   => $churches,
             'categories' => ChurchCategory::orderBy('name')
                 ->whereNotIn('name', self::CHIPS_HIDDEN)

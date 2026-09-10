@@ -80,10 +80,23 @@ class Transaction extends Model
      * @param  string|null  $status  one of Paid | Failed | Refunded, or null
      *                               when Maya said something we do not act on
      */
-    public function settle(?string $status, ?string $paymentId = null, ?string $note = null): bool
-    {
+    public function settle(
+        ?string $status,
+        ?string $paymentId = null,
+        ?string $note = null,
+        ?string $channel = null,
+    ): bool {
         if ($paymentId && ! $this->provider_payment_id) {
             $this->provider_payment_id = $paymentId;
+        }
+
+        /* 'Maya' is written when the checkout is created, before the devotee
+           has chosen anything, so it names the processor rather than the
+           channel. Once Maya tells us it was QR Ph or a card, that replaces
+           it - and only then, so a failed lookup leaves the old value rather
+           than blanking a row. */
+        if ($channel) {
+            $this->method = $channel;
         }
 
         if ($status === null || $this->status !== 'Pending') {

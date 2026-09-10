@@ -166,6 +166,73 @@ class MayaService
         return $body['paymentStatus'] ?? $body['status'] ?? null;
     }
 
+    /**
+     * How the devotee actually paid, as a label worth printing.
+     *
+     * The transaction stores 'Maya' from the moment the checkout is created -
+     * which is before the devotee has seen Maya's page, let alone chosen
+     * between a card, QR Ph and a wallet. So every row said "Maya" and a QR
+     * payment was indistinguishable from a card one.
+     *
+     * Maya carries the answer in fundSource. Its shape is documented per
+     * channel, and the type is the part that always exists:
+     *
+     *   card         details.scheme "master-card", details.last4 "4154"
+     *   qrph         description is a masked account number
+     *   gcash        description "GCash Account"
+     *   maya-wallet  details.masked "********0366"
+     *
+     * Anything unrecognised is title-cased rather than dropped, so a channel
+     * Maya adds later still reads as something rather than silently staying
+     * "Maya".
+     */
+    public static function channelFrom(array $body): ?string
+    {
+        $source = $body['fundSource'] ?? null;
+
+        if (! is_array($source)) {
+            return null;
+        }
+
+        $type = is_string($source['type'] ?? null) ? strtolower($source['type']) : null;
+
+        if ($type === null || $type === '') {
+            return null;
+        }
+
+        if ($type === 'card') {
+            // "Card · Mastercard ····4154" when Maya tells us; "Card" when not.
+            $scheme = $source['details']['scheme'] ?? null;
+            $last4  = $source['details']['last4'] ?? null;
+
+            $label = 'Card';
+
+            if (is_string($scheme) && $scheme !== '') {
+                $label .= ' · '.self::prettyScheme($scheme);
+            }
+
+            if (is_string($last4) && $last4 !== '') {
+                $label .= ' ••••'.$last4;
+            }
+
+            return $label;
+        }
+
+        return match ($type) {
+            'qrph'        => 'QR Ph',
+            'gcash'       => 'GCash',
+            'maya-wallet' => 'Maya Wallet',
+            'paymaya'     => 'Maya Wallet',
+            default       => self::prettyScheme($type),
+        };
+    }
+
+    /** "master-card" and "maya_wallet" both become something readable. */
+    private static function prettyScheme(string $raw): string
+    {
+        return ucwords(str_replace(['-', '_'], ' ', strtolower($raw)));
+    }
+
     private function getJson(string $path, string $what): ?array
     {
         $response = Http::withBasicAuth($this->secretKey, '')

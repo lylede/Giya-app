@@ -26,7 +26,13 @@ window.GiyaLeaflet = (function () {
         finding:     'Finding your location\u2026',
         noGeo:       'This browser cannot share a location.',
         denied:      'Location permission was denied. Allow it in the address bar to use this.',
-        noFix:       'Could not get a location fix. Try again outdoors or check GPS.'
+        noFix:       'Could not get a location fix. Try again outdoors or check GPS.',
+        noTicking:   'Location is off, so stops will not tick themselves. Turn it on to check in automatically.',
+        noFollow:    'Could not follow your location.',
+        popupStop:   'Stop :order',
+        popupVisited:'Visited',
+        popupMark:   'Mark visited',
+        kmToRoads:   ':km km to :name \u00b7 about :min min by car'
     };
 
     function say(cfg, key) {
@@ -560,8 +566,10 @@ window.GiyaLeaflet = (function () {
                     paint(d.geometry, false, true);
 
                     if (cfg.onStatus) {
-                        cfg.onStatus(d.distance_km + ' km to ' + church.name +
-                            ' \u00b7 about ' + d.duration_min + ' min by car', 'info');
+                        cfg.onStatus(say(cfg, 'kmToRoads')
+                            .split(':km').join(d.distance_km)
+                            .split(':name').join(church.name)
+                            .split(':min').join(d.duration_min), 'info');
                     }
                 });
             }
@@ -685,11 +693,13 @@ window.GiyaLeaflet = (function () {
             return '<div class="giya-popup">' +
                 (s.image ? '<img src="' + s.image + '" alt="">' : '') +
                 '<strong>' + escapeHtml(s.name) + '</strong>' +
-                '<span>Stop ' + s.order + ' &middot; ' + escapeHtml(s.location || '') + '</span>' +
+                '<span>' + say(cfg, 'popupStop').split(':order').join(s.order) +
+                    ' &middot; ' + escapeHtml(s.location || '') + '</span>' +
                 (s.visited
-                    ? '<span class="giya-popup-done">Visited</span>'
+                    ? '<span class="giya-popup-done">' + escapeHtml(say(cfg, 'popupVisited')) + '</span>'
                     : '<button type="button" class="giya-popup-btn" ' +
-                          'onclick="GiyaActive.mark(' + s.id + ')">Mark visited</button>') +
+                          'onclick="GiyaActive.mark(' + s.id + ')">' +
+                          escapeHtml(say(cfg, 'popupMark')) + '</button>') +
                 '</div>';
         }
 
@@ -721,47 +731,146 @@ window.GiyaLeaflet = (function () {
             });
         }
 
-        function route() {
-            var path = stops.map(function (s) { return [s.lat, s.lng]; });
-            if (path.length < 2) {
-                if (path.length === 1) map.setView(path[0], 15);
+        /*
+           The route, in three states rather than one line.
+
+           A pilgrimage in progress is three different things at once: what has
+           been walked, what is being walked now, and what is still to come.
+           Drawn as a single line they were indistinguishable, and the leg that
+           actually matters - the devotee's own position to the church they are
+           heading for - was not drawn at all, so the map showed a route
+           between churches while saying nothing about how to reach the first
+           one.
+
+           Blue is the way to go now, and it is the same blue as the location
+           dot, so the rule to learn is "the blue line is mine". Green behind,
+           faint brown ahead. Three states rather than a colour per leg,
+           because seven bright lines over Cebu City say which legs exist but
+           not which one you are on.
+        */
+        var LEG = {
+            done:     { color: '#6B9B5A', weight: 4, opacity: .55 },
+            live:     { color: '#2563EB', weight: 6, opacity: .95 },
+            upcoming: { color: '#8E3B2F', weight: 3, opacity: .6, dashArray: '2 9' }
+        };
+
+        /* Named for what it is rather than `here`: locate() and track() each
+           declare their own `here` for the fix they just received, and two
+           variables one letter apart in the same file is a bug waiting to be
+           written. */
+        var myPosition = null;   // last known position, once there is one
+        var liveFrom   = null;   // where the live leg was last drawn from
+
+        /* How far the devotee moves before the live leg is asked for again.
+           Every fix would be a routing request every few seconds; 150 m is
+           about two blocks, far enough that the drawn line has visibly stopped
+           matching where they are. */
+        var LIVE_REDRAW_M = 150;
+
+        function nextIndex() {
+            for (var i = 0; i < stops.length; i++) {
+                if (!stops[i].visited) return i;
+            }
+            return -1;
+        }
+
+        /*
+           The legs to draw, in order.
+
+           The leg arriving at the next unvisited stop is the live one, drawn
+           from the devotee rather than from the previous church - which is
+           also what makes this work after an arrival: tick the first stop and
+           the live leg becomes their position to the second, without anything
+           having to ask for it.
+        */
+        function legs() {
+            var out  = [];
+            var next = nextIndex();
+
+            for (var j = 0; j + 1 < stops.length; j++) {
+                var a = stops[j], b = stops[j + 1];
+
+                // Replaced by the live leg below, when we know where they are.
+                if (myPosition && next === j + 1) continue;
+
+                out.push({
+                    path:  [[a.lat, a.lng], [b.lat, b.lng]],
+                    state: (a.visited && b.visited) ? 'done' : 'upcoming'
+                });
+            }
+
+            if (myPosition && next !== -1) {
+                var n = stops[next];
+                out.push({
+                    path:  [[myPosition.lat, myPosition.lng], [n.lat, n.lng]],
+                    state: 'live',
+                    live:  true
+                });
+            }
+
+            return out;
+        }
+
+        function route(fit) {
+            if (line) map.removeLayer(line);
+            line = L.layerGroup().addTo(map);
+
+            var all    = legs();
+            var corners = [];
+
+            if (!all.length) {
+                if (stops.length === 1) map.setView([stops[0].lat, stops[0].lng], 15);
                 return;
             }
 
-            paint(path, true);
-            askRoads(path);
-        }
+            all.forEach(function (leg) {
+                var style = LEG[leg.state];
+                var poly  = L.polyline(leg.path, {
+                    color:     style.color,
+                    weight:    style.weight,
+                    opacity:   style.opacity,
+                    dashArray: style.dashArray || null,
+                    lineCap:   'round',
+                    lineJoin:  'round'
+                }).addTo(line);
 
-        function paint(path, dashed) {
-            if (line) map.removeLayer(line);
+                corners = corners.concat(leg.path);
 
-            line = L.layerGroup().addTo(map);
+                /* Straight first, roads when they arrive - the same two passes
+                   the browsing map uses, so a leg is never invisible while a
+                   request is in flight. Answers are cached, so walking a route
+                   twice costs one round trip. */
+                var drawnInto = line;
+                roads(leg.path).then(function (d) {
+                    if (!d.ok || !d.geometry.length) {
+                        if (leg.live && cfg.onRoadsFailed) cfg.onRoadsFailed(d.reason);
+                        return;
+                    }
+                    // Repainted while we waited: this polyline is off the map.
+                    if (drawnInto !== line) return;
 
-            L.polyline(path, {
-                color: '#8E3B2F', weight: dashed ? 3 : 6, opacity: .8,
-                dashArray: dashed ? '2 9' : null, lineCap: 'round', lineJoin: 'round'
-            }).addTo(line);
-
-            if (!dashed) {
-                L.polyline(path, { color: '#D7A94A', weight: 2, opacity: .9 }).addTo(line);
-            }
-
-            map.fitBounds(L.polyline(path).getBounds().pad(0.18));
-        }
-
-        function askRoads(path) {
-            roads(path).then(function (d) {
-                if (d.ok && d.geometry.length) {
-                    paint(d.geometry, false);
-                    if (cfg.onRoads) cfg.onRoads(d);
-                } else if (cfg.onRoadsFailed) {
-                    cfg.onRoadsFailed(d.reason);
-                }
+                    poly.setLatLngs(d.geometry);
+                    if (leg.live && cfg.onRoads) cfg.onRoads(d);
+                });
             });
+
+            if (fit) map.fitBounds(L.polyline(corners).getBounds().pad(0.18));
+        }
+
+        /* A new position only redraws when it has moved the route somewhere
+           the old one no longer describes. */
+        function positionChanged(pos) {
+            myPosition = pos;
+
+            var moved = !liveFrom || km(myPosition, liveFrom) * 1000 > LIVE_REDRAW_M;
+            if (!moved) return;
+
+            liveFrom = myPosition;
+            route(false);
         }
 
         draw(cfg.currentId);
-        route();
+        route(true);
 
         setTimeout(function () { map.invalidateSize(); }, 200);
         window.addEventListener('resize', function () { map.invalidateSize(); });
@@ -810,6 +919,10 @@ window.GiyaLeaflet = (function () {
 
                     map.setView([here.lat, here.lng], 15);
 
+                    // The way from here to the next church, which is the only
+                    // leg the devotee can act on right now.
+                    positionChanged(here);
+
                     // Distance to the first stop still to be visited.
                     var next = stops.filter(function (st) { return !st.visited; })[0];
                     if (next && cfg.onLocated) {
@@ -819,9 +932,7 @@ window.GiyaLeaflet = (function () {
                 },
                 function (err) {
                     if (cfg.onStatus) {
-                        cfg.onStatus(err.code === 1
-                            ? 'Location permission was denied.'
-                            : 'Could not get a location fix.', 'error');
+                        cfg.onStatus(say(cfg, err.code === 1 ? 'denied' : 'noFix'), 'error');
                     }
                     if (done) done();
                 },
@@ -853,6 +964,7 @@ window.GiyaLeaflet = (function () {
                 function (pos) {
                     var here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     showMe(here, pos.coords.accuracy);
+                    positionChanged(here);
 
                     var next = stops.filter(function (st) { return !st.visited; })[0];
                     if (next && cfg.onLocated) {
@@ -872,9 +984,10 @@ window.GiyaLeaflet = (function () {
                 },
                 function (err) {
                     if (cfg.onStatus) {
-                        cfg.onStatus(err.code === 1
-                            ? 'Location is off, so stops will not tick themselves. Turn it on to check in automatically.'
-                            : 'Could not follow your location.', 'error');
+                        /* The pilgrimage wording, not the map's: here a
+                            refused location means stops stop ticking
+                            themselves, which is worth saying plainly. */
+                        cfg.onStatus(say(cfg, err.code === 1 ? 'noTicking' : 'noFollow'), 'error');
                     }
                 },
                 { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
@@ -892,13 +1005,25 @@ window.GiyaLeaflet = (function () {
             track: track,
             untrack: untrack,
             refreshPopup: refreshPopup,
-            frameAll: function () { route(); },
+            frameAll: function () { route(true); },
             refresh: function (visitedIds, currentId) {
                 stops.forEach(function (s) {
                     s.visited = visitedIds.indexOf(s.id) !== -1;
                     refreshPopup(s.id);
                 });
                 draw(currentId);
+
+                /* An arrival changes which leg is live, so the route is
+                   redrawn now rather than at the next 150 m: the devotee is
+                   standing still at a church door, and the whole point of the
+                   moment is being shown where to go next. */
+                liveFrom = null;
+                route(false);
+            },
+
+            /** For a page that wants the leg colours in a legend. */
+            legColours: function () {
+                return { done: LEG.done.color, live: LEG.live.color, upcoming: LEG.upcoming.color };
             },
             focus: function (id) {
                 var m = pins[id];

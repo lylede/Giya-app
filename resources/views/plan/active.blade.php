@@ -33,6 +33,17 @@
         'noGeo'      => __('giya.map.no_geo'),
         'denied'     => __('giya.map.denied'),
         'noFix'      => __('giya.map.no_fix'),
+
+        // Only the pilgrimage says these: on this screen a refused location
+        // means the stops stop ticking themselves.
+        'noTicking'  => __('giya.map.no_ticking'),
+        'noFollow'   => __('giya.map.no_follow'),
+
+        // The marker popups are built inside the engine, which cannot reach
+        // the translator, so their words are handed over like the rest.
+        'popupStop'    => __('giya.plan.popup_stop', ['order' => ':order']),
+        'popupVisited' => __('giya.plan.popup_visited'),
+        'popupMark'    => __('giya.plan.popup_mark'),
     ];
 @endphp
 <div class="active-layout">
@@ -45,15 +56,22 @@
                     <i class="bi bi-chevron-left"></i> {{ __('giya.plan.all_itineraries') }}
                 </a>
                 <h1 style="font-family:var(--font-display);color:#fff;font-size: 1.1875rem;margin:0 0 2px">{{ $itinerary->name }}</h1>
-                <p style="color:rgba(255,255,255,.7);font-size: 0.75rem;margin:0">
-                    <span id="visitedCount">{{ $stops->where('is_visited', true)->count() }}</span>
-                    of {{ $stops->count() }} stops visited
-                </p>
+                {{-- The count is split around the number so the number can be
+                     replaced on its own as stops tick, without the sentence
+                     around it having to be rebuilt in the script. --}}
+                @php
+                    $visitedNow = $stops->where('is_visited', true)->count();
+                    [$countBefore, $countAfter] = explode(':done', __('giya.plan.stops_visited', [
+                        'done' => ':done', 'total' => $stops->count(),
+                    ]), 2);
+                @endphp
+                <p style="color:rgba(255,255,255,.7);font-size: 0.75rem;margin:0">{{ $countBefore }}<span
+                    id="visitedCount">{{ $visitedNow }}</span>{{ $countAfter }}</p>
                 <div class="progress-track" style="margin-top:12px">
                     <div class="progress-fill" id="progressBar" style="width:{{ $itinerary->progressPercent() }}%"></div>
                 </div>
                 <div id="progressLabel" style="color:var(--gold);font-size: 0.75rem;font-weight:700;margin-top:4px">
-                    {{ $itinerary->progressPercent() }}% complete
+                    {{ __('giya.plan.percent_done', ['pct' => $itinerary->progressPercent()]) }}
                 </div>
             </div>
         </div>
@@ -67,7 +85,7 @@
         <div class="ap-banner d-none" id="doneBanner" style="text-align:center">
             <i class="bi bi-award-fill" style="font-size: 1.625rem;color:var(--gold)"></i>
             <div style="font-size: 0.875rem;font-weight:700;color:var(--text);margin-top:4px">{{ __('giya.plan.finished') }}</div>
-            <div style="font-size: 0.75rem;color:var(--text-muted)">All {{ $stops->count() }} churches visited</div>
+            <div style="font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.plan.all_visited', ['count' => $stops->count()]) }}</div>
         </div>
 
         <div class="ap-list" id="stopList"></div>
@@ -121,6 +139,21 @@
         </div>
 
         <div class="ap-summary" id="routeSummary"></div>
+
+        {{-- What the colours on the route mean. Three lines on a map are only
+             useful if the devotee knows which one is theirs, and a legend is
+             cheaper than making them work it out while walking. --}}
+        <div class="ap-legend" aria-hidden="false">
+            <span class="ap-legend-item">
+                <span class="ap-legend-dash is-live"></span>{{ __('giya.plan.leg_live') }}
+            </span>
+            <span class="ap-legend-item">
+                <span class="ap-legend-dash is-upcoming"></span>{{ __('giya.plan.leg_upcoming') }}
+            </span>
+            <span class="ap-legend-item">
+                <span class="ap-legend-dash is-done"></span>{{ __('giya.plan.leg_done') }}
+            </span>
+        </div>
 
         {{-- Shown when the devotee walks into a stop's radius. --}}
         <div class="arrive-toast" id="arriveToast" hidden role="status" aria-live="polite">
@@ -200,14 +233,18 @@ const GiyaActive = (function () {
         onLocated: function (here, next, distanceKm) {
             const el = document.getElementById('routeSummary');
             if (el) {
-                el.textContent = distanceKm.toFixed(1) + ' km to ' + next.name;
+                el.textContent = @json(__('giya.plan.km_to', ['km' => ':km', 'name' => ':name']))
+                    .replace(':km', distanceKm.toFixed(1)).replace(':name', next.name);
             }
         },
         onRoads: function (d) {
             const el = document.getElementById('routeSummary');
             if (el) {
-                el.textContent = d.distance_km + ' km along roads'
-                    + (d.duration_min ? ' \u00b7 about ' + d.duration_min + ' min by car' : '');
+                el.textContent = (d.duration_min
+                        ? @json(__('giya.plan.km_roads_min', ['km' => ':km', 'min' => ':min']))
+                            .replace(':min', d.duration_min)
+                        : @json(__('giya.plan.km_roads', ['km' => ':km'])))
+                    .replace(':km', d.distance_km);
             }
         }
     });
@@ -270,7 +307,8 @@ const GiyaActive = (function () {
 
         document.getElementById('visitedCount').textContent  = done;
         document.getElementById('progressBar').style.width   = pct + '%';
-        document.getElementById('progressLabel').textContent = pct + '% complete';
+        document.getElementById('progressLabel').textContent =
+            @json(__('giya.plan.percent_done', ['pct' => ':pct'])).replace(':pct', pct);
 
         const banner  = document.getElementById('currentBanner');
         const doneB   = document.getElementById('doneBanner');
@@ -310,7 +348,7 @@ const GiyaActive = (function () {
                 (isCur ? '<button type="button" onclick="GiyaActive.mark(' + s.id + ')" ' +
                          'style="padding:5px 11px;border-radius:8px;font-size: 0.6875rem;font-weight:700;border:none;' +
                          'cursor:pointer;background:var(--primary);color:#fff;font-family:var(--font-body);' +
-                         'flex-shrink:0">Mark</button>' : '') +
+                         'flex-shrink:0">' + @json(__('giya.plan.mark_short')) + '</button>' : '') +
                 '</div>';
         }).join('');
 

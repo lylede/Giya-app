@@ -250,7 +250,21 @@ class PaymentController extends Controller
         $mapped    = MayaService::mapStatus(MayaService::statusFrom($body));
         $paymentId = MayaService::paymentIdFrom($body);
 
-        DB::transaction(function () use ($transaction, $mapped, $paymentId, $body) {
+        /* How they actually paid - card, QR Ph, a wallet.
+           The checkout body sometimes carries fundSource and sometimes does
+           not. When it does not, the payment itself knows - but that is a
+           second call, so it is made only when all three are true: the money
+           actually moved, Maya gave us a payment id, and the checkout did not
+           already answer. A Failed or still-Pending transaction has no
+           channel worth chasing. */
+        $channel = MayaService::channelFrom($body);
+
+        if ($channel === null && $mapped === 'Paid' && $paymentId) {
+            $payment = $maya->retrievePayment($paymentId);
+            $channel = $payment ? MayaService::channelFrom($payment) : null;
+        }
+
+        DB::transaction(function () use ($transaction, $mapped, $paymentId, $channel, $body) {
             $fresh = Transaction::lockForUpdate()->find($transaction->id);
 
             if (! $fresh) {
@@ -260,7 +274,8 @@ class PaymentController extends Controller
             $changed = $fresh->settle(
                 $mapped,
                 $paymentId,
-                'Maya reported '.(MayaService::statusFrom($body) ?? 'no status').'.'
+                'Maya reported '.(MayaService::statusFrom($body) ?? 'no status').'.',
+                $channel
             );
 
             if ($changed) {

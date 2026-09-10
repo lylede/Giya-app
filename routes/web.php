@@ -18,6 +18,13 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| GIYA - Web Routes
+|--------------------------------------------------------------------------
+| Every internal link in the Blade templates resolves through a named route
+| below. No route points at an external service.
+*/
 
 Route::get('/', [HomeController::class, 'landing'])->name('root');
 
