@@ -366,12 +366,6 @@ window.GiyaLeaflet = (function () {
                         .bindPopup(say(cfg, 'youAreHere'))
                         .addTo(map);
 
-                    L.circle([me.lat, me.lng], {
-                        radius: pos.coords.accuracy,
-                        color: '#2563EB', weight: 1,
-                        fillColor: '#2563EB', fillOpacity: .08
-                    }).addTo(map);
-
                     map.setView([me.lat, me.lng], 14);
 
                     if (cfg.onLocated) cfg.onLocated(me, nearest(me));
