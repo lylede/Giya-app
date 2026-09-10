@@ -120,7 +120,7 @@
                     <td>{{ $churches->firstItem() + $i }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <img src="{{ $church->imagePath() }}" alt=""
+                            <img class="gs-img" src="{{ $church->imagePath() }}" alt=""
                                  style="width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0">
                             <span style="font-weight:600">{{ $church->name }}</span>
                         </div>

@@ -186,6 +186,7 @@ return [
         'no_fix'         => 'Could not get a location fix. Try again outdoors or check GPS.',
         'no_ticking'       => 'Location is off, so stops will not tick themselves. Turn it on to check in automatically.',
         'no_follow'        => 'Could not follow your location.',
+        'loading'        => 'Loading the map…',
         'this_church'    => 'this church',
         'act_plan'       => 'Planning a route',
         'following'      => 'Following roads',

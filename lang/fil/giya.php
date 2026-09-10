@@ -176,6 +176,7 @@ return [
         'no_fix'         => 'Hindi nakakuha ng lokasyon. Subukan ulit sa labas o suriin ang GPS.',
         'no_ticking'       => 'Naka-off ang lokasyon, kaya hindi kusang mamamarkahan ang mga hinto. I-on ito para awtomatikong makapag-check in.',
         'no_follow'        => 'Hindi masubaybayan ang iyong lokasyon.',
+        'loading'        => 'Nilo-load ang mapa…',
         'this_church'    => 'ang simbahang ito',
         'act_plan'       => 'Pagplano ng ruta',
         'following'      => 'Sinusundan ang mga kalsada',

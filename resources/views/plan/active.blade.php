@@ -88,7 +88,20 @@
             <div style="font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.plan.all_visited', ['count' => $stops->count()]) }}</div>
         </div>
 
-        <div class="ap-list" id="stopList"></div>
+        {{-- Drawn by the script, like the map's list, and replaced by its
+             first render. Short, so the rows are few. --}}
+        <div class="ap-list" id="stopList">
+            @foreach ($stops as $i => $stop)
+                @continue($i > 3)
+                <div class="gs-row" style="border:0;margin:0 8px 4px" aria-hidden="true">
+                    <span class="gs gs-dot"></span>
+                    <span class="gs-row-body">
+                        <span class="gs gs-line is-title" style="width:{{ [76, 62, 80, 68][$i] }}%"></span>
+                        <span class="gs gs-line" style="width:38%"></span>
+                    </span>
+                </div>
+            @endforeach
+        </div>
 
         <div class="ap-foot">
             <button type="button" class="btn btn-primary btn-w-full" id="markBtn" onclick="GiyaActive.markCurrent()">
@@ -122,6 +135,10 @@
         @endphp
 
         <div class="giya-map-canvas" id="activeMap" style="height:100%;border-radius:0;border:0"></div>
+
+        {{-- The pilgrimage opens straight onto its map, so this is the first
+             thing a devotee sees on the screen they walk with. --}}
+        <x-map-loading />
 
         <div class="map-tools">
             <button type="button" class="map-tool" id="apLocate"

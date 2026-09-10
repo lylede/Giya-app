@@ -63,6 +63,62 @@ window.GiyaLeaflet = (function () {
         return local;
     }
 
+    /*
+       Tell the page when the map is actually looking at something.
+
+       Leaflet's `load` fires when every tile in view has arrived, which is
+       the honest moment to take a loading panel away - a timer would either
+       uncover a grey checkerboard on a slow connection or hold a finished
+       map hostage on a fast one.
+
+       Two things stop it hanging. A tile server that answers with errors
+       fires `tileerror` and never `load`, so a run of those counts as
+       arrived; and a hard ceiling gives up regardless, because a map with
+       no tiles is still more use than a panel that never leaves.
+    */
+    function whenTilesArrive(layer, done) {
+        var settled = false;
+        var failures = 0;
+
+        function finish() {
+            if (settled) return;
+            settled = true;
+            done();
+        }
+
+        layer.on('load', finish);
+
+        layer.on('tileerror', function () {
+            // The layer swaps source after 4 misses; give that a chance to
+            // work before deciding nothing is coming.
+            if (++failures >= 12) finish();
+        });
+
+        setTimeout(finish, 8000);
+
+        return finish;
+    }
+
+    /*
+       Add the tiles, and let the page know when they are on screen.
+
+       The class goes on the map's own wrapper - the element holding both
+       the canvas and the loading panel - so a page gets the behaviour by
+       putting <x-map-loading> beside its map and writing no JavaScript at
+       all.
+    */
+    function markReadyWhenTilesArrive(map, cfg) {
+        var layer = tileLayer(cfg).addTo(map);
+
+        whenTilesArrive(layer, function () {
+            var shell = map.getContainer().parentNode;
+            if (shell && shell.classList) shell.classList.add('is-map-ready');
+            if (cfg.onTilesReady) cfg.onTilesReady();
+        });
+
+        return layer;
+    }
+
     /* ------------------------------------------------------------ routing */
 
     /**
@@ -248,7 +304,7 @@ window.GiyaLeaflet = (function () {
             zoomControl: false      // replaced by the .map-tools stack
         });
 
-        tileLayer(cfg).addTo(map);
+        markReadyWhenTilesArrive(map, cfg);
 
         var markers = {};
         var churches = (cfg.churches || []).filter(function (c) { return c.lat && c.lng; });
@@ -600,7 +656,7 @@ window.GiyaLeaflet = (function () {
             zoom: cfg.zoom || 12
         });
 
-        tileLayer(cfg).addTo(map);
+        markReadyWhenTilesArrive(map, cfg);
 
         var existing = L.layerGroup().addTo(map);
         var pin = null;
@@ -663,7 +719,7 @@ window.GiyaLeaflet = (function () {
        --------------------------------------------------------------------- */
     function pilgrimage(cfg) {
         var map = L.map(cfg.element, { center: [CEBU.lat, CEBU.lng], zoom: 12 });
-        tileLayer(cfg).addTo(map);
+        markReadyWhenTilesArrive(map, cfg);
 
         var pins = {};
         var line = null;

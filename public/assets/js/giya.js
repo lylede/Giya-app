@@ -162,7 +162,41 @@
         }
     });
 
-    window.GiyaUI = { Modal, togglePassword };
+    /*
+       Photos, while they are still crossing the network.
+
+       The wrapper carries the shimmer and the image fades in over it, so the
+       box is the right size from the first paint and nothing below it jumps
+       when the photo lands. `load` does not bubble, hence the capture phase;
+       and an image served from cache is often already complete before this
+       runs, which is the case a naive listener misses and shows a shimmer
+       that never clears.
+    */
+    function shimmerImages(root) {
+        (root || document).querySelectorAll('img.gs-img').forEach(function (img) {
+            // Served from cache, and already finished before this ran: the
+            // case a plain listener misses, leaving a shimmer that never
+            // clears under a photo that is perfectly visible.
+            if (img.complete && img.naturalWidth > 0) settle(img);
+        });
+    }
+
+    function settle(e) {
+        var img = e.target || e;
+        if (img.tagName === 'IMG' && img.classList.contains('gs-img')) {
+            img.classList.add('is-loaded');
+        }
+    }
+
+    // `load` does not bubble, hence the capture phase. An image that fails
+    // is settled too: a broken photo should not sit shimmering as though one
+    // were still on its way.
+    document.addEventListener('load', settle, true);
+    document.addEventListener('error', settle, true);
+
+    document.addEventListener('DOMContentLoaded', function () { shimmerImages(); });
+
+    window.GiyaUI = { Modal, togglePassword, shimmerImages };
     window.GiyaProfile = Profile;
     window.giyaTogglePassword = togglePassword;   // used inline by the auth forms
 })(window, document);
