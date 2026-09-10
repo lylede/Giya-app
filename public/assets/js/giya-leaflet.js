@@ -375,6 +375,7 @@ window.GiyaLeaflet = (function () {
                 function (err) {
                     var msg = err.code === 1 ? say(cfg, 'denied') : say(cfg, 'noFix');
                     if (cfg.onStatus) cfg.onStatus(msg, 'error');
+                    if (onDone) onDone();
                 },
                 { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
             );

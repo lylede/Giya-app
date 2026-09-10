@@ -433,6 +433,10 @@
            throwing a red banner at a screenful of churches. */
         onStatus: function (message, kind) {
             if (kind === 'error' && category === 'Near') {
+                hasLocation = false;
+                distances = {};
+                nearbyIds = [];
+                renderList();
                 showNote(trans('near_unsorted'), 'info');
                 return;
             }
