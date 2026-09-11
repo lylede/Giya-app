@@ -18,9 +18,9 @@ use Tests\TestCase;
  * puts the trip's details above the map and turns the selection tray into a
  * save; without it the map is what it always was.
  *
- * The old /plan/create form still works and still saves - it is what the
- * Visita planner's sibling used to be, and an old bookmark should not 404 -
- * but nothing links to it any more.
+ * The old /plan/create screen is gone. Its URL redirects here, carrying any
+ * stops, so a bookmark someone kept lands on the planner rather than on a
+ * 404 - but there is no second custom planner to drift out of step.
  */
 class MapPlannerTest extends TestCase
 {
@@ -297,20 +297,45 @@ class MapPlannerTest extends TestCase
         );
     }
 
-    /** Nothing on the map points at the old form any more. */
-    public function test_the_map_never_links_to_the_old_planner(): void
+    /**
+     * No screen in GIYA points at the old planner.
+     *
+     * This checked the map alone, and the map was clean - while the home
+     * page's own Plan Your Pilgrimage card, the church page, My Itineraries
+     * and the profile all still went there. A test that names the one page
+     * you were working on proves that page, and quietly says nothing about
+     * the app, which is how a screen nothing was supposed to reach stayed
+     * one click from the front page.
+     *
+     * So: every devotee-facing screen, and the list is the point.
+     */
+    public function test_no_screen_links_to_the_old_planner(): void
     {
-        $this->seedChurches();
+        $churches = $this->seedChurches();
+        $user     = $this->devotee();
 
-        $user = $this->devotee();
+        $pages = [
+            route('map'),
+            route('map', ['plan' => 1]),
+            route('home'),
+            route('plan.hub'),
+            route('plan.visita'),
+            route('plan.index'),
+            route('profile'),
+            route('churches.show', $churches->first()),
+        ];
 
-        foreach ([route('map'), route('map', ['plan' => 1])] as $url) {
+        // Both spellings: @json escapes forward slashes, so the plain URL
+        // alone would miss a link handed to a script.
+        $needles = [route('plan.create'), str_replace('/', '\\/', route('plan.create'))];
+
+        foreach ($pages as $url) {
             $html = $this->actingAs($user)->get($url)->assertOk()->getContent();
 
-            // Both spellings: @json escapes forward slashes, so the plain URL
-            // alone would miss a link handed to the script.
-            foreach ([route('plan.create'), str_replace('/', '\\/', route('plan.create'))] as $needle) {
-                $this->assertStringNotContainsString($needle, $html, "still links $needle");
+            foreach ($needles as $needle) {
+                $this->assertStringNotContainsString(
+                    $needle, $html, "$url still links to the old planner"
+                );
             }
         }
     }
@@ -484,11 +509,13 @@ class MapPlannerTest extends TestCase
         $this->assertSame(3, Itinerary::where('user_id', $user->id)->count());
     }
 
-    /** The old form still saves - an existing bookmark should not break. */
-    public function test_the_old_planner_still_works(): void
+    /** The old screen is gone; its URL leads to the one that replaced it. */
+    public function test_the_old_planner_url_redirects_to_the_map(): void
     {
         $this->seedChurches();
 
-        $this->actingAs($this->devotee())->get(route('plan.create'))->assertOk();
+        $this->actingAs($this->devotee())
+            ->get(route('plan.create'))
+            ->assertRedirect(route('map', ['plan' => 1]));
     }
 }

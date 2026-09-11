@@ -698,6 +698,27 @@ html[data-theme="dark"] .alert-info {
   line-height: 1.35;
 }
 
+/* A checkbox with an explanation under its label, in the admin forms. The
+   label wraps the input so the whole block is the hit area - a 13px tick box
+   is not something to ask anyone to aim at. */
+.dm-check {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--bg-input);
+}
+.dm-check input { margin-top: 2px; flex-shrink: 0; }
+.dm-check strong { display: block; font-size: 0.8125rem; color: var(--text); }
+.dm-check small  { display: block; font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px; }
+
+/* The town a Major result stands for. Gold rather than the neutral grey of a
+   category tag, because under that filter the town is the reason the church
+   is in the list at all. */
+.mx-tag.is-town {
+  background: var(--gold-bg); color: var(--primary);
+  font-weight: 700;
+}
+
 /* ── CHURCH CARD ────────────────────────────────────────────── */
 .church-card {
   border-radius: var(--radius-xl); overflow: hidden;
@@ -885,6 +906,12 @@ html[data-theme="dark"] .history-thumb-badge { background: var(--bg); }
 
 /* ── ACTIVE PILGRIMAGE ──────────────────────────────────────── */
 .active-layout { display: flex; overflow: hidden; }
+
+/* The sheet's handle belongs to the phone layout and is given its size and
+   its behaviour there. Stated here so that everywhere else it is simply not
+   on the page - a button with no styling of its own still renders, and it
+   was sitting in the middle of the desktop sidebar. */
+.ap-grab { display: none; }
 .active-sidebar {
   width: 340px; flex-shrink: 0; background: #fff;
   border-right: 1px solid var(--border);
@@ -1130,8 +1157,133 @@ img.gs-img.is-loaded { background: none; animation: none; }
   .auth-header h1 { font-size: 1.25rem; }
   .map-layout { flex-direction: column; }
   .map-layout .map-sidebar { width: 100%; height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
-  .active-layout { flex-direction: column; }
-  .active-sidebar { width: 100%; height: 260px; border-right: none; border-bottom: 1px solid var(--border); }
+  /* The pilgrimage, on a phone.
+
+     Stacking the two panes gave the sidebar a fixed 260px, and its header
+     alone is 258 of them - so the stop list got 16px and both buttons, Mark
+     Visited among them, were clipped away entirely. The one action the
+     screen exists for could not be reached.
+
+     So it stops being a two-pane layout squeezed narrow. The map takes the
+     whole screen, a compact bar sits over the top of it, and the sidebar
+     becomes a sheet along the bottom: the current church and Mark Visited
+     always in reach of a thumb, the full route a drag away. --ap-sheet is
+     the sheet's height, and anything that has to stay clear of it reads
+     that rather than guessing. */
+  .active-layout {
+    display: block; position: relative; overflow: hidden;
+    /* Back link, name, count and the bar - measured, not guessed: at 92px
+       the bar was being sliced by its last pixel. */
+    --ap-head: 104px;
+  }
+
+  .active-layout .ap-head {
+    position: fixed; top: 64px; left: 0; right: 0; z-index: 620;
+    height: var(--ap-head); padding: 10px 16px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  /* The decorative circle is for a 340px column, not a full-width strip. */
+  .active-layout .ap-head::after { display: none; }
+  .active-layout .ap-head h1 {
+    font-size: 1.0625rem; margin: 0 0 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .active-layout .ap-head a { margin-bottom: 4px !important; }
+  .active-layout .ap-head .progress-track { margin-top: 8px !important; }
+  /* "0 of 3 stops visited" and the bar already say this, and the strip has
+     no room for a third way of saying it. */
+  .active-layout #progressLabel { display: none; }
+
+  /* Closed, the list is not peeking through the gap - a few pixels of a row
+     read as something broken rather than as a hint. */
+  .active-sidebar:not(.is-open) .ap-list { display: none; }
+
+  /* Leaflet's own corners sit at the bottom of the map, which now runs on
+     behind the sheet - so the attribution was printed across the one button
+     the screen exists for. */
+  .active-layout .leaflet-bottom { bottom: calc(var(--ap-sheet, 196px) + 2px); }
+
+  .active-layout .map-wrap { position: absolute; inset: var(--ap-head) 0 0 0; }
+
+  .active-sidebar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 640;
+    width: 100%; height: var(--ap-sheet, 196px);
+    max-height: calc(100dvh - 64px - var(--ap-head) - 24px);
+    border: 0; border-top: 1px solid var(--border);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: 0 -6px 28px rgba(36, 28, 24, .18);
+    transition: height .28s cubic-bezier(.2, .8, .2, 1);
+
+    /* Declared here rather than added when the drag starts. A browser
+       decides what a gesture is allowed to do from the element it began on,
+       at the moment it began - a class added during pointerdown is already
+       too late, which is why dragging the sheet downwards was being
+       cancelled as though it were the start of a scroll. */
+    touch-action: none;
+  }
+  /* The stop list is the one part that still scrolls. */
+  .active-layout .ap-list { touch-action: pan-y; }
+  /* While a finger is on it the height follows the finger, and a transition
+     would make it lag behind.
+
+     touch-action goes on the whole sheet for the length of the drag, not
+     just on the handle: dragging down takes the pointer off the handle and
+     over the banner and the list, and the browser reads that as the start of
+     a scroll, cancels the gesture, and the sheet stops halfway. */
+  .active-sidebar.is-dragging { transition: none; touch-action: none; }
+
+  /* While the sheet is being dragged the map ignores the pointer entirely.
+
+     Not for the map's sake - for the sheet's. Dragging downwards shrinks the
+     sheet, which slides Leaflet's attribution up into the path of the finger,
+     and a link under a moving pointer is a link the browser starts dragging:
+     Chromium fired dragstart on that anchor and stopped sending mouse moves,
+     so the gesture died a third of the way down and the sheet sprang back
+     open. Dragging upwards moved the link away, which is why only one
+     direction ever appeared to be broken. */
+  .active-layout:has(.active-sidebar.is-dragging) .map-wrap { pointer-events: none; }
+
+  /* And nothing in here is a thing to drag on its own. */
+  .active-layout a, .active-layout img { -webkit-user-drag: none; }
+
+  .ap-grab {
+    display: flex; align-items: center; justify-content: center;
+    height: 26px; flex-shrink: 0;
+    background: none; border: 0; padding: 0; width: 100%;
+    cursor: grab; touch-action: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  .ap-grab-bar {
+    width: 40px; height: 4px; border-radius: 999px;
+    background: var(--border); transition: background .15s;
+  }
+  .ap-grab:active .ap-grab-bar { background: var(--primary-light); }
+
+  /* Closed, the sheet is the next church and the one button that acts on it.
+     Ending the pilgrimage is not a thing to put under a wandering thumb. */
+  .active-sidebar:not(.is-open) .ap-end { display: none; }
+
+  .active-layout .ap-banner { padding: 10px 16px 12px; }
+  .active-layout .ap-foot { padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
+
+  /* Clear of the sheet, whatever height it is at.
+
+     --ap-sheet lives on the document element, not on the layout, because the
+     chat button is not inside it - and the fallback is the closed height, so
+     both of these are right before a single line of script has run. */
+  .active-layout .ap-summary { bottom: calc(var(--ap-sheet, 196px) + 12px); }
+  body:has(.active-layout) .giya-fab { bottom: calc(var(--ap-sheet, 196px) + 14px); }
+
+  /* The legend goes to one line here - three stacked labels were taking a
+     fifth of a phone-sized map. */
+  .active-layout .ap-legend {
+    flex-direction: row; flex-wrap: wrap;
+    gap: 3px 9px; padding: 5px 8px;
+    top: 10px; left: 10px; max-width: calc(100% - 74px);
+    font-size: 0.5625rem;
+  }
+  .active-layout .ap-legend-item { gap: 4px; }
+  .active-layout .ap-legend-dash { width: 13px; }
   .admin-layout { flex-direction: column; }
   .admin-sidebar { width: 100%; height: auto; position: relative; }
 }

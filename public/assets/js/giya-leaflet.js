@@ -366,12 +366,6 @@ window.GiyaLeaflet = (function () {
                         .bindPopup(say(cfg, 'youAreHere'))
                         .addTo(map);
 
-                    L.circle([me.lat, me.lng], {
-                        radius: pos.coords.accuracy,
-                        color: '#2563EB', weight: 1,
-                        fillColor: '#2563EB', fillOpacity: .08
-                    }).addTo(map);
-
                     map.setView([me.lat, me.lng], 14);
 
                     if (cfg.onLocated) cfg.onLocated(me, nearest(me));
@@ -381,6 +375,7 @@ window.GiyaLeaflet = (function () {
                 function (err) {
                     var msg = err.code === 1 ? say(cfg, 'denied') : say(cfg, 'noFix');
                     if (cfg.onStatus) cfg.onStatus(msg, 'error');
+                    if (onDone) onDone();
                 },
                 { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
             );
@@ -867,6 +862,24 @@ window.GiyaLeaflet = (function () {
             return out;
         }
 
+        /*
+           Room to leave at the edges when framing the route.
+
+           On a phone the sheet covers the bottom of the map, so a route
+           framed to the whole element can be centred underneath it - the
+           devotee sees an empty map and their own churches are behind the
+           panel. The page knows how tall its sheet is; this asks.
+        */
+        function fitPadding() {
+            var pad = cfg.viewPadding ? cfg.viewPadding() : null;
+            if (!pad) return {};
+
+            return {
+                paddingTopLeft:     [14, pad[0]],
+                paddingBottomRight: [14, pad[1]]
+            };
+        }
+
         function route(fit) {
             if (line) map.removeLayer(line);
             line = L.layerGroup().addTo(map);
@@ -910,7 +923,7 @@ window.GiyaLeaflet = (function () {
                 });
             });
 
-            if (fit) map.fitBounds(L.polyline(corners).getBounds().pad(0.18));
+            if (fit) map.fitBounds(L.polyline(corners).getBounds().pad(0.12), fitPadding());
         }
 
         /* A new position only redraws when it has moved the route somewhere

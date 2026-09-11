@@ -349,6 +349,35 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                     </div>
                 </div>
 
+                <div class="dm-row">
+                    <div class="field" style="flex:1 1 220px">
+                        <label class="dm-label" for="f-municipality">Municipality</label>
+                        {{-- A list rather than free text, because this one is
+                             grouped and filtered on: two spellings of the same
+                             town are two towns as far as the map is concerned.
+                             Left blank it is read out of the address. --}}
+                        <input id="f-municipality" type="text" name="municipality" class="giya-input"
+                               list="dm-towns" maxlength="120" value="{{ old('municipality') }}"
+                               placeholder="Read from the address if left blank">
+                        <datalist id="dm-towns">
+                            @foreach (\App\Http\Controllers\Admin\ChurchController::TOWNS as $town)
+                                <option value="{{ $town }}"></option>
+                            @endforeach
+                        </datalist>
+                        @error('municipality')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+
+                    <div class="field" style="flex:1 1 220px;align-self:flex-end">
+                        <label class="dm-check" for="f-major">
+                            <input id="f-major" type="checkbox" name="is_major" value="1"
+                                   @checked(old('is_major'))>
+                            <span>
+                                <strong>Major church of this municipality</strong>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="field">
                     <label class="dm-label" for="f-address">Exact Address (Optional)</label>
                     <input id="f-address" type="text" name="address" class="giya-input" maxlength="255"
@@ -495,6 +524,8 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
             field('f-name').value      = c.name;
             field('f-category').value  = c.category;
             field('f-location').value  = c.location || '';
+            field('f-municipality').value = c.municipality || '';
+            field('f-major').checked   = !!c.major;
             field('f-address').value   = c.address || '';
             field('f-lat').value       = c.lat || '';
             field('f-lng').value       = c.lng || '';

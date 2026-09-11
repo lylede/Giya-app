@@ -32,26 +32,6 @@ class ItineraryController extends Controller
         ]);
     }
 
-    public function create(Request $request): View
-    {
-        $churches = Church::active()->orderBy('name')->get();
-
-        $preset = $this->presetFrom($request, $churches)
-            ->map(fn (Church $c) => [
-                'id'       => $c->id,
-                'name'     => $c->name,
-                'location' => $c->location,
-                'image'    => $c->imagePath(),
-            ])
-            ->values();
-
-        return view('plan.create', [
-            'churches' => $churches,
-            'atLimit'  => $this->atLimit(),
-            'preset'   => $preset,
-        ]);
-    }
-
     public function visita(Request $request): View
     {
         $churches = Church::active()->orderBy('name')->get();
