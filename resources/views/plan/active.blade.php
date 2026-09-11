@@ -76,6 +76,17 @@
             </div>
         </div>
 
+        {{-- The sheet's handle. Only on a phone, where the sidebar becomes a
+             panel over the map: drag it, or press it, to see the whole route.
+             A button rather than a bare div, because opening the stop list is
+             something a keyboard and a screen reader have to be able to do
+             too - dragging is an enhancement on top of that. --}}
+        <button type="button" class="ap-grab" id="apGrab"
+                aria-expanded="false" aria-controls="stopList">
+            <span class="ap-grab-bar"></span>
+            <span class="visually-hidden">{{ __('giya.plan.show_stops') }}</span>
+        </button>
+
         <div class="ap-banner" id="currentBanner">
             <div style="font-size: 0.625rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">{{ __('giya.plan.current_stop') }}</div>
             <div id="currentName" style="font-size: 0.875rem;font-weight:700;color:var(--text)"></div>
@@ -107,7 +118,7 @@
             <button type="button" class="btn btn-primary btn-w-full" id="markBtn" onclick="GiyaActive.markCurrent()">
                 <i class="bi bi-check-lg"></i> {{ __('giya.plan.mark_visited') }}
             </button>
-            <form method="POST" action="{{ route('plan.destroy', $itinerary) }}"
+            <form class="ap-end" method="POST" action="{{ route('plan.destroy', $itinerary) }}"
                   data-confirm-title="{{ __('giya.plan.end_q') }}"
                   data-confirm="Your progress and this itinerary are removed. Visits you already recorded stay in your history, and on a free account this itinerary still counts towards your 3."
                   data-confirm-ok="End pilgrimage">
@@ -241,6 +252,15 @@ const GiyaActive = (function () {
         stops: points,
 
         labels: @json($mapLabels),
+
+        /* What the sheet is covering, so the route is framed into the part
+           of the map that can actually be seen. */
+        viewPadding: function () {
+            if (window.innerWidth > 1024) return null;
+
+            const bar = document.querySelector('.active-sidebar');
+            return [8, (bar ? bar.getBoundingClientRect().height : 196) + 16];
+        },
         currentId: (stops.find(s => !s.visited) || {}).id,
         onArrive: announceArrival,
         onStatus: function (message, kind) {
@@ -290,6 +310,141 @@ const GiyaActive = (function () {
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && apShell.classList.contains('is-fullscreen')) apFull.click();
     });
+
+    /* ---- the sheet, on a phone ----
+
+       The sidebar becomes a panel over the map, and this is what opens it.
+       Two heights: closed, which is the next church and Mark Visited, and
+       open, which is the whole route. A drag moves between them and a press
+       toggles - the press is the one that has to work, so it is a real
+       button and the drag is layered on top.
+
+       The height is written to the document element rather than kept in
+       here, because the summary pill and the chat button have to stay clear
+       of the sheet and neither of them is inside it.
+    */
+    const sheet = document.querySelector('.active-sidebar');
+    const grab  = document.getElementById('apGrab');
+
+    const SHEET_CLOSED = 196;
+
+    function sheetOpenHeight() {
+        // Enough of the map left to see where you are going.
+        return Math.round(Math.min(window.innerHeight * 0.62, window.innerHeight - 64 - 104 - 24));
+    }
+
+    function setSheet(px) {
+        document.documentElement.style.setProperty('--ap-sheet', Math.round(px) + 'px');
+    }
+
+    function openSheet(open) {
+        sheet.classList.toggle('is-open', open);
+        grab.setAttribute('aria-expanded', open ? 'true' : 'false');
+        setSheet(open ? sheetOpenHeight() : SHEET_CLOSED);
+
+        // Once it has finished moving: the map is a different size, and the
+        // part of it that can be seen is a different shape.
+        setTimeout(function () {
+            liveMap.map.invalidateSize();
+            liveMap.frameAll();
+        }, 300);
+    }
+
+    if (grab) {
+        grab.addEventListener('click', function () {
+            if (grab.dataset.dragged === '1') { grab.dataset.dragged = '0'; return; }
+            openSheet(!sheet.classList.contains('is-open'));
+        });
+
+        let startY = 0, startH = 0, dragging = false;
+
+        /* Touch and mouse events, not pointer events.
+
+           Pointer events are the modern answer and they cost two days of
+           this sheet not closing. Capture the press to the button and
+           Chromium cancels the pointer on the spot, because the press landed
+           on the bar inside it; capture nothing and the first downward move
+           re-targets onto the banner and is cancelled there instead. Either
+           way pointercancel arrived before the sheet had moved, the snap read
+           a height that had not changed, and the sheet sprang back open -
+           while dragging upwards worked perfectly, which is what made it look
+           like a maths problem rather than an event one.
+
+           touchmove and mousemove have none of that. They go to the document,
+           they are not retargeted, and nothing cancels them. Two listeners
+           instead of one is a small price for a gesture that works.
+
+           The listeners live only for the length of the drag. */
+        function pointY(e) {
+            return e.touches && e.touches.length ? e.touches[0].clientY : e.clientY;
+        }
+
+        function onMove(e) {
+            if (!dragging) return;
+
+            const dy = startY - pointY(e);
+            if (Math.abs(dy) > 6) grab.dataset.dragged = '1';
+
+            // Up past the open height and down past the closed one do nothing:
+            // a sheet that can be dragged off the screen is a sheet that can
+            // take Mark Visited with it.
+            setSheet(Math.max(SHEET_CLOSED, Math.min(sheetOpenHeight(), startH + dy)));
+
+            // Stop the map panning under the finger that is moving the sheet.
+            if (e.cancelable) e.preventDefault();
+        }
+
+        function endDrag() {
+            if (!dragging) return;
+            dragging = false;
+
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('touchend', endDrag);
+            document.removeEventListener('touchcancel', endDrag);
+
+            sheet.classList.remove('is-dragging');
+
+            // Snap to whichever it is nearer, so it never rests half-open.
+            const h = sheet.getBoundingClientRect().height;
+            openSheet(h > (SHEET_CLOSED + sheetOpenHeight()) / 2);
+        }
+
+        function startDrag(e) {
+            /* Stops the browser starting a selection drag instead of ours.
+
+               Without it exactly one move arrived and the stream went dead -
+               the browser had taken the gesture to drag a text selection, and
+               a mouse it has taken sends nothing back. Which is why the sheet
+               opened by dragging and would not close: the upward drag ended
+               over the handle, so the tap that follows a press did the work
+               and it only looked like the drag had. */
+            if (e.type === 'mousedown' && e.cancelable) e.preventDefault();
+
+            dragging = true;
+            startY = pointY(e);
+            startH = sheet.getBoundingClientRect().height;
+            grab.dataset.dragged = '0';
+            sheet.classList.add('is-dragging');
+
+            document.addEventListener('mousemove', onMove, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', endDrag);
+            document.addEventListener('touchcancel', endDrag);
+        }
+
+        grab.addEventListener('mousedown', startDrag);
+        grab.addEventListener('touchstart', startDrag, { passive: true });
+
+        // Rotating the phone changes what "open" means.
+        window.addEventListener('resize', function () {
+            if (sheet.classList.contains('is-open')) setSheet(sheetOpenHeight());
+        });
+
+        setSheet(SHEET_CLOSED);
+    }
 
     /* Ask for location as soon as the pilgrimage opens. Without it nothing can
        tick itself, so it is asked for once, up front, with the reason visible

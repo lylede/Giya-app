@@ -274,7 +274,7 @@
     <section class="profile-panel @if($activeTab !== 'itineraries') d-none @endif" id="panel-itineraries">
         <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
             <h2 class="section-title" style="font-size: 1.25rem;margin:0">{{ __('giya.plan.my_title') }}</h2>
-            <a href="{{ route('plan.create') }}" class="btn btn-primary btn-sm">
+            <a href="{{ route('map', ['plan' => 1]) }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-lg"></i> {{ __('giya.profile.new_itinerary') }}
             </a>
         </div>

@@ -25,9 +25,9 @@ class Church extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'category_id', 'name', 'location', 'address', 'description',
+        'category_id', 'name', 'location', 'municipality', 'address', 'description',
         'latitude', 'longitude', 'opening_time', 'closing_time',
-        'is_featured', 'is_active', 'created_at', 'updated_at',
+        'is_featured', 'is_major', 'is_active', 'created_at', 'updated_at',
     ];
 
     protected $appends = ['category', 'image_url', 'rating', 'daily_visits'];
@@ -97,6 +97,18 @@ class Church extends Model
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->where('is_featured', true);
+    }
+
+    /**
+     * The principal church of its town.
+     *
+     * Separate from featured on purpose: featured decides what the home page
+     * shows, major says this is the mother church of its municipality. One is
+     * about promotion and the other about place.
+     */
+    public function scopeMajor(Builder $query): Builder
+    {
+        return $query->where('is_major', true);
     }
 
     public function scopeSearch(Builder $query, ?string $term): Builder

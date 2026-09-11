@@ -19,7 +19,7 @@
                 <i class="bi bi-lock-fill"></i> {{ __('giya.plan.limit_reached') }}
             </button>
         @else
-            <a href="{{ route('plan.create') }}" class="btn btn-primary">
+            <a href="{{ route('map', ['plan' => 1]) }}" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> {{ __('giya.plan.create_new') }}
             </a>
         @endif
@@ -65,7 +65,7 @@
         <div class="card">
             <x-empty-state icon="giya-route" :title="__('giya.plan.no_itineraries')"
                            :desc="__('giya.plan.no_itin_desc')">
-                <a href="{{ route('plan.create') }}" class="btn btn-primary mt-3">{{ __('giya.plan.create_first') }}</a>
+                <a href="{{ route('map', ['plan' => 1]) }}" class="btn btn-primary mt-3">{{ __('giya.plan.create_first') }}</a>
             </x-empty-state>
         </div>
     @else

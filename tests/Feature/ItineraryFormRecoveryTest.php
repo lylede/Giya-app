@@ -56,37 +56,27 @@ class ItineraryFormRecoveryTest extends TestCase
         $user  = $this->devotee();
         $stops = $this->churches->take(3);
 
-        // What the planner posts when the name was left empty.
+        // The order the map worked out, which is not the order they were
+        // seeded - a restore that quietly re-sorted would still look right
+        // if this were ascending.
+        $ordered = collect([$stops[2], $stops[0], $stops[1]]);
+        $ids     = $ordered->pluck('id')->implode(',');
+
         $this->actingAs($user)
-            ->from(route('plan.create'))
+            ->from(route('map', ['plan' => 1]))
             ->post(route('plan.store'), [
                 'name'     => '',
                 'type'     => 'Custom',
-                'stops'    => $stops->pluck('name')->all(),
-                'stop_ids' => $stops->pluck('id')->implode(','),
+                'stops'    => $ordered->pluck('name')->all(),
+                'stop_ids' => $ids,
             ])
             ->assertSessionHasErrors('name');
 
-        // Coming back, every church is still on the route, in order.
-        $page = $this->actingAs($user)->get(route('plan.create'))->assertOk();
-
-        foreach ($stops as $church) {
-            $page->assertSee($church->name);
-        }
-
-        $content = $page->getContent();
-        $preset  = json_decode(
-            substr($content, strpos($content, 'const PRESET = ') + 15,
-                   strpos($content, ';', strpos($content, 'const PRESET = ')) - strpos($content, 'const PRESET = ') - 15),
-            true
-        );
-
-        $this->assertCount(3, $preset, 'The route came back empty after the form was rejected.');
-        $this->assertSame(
-            $stops->pluck('id')->all(),
-            array_column($preset, 'id'),
-            'The stops came back in a different order than they were arranged in.'
-        );
+        // Coming back, the whole route is there, in the order it was arranged.
+        $this->actingAs($user)
+            ->get(route('map', ['plan' => 1]))
+            ->assertOk()
+            ->assertSee($ids, false);
     }
 
     /** A past date is refused too, and must not cost the route either. */
@@ -94,35 +84,56 @@ class ItineraryFormRecoveryTest extends TestCase
     {
         $user  = $this->devotee();
         $stops = $this->churches->take(2);
+        $ids   = $stops->pluck('id')->implode(',');
 
         $this->actingAs($user)
-            ->from(route('plan.create'))
+            ->from(route('map', ['plan' => 1]))
             ->post(route('plan.store'), [
                 'name'           => 'Weekend route',
                 'type'           => 'Custom',
                 'scheduled_date' => now()->subWeek()->toDateString(),
                 'stops'          => $stops->pluck('name')->all(),
-                'stop_ids'       => $stops->pluck('id')->implode(','),
+                'stop_ids'       => $ids,
             ])
             ->assertSessionHasErrors('scheduled_date');
 
         $this->actingAs($user)
-            ->get(route('plan.create'))
+            ->get(route('map', ['plan' => 1]))
             ->assertOk()
-            ->assertSee($stops->first()->name)
-            ->assertSee('Weekend route', false);   // the name they typed is kept too
+            ->assertSee($ids, false)
+            ->assertSee('value="Weekend route"', false);   // what they typed is kept too
     }
 
-    /** Arriving from the map still works - old input only wins when present. */
-    public function test_stops_from_the_map_still_preset_the_route(): void
+    /** Arriving from a link still works - old input only wins when present. */
+    public function test_stops_in_the_url_still_preset_the_route(): void
     {
         $user = $this->devotee();
         $ids  = $this->churches->pluck('id')->implode(',');
 
         $this->actingAs($user)
-            ->get(route('plan.create', ['stops' => $ids]))
+            ->get(route('map', ['plan' => 1, 'stops' => $ids]))
             ->assertOk()
             ->assertSee($this->churches->first()->name);
+    }
+
+    /**
+     * The screen this file was written for is gone, and its URL leads to the
+     * one that replaced it rather than to a 404 - carrying any stops with it,
+     * because a link someone kept is usually a route they cared about.
+     */
+    public function test_the_old_planner_url_leads_to_the_map(): void
+    {
+        $ids = $this->churches->take(2)->pluck('id')->implode(',');
+
+        $user = $this->devotee();
+
+        $this->actingAs($user)
+            ->get(route('plan.create', ['stops' => $ids]))
+            ->assertRedirect(route('map', ['plan' => 1, 'stops' => $ids]));
+
+        $this->actingAs($user)
+            ->get(route('plan.create'))
+            ->assertRedirect(route('map', ['plan' => 1]));
     }
 
     /** A valid submission is unaffected by any of the above. */

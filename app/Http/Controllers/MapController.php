@@ -83,8 +83,26 @@ class MapController extends Controller
             'categories' => ChurchCategory::orderBy('name')
                 ->whereNotIn('name', self::CHIPS_HIDDEN)
                 ->pluck('name')
+                ->map(function (string $name) {
+                    if (in_array($name, ['Parish', 'Parishes'], true)) {
+                        return 'Church';
+                    }
+
+                    if (stripos($name, 'Shrine') !== false) {
+                        return 'Shrine';
+                    }
+
+                    return $name;
+                })
+                ->unique()
                 ->prepend('All')
                 ->all(),
+
+            /* Whether the Major chip has anything to show. A filter that is
+               always empty is worse than a filter that is not there: the
+               devotee presses it, sees nothing, and learns the app is broken
+               rather than that no church has been marked yet. */
+            'hasMajors'  => $churches->contains(fn (Church $c) => $c->is_major),
 
             // Plain array for Leaflet - no Eloquent objects cross into JS.
             'markers' => $churches
@@ -94,7 +112,25 @@ class MapController extends Controller
                     'details'  => route('churches.show', $c),
                     'name'     => $c->name,
                     'location' => $c->location,
-                    'category' => $c->category,
+
+                    /* The town, and whether this is its principal church.
+                       Both are read by the Major chip - the flag to filter
+                       by, the town to say which one each result stands for. */
+                    'town'     => $c->municipality,
+                    'major'    => (bool) $c->is_major,
+                    'category' => (function () use ($c) {
+                        $name = $c->category;
+
+                        if (in_array($name, ['Parish', 'Parishes'], true)) {
+                            return 'Church';
+                        }
+
+                        if (stripos($name, 'Shrine') !== false) {
+                            return 'Shrine';
+                        }
+
+                        return $name;
+                    })(),
                     'lat'      => (float) $c->latitude,
                     'lng'      => (float) $c->longitude,
                     'image'    => $c->imagePath(),

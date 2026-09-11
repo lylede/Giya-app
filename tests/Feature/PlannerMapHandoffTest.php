@@ -63,44 +63,33 @@ class PlannerMapHandoffTest extends TestCase
         $this->assertStringContainsString(__('giya.plan.view_on_map'), $html);
     }
 
-    public function test_the_custom_planner_offers_the_same(): void
-    {
-        $this->seedChurches();
-
-        $html = $this->actingAs($this->devotee())->get(route('plan.create'))
-            ->assertOk()
-            ->getContent();
-
-        $this->assertStringContainsString('id="planViewMap"', $html);
-        $this->assertStringContainsString(__('giya.plan.view_on_map'), $html);
-    }
-
     /**
-     * Both build the same URL against the same route, so a change to one of
-     * them cannot quietly point somewhere else.
+     * The Visita planner builds its map URL against the map route.
+     *
+     * There used to be two planners doing this and the pair were checked
+     * together so neither could drift. The custom one is the map itself now,
+     * so there is one left - and it is the one that still has a screen of
+     * its own to leave from.
      */
-    public function test_both_planners_aim_at_the_map(): void
+    public function test_the_visita_planner_aims_at_the_map(): void
     {
         $this->seedChurches();
-        $user = $this->devotee();
 
-        foreach (['plan.visita', 'plan.create'] as $page) {
-            $html = $this->actingAs($user)->get(route($page))->assertOk()->getContent();
+        $html = $this->actingAs($this->devotee())->get(route('plan.visita'))
+            ->assertOk()->getContent();
 
-            $this->assertMatchesRegularExpression(
-                '/const base\s*=\s*"[^"]*\\\\?\/map(\?[^"]*)?"/',
-                $html,
-                "$page does not point its map button at the map route."
-            );
+        $this->assertMatchesRegularExpression(
+            '/const base\s*=\s*"[^"]*\\\\?\/map(\?[^"]*)?"/',
+            $html,
+            'The Visita planner does not point its map button at the map route.'
+        );
 
-            // '?stops=' on a bare /map, '&stops=' when the URL already carries
-            // the trip's type. Either way the ids are appended to `base`.
-            $this->assertMatchesRegularExpression(
-                "/'[?&]stops=' \+/",
-                $html,
-                "$page does not pass its stops."
-            );
-        }
+        // '&stops=', because the URL already carries the trip's type.
+        $this->assertMatchesRegularExpression(
+            "/'[?&]stops=' \+/",
+            $html,
+            'The Visita planner does not pass its stops.'
+        );
     }
 
     /**

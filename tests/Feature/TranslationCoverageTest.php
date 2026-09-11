@@ -31,7 +31,7 @@ class TranslationCoverageTest extends TestCase
     /** Pages a devotee sees, and the language they should see them in. */
     private const PAGES = [
         'home', 'map', 'chatbot', 'profile', 'upgrade',
-        'plan.hub', 'plan.create', 'plan.visita', 'plan.index',
+        'plan.hub', 'plan.visita', 'plan.index',
     ];
 
     private int $devoteeCount = 0;

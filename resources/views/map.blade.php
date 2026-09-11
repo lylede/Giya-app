@@ -185,6 +185,14 @@
                          Near chip claims a filter that is not running. --}}
                     <button type="button" class="cat-chip" data-cat="Near">{{ __('giya.church.near') }}</button>
 
+                    {{-- The principal church of each town. Only offered when
+                         some church actually carries the flag - an empty
+                         filter teaches the devotee that the app is broken
+                         rather than that nothing has been marked yet. --}}
+                    @if ($hasMajors)
+                        <button type="button" class="cat-chip" data-cat="Major">{{ __('giya.map.cat_major') }}</button>
+                    @endif
+
                     {{-- Chapel and Heritage do not get a chip. The list comes
                          from MapController::CHIPS_HIDDEN so the reason lives in
                          one place rather than being repeated here. --}}
@@ -192,8 +200,11 @@
                         {{-- data-cat stays the raw category, because the script
                              matches it against church.category. Only the label
                              is translated, and only "All" has one - the rest
-                             are the church's own category name. --}}
-                        <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category === 'All' ? __('giya.map.cat_all') : $category }}</button>
+                             are the church's own category name. Parish is folded
+                             into Church because the app stores it as the same
+                             destination type and we do not want a duplicate broad
+                             filter. --}}
+                        <button type="button" class="cat-chip" data-cat="{{ $category }}">{{ $category === 'All' ? __('giya.map.cat_all') : ($category === 'Church' ? __('giya.church.churches') : $category) }}</button>
                     @endforeach
                 </div>
             </div>
@@ -369,17 +380,17 @@
     const listBox  = document.getElementById('churchList');
     const routeBox = document.getElementById('routeBox');
 
-    let category = 'All';
+    let category = 'Near';
     // A search from the home page arrives as ?q= - start from it.
     let query = new URLSearchParams(window.location.search).get('q') || '';
     query = query.trim().toLowerCase();
     let distances = {};
     let nearbyIds = [];
 
-    /* Near is a radius, not a count. Five kilometres is a reasonable walk or a
-       short ride in Metro Cebu, and wide enough that a devotee in the city
-       centre still sees several destinations. */
-    const NEAR_KM = 5;
+    /* Near is a radius, not a count. Ten kilometres gives a slightly wider
+       local area in Metro Cebu while still keeping the map focused and not
+       city-wide. */
+    const NEAR_KM = 10;
 
     /** Great-circle distance in kilometres. */
     function haversineKm(lat1, lng1, lat2, lng2) {
@@ -430,6 +441,10 @@
            throwing a red banner at a screenful of churches. */
         onStatus: function (message, kind) {
             if (kind === 'error' && category === 'Near') {
+                hasLocation = false;
+                distances = {};
+                nearbyIds = [];
+                renderList();
                 showNote(trans('near_unsorted'), 'info');
                 return;
             }
@@ -545,6 +560,15 @@ onLocated: function (me) {
      * loaded at once.
      */
     const KEYWORDS = @json($searchKeywords);
+    const FALLBACK_CATEGORIES = ['Basilica', 'Shrine', 'Church'];
+    const FALLBACK_LIMIT = 12;
+
+    function normalizeCategory(cat) {
+        if (!cat) return cat;
+        if (cat === 'Parish' || cat === 'Parishes') return 'Church';
+        if (cat.toLowerCase().indexOf('shrine') !== -1) return 'Shrine';
+        return cat;
+    }
 
     function matchesQuery(c) {
         if (!query) return true;
@@ -560,24 +584,75 @@ onLocated: function (me) {
     }
 
     function filtered() {
-        return churches
-            .filter(function (c) {
-                if (category === 'Near') {
-                    // No position yet: show everything rather than an empty
-                    // page. Once located, only what is inside the radius.
-                    if (!hasLocation) return true;
-                    return distances[c.id] != null && distances[c.id] <= NEAR_KM;
-                }
-                return category === 'All' || c.category === category;
-            })
-            .filter(function (c) { return matchesQuery(c); })
-            .sort(function (a, b) {
-                const da = distances[a.id], db = distances[b.id];
-                if (da != null && db != null) return da - db;
-                if (da != null) return -1;
-                if (db != null) return 1;
-                return a.name.localeCompare(b.name);
+        const normalizedCategory = normalizeCategory(category);
+
+        let list = churches.filter(function (c) {
+            const normalizedChurchCategory = normalizeCategory(c.category);
+            const inRadius = distances[c.id] != null && distances[c.id] <= NEAR_KM;
+
+            /* All means all.
+
+               It did not. With a location it returned inRadius, which made it
+               a second copy of Near - every church beyond 10 km vanished from
+               the one filter whose job is to hide nothing. Without a location
+               it returned only the three fallback categories, so a Cathedral
+               or a Heritage church was not in All either. Two different ways
+               of being not-all, in the filter named All. */
+            if (category === 'All') {
+                return true;
+            }
+
+            if (category === 'Near') {
+                // Near without a fix cannot be a radius, so it falls back to
+                // the categories a pilgrim is most likely to be looking for.
+                return hasLocation
+                    ? inRadius
+                    : FALLBACK_CATEGORIES.indexOf(normalizedChurchCategory) !== -1;
+            }
+
+            if (category === 'Major') {
+                return c.major === true;
+            }
+
+            // A category chip filters by category. Pairing it with the radius
+            // was another quiet way of hiding churches: picking Basilica told
+            // the devotee they had none, when what they had was none nearby.
+            return normalizedChurchCategory === normalizedCategory;
+        });
+
+        list = list.filter(function (c) { return matchesQuery(c); });
+
+        /* Major is a list of towns as much as a list of churches, so it is
+           ordered by town - otherwise the one-per-municipality shape is
+           invisible and it reads as an arbitrary handful of churches.
+
+           It returns rather than falling through, because the sort at the
+           bottom orders by distance and would quietly undo this. That is what
+           it did: the towns came out in neither alphabetical nor any other
+           discernible order, which looked like the sort had not run at all. */
+        if (category === 'Major') {
+            return list.sort(function (a, b) {
+                return (a.town || '').localeCompare(b.town || '') || a.name.localeCompare(b.name);
             });
+        }
+
+        if (!hasLocation && category !== 'Near' && category !== 'All') {
+            list = list
+                .sort(function (a, b) {
+                    if (a.open !== b.open) return Number(b.open) - Number(a.open);
+                    return (b.rating || 0) - (a.rating || 0) || a.name.localeCompare(b.name);
+                })
+                .slice(0, FALLBACK_LIMIT);
+            return list;
+        }
+
+        return list.sort(function (a, b) {
+            const da = distances[a.id], db = distances[b.id];
+            if (da != null && db != null) return da - db;
+            if (da != null) return -1;
+            if (db != null) return 1;
+            return a.name.localeCompare(b.name);
+        });
     }
 
     function renderList() {
@@ -632,6 +707,13 @@ onLocated: function (me) {
                         (c.rating > 0 ? '<span class="mx-star"><i class="bi bi-star-fill"></i>' + c.rating.toFixed(1) + '</span>' : '') +
                         (c.open ? '<span class="mx-tag is-open">Open</span>' : '') +
                         '<span class="mx-tag">' + c.category + '</span>' +
+
+                        /* Under Major the list is one church per town, and the
+                           town is the reason each one is in it - so it is said
+                           rather than left to be inferred from an address that
+                           begins with a street name. */
+                        (category === 'Major' && c.town
+                            ? '<span class="mx-tag is-town">' + escapeAttr(c.town) + '</span>' : '') +
                     '</p>' +
                 '</div>' +
                 '<button type="button" class="mx-pick' + (picked ? ' is-on' : '') + '" ' +
@@ -818,6 +900,9 @@ onLocated: function (me) {
             renderList();
         });
     });
+
+    document.querySelector('[data-cat="Near"]').classList.add('is-active');
+    map.locate();
 
     document.addEventListener('click', function (e) {
         // The tick toggles: a second press deselects, no Clear needed.

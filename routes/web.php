@@ -66,7 +66,16 @@ Route::get('/search/churches', [HomeController::class, 'search'])->name('search.
     /* Plan / Itineraries - static segments registered before {itinerary} */
     Route::prefix('plan')->name('plan.')->controller(ItineraryController::class)->group(function () {
         Route::get('/',                'hub')->name('hub');
-        Route::get('/create',          'create')->name('create');
+        /* The custom planner is the map now. This stays only so a link
+           someone already has - a bookmark, a message, an old screenshot -
+           lands on the planner rather than on a 404, and it carries any
+           stops through so nothing is lost on the way. */
+        Route::get('/create', function (\Illuminate\Http\Request $request) {
+            return redirect()->route('map', array_filter([
+                'plan'  => 1,
+                'stops' => $request->query('stops'),
+            ]));
+        })->name('create');
         Route::get('/visita-iglesia',  'visita')->name('visita');
         Route::get('/my-itineraries',  'index')->name('index');
         Route::post('/',               'store')->name('store');

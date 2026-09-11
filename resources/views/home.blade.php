@@ -91,12 +91,15 @@
                    with its stops and a flag, the seven churches, and Giya's
                    own head - rather than a map, a notebook, an office block
                    and a speech bubble standing in for them. */
-                ['giya-nearby',    __('giya.home.card_nearby'), __('giya.home.card_nearby_d'), 'map'],
-                ['giya-route',     __('giya.home.card_plan'),   __('giya.home.card_plan_d'),   auth()->check() ? 'plan.create' : 'login'],
-                ['giya-seven',     __('giya.home.card_visita'), __('giya.home.card_visita_d'), auth()->check() ? 'plan.visita' : 'login'],
-                ['giya-assistant', __('giya.home.card_ask'),    __('giya.home.card_ask_d'),    auth()->check() ? 'chatbot' : 'login'],
-            ] as [$icon, $title, $desc, $route])
-                <a href="{{ route($route) }}" class="card card-hover"
+                /* Each card carries its own parameters, because two of them
+                   now go to the same route and differ only by them: the map
+                   to browse, and the map in planning mode. */
+                ['giya-nearby',    __('giya.home.card_nearby'), __('giya.home.card_nearby_d'), 'map', []],
+                ['giya-route',     __('giya.home.card_plan'),   __('giya.home.card_plan_d'),   auth()->check() ? 'map' : 'login', auth()->check() ? ['plan' => 1] : []],
+                ['giya-seven',     __('giya.home.card_visita'), __('giya.home.card_visita_d'), auth()->check() ? 'plan.visita' : 'login', []],
+                ['giya-assistant', __('giya.home.card_ask'),    __('giya.home.card_ask_d'),    auth()->check() ? 'chatbot' : 'login', []],
+            ] as [$icon, $title, $desc, $route, $params])
+                <a href="{{ route($route, $params) }}" class="card card-hover"
                    style="padding:20px;display:flex;flex-direction:column;gap:12px;text-decoration:none">
                     <span style="width:48px;height:48px;border-radius:16px;background:var(--gold-bg);display:flex;align-items:center;justify-content:center">
                         <i class="bi bi-{{ $icon }}" style="font-size: 1.375rem;color:var(--primary)"></i>
@@ -212,7 +215,7 @@
                 </div>
 
                 <div class="d-flex flex-column gap-2 mt-auto pt-4" style="position:relative">
-                    <a href="{{ auth()->check() ? route('plan.create') : route('login') }}" class="btn btn-gold btn-w-full">{{ auth()->check() ? __('giya.home.plan_mine') : __('giya.home.sign_in_plan') }}</a>
+                    <a href="{{ auth()->check() ? route('map', ['plan' => 1]) : route('login') }}" class="btn btn-gold btn-w-full">{{ auth()->check() ? __('giya.home.plan_mine') : __('giya.home.sign_in_plan') }}</a>
                     <a href="{{ auth()->check() ? route('chatbot') : route('login') }}" class="btn btn-ghost btn-ghost-inverse btn-w-full">{{ auth()->check() ? __('giya.home.card_ask') : __('giya.home.create_acct') }}</a>
                 </div>
             </div>

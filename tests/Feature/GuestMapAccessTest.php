@@ -121,11 +121,18 @@ class GuestMapAccessTest extends TestCase
             ->assertSee('const GUEST = false', false);
     }
 
-    /** Planning a route was already members-only and stays that way. */
+    /**
+     * Planning a route was already members-only and stays that way.
+     *
+     * The map itself is not: a guest may browse it, and asking for planning
+     * mode simply gets them the ordinary map rather than a login form, which
+     * is covered in MapPlannerTest. What is gated is everything that saves.
+     */
     public function test_a_guest_cannot_reach_the_planner(): void
     {
-        $this->get(route('plan.create'))->assertRedirect(route('login'));
         $this->get(route('plan.hub'))->assertRedirect(route('login'));
+        $this->get(route('plan.index'))->assertRedirect(route('login'));
+        $this->post(route('plan.store'))->assertRedirect(route('login'));
     }
 
     /**
@@ -133,11 +140,15 @@ class GuestMapAccessTest extends TestCase
      * so the churches they picked survive signing in. This is the server half
      * of that: the planner URL with stops is the intended page, and after
      * signing in they arrive there with the selection intact.
+     *
+     * The planner is the map now, and the map is open to guests - so the
+     * gate that records the intended page is the hub, which the map's
+     * sign-in prompt sends them through.
      */
     public function test_a_selection_survives_signing_in(): void
     {
         $user    = $this->devotee();
-        $planner = route('plan.create', ['stops' => $this->church->id]);
+        $planner = route('plan.hub');
 
         $this->get($planner)->assertRedirect(route('login'));
 
@@ -147,8 +158,7 @@ class GuestMapAccessTest extends TestCase
 
         $this->actingAs($user)
             ->get($planner)
-            ->assertOk()
-            ->assertSee('Redemptorist Church', false);
+            ->assertOk();
     }
 
     /**

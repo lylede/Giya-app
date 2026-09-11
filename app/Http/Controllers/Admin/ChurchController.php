@@ -13,6 +13,51 @@ use Illuminate\View\View;
 
 class ChurchController extends Controller
 {
+    /**
+     * The cities and municipalities a GIYA address can name.
+     *
+     * The same list the municipality column was filled from, kept here so a
+     * church added later is read the same way as the ones that were there
+     * when the column arrived.
+     *
+     * Order does not matter here, because townIn() matches the longest name
+     * first. That is not a nicety: 'Bantayan' is inside 'Daanbantayan', and
+     * with the list taken as written every Daanbantayan address was being
+     * filed under Bantayan - a town three hours away. Sorting at match time
+     * means the next name someone adds cannot reintroduce it.
+     */
+    public const TOWNS = [
+        'Lapu-Lapu City', 'Mandaue City', 'Talisay City', 'Naga City',
+        'Carcar City', 'Danao City', 'Toledo City', 'Bogo City', 'Cebu City',
+        'Minglanilla', 'Consolacion', 'Compostela', 'San Fernando', 'Sibonga',
+        'Argao', 'Dalaguete', 'Liloan', 'Cordova', 'Balamban', 'Barili',
+        'Oslob', 'Moalboal', 'Badian', 'Boljoon', 'Dumanjug', 'Ronda',
+        'Alcoy', 'Aloguinsan', 'Asturias', 'Catmon', 'Ginatilan', 'Malabuyoc',
+        'Pinamungajan', 'Samboan', 'Santander', 'Sogod', 'Tabogon',
+        'Tabuelan', 'Tuburan', 'Alcantara', 'Alegria', 'Bantayan', 'Carmen',
+        'Daanbantayan', 'Madridejos', 'Medellin', 'Pilar', 'Poro',
+        'San Francisco', 'San Remigio', 'Santa Fe', 'Borbon', 'Tudela',
+    ];
+
+    /** The longest town name found in a string, or null when none is. */
+    public static function townIn(?string $haystack): ?string
+    {
+        if (! $haystack) {
+            return null;
+        }
+
+        $towns = self::TOWNS;
+        usort($towns, fn ($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        foreach ($towns as $town) {
+            if (stripos($haystack, $town) !== false) {
+                return $town;
+            }
+        }
+
+        return null;
+    }
+
     public function index(Request $request): View
     {
         /*
@@ -61,6 +106,8 @@ class ChurchController extends Controller
                 'name'        => $c->name,
                 'category'    => $c->category,
                 'location'    => $c->location,
+                'municipality'=> $c->municipality,
+                'major'       => (bool) $c->is_major,
                 'address'     => $c->address,
                 'lat'         => $c->latitude ? (float) $c->latitude : null,
                 'lng'         => $c->longitude ? (float) $c->longitude : null,
@@ -80,7 +127,9 @@ class ChurchController extends Controller
             'church_id'    => ['nullable', 'integer', 'exists:churches,id'],
             'name'         => ['required', 'string', 'max:200'],
             'location'     => ['required', 'string', 'max:200'],
+            'municipality' => ['nullable', 'string', 'max:120'],
             'address'      => ['nullable', 'string', 'max:255'],
+            'is_major'     => ['nullable', 'boolean'],
             'category'     => ['required', 'string', 'exists:church_categories,name'],
             'status'       => ['nullable', 'in:Published,Draft'],
             'description'  => ['nullable', 'string'],
@@ -104,6 +153,13 @@ class ChurchController extends Controller
             'category_id'  => $category->id,
             'name'         => $data['name'],
             'location'     => $data['location'],
+
+            /* The town, and whether this is its principal church. Left blank,
+               the town is read out of the address rather than being lost -
+               most of them are written with it in, and a blank municipality
+               means a church that no town filter can ever find. */
+            'municipality' => ($data['municipality'] ?? null) ?: self::townIn($data['location'].' '.($data['address'] ?? '')),
+            'is_major'     => $request->boolean('is_major'),
             'address'      => $data['address'] ?? null,
             'description'  => $data['description'] ?? null,
             'latitude'     => $data['latitude'] ?? null,

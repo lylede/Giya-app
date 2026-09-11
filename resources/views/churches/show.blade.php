@@ -48,7 +48,7 @@
             </a>
 
             @auth
-                <a href="{{ route('plan.create', ['stops' => $church->id]) }}" class="btn btn-ghost btn-ghost-inverse">
+                <a href="{{ route('map', ['plan' => 1, 'stops' => $church->id]) }}" class="btn btn-ghost btn-ghost-inverse">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('giya.church.add_itinerary') }}
                 </a>
 
