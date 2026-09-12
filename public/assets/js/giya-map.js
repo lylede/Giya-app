@@ -313,13 +313,6 @@
                 if (meMarker)   map.removeLayer(meMarker);
                 if (meAccuracy) map.removeLayer(meAccuracy);
 
-                if (accuracy && accuracy < 2000) {
-                    meAccuracy = L.circle(latlng, {
-                        radius: accuracy, color: '#2E86DE', weight: 1,
-                        fillColor: '#2E86DE', fillOpacity: .12,
-                    }).addTo(map);
-                }
-
                 meMarker = L.marker(latlng, { icon: meIcon(), zIndexOffset: 1000 })
                     .addTo(map)
                     .bindTooltip('You are here', { direction: 'top', className: 'giya-tooltip' });
