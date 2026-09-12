@@ -584,75 +584,24 @@ onLocated: function (me) {
     }
 
     function filtered() {
-        const normalizedCategory = normalizeCategory(category);
-
-        let list = churches.filter(function (c) {
-            const normalizedChurchCategory = normalizeCategory(c.category);
-            const inRadius = distances[c.id] != null && distances[c.id] <= NEAR_KM;
-
-            /* All means all.
-
-               It did not. With a location it returned inRadius, which made it
-               a second copy of Near - every church beyond 10 km vanished from
-               the one filter whose job is to hide nothing. Without a location
-               it returned only the three fallback categories, so a Cathedral
-               or a Heritage church was not in All either. Two different ways
-               of being not-all, in the filter named All. */
-            if (category === 'All') {
-                return true;
-            }
-
-            if (category === 'Near') {
-                // Near without a fix cannot be a radius, so it falls back to
-                // the categories a pilgrim is most likely to be looking for.
-                return hasLocation
-                    ? inRadius
-                    : FALLBACK_CATEGORIES.indexOf(normalizedChurchCategory) !== -1;
-            }
-
-            if (category === 'Major') {
-                return c.major === true;
-            }
-
-            // A category chip filters by category. Pairing it with the radius
-            // was another quiet way of hiding churches: picking Basilica told
-            // the devotee they had none, when what they had was none nearby.
-            return normalizedChurchCategory === normalizedCategory;
-        });
-
-        list = list.filter(function (c) { return matchesQuery(c); });
-
-        /* Major is a list of towns as much as a list of churches, so it is
-           ordered by town - otherwise the one-per-municipality shape is
-           invisible and it reads as an arbitrary handful of churches.
-
-           It returns rather than falling through, because the sort at the
-           bottom orders by distance and would quietly undo this. That is what
-           it did: the towns came out in neither alphabetical nor any other
-           discernible order, which looked like the sort had not run at all. */
-        if (category === 'Major') {
-            return list.sort(function (a, b) {
-                return (a.town || '').localeCompare(b.town || '') || a.name.localeCompare(b.name);
+        return churches
+            .filter(function (c) {
+                if (category === 'Near') {
+                    // No position yet: show everything rather than an empty
+                    // page. Once located, only what is inside the radius.
+                    if (!hasLocation) return true;
+                    return distances[c.id] != null && distances[c.id] <= NEAR_KM;
+                }
+                return category === 'All' || c.category === category;
+            })
+            .filter(function (c) { return matchesQuery(c); })
+            .sort(function (a, b) {
+                const da = distances[a.id], db = distances[b.id];
+                if (da != null && db != null) return da - db;
+                if (da != null) return -1;
+                if (db != null) return 1;
+                return a.name.localeCompare(b.name);
             });
-        }
-
-        if (!hasLocation && category !== 'Near' && category !== 'All') {
-            list = list
-                .sort(function (a, b) {
-                    if (a.open !== b.open) return Number(b.open) - Number(a.open);
-                    return (b.rating || 0) - (a.rating || 0) || a.name.localeCompare(b.name);
-                })
-                .slice(0, FALLBACK_LIMIT);
-            return list;
-        }
-
-        return list.sort(function (a, b) {
-            const da = distances[a.id], db = distances[b.id];
-            if (da != null && db != null) return da - db;
-            if (da != null) return -1;
-            if (db != null) return 1;
-            return a.name.localeCompare(b.name);
-        });
     }
 
     function renderList() {
