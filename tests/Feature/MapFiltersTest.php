@@ -157,6 +157,39 @@ class MapFiltersTest extends TestCase
     }
 
     /** The flag and the town both reach the script, or the chip cannot work. */
+    /**
+     * The Major chip has a branch of its own in the filter.
+     *
+     * This is the half of the feature a merge loses quietly. The markers test
+     * below catches the controller half, and the All and radius tests catch a
+     * wholesale revert of filtered() - but a resolution that keeps All and Near
+     * and drops only Major leaves every test green and the chip empty, which is
+     * exactly what shipped.
+     *
+     * The assertion is the branch rather than the rendered list, because the
+     * list is built by JavaScript and PHPUnit never runs it. That is a real
+     * limit: this proves the code is present, not that clicking works. What
+     * proves clicking works is opening the page.
+     */
+    public function test_the_major_filter_has_a_branch_that_reads_the_flag(): void
+    {
+        Church::query()->update(['is_major' => true]);
+
+        $html = $this->actingAs($this->devotee())->get(route('map'))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression(
+            "/if \\(category === 'Major'\\)\\s*\\{\\s*return c\\.major === true;/",
+            $html,
+            'Major must filter on the marker flag. Without this branch the chip '
+            .'falls through to the category comparison, no church has the '
+            .'category "Major", and the list is silently empty.'
+        );
+
+        /* And the town is what each result stands for, so it is shown. */
+        $this->assertStringContainsString('mx-tag is-town', $html,
+            'A Major result says which town it is the principal church of.');
+    }
+
     public function test_the_markers_carry_the_town_and_the_flag(): void
     {
         $this->church('Simala Shrine', 'Shrine', 'Lindogon, Sibonga, Cebu', [
