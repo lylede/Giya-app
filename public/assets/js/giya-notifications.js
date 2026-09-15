@@ -1,8 +1,10 @@
 /**
  * GIYA - notification panel.
  *
- * The bell fetches on first open rather than on page load, so a page the
- * devotee never interacts with costs nothing.
+ * The bell loads once at startup and then checks back every ninety seconds
+ * while the tab is visible. It used to fetch only on first open, which meant
+ * the count was a snapshot taken when the HTML was rendered: anything posted
+ * while the devotee sat on a page appeared only after they navigated.
  */
 (function (window, document) {
     'use strict';
@@ -56,18 +58,74 @@
         dot.classList.toggle('is-hidden', count === 0);
     }
 
-    function load() {
-        fetch('/notifications', { headers: { 'Accept': 'application/json' } })
+    function load(quiet) {
+        return fetch('/notifications', { headers: { 'Accept': 'application/json' } })
             .then(function (r) { return r.json(); })
             .then(function (data) {
-                render(data);
+                /* The count always updates. The list only redraws when the
+                   panel is shut - redrawing under someone who is reading it
+                   moves the row they were about to press. */
                 badge(data.unread || 0);
+
+                if (!panel.classList.contains('is-open')) render(data);
+
                 loaded = true;
             })
             .catch(function () {
-                body.innerHTML = '<p class="notif-empty">Could not load notifications.</p>';
+                // A failed poll is not worth a message; a failed open is.
+                if (!quiet) {
+                    body.innerHTML = '<p class="notif-empty">Could not load notifications.</p>';
+                }
             });
     }
+
+    /* Checking back.
+
+       Without this the bell was only ever right at page load: the count came
+       from the server with the HTML, and the list was fetched once, the first
+       time the panel was opened. A feast day posted while a devotee sat on
+       the map never appeared until they navigated somewhere.
+
+       A poll rather than a socket, because this is one count on a small app
+       and a websocket is a server to run, a port to open and a thing to
+       explain. Ninety seconds is slower than a push and enormously simpler.
+
+       Nothing polls in a background tab. A phone left on the plan screen
+       overnight should not spend the night making requests. */
+    var POLL_MS = 90000;
+    var timer = null;
+
+    function hidden() {
+        return document.visibilityState === 'hidden';
+    }
+
+    function startPolling() {
+        stopPolling();
+        if (hidden()) return;
+        timer = window.setInterval(function () { load(true); }, POLL_MS);
+    }
+
+    function stopPolling() {
+        if (timer !== null) {
+            window.clearInterval(timer);
+            timer = null;
+        }
+    }
+
+    document.addEventListener('visibilitychange', function () {
+        if (hidden()) {
+            stopPolling();
+            return;
+        }
+
+        /* Coming back to the tab is the moment a devotee is most likely to
+           look at the bell, so it checks immediately rather than waiting out
+           the rest of an interval that ran down while they were away. */
+        load(true);
+        startPolling();
+    });
+
+    load(true).then(startPolling);
 
     bell.addEventListener('click', function (e) {
         e.preventDefault();
@@ -78,6 +136,9 @@
         // Only one of the two panels should be open at a time.
         var menu = document.getElementById('navMobileMenu');
         if (open && menu) menu.classList.remove('open');
+
+        // The first load has already run, so this is a catch-up for the case
+        // where it failed, not the only fetch there is.
         if (open && !loaded) load();
     });
 

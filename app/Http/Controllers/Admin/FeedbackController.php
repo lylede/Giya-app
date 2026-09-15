@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use App\Support\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -40,6 +41,9 @@ class FeedbackController extends Controller
         ]);
 
         $feedback->update($data);
+
+        // Only on the way in to Approved, and only from something else.
+        Notifier::feedbackApproved($feedback, $feedback->getChanges());
 
         return back()->with('success', "Feedback marked as {$data['status']}.");
     }

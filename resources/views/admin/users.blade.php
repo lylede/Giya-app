@@ -6,75 +6,50 @@
 @section('content')
 
 {{-- ══════════════ Stat cards ══════════════ --}}
-<div class="um-stats">
-    <div class="card um-stat">
-        <span class="um-stat-icon" style="background:#E8E4F5;color:#5B4BA8"><i class="bi bi-people-fill"></i></span>
-        <div>
-            <span class="um-stat-label">Total User</span>
-            <span class="um-stat-value">{{ number_format($summary['total']) }}</span>
-            <span class="um-stat-sub">All registered users</span>
-        </div>
-    </div>
+<div class="stat-row">
+    <x-stat-tile icon="giya-pilgrim" label="Total Users" :value="$summary['total']" tone="primary">
+        <x-slot:sub>All registered users</x-slot:sub>
+    </x-stat-tile>
 
-    <div class="card um-stat">
-        <span class="um-stat-icon" style="background:#DCF2E3;color:#166534"><i class="bi bi-person-fill"></i></span>
-        <div>
-            <span class="um-stat-label">Active Users</span>
-            <span class="um-stat-value">{{ number_format($summary['active']) }}</span>
-            <span class="um-stat-sub">
-                <strong style="color:#166534">{{ $summary['active_pct'] }}%</strong> of total users
-            </span>
-        </div>
-    </div>
+    <x-stat-tile icon="giya-route" label="Active Users" :value="$summary['active']" tone="green">
+        <x-slot:sub>
+            <span class="stat-delta is-up">{{ $summary['active_pct'] }}%</span> of total users
+        </x-slot:sub>
+    </x-stat-tile>
 
-    <div class="card um-stat">
-        <span class="um-stat-icon" style="background:#FBEED2;color:#B8860B"><i class="bi bi-stars"></i></span>
-        <div>
-            <span class="um-stat-label">New This Week</span>
-            <span class="um-stat-value">{{ number_format($summary['new_week']) }}</span>
-            <span class="um-stat-sub">
-                <strong style="color:{{ $summary['new_delta'] >= 0 ? '#166534' : '#B3182F' }}">
-                    {{ $summary['new_delta'] >= 0 ? '+' : '' }}{{ $summary['new_delta'] }}
-                </strong> vs last week
-            </span>
-        </div>
-    </div>
+    <x-stat-tile icon="giya-star" label="New This Week" :value="$summary['new_week']" tone="blue">
+        <x-slot:sub>
+            <span @class(['stat-delta', 'is-up' => $summary['new_delta'] >= 0, 'is-down' => $summary['new_delta'] < 0])>
+                {{ $summary['new_delta'] >= 0 ? '+' : '' }}{{ $summary['new_delta'] }}
+            </span> vs last week
+        </x-slot:sub>
+    </x-stat-tile>
 
-    <div class="card um-stat">
-        <span class="um-stat-icon" style="background:#FBEED2;color:#B8860B"><i class="bi bi-gem"></i></span>
-        <div>
-            <span class="um-stat-label">Premium Users</span>
-            <span class="um-stat-value">{{ number_format($summary['premium']) }}</span>
-            <span class="um-stat-sub">
-                <strong style="color:#B8860B">{{ $summary['premium_pct'] }}%</strong> of total users
-            </span>
-        </div>
-    </div>
+    <x-stat-tile icon="gem" label="Premium Users" :value="$summary['premium']" tone="gold">
+        <x-slot:sub>
+            <span class="stat-delta is-gold">{{ $summary['premium_pct'] }}%</span> of total users
+        </x-slot:sub>
+    </x-stat-tile>
 
-    <div class="card um-stat">
-        <span class="um-stat-icon" style="background:#F7E2E2;color:#B3182F"><i class="bi bi-x-circle"></i></span>
-        <div>
-            <span class="um-stat-label">Suspended Users</span>
-            <span class="um-stat-value">{{ number_format($summary['suspended']) }}</span>
-            <span class="um-stat-sub">
-                <strong style="color:#B3182F">{{ $summary['suspended_pct'] }}%</strong> of total users
-            </span>
-        </div>
-    </div>
+    <x-stat-tile icon="x-circle" label="Suspended Users" :value="$summary['suspended']" tone="primary">
+        <x-slot:sub>
+            <span class="stat-delta is-down">{{ $summary['suspended_pct'] }}%</span> of total users
+        </x-slot:sub>
+    </x-stat-tile>
 </div>
 
 {{-- ══════════════ Filters ══════════════ --}}
 <form method="GET" id="userFilters" class="um-filters">
-    <div class="field" style="flex:1 1 460px">
+    <div class="field is-wide">
         <label class="dm-label" for="uq">Search Users</label>
-        <div class="sm-search" style="margin:0">
+        <div class="sm-search">
             <i class="bi bi-search"></i>
             <input id="uq" type="search" name="search" value="{{ request('search') }}"
                    placeholder="Search users by name or email...">
         </div>
     </div>
 
-    <div class="field" style="flex:0 1 230px">
+    <div class="field">
         <label class="dm-label" for="ustatus">Status</label>
         <select id="ustatus" name="status" class="giya-input" onchange="this.form.submit()">
             <option value="">All Status</option>
@@ -84,9 +59,9 @@
         </select>
     </div>
 
-    <div class="field" style="flex:0 1 380px">
+    <div class="field is-wide">
         <label class="dm-label">Date Range</label>
-        <div class="d-flex gap-2">
+        <div class="field-dates">
             <input type="date" name="from" value="{{ request('from') }}" class="giya-input"
                    aria-label="Joined from" onchange="this.form.submit()">
             <input type="date" name="to" value="{{ request('to') }}" class="giya-input"
@@ -94,7 +69,7 @@
         </div>
     </div>
 
-    <div class="d-flex gap-2 align-items-end" style="flex:0 0 auto">
+    <div class="adm-actions">
         <a href="{{ route('admin.users') }}" class="btn btn-outline">
             <i class="bi bi-arrow-clockwise"></i> Reset Filter
         </a>
@@ -105,8 +80,8 @@
 </form>
 
 {{-- ══════════════ Table ══════════════ --}}
-<div class="card" style="overflow:hidden;margin-top:18px">
-    <div style="overflow-x:auto">
+<div class="card adm-scroller mt-3">
+    <div>
         <table class="giya-table sm-table">
             <thead>
                 <tr>
@@ -127,20 +102,20 @@
                         <td>{{ $users->firstItem() + $i }}</td>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="nav-avatar" style="width:36px;height:36px;font-size: 0.75rem;border-color:var(--primary)">
+                                <span class="nav-avatar cell-avatar">
                                     @if ($u->avatarPath())
                                         <img src="{{ $u->avatarPath() }}" alt="{{ $u->name }}">
                                     @else
                                         {{ $u->initials() }}
                                     @endif
                                 </span>
-                                <span style="font-weight:700">{{ $u->name }}</span>
+                                <span class="cell-strong">{{ $u->name }}</span>
                                 @if ($u->isAdmin())
                                     <span class="badge badge-primary">Admin</span>
                                 @endif
                             </div>
                         </td>
-                        <td style="color:var(--text-muted)">{{ $u->email }}</td>
+                        <td class="cell-muted">{{ $u->email }}</td>
                         <td>{{ $u->created_at?->format('F j, Y') ?? '-' }}</td>
                         <td>{{ $u->favorites_count }}</td>
                         <td>{{ $u->itineraries_count }}</td>
@@ -152,7 +127,7 @@
                                       title="Premium until {{ $premium[$u->id]->format('F j, Y') }}">
                                     <i class="bi bi-gem"></i> Premium
                                 </span>
-                                <div style="font-size:.6875rem;color:var(--text-muted);margin-top:3px">
+                                <div class="cell-note">
                                     until {{ $premium[$u->id]->format('M j, Y') }}
                                 </div>
                             @else
@@ -196,8 +171,8 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="9" style="padding:0">
-                        <x-empty-state icon="people-fill" title="No users match"
+                    <tr><td colspan="9" class="is-flush">
+                        <x-empty-state icon="giya-pilgrim" title="No users match"
                                        desc="Adjust the search or filters above." />
                     </td></tr>
                 @endforelse
@@ -205,7 +180,7 @@
         </table>
     </div>
 
-    <div class="sm-foot" style="padding:14px 18px">
+    <div class="sm-foot is-inset">
         <span>
             Showing {{ $users->firstItem() ?? 0 }} to {{ $users->lastItem() ?? 0 }}
             of {{ $users->total() }} user{{ $users->total() === 1 ? '' : 's' }}
@@ -218,8 +193,8 @@
                 @foreach (request()->except(['per_page', 'page']) as $k => $v)
                     <input type="hidden" name="{{ $k }}" value="{{ $v }}">
                 @endforeach
-                <label for="uPer" style="font-size: 0.8125rem;color:var(--text-muted)">Rows per page</label>
-                <select id="uPer" name="per_page" class="giya-input" style="width:74px;padding:6px 8px"
+                <label for="uPer" class="per-page-label">Rows per page</label>
+                <select id="uPer" name="per_page" class="giya-input per-page-select"
                         onchange="this.form.submit()">
                     @foreach ([5, 10, 25, 50] as $n)
                         <option value="{{ $n }}" @selected($perPage === $n)>{{ $n }}</option>
@@ -233,9 +208,9 @@
 {{-- ══════════════ Edit modal ══════════════ --}}
 <div class="modal" id="userModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px">
+        <div class="modal-content dm-form-modal">
             <div class="modal-title">
-                <i class="bi bi-person-fill" style="color:var(--primary)"></i> Edit User
+                <i class="bi bi-giya-pilgrim"></i> Edit User
             </div>
 
             <form method="POST" id="userForm">
@@ -254,7 +229,7 @@
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 180px">
+                    <div class="field dm-col">
                         <label class="dm-label" for="u-role">Role</label>
                         <select id="u-role" name="role" class="giya-input">
                             <option value="user">User</option>
@@ -262,7 +237,7 @@
                         </select>
                     </div>
 
-                    <div class="field" style="flex:1 1 180px">
+                    <div class="field dm-col">
                         <label class="dm-label" for="u-status">Status</label>
                         <select id="u-status" name="status" class="giya-input">
                             @foreach (\App\Models\User::STATUSES as $s)
@@ -272,14 +247,14 @@
                     </div>
                 </div>
 
-                <p style="font-size: 0.75rem;color:var(--text-muted);margin:0 0 14px">
+                <p class="dm-hint">
                     A suspended account keeps all its data but cannot sign in.
                     Inactive is a label only - it does not block access.
                 </p>
 
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary" style="flex:1">Save Changes</button>
-                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary is-grow">Save Changes</button>
+                    <button type="button" class="btn btn-outline is-grow" data-modal-close>Cancel</button>
                 </div>
             </form>
         </div>

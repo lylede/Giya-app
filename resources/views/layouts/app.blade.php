@@ -71,6 +71,9 @@
      part of their own first render. --}}
 <script src="{{ asset('assets/js/giya-candles.js') }}?v={{ filemtime(public_path('assets/js/giya-candles.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-reveal.js') }}?v={{ filemtime(public_path('assets/js/giya-reveal.js')) }}"></script>
+{{-- After the reveal, which it re-arms once the pictures have landed. --}}
+<script src="{{ asset('assets/js/giya-page-loading.js') }}?v={{ filemtime(public_path('assets/js/giya-page-loading.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-navsearch.js') }}?v={{ filemtime(public_path('assets/js/giya-navsearch.js')) }}"></script>
 @stack('scripts')
 </body>
 </html>

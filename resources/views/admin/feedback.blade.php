@@ -5,18 +5,14 @@
 
 @section('content')
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px">
+<div class="stat-row">
     @foreach ([
-        ['chat-dots-fill', 'Total',    $summary['total']],
-        ['hourglass-split','Pending',  $summary['pending']],
-        ['check-circle-fill','Approved',$summary['approved']],
-        ['flag-fill',      'Flagged',  $summary['flagged']],
-    ] as [$icon, $label, $value])
-        <div class="card card-body">
-            <i class="bi bi-{{ $icon }}" style="font-size: 1.125rem;color:var(--gold)"></i>
-            <div style="font-family:var(--font-display);font-size: 1.375rem;font-weight:700;margin-top:8px">{{ $value }}</div>
-            <div style="font-size: 0.75rem;color:var(--text-muted)">{{ $label }}</div>
-        </div>
+        ['giya-star',        'Total',    $summary['total'],    'gold'],
+        ['hourglass-split',  'Pending',  $summary['pending'],  'blue'],
+        ['check-circle-fill','Approved', $summary['approved'], 'green'],
+        ['flag-fill',        'Flagged',  $summary['flagged'],  'primary'],
+    ] as [$icon, $label, $value, $tone])
+        <x-stat-tile :icon="$icon" :label="$label" :value="$value" :tone="$tone" />
     @endforeach
 </div>
 
@@ -29,28 +25,28 @@
 
 @forelse ($feedback as $item)
     <div class="card card-body mb-2">
-        <div class="d-flex align-items-start gap-3 flex-wrap">
-            <span class="nav-avatar" style="border-color:var(--primary);flex-shrink:0">
+        <div class="adm-item">
+            <span class="nav-avatar adm-item-avatar">
                 {{ strtoupper(substr($item->user->name ?? 'A', 0, 1)) }}
             </span>
-            <div style="flex:1;min-width:200px">
+            <div class="adm-item-main">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span style="font-size: 0.875rem;font-weight:700;color:var(--text)">{{ $item->user->name ?? 'Deleted user' }}</span>
+                    <span class="adm-item-name">{{ $item->user->name ?? 'Deleted user' }}</span>
                     <x-stars :rating="$item->rating ?? 0" />
                     <span class="badge status-{{ $item->status === 'Approved' ? 'Completed' : ($item->status === 'Flagged' ? 'Draft' : 'Upcoming') }}">
                         {{ $item->status }}
                     </span>
                 </div>
-                <div style="font-size: 0.75rem;color:var(--text-muted);margin-top:2px">
+                <div class="adm-item-meta">
                     {{ $item->church->name ?? 'Unknown destination' }} · {{ $item->created_at?->diffForHumans() }}
                 </div>
                 @if ($item->comment)
-                    <p style="font-size: 0.8125rem;color:var(--text);line-height:1.7;margin:8px 0 0">{{ $item->comment }}</p>
+                    <p class="adm-item-body">{{ $item->comment }}</p>
                 @endif
             </div>
             <form method="POST" action="{{ route('admin.feedback.update', $item) }}" class="d-flex gap-2">
                 @csrf @method('PATCH')
-                <select name="status" class="giya-input" style="width:auto;padding:8px 12px;font-size: 0.8125rem">
+                <select name="status" class="giya-input is-compact">
                     @foreach (['Pending', 'Approved', 'Flagged'] as $s)
                         <option value="{{ $s }}" @selected($item->status === $s)>{{ $s }}</option>
                     @endforeach

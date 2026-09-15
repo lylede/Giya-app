@@ -5,24 +5,29 @@
 
 @section('content')
 
-<div class="card" style="padding:22px">
-
-    <div class="d-flex justify-content-end mb-3">
-        <button type="button" class="btn btn-primary" id="btnAddSchedule">
-            + Add Schedule
-        </button>
-    </div>
+<div class="card adm-panel">
 
     {{-- ── Search + filters ── --}}
     <form method="GET" id="filterForm">
-        <div class="sm-search">
-            <i class="bi bi-search"></i>
-            <input type="search" name="search" value="{{ request('search') }}"
-                   placeholder="Search Schedule..." aria-label="Search schedules">
+        {{-- The button sits on the search row rather than alone above it.
+             Four stacked rows of controls - a button, a search, three
+             selects, two more buttons - pushed the table itself below the
+             fold on a laptop, and the button had a whole row to itself to
+             say two words. --}}
+        <div class="sm-bar">
+            <div class="sm-search">
+                <i class="bi bi-search"></i>
+                <input type="search" name="search" value="{{ request('search') }}"
+                       placeholder="Search Schedule..." aria-label="Search schedules">
+            </div>
+
+            <button type="button" class="btn btn-primary sm-bar-action" id="btnAddSchedule">
+                <i class="bi bi-plus-lg"></i> Add Schedule
+            </button>
         </div>
 
         <div class="sm-filters">
-            <div class="field" style="flex:1 1 230px">
+            <div class="field">
                 <label class="dm-label" for="fchurch">Destination Name</label>
                 <select id="fchurch" name="church_id" class="giya-input" onchange="this.form.submit()">
                     <option value="">All destinations</option>
@@ -34,7 +39,7 @@
                 </select>
             </div>
 
-            <div class="field" style="flex:1 1 230px">
+            <div class="field">
                 <label class="dm-label" for="ftype">Event Type</label>
                 <select id="ftype" name="event_type" class="giya-input" onchange="this.form.submit()">
                     <option value="">All types</option>
@@ -44,7 +49,7 @@
                 </select>
             </div>
 
-            <div class="field" style="flex:1 1 200px">
+            <div class="field">
                 <label class="dm-label" for="fday">Day / Date</label>
                 <select id="fday" name="day" class="giya-input" onchange="this.form.submit()">
                     <option value="">Any day</option>
@@ -54,7 +59,7 @@
                 </select>
             </div>
 
-            <div class="d-flex gap-2 align-items-end" style="flex:0 0 auto">
+            <div class="adm-actions">
                 <a href="{{ route('admin.schedules') }}" class="btn btn-outline">
                     <i class="bi bi-arrow-clockwise"></i> Reset Filter
                 </a>
@@ -66,7 +71,7 @@
     </form>
 
     {{-- ── Table ── --}}
-    <div style="overflow-x:auto;margin-top:18px">
+    <div class="adm-table-scroll">
         <table class="giya-table sm-table">
             <thead>
                 <tr>
@@ -88,7 +93,7 @@
                 @forelse ($schedules as $i => $s)
                     <tr>
                         <td>{{ $schedules->firstItem() + $i }}</td>
-                        <td style="font-weight:700">{{ $s->church->name ?? '-' }}</td>
+                        <td class="cell-strong">{{ $s->church->name ?? '-' }}</td>
                         <td>{{ $s->event_name }}</td>
                         <td><span class="badge badge-gold">{{ $s->event_type }}</span></td>
                         <td>{{ $s->day_label }}</td>
@@ -122,8 +127,8 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="12" style="padding:0">
-                        <x-empty-state icon="calendar-event" title="No schedules match"
+                    <tr><td colspan="12" class="is-flush">
+                        <x-empty-state icon="giya-candle" title="No schedules match"
                                        desc="Adjust the filters, or add the first schedule." />
                     </td></tr>
                 @endforelse
@@ -145,8 +150,8 @@
                 @foreach (request()->except(['per_page', 'page']) as $k => $v)
                     <input type="hidden" name="{{ $k }}" value="{{ $v }}">
                 @endforeach
-                <label for="perPage" style="font-size: 0.8125rem;color:var(--text-muted)">Rows per page</label>
-                <select id="perPage" name="per_page" class="giya-input" style="width:74px;padding:6px 8px"
+                <label for="perPage" class="per-page-label">Rows per page</label>
+                <select id="perPage" name="per_page" class="giya-input per-page-select"
                         onchange="this.form.submit()">
                     @foreach ([5, 10, 25, 50] as $n)
                         <option value="{{ $n }}" @selected($perPage === $n)>{{ $n }}</option>
@@ -159,10 +164,10 @@
 
 {{-- ══════════════ Add / edit modal ══════════════ --}}
 <div class="modal" id="scheduleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px;max-width:640px">
+    <div class="modal-dialog is-wide">
+        <div class="modal-content dm-form-modal">
             <div class="modal-title">
-                <i class="bi bi-calendar-event-fill" style="color:var(--primary)"></i>
+                <i class="bi bi-giya-candle"></i>
                 <span id="scheduleModalTitle">Add Schedule</span>
             </div>
 
@@ -171,7 +176,7 @@
                 <input type="hidden" name="schedule_id" id="s-id">
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 100%">
+                    <div class="field is-full">
                         <label class="dm-label" for="s-church">Destination</label>
                         <select id="s-church" name="church_id" class="giya-input" required>
                             <option value="">Choose a destination…</option>
@@ -184,14 +189,14 @@
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 300px">
+                    <div class="field is-wide">
                         <label class="dm-label" for="s-name">Event Name</label>
                         <input id="s-name" type="text" name="event_name" class="giya-input" required
                                placeholder="Weekday Mass" maxlength="200">
                         @error('event_name')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
-                    <div class="field" style="flex:1 1 180px">
+                    <div class="field">
                         <label class="dm-label" for="s-type">Type</label>
                         <select id="s-type" name="event_type" class="giya-input" required>
                             @foreach ($types as $type)
@@ -202,13 +207,13 @@
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 220px">
+                    <div class="field">
                         <label class="dm-label" for="s-label">Time Frame Label</label>
                         <input id="s-label" type="text" name="time_frame_label" class="giya-input"
                                placeholder="1st Mass" maxlength="100">
                     </div>
 
-                    <div class="field" style="flex:1 1 220px">
+                    <div class="field">
                         <label class="dm-label" for="s-location">Location</label>
                         <input id="s-location" type="text" name="location" class="giya-input"
                                placeholder="Main Church" maxlength="150">
@@ -216,7 +221,7 @@
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 220px">
+                    <div class="field">
                         <label class="dm-label" for="s-recurrence">Repeats on</label>
                         <select id="s-recurrence" name="recurrence" class="giya-input">
                             <option value="">Does not repeat - one-off date</option>
@@ -224,31 +229,31 @@
                                 <option value="{{ $day }}">{{ $day }}</option>
                             @endforeach
                         </select>
-                        <p style="font-size: 0.6875rem;color:var(--text-muted);margin:4px 0 0">
+                        <p class="dm-note">
                             Leave blank for a single-date event, then set the date below.
                         </p>
                     </div>
 
-                    <div class="field" style="flex:1 1 220px">
+                    <div class="field">
                         <label class="dm-label" for="s-date">Date (one-off only)</label>
                         <input id="s-date" type="date" name="schedule_date" class="giya-input">
                     </div>
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 160px">
+                    <div class="field is-narrow">
                         <label class="dm-label" for="s-start">Start Time</label>
                         <input id="s-start" type="time" name="start_time" class="giya-input">
                         @error('start_time')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
-                    <div class="field" style="flex:1 1 160px">
+                    <div class="field is-narrow">
                         <label class="dm-label" for="s-end">End Time</label>
                         <input id="s-end" type="time" name="end_time" class="giya-input">
                         @error('end_time')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
-                    <div class="field" style="flex:1 1 150px">
+                    <div class="field is-narrow">
                         <label class="dm-label" for="s-status">Status</label>
                         <select id="s-status" name="status" class="giya-input">
                             <option value="Published">Published</option>
@@ -257,7 +262,7 @@
                     </div>
                 </div>
 
-                <label class="pref-toggle-row" style="border-top:1px solid var(--border);margin-top:6px">
+                <label class="pref-toggle-row is-ruled">
                     <span>Whole day event</span>
                     <span class="pref-switch">
                         <input type="checkbox" name="is_whole_day" value="1" id="s-whole">
@@ -272,8 +277,8 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary" style="flex:1" id="s-submit">Save Schedule</button>
-                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
+                    <button type="submit" class="btn btn-primary is-grow" id="s-submit">Save Schedule</button>
+                    <button type="button" class="btn btn-outline is-grow" data-modal-close>Cancel</button>
                 </div>
             </form>
         </div>
