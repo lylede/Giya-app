@@ -24,9 +24,9 @@ class DashboardController extends Controller
                 ['label' => 'Itineraries',  'value' => Itinerary::count(),                  'icon' => 'journal-text'],
                 ['label' => 'Feedback',     'value' => Feedback::count(),                   'icon' => 'chat-dots-fill'],
             ],
-            'monthlyVisits'  => $this->monthlyVisits(),
-            'popularChurches'=> $this->popularChurches(),
-            'recentActivity' => $this->recentActivity(),
+            'monthlyVisits'   => $this->monthlyVisits(),
+            'popularChurches' => $this->popularChurches(),
+            'recentActivity'  => $this->recentActivity(),
         ]);
     }
 
@@ -36,7 +36,10 @@ class DashboardController extends Controller
         $rows = VisitHistory::query()
             ->select(DB::raw("to_char(visited_at, 'YYYY-MM') as ym"), DB::raw('count(*) as total'))
             ->where('visited_at', '>=', now()->subMonths(5)->startOfMonth())
-            ->groupBy('ym')->orderBy('ym')->pluck('total', 'ym')->toArray();
+            ->groupBy('ym')
+            ->orderBy('ym')
+            ->pluck('total', 'ym')
+            ->toArray();
 
         $labels = $data = [];
         for ($i = 5; $i >= 0; $i--) {
@@ -51,14 +54,24 @@ class DashboardController extends Controller
 
     private function popularChurches(): array
     {
-        // church_name is no longer a column - join through to churches.
+        // Only count visits that point to an existing church. This prevents
+        // orphaned/null church_id records from appearing as "Unknown church".
         $rows = VisitHistory::query()
             ->join('churches', 'churches.id', '=', 'visit_history.church_id')
-            ->select('churches.name as church_name', DB::raw('count(*) as total'))
-            ->groupBy('churches.name')->orderByDesc('total')->take(5)->get();
+            ->whereNotNull('visit_history.church_id')
+            ->select(
+                'churches.id',
+                'churches.name as church_name',
+                DB::raw('count(*) as total')
+            )
+            ->groupBy('churches.id', 'churches.name')
+            ->orderByDesc('total')
+            ->orderBy('churches.name')
+            ->take(5)
+            ->get();
 
         return [
-            'labels' => $rows->pluck('church_name')->toArray(),
+            'labels' => $rows->pluck('church_name')->filter(fn ($name) => filled($name))->values()->toArray(),
             'data'   => $rows->pluck('total')->map(fn ($v) => (int) $v)->toArray(),
         ];
     }
@@ -70,9 +83,17 @@ class DashboardController extends Controller
         foreach (User::orderByDesc('created_at')->take(3)->get() as $u) {
             $items[] = ['icon' => 'person-plus-fill', 'text' => "New user registered: {$u->name}", 'at' => $u->created_at];
         }
-        foreach (VisitHistory::orderByDesc('visited_at')->take(3)->get() as $v) {
-            $items[] = ['icon' => 'geo-alt-fill', 'text' => "Visit logged at {$v->church_name}", 'at' => $v->visited_at];
+
+        foreach (VisitHistory::with('church')->orderByDesc('visited_at')->take(3)->get() as $v) {
+            if ($v->church) {
+                $items[] = [
+                    'icon' => 'geo-alt-fill',
+                    'text' => "Visit logged at {$v->church->name}",
+                    'at' => $v->visited_at,
+                ];
+            }
         }
+
         foreach (Feedback::with('church')->orderByDesc('created_at')->take(2)->get() as $f) {
             $items[] = ['icon' => 'star-fill', 'text' => "Feedback received for " . ($f->church->name ?? 'a destination') . " ({$f->rating}★)", 'at' => $f->created_at];
         }
