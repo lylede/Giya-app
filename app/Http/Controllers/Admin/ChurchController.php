@@ -83,6 +83,16 @@ class ChurchController extends Controller
 
         return view('admin.destinations', [
             'churches'   => $churches,
+
+            /* Counted from the collection already in memory for the map
+               pins, so the headline row costs no extra query. */
+            'summary' => [
+                'total'      => $all->count(),
+                'published'  => $all->where('is_active', true)->count(),
+                'draft'      => $all->where('is_active', false)->count(),
+                'mapped'     => $all->filter(fn (Church $c) => $c->latitude && $c->longitude)->count(),
+            ],
+
             'search'     => $request->search,
             'category'   => $request->category ?? 'All',
             'categories' => ChurchCategory::orderBy('name')->pluck('name')->prepend('All')->all(),

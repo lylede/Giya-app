@@ -74,23 +74,90 @@
         margin-left: auto; min-width: 0;
     }
 
-    /* ── Search ──────────────────────────────────────────────────── */
+    /* ── Search ──────────────────────────────────────────────────────
+       Closed it is the magnifier and nothing else; hovered or focused it
+       opens leftwards into a full field. The bar is crowded - a logo, three
+       links, a bell, an avatar and a menu button - and a 320px field sitting
+       open at all times was the widest thing on it while being the least
+       used.
+
+       The icon stays put and the pill grows away from it, so the thing you
+       are aiming at does not move as it opens. */
     .giya-nav .nav-search {
         display: none;                 /* shown from 900px up, see below */
         align-items: center; gap: 6px;
-        flex: 0 1 320px; min-width: 0;
         /* The links are absolutely centred and out of the flow, so this sits
            between the logo and the bell on its own. */
         margin: 0 0 0 auto;
-        padding: 4px 5px 4px 14px;
+        padding: 2px;
         border-radius: 999px;
-        background: rgba(255,255,255,.12);
-        border: 1px solid rgba(255,255,255,.16);
-        transition: background .15s ease, border-color .15s ease;
+
+        /* Closed, the pill itself is invisible: what shows is one circle the
+           size and colour of the bell next to it. The first version left the
+           translucent pill and a solid gold button inside it, which read as a
+           gold blob wedged against the bell rather than as a search. */
+        background: transparent;
+        border: 1px solid transparent;
+
+        width: 38px;
+        overflow: hidden;
+        transition: width .34s cubic-bezier(.2, .9, .3, 1),
+                    padding-left .34s cubic-bezier(.2, .9, .3, 1),
+                    background .18s ease, border-color .18s ease;
     }
+
+    /* Open on hover, on keyboard focus, and whenever there is something
+       typed in it - closing over a devotee's own search term would hide the
+       thing they came to read. :placeholder-shown is false exactly when the
+       field has a value. */
+    .giya-nav .nav-search:hover,
+    .giya-nav .nav-search:focus-within,
+    .giya-nav .nav-search.is-open,
+    .giya-nav .nav-search:has(input:not(:placeholder-shown)) {
+        width: 320px;
+        padding-left: 14px;
+        background: rgba(255,255,255,.12);
+        border-color: rgba(255,255,255,.16);
+    }
+
     .giya-nav .nav-search:focus-within {
         background: rgba(255,255,255,.18);
         border-color: var(--gold);
+    }
+
+    /* The field fades as well as narrows, so the placeholder is not still
+       legible in a 42px slot while the pill is closing. */
+    .giya-nav .nav-search input[type="search"] {
+        opacity: 0;
+        transition: opacity .2s ease;
+    }
+
+    .giya-nav .nav-search:hover input[type="search"],
+    .giya-nav .nav-search:focus-within input[type="search"],
+    .giya-nav .nav-search.is-open input[type="search"],
+    .giya-nav .nav-search:has(input:not(:placeholder-shown)) input[type="search"] {
+        opacity: 1;
+        transition: opacity .28s ease .08s;
+    }
+
+    /* No hover to open it with, and the only thing visible while closed is a
+       submit button - so tapping it would run an empty search instead of
+       opening the field. On touch it simply stays open. */
+    @media (hover: none) {
+        .giya-nav .nav-search {
+            width: 320px; padding-left: 14px;
+            background: rgba(255,255,255,.12);
+            border-color: rgba(255,255,255,.16);
+        }
+        .giya-nav .nav-search input[type="search"] { opacity: 1; }
+        .giya-nav .nav-search .nav-search-go {
+            background: var(--gold); color: var(--primary-dark);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .giya-nav .nav-search,
+        .giya-nav .nav-search input[type="search"] { transition: none; }
     }
 
     /*
@@ -119,16 +186,32 @@
 
     /* The magnifier is the submit button, so it is a real control rather
        than a decoration someone can click and have nothing happen. */
+    /* Closed it is the bell's twin - 34px, the same white wash - so the two
+       controls beside each other look like a pair rather than a gold blob
+       next to a bell. Open it becomes the solid submit button it is.
+
+       The values are the bell's actual ones, which are not the ones the
+       first .nav-bell rule in the stylesheet sets: a later rule overrides it
+       with white at 34px, and matching the rule that loses is how you end up
+       looking almost right. */
     .giya-nav .nav-search-go {
         flex-shrink: 0;
-        width: 30px; height: 30px;
+        width: 34px; height: 34px;
         display: flex; align-items: center; justify-content: center;
         border: 0; border-radius: 50%;
-        background: var(--gold); color: var(--primary-dark);
+        background: rgba(255,255,255,.12); color: #fff;
         font-size: .8125rem; cursor: pointer; padding: 0;
-        transition: background .15s ease, transform .12s ease;
+        transition: background .18s ease, color .18s ease, transform .12s ease;
     }
-    .giya-nav .nav-search-go:hover { background: #E8BC63; }
+
+    .giya-nav .nav-search:hover .nav-search-go,
+    .giya-nav .nav-search:focus-within .nav-search-go,
+    .giya-nav .nav-search.is-open .nav-search-go,
+    .giya-nav .nav-search:has(input:not(:placeholder-shown)) .nav-search-go {
+        background: var(--gold); color: var(--primary-dark);
+    }
+
+    .giya-nav .nav-search-go:hover { background: #E8BC63; color: var(--primary-dark); }
     .giya-nav .nav-search-go:active { transform: scale(.92); }
     .giya-nav .nav-search-go:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
@@ -160,6 +243,8 @@
             display: flex; align-items: center; gap: 12px;
             justify-content: flex-end; min-width: 0;
         }
+        /* margin:0 because the grid column already places it; the width is
+           whatever the open/closed state says it is. */
         .giya-nav .nav-search { margin: 0; }
     }
 </style>

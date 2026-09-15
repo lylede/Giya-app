@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Notifier;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -115,6 +116,14 @@ class Transaction extends Model
         }
 
         $this->save();
+
+        /* Told here rather than at either call site, because there are two of
+           them - the webhook and the return from checkout - and whichever
+           arrives first is the one that settles the row. Guarded by the
+           status, so a Failed transaction congratulates nobody. */
+        if ($this->status === 'Paid') {
+            Notifier::subscriptionPaid($this);
+        }
 
         return true;
     }

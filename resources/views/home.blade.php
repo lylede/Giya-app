@@ -72,7 +72,7 @@
 <div class="page-wrap">
 
     {{-- ───────────────────────── Quick actions ──────────────────────── --}}
-    <section class="home-section">
+    <section class="home-section" data-loading-section>
         <div class="section-header">
             <div>
                 <h2 class="section-title">{{ __('giya.home.journey') }}</h2>
@@ -80,6 +80,11 @@
             </div>
         </div>
 
+        {{-- The heading stays; only the cards wait. A section whose title
+             also disappears reads as the page having lost it. --}}
+        <x-section-skeleton kind="cards" :count="4" />
+
+        <div class="section-real">
         <div class="home-grid home-grid-sm" data-reveal>
             @foreach ([
                 /* GIYA's own icons: a church inside a place marker, a route
@@ -118,6 +123,7 @@
                     </span>
                 </a>
             @endforeach
+        </div>
         </div>
     </section>
 
@@ -177,10 +183,13 @@
     <section class="home-section-ruled">
         <div class="home-bottom-grid">
 
-            <div>
+            <div data-loading-section>
                 <h2 class="section-title event-heading">{{ __('giya.home.events') }}</h2>
                 <p class="section-subtitle event-lead">{{ __('giya.home.events_lead') }}</p>
 
+                <x-section-skeleton kind="rows" :count="3" />
+
+                <div class="section-real">
                 <div data-reveal>
                 @forelse ($upcoming as $i => $event)
                     {{-- The soonest one is the only one in the primary colour.
@@ -205,6 +214,7 @@
                     <x-empty-state icon="calendar-event" :title="__('giya.home.no_events')"
                                    :desc="__('giya.home.no_events_d')" />
                 @endforelse
+                </div>
                 </div>
             </div>
 

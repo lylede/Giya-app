@@ -14,15 +14,15 @@
         this app rather than to any admin panel.
     */
     $reportIcons = [
-        'users'          => 'people-fill',
-        'transactions'   => 'credit-card-fill',
-        'feedback'       => 'chat-dots-fill',
-        'visits'         => 'person-walking',
-        'itineraries'    => 'journal-text',
-        'system-summary' => 'bar-chart',
+        'users'          => 'giya-pilgrim',
+        'transactions'   => 'giya-payment',
+        'feedback'       => 'giya-star',
+        'visits'         => 'giya-pilgrim',
+        'itineraries'    => 'giya-route',
+        'system-summary' => 'giya-tally',
     ];
 
-    $currentIcon = $reportIcons[$selectedReport] ?? 'compass-fill';
+    $currentIcon = $reportIcons[$selectedReport] ?? 'giya-magellan';
 @endphp
 
 @section('content')
@@ -39,11 +39,11 @@
             </span>
 
             <div>
-                <h3 style="margin: 0 0 3px; font-family: var(--font-display); font-size: 1rem; color: var(--text);">
+                <h3 class="report-card-title">
                     Report Generator
                 </h3>
 
-                <p style="margin: 0; font-size: .72rem; color: var(--text-muted);">
+                <p class="report-card-sub">
                     Select a report type and date/time range, then generate your report.
                 </p>
             </div>
@@ -149,7 +149,7 @@
     {{-- ERRORS --}}
     @if ($errors->any())
         <div class="report-error">
-            <ul style="margin: 0; padding-left: 18px;">
+            <ul class="report-error-list">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -166,11 +166,11 @@
             <div class="report-result-info">
                 <i class="bi bi-{{ $currentIcon }} report-result-icon"></i>
 
-                <strong style="font-size: .78rem; color: var(--text);">
+                <strong class="report-result-title">
                     {{ $reportTable['title'] }}
                 </strong>
 
-                <span style="font-size: .67rem; color: var(--text-muted);">
+                <span class="report-result-count giya-num">
                     {{ number_format($reportTable['rows']->count()) }}
                     {{ $reportTable['rows']->count() === 1 ? 'record' : 'records' }}
                 </span>
@@ -178,7 +178,7 @@
 
 
             <div class="report-date-range">
-                <i class="bi bi-calendar3" style="color: var(--primary);"></i>
+                <i class="bi bi-calendar3"></i>
 
                 @if ($filters['from'] || $filters['to'])
 
@@ -228,18 +228,15 @@
                         <tr>
                             <td
                                 colspan="{{ count($reportTable['columns']) }}"
-                                style="text-align: center; padding: 30px 15px;"
+                                class="report-empty-cell"
                             >
-                                <i
-                                    class="bi bi-inbox"
-                                    style="display: block; font-size: 1.5rem; color: #aaa; margin-bottom: 7px;"
-                                ></i>
+                                <i class="bi bi-inbox report-empty-icon"></i>
 
-                                <strong style="display: block; font-size: .78rem; margin-bottom: 3px;">
+                                <strong class="report-empty-title">
                                     No records found
                                 </strong>
 
-                                <span style="font-size: .69rem; color: var(--text-muted);">
+                                <span class="report-empty-sub">
                                     No records match the selected report and date/time range.
                                 </span>
                             </td>
@@ -256,14 +253,14 @@
 
         <div class="report-placeholder">
 
-            <i class="bi bi-compass-fill"></i>
+            <i class="bi bi-giya-magellan"></i>
 
             <div>
-                <strong style="display: block; font-size: .76rem; color: var(--text); margin-bottom: 2px;">
+                <strong class="report-placeholder-title">
                     No Report Generated Yet
                 </strong>
 
-                <p style="margin: 0; font-size: .69rem; color: var(--text-muted);">
+                <p class="report-placeholder-sub">
                     Select a report type and optional date/time range,
                     then click Generate Report.
                 </p>
@@ -277,98 +274,24 @@
 
 
 {{-- SUMMARY --}}
-<div class="report-summary-grid">
+{{-- The same tile every other module uses. These were five hand-written
+     cards with the number in the display serif, which is the one face a
+     figure should never be set in. --}}
+<div class="stat-row">
+    <x-stat-tile icon="giya-pilgrim" label="Users" :value="$summary['users']" tone="primary" />
+    <x-stat-tile icon="giya-route" label="Itineraries" :value="$summary['itineraries']" tone="gold" />
+    <x-stat-tile icon="giya-nearby" label="Pilgrimage Visits" :value="$summary['visits']" tone="green" />
 
-    <div class="report-summary-card">
-        <div class="report-summary-icon is-users">
-            <i class="bi bi-people-fill"></i>
-        </div>
+    <x-stat-tile icon="giya-star" label="Feedback" :value="$summary['feedback']" tone="blue">
+        @if ($summary['feedback'] > 0)
+            <x-slot:sub>{{ number_format($summary['average_rating'], 2) }}★ average</x-slot:sub>
+        @endif
+    </x-stat-tile>
 
-        <div>
-            <strong style="display: block; font-family: var(--font-display); font-size: 1rem;">
-                {{ number_format($summary['users']) }}
-            </strong>
-
-            <span style="font-size: .65rem; color: var(--text-muted);">
-                Users
-            </span>
-        </div>
-    </div>
-
-
-    <div class="report-summary-card">
-        <div class="report-summary-icon is-itineraries">
-            <i class="bi bi-journal-text"></i>
-        </div>
-
-        <div>
-            <strong style="display: block; font-family: var(--font-display); font-size: 1rem;">
-                {{ number_format($summary['itineraries']) }}
-            </strong>
-
-            <span style="font-size: .65rem; color: var(--text-muted);">
-                Itineraries
-            </span>
-        </div>
-    </div>
-
-
-    <div class="report-summary-card">
-        <div class="report-summary-icon is-visits">
-            <i class="bi bi-person-walking"></i>
-        </div>
-
-        <div>
-            <strong style="display: block; font-family: var(--font-display); font-size: 1rem;">
-                {{ number_format($summary['visits']) }}
-            </strong>
-
-            <span style="font-size: .65rem; color: var(--text-muted);">
-                Pilgrimage Visits
-            </span>
-        </div>
-    </div>
-
-
-    <div class="report-summary-card">
-        <div class="report-summary-icon is-feedback">
-            <i class="bi bi-chat-dots-fill"></i>
-        </div>
-
-        <div>
-            <strong style="display: block; font-family: var(--font-display); font-size: 1rem;">
-                {{ number_format($summary['feedback']) }}
-            </strong>
-
-            <span style="font-size: .65rem; color: var(--text-muted);">
-                Feedback
-
-                @if ($summary['feedback'] > 0)
-                    · {{ number_format($summary['average_rating'], 2) }}★
-                @endif
-            </span>
-        </div>
-    </div>
-
-
-    <div class="report-summary-card">
-        <div class="report-summary-icon is-revenue">
-            <i class="bi bi-credit-card-fill"></i>
-        </div>
-
-        <div>
-            <strong style="display: block; font-family: var(--font-display); font-size: 1rem;">
-                ₱{{ number_format($summary['revenue'], 2) }}
-            </strong>
-
-            <span style="font-size: .65rem; color: var(--text-muted);">
-                Paid Revenue ·
-                {{ number_format($summary['transactions']) }}
-                transactions
-            </span>
-        </div>
-    </div>
-
+    <x-stat-tile icon="giya-payment" label="Paid Revenue"
+                 value="₱{{ number_format($summary['revenue'], 2) }}" tone="primary">
+        <x-slot:sub>{{ number_format($summary['transactions']) }} transactions</x-slot:sub>
+    </x-stat-tile>
 </div>
 
 
@@ -378,9 +301,9 @@
     {{-- TRANSACTIONS --}}
     <div class="report-section-card">
 
-        <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-light, #eee);">
+        <div class="report-section-head">
             <h3 class="report-section-title">
-                <i class="bi bi-credit-card-fill"></i>
+                <i class="bi bi-giya-payment"></i>
                 Recent Transactions
             </h3>
         </div>
@@ -394,7 +317,7 @@
                         <th>Reference</th>
                         <th>User</th>
                         <th>Status</th>
-                        <th style="text-align: right;">Amount</th>
+                        <th class="is-right">Amount</th>
                     </tr>
                 </thead>
 
@@ -429,7 +352,7 @@
                                 </span>
                             </td>
 
-                            <td style="text-align: right;">
+                            <td class="is-right giya-num">
                                 ₱{{ number_format((float) $transaction->amount, 2) }}
                             </td>
                         </tr>
@@ -437,16 +360,10 @@
                     @empty
 
                         <tr>
-                            <td
-                                colspan="4"
-                                style="height: 110px; text-align: center; color: var(--text-muted);"
-                            >
-                                <i
-                                    class="bi bi-credit-card"
-                                    style="display: block; font-size: 1.2rem; margin-bottom: 5px;"
-                                ></i>
+                            <td colspan="4" class="report-blank-cell">
+                                <i class="bi bi-giya-payment report-blank-icon"></i>
 
-                                <span style="font-size: .68rem;">
+                                <span class="report-blank-text">
                                     No transaction records for this period.
                                 </span>
                             </td>
@@ -464,9 +381,9 @@
     {{-- FEEDBACK --}}
     <div class="report-section-card">
 
-        <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-light, #eee);">
+        <div class="report-section-head">
             <h3 class="report-section-title">
-                <i class="bi bi-chat-dots-fill"></i>
+                <i class="bi bi-giya-star"></i>
                 Recent Feedback
             </h3>
         </div>
@@ -500,7 +417,7 @@
                                 {{ $feedback->church?->name ?? 'Unknown destination' }}
                             </td>
 
-                            <td style="color: #c99000; font-weight: 700;">
+                            <td class="report-rating giya-num">
                                 {{ $feedback->rating }}★
                             </td>
 
@@ -525,16 +442,10 @@
                     @empty
 
                         <tr>
-                            <td
-                                colspan="4"
-                                style="height: 110px; text-align: center; color: var(--text-muted);"
-                            >
-                                <i
-                                    class="bi bi-chat-dots"
-                                    style="display: block; font-size: 1.2rem; margin-bottom: 5px;"
-                                ></i>
+                            <td colspan="4" class="report-blank-cell">
+                                <i class="bi bi-giya-star report-blank-icon"></i>
 
-                                <span style="font-size: .68rem;">
+                                <span class="report-blank-text">
                                     No feedback records for this period.
                                 </span>
                             </td>
@@ -554,9 +465,9 @@
 {{-- MOST VISITED DESTINATIONS --}}
 <div class="report-section-card">
 
-    <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-light, #eee);">
+    <div class="report-section-head">
         <h3 class="report-section-title">
-            <i class="bi bi-building"></i>
+            <i class="bi bi-giya-spires"></i>
             Most Visited Destinations
         </h3>
     </div>
@@ -566,14 +477,14 @@
 
         <div class="report-placeholder">
 
-            <i class="bi bi-building"></i>
+            <i class="bi bi-giya-spires"></i>
 
             <div>
-                <strong style="display: block; font-size: .76rem; color: var(--text);">
+                <strong class="report-placeholder-title">
                     No Visit Data
                 </strong>
 
-                <p style="margin: 2px 0 0; font-size: .69rem; color: var(--text-muted);">
+                <p class="report-placeholder-sub">
                     Destination rankings will appear after pilgrimage visits are recorded.
                 </p>
             </div>
@@ -582,7 +493,7 @@
 
     @else
 
-        <div style="padding: 4px 16px;">
+        <div class="report-rank-list">
 
             @foreach ($topDestinations as $index => $destination)
 
@@ -592,11 +503,11 @@
                         {{ $index + 1 }}
                     </span>
 
-                    <span style="flex: 1; font-size: .72rem; font-weight: 500; color: var(--text);">
+                    <span class="report-rank-name">
                         {{ $destination->name }}
                     </span>
 
-                    <span style="font-size: .68rem; font-weight: 600; color: var(--primary);">
+                    <span class="report-rank-count giya-num">
                         {{ number_format($destination->total_visits) }}
                         {{ $destination->total_visits == 1 ? 'visit' : 'visits' }}
                     </span>

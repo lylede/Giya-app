@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Church;
 use App\Models\Schedule;
+use App\Support\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -40,11 +41,24 @@ class ScheduleController extends Controller
             $schedule = Schedule::findOrFail($data['schedule_id']);
             unset($data['schedule_id']);
             $schedule->update($data + ['updated_at' => now()]);
+
+            /* getChanges() AFTER the update: what actually differs, not what
+               was submitted. An admin who opens the form and presses Save
+               without touching anything has changed nothing, and nobody
+               should be told about it. */
+            $told = Notifier::schedulePosted($schedule, $schedule->getChanges());
             $message = 'Schedule updated.';
         } else {
             unset($data['schedule_id']);
-            Schedule::create($data + ['created_at' => now(), 'updated_at' => now()]);
+            $schedule = Schedule::create($data + ['created_at' => now(), 'updated_at' => now()]);
+            $told = Notifier::schedulePosted($schedule);
             $message = 'Schedule added.';
+        }
+
+        /* Said out loud, because the alternative is an admin publishing a
+           feast day and having no idea whether it reached anyone. */
+        if ($told > 0) {
+            $message .= " {$told} ".($told === 1 ? 'devotee was' : 'devotees were').' notified.';
         }
 
         return back()->with('success', $message);

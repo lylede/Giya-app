@@ -10,6 +10,16 @@
 
 @section('content')
 
+{{-- ═══════════════ HEADLINE FIGURES ═══════════════ --}}
+<div class="stat-row">
+    <x-stat-tile icon="giya-spires" label="Destinations" :value="$summary['total']" tone="primary" />
+    <x-stat-tile icon="giya-star" label="Published" :value="$summary['published']" tone="green" />
+    <x-stat-tile icon="eye-slash" label="Draft" :value="$summary['draft']" tone="gold" />
+    <x-stat-tile icon="giya-nearby" label="On the map" :value="$summary['mapped']" tone="blue">
+        <x-slot:sub>Pins a devotee can navigate to</x-slot:sub>
+    </x-stat-tile>
+</div>
+
 {{-- ═══════════════ ADD / EDIT PANEL (inline, per the design) ═══════════════ --}}
 {{-- ═══════════════ MAP: the way destinations are added ═══════════════
      The map is the interface, not an aid to a form beside it. A destination
@@ -23,7 +33,7 @@
                 Click anywhere to add a destination, or click a pin to edit one.
             </p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="adm-actions">
             <button type="button" class="btn btn-outline" id="dmImportHere">
                 <i class="bi bi-folder2-open"></i> Import
             </button>
@@ -64,13 +74,13 @@
     back empty - which reads as "the filter is broken".
 --}}
 <form method="GET" class="dm-filters">
-    <div class="dm-filter-field" style="flex:1 1 320px">
+    <div class="dm-filter-field is-wide">
         <label class="dm-label" for="q">Search Destination</label>
         <input id="q" type="search" name="search" value="{{ $search }}" class="giya-input"
                placeholder="Search by name or location...">
     </div>
 
-    <div class="dm-filter-field" style="flex:0 1 190px">
+    <div class="dm-filter-field">
         <label class="dm-label" for="fcat">Category</label>
         <select id="fcat" name="category" class="giya-input" onchange="this.form.submit()">
             @foreach ($categories as $cat)
@@ -79,7 +89,7 @@
         </select>
     </div>
 
-    <div class="dm-filter-field" style="flex:0 1 190px">
+    <div class="dm-filter-field">
         <label class="dm-label" for="fstatus">Status</label>
         <select id="fstatus" name="status" class="giya-input" onchange="this.form.submit()">
             <option value="">All Status</option>
@@ -101,17 +111,18 @@
 </form>
 
 {{-- ═══════════════════════════ TABLE ═══════════════════════════ --}}
-<div class="card" style="overflow:hidden">
+<div class="card adm-scroller">
+    <div>
     <table class="giya-table">
         <thead>
             <tr>
-                <th style="width:56px">No.</th>
+                <th class="col-no">No.</th>
                 <th>Name</th>
                 <th>Location</th>
                 <th>Category</th>
                 <th>Rating</th>
                 <th>Status</th>
-                <th style="width:120px">Actions</th>
+                <th class="col-actions">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -120,19 +131,18 @@
                     <td>{{ $churches->firstItem() + $i }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <img class="gs-img" src="{{ $church->imagePath() }}" alt=""
-                                 style="width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0">
-                            <span style="font-weight:600">{{ $church->name }}</span>
+                            <img class="gs-img cell-thumb" src="{{ $church->imagePath() }}" alt="">
+                            <span class="cell-strong">{{ $church->name }}</span>
                         </div>
                     </td>
-                    <td style="color:var(--text-muted)">{{ $church->location }}</td>
+                    <td class="cell-muted">{{ $church->location }}</td>
                     <td><span class="badge badge-gold">{{ $church->category }}</span></td>
                     <td>
                         @if ($church->rating > 0)
-                            <i class="bi bi-star-fill" style="color:var(--gold);font-size: 0.6875rem"></i>
+                            <i class="bi bi-star-fill cell-star"></i>
                             {{ number_format($church->rating, 1) }}
                         @else
-                            <span style="color:var(--text-muted)">-</span>
+                            <span class="cell-muted">-</span>
                         @endif
                     </td>
                     <td>
@@ -168,15 +178,16 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">
+                <tr><td colspan="7" class="cell-empty">
                     No destinations yet. Add the first one above.
                 </td></tr>
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 
-<div style="margin-top:14px"><x-pagination :paginator="$churches->withQueryString()" /></div>
+<div class="mt-3"><x-pagination :paginator="$churches->withQueryString()" /></div>
 
 {{--
     Quick add, used while the map is expanded.
@@ -187,10 +198,11 @@
     photo - is filled in afterwards on the full form.
 --}}
 <div class="modal" id="quickAddModal" tabindex="-1" aria-hidden="true">
+    {{-- Four fields. Narrow on purpose. --}}
     <div class="modal-dialog">
-        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:26px;max-width:460px">
+        <div class="modal-content dm-form-modal">
             <div class="modal-title">
-                <i class="bi bi-geo-alt-fill" style="color:var(--primary)"></i>
+                <i class="bi bi-giya-spires"></i>
                 New destination here
             </div>
 
@@ -203,7 +215,7 @@
             </div>
 
             <div class="dm-row">
-                <div class="field" style="flex:1 1 180px">
+                <div class="field">
                     <label class="dm-label" for="q-category">Category</label>
                     <select id="q-category" class="giya-input">
                         @foreach ($categories as $cat)
@@ -213,7 +225,7 @@
                     </select>
                 </div>
 
-                <div class="field" style="flex:1 1 180px">
+                <div class="field">
                     <label class="dm-label" for="q-location">Location</label>
                     <input id="q-location" type="text" class="giya-input" maxlength="200"
                            placeholder="Cebu City">
@@ -226,21 +238,21 @@
             </p>
 
             <div class="modal-actions">
-                <button type="button" class="btn btn-primary" style="flex:1" id="quickApply">
+                <button type="button" class="btn btn-primary is-grow" id="quickApply">
                     Add to form
                 </button>
-                <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>Cancel</button>
+                <button type="button" class="btn btn-outline is-grow" data-modal-close>Cancel</button>
             </div>
         </div>
     </div>
 </div>
 
 <div class="modal" id="importModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:26px;max-width:520px">
-            <div class="dm-modal-head" style="margin-bottom:14px">
-                <div class="modal-title" style="margin:0">
-                    <i class="bi bi-folder2-open" style="color:var(--primary)"></i>
+    <div class="modal-dialog is-wide">
+        <div class="modal-content dm-form-modal">
+            <div class="dm-modal-head">
+                <div class="modal-title is-flush">
+                    <i class="bi bi-folder2-open"></i>
                     Import destinations
                 </div>
                 <button type="button" class="ai-panel-close" data-modal-close aria-label="Close">
@@ -257,16 +269,16 @@
                     @error('import_file')<span class="field-error">{{ $message }}</span>@enderror
                 </div>
 
-                <div class="dm-map-note" style="margin-top:10px; margin-bottom:14px;">
+                <div class="dm-map-note is-spaced">
                     <i class="bi bi-info-circle"></i>
                     Supported columns: name, category, location, address, latitude, longitude, opening_time, closing_time, description, status.
                 </div>
 
-                <pre style="background:rgba(15,23,42,0.04);padding:12px;border-radius:12px;font-size:11px;line-height:1.5;overflow:auto;white-space:pre-wrap;margin:0 0 18px;">name,category,location,address,latitude,longitude,opening_time,closing_time,description,status
+                <pre class="dm-csv-sample">name,category,location,address,latitude,longitude,opening_time,closing_time,description,status
 Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,08:00,17:00,"Historic church","Published"</pre>
 
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary" style="flex:1">Upload bulk import</button>
+                    <button type="submit" class="btn btn-primary is-grow">Upload bulk import</button>
                     <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
                 </div>
             </form>
@@ -291,12 +303,14 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 </form>
 
 <div class="modal" id="destModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    {{-- The widest of the three, because it is the longest form in the app.
+         At 460px every one of its fields was its own row. --}}
+    <div class="modal-dialog is-wider">
         <div class="modal-content dm-modal">
 
             <div class="dm-modal-head">
-                <div class="modal-title" style="margin:0">
-                    <i class="bi bi-geo-alt-fill" style="color:var(--primary)"></i>
+                <div class="modal-title is-flush">
+                    <i class="bi bi-giya-spires"></i>
                     <span id="destModalTitle">Add Destination</span>
                 </div>
                 <button type="button" class="ai-panel-close" data-modal-close aria-label="Close">
@@ -310,7 +324,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                 <input type="hidden" name="church_id" id="churchId" value="{{ old('church_id') }}">
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 100%">
+                    <div class="field is-full">
                         <label class="dm-label" for="f-name">Destination Name</label>
                         <input id="f-name" type="text" name="name" class="giya-input" required maxlength="200"
                                value="{{ old('name') }}"
@@ -320,7 +334,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 180px">
+                    <div class="field">
                         <label class="dm-label" for="f-category">Category</label>
                         <select id="f-category" name="category" class="giya-input" required>
                             @foreach ($categories as $cat)
@@ -331,7 +345,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                         @error('category')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
-                    <div class="field" style="flex:1 1 180px">
+                    <div class="field">
                         <label class="dm-label" for="f-status">Status</label>
                         <select id="f-status" name="status" class="giya-input">
                             <option value="Published">Published</option>
@@ -341,7 +355,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 100%">
+                    <div class="field is-full">
                         <label class="dm-label" for="f-location">Location (City / Municipality)</label>
                         <input id="f-location" type="text" name="location" class="giya-input" required
                                value="{{ old('location') }}" placeholder="Cebu City">
@@ -350,7 +364,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 220px">
+                    <div class="field">
                         <label class="dm-label" for="f-municipality">Municipality</label>
                         {{-- A list rather than free text, because this one is
                              grouped and filtered on: two spellings of the same
@@ -367,7 +381,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                         @error('municipality')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
-                    <div class="field" style="flex:1 1 220px;align-self:flex-end">
+                    <div class="field is-bottom">
                         <label class="dm-check" for="f-major">
                             <input id="f-major" type="checkbox" name="is_major" value="1"
                                    @checked(old('is_major'))>
@@ -387,19 +401,19 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 
                 {{-- Coordinates come from the map click; shown so they can be corrected. --}}
                 <div class="dm-row dm-coords">
-                    <div class="field" style="flex:1 1 160px">
+                    <div class="field is-narrow">
                         <label class="dm-label" for="f-lat">Latitude</label>
                         <input id="f-lat" type="number" step="0.00000001" name="latitude"
                                class="giya-input" value="{{ old('latitude') }}">
                         @error('latitude')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
-                    <div class="field" style="flex:1 1 160px">
+                    <div class="field is-narrow">
                         <label class="dm-label" for="f-lng">Longitude</label>
                         <input id="f-lng" type="number" step="0.00000001" name="longitude"
                                class="giya-input" value="{{ old('longitude') }}">
                         @error('longitude')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
-                    <div class="field" style="flex:0 0 auto;align-self:flex-end">
+                    <div class="field is-bottom is-auto">
                         <button type="button" class="btn btn-outline btn-sm" id="dmRepin">
                             <i class="bi bi-geo-alt-fill"></i> Move pin
                         </button>
@@ -407,12 +421,12 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                 </div>
 
                 <div class="dm-row">
-                    <div class="field" style="flex:1 1 160px">
+                    <div class="field is-narrow">
                         <label class="dm-label" for="f-open">Opens</label>
                         <input id="f-open" type="time" name="opening_time" class="giya-input"
                                value="{{ old('opening_time') }}">
                     </div>
-                    <div class="field" style="flex:1 1 160px">
+                    <div class="field is-narrow">
                         <label class="dm-label" for="f-close">Closes</label>
                         <input id="f-close" type="time" name="closing_time" class="giya-input"
                                value="{{ old('closing_time') }}">
@@ -431,7 +445,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                     <label class="dm-drop" id="dropZone">
                         <input type="file" name="photo" id="f-photo"
                                accept="image/jpeg,image/png,image/webp" hidden>
-                        <img id="dropPreview" alt="" style="display:none">
+                        <img id="dropPreview" alt="" hidden>
                         <span class="dm-drop-inner" id="dropPrompt">
                             <span class="dm-drop-circle"><i class="bi bi-camera-fill"></i></span>
                             <span class="dm-drop-text">Click to upload, or drag an image here</span>
@@ -439,17 +453,17 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                         </span>
                     </label>
 
-                    <input type="text" name="caption" class="giya-input" style="margin-top:8px"
+                    <input type="text" name="caption" class="giya-input mt-2"
                            placeholder="Photo caption (optional)" maxlength="255">
                     @error('photo')<span class="field-error">{{ $message }}</span>@enderror
-                    <p class="dm-map-note" style="margin-top:6px">
+                    <p class="dm-map-note is-tight">
                         <i class="bi bi-info-circle"></i>
                         Saved to public/images/churches, named after the destination.
                     </p>
                 </div>
 
                 <div class="dm-modal-foot">
-                    <button type="submit" class="btn btn-primary" style="flex:1" id="btnSave">
+                    <button type="submit" class="btn btn-primary is-grow" id="btnSave">
                         Save Destination
                     </button>
                     <button type="button" class="btn btn-outline" data-modal-close>Cancel</button>
@@ -457,7 +471,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                     {{-- Only meaningful once a destination exists, so it is
                          hidden while adding one. --}}
                     <button type="button" class="btn btn-danger-solid dm-delete"
-                            id="btnDelete" style="display:none">
+                            id="btnDelete" hidden>
                         <i class="bi bi-trash3"></i> Delete
                     </button>
                 </div>

@@ -46,6 +46,17 @@
   --radius-2xl:    24px;
   --font-display:  'Playfair Display', Georgia, serif;
   --font-body:     'Lato', system-ui, -apple-system, sans-serif;
+
+  /* Numbers are GIYA's own second face, not a third one.
+
+     They were set in Playfair, which is a display serif: its figures are
+     proportional, so a 1 is narrower than a 0 and a column of counts never
+     lines up, and its thin strokes wash out at the sizes a statistic is
+     shown at. Lato is already loaded, it is the face the rest of the app
+     reads in, and it has tabular lining figures - every digit the same
+     width, all sitting on the baseline at cap height. Simple, and already
+     part of the system rather than bolted onto it. */
+  --font-numeric:  var(--font-body);
 }
 
 /* ── Reset & Base ───────────────────────────────────────────── */
@@ -60,6 +71,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3 { font-family: var(--font-display); }
+
+/* ── NUMBERS ─────────────────────────────────────────────────
+   Anything whose content is a figure rather than a word. Tabular so columns
+   align and a count that ticks upward does not shuffle the characters beside
+   it; lining so the digits sit level rather than hanging below the baseline. */
+.giya-num,
+.hero-stat-value,
+.profile-stat-val,
+.church-stat-value,
+.plan-card-num,
+.ap-count,
+.giya-pagination a,
+.giya-pagination span {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
 a { text-decoration: none; color: inherit; }
 button { font-family: var(--font-body); cursor: pointer; }
 img { max-width: 100%; display: block; }
@@ -435,6 +463,11 @@ html[data-theme="dark"] .alert-info {
   color: var(--text); margin-bottom: 20px;
   display: flex; align-items: center; gap: 10px;
 }
+/* The icon in a modal's title. It was coloured inline on every modal in the
+   admin panel, which is five copies of one decision. */
+.modal-title .bi { color: var(--primary); }
+.modal-title.is-flush { margin-bottom: 0; }
+
 .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
 
 /* ── PAGE LAYOUT ────────────────────────────────────────────── */
@@ -608,26 +641,113 @@ html[data-theme="dark"] .alert-info {
 
 /* ── ADMIN LAYOUT ───────────────────────────────────────────── */
 .admin-layout { display: flex; min-height: 100vh; }
+/* ── ADMIN SIDEBAR ───────────────────────────────────────────
+   Two widths, one of them a rail.
+
+   The width is a custom property so the rail is a different value rather
+   than a different set of rules: everything below reads --admin-rail, and
+   collapsing is one class on the layout. Nothing has to be kept in step by
+   hand, which is how a collapsed sidebar ends up with an uncollapsed header
+   sitting next to it. */
+.admin-layout { --admin-rail: 268px; }
+.admin-layout.is-railed { --admin-rail: 78px; }
+
 .admin-sidebar {
-  width: 260px; flex-shrink: 0;
+  width: var(--admin-rail); flex-shrink: 0;
   background: var(--text); display: flex;
   flex-direction: column;
   position: sticky; top: 0; height: 100vh;
-  overflow-y: auto;
+  overflow-y: auto; overflow-x: hidden;
+  transition: width .22s cubic-bezier(.2, .8, .2, 1);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar { transition: none; }
+}
+
 .admin-sidebar-head {
-  padding: 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 10px;
 }
-.admin-sidebar-nav { padding: 12px 8px; flex: 1; }
+
+/* The control that does the collapsing. Always visible, because a hidden
+   toggle is a feature nobody finds. */
+.admin-rail-toggle {
+  margin-left: auto; flex-shrink: 0;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 9px;
+  background: rgba(255,255,255,.08); color: rgba(255,255,255,.75);
+  cursor: pointer; padding: 0;
+  transition: background .15s ease, color .15s ease;
+}
+.admin-rail-toggle:hover { background: rgba(255,255,255,.16); color: #fff; }
+.admin-rail-toggle .bi { font-size: 1rem; transition: transform .22s ease; }
+
+.is-railed .admin-rail-toggle { margin-left: 0; }
+.is-railed .admin-rail-toggle .bi { transform: rotate(180deg); }
+
+/* Railed, the wordmark goes and the toggle is the whole header. */
+.is-railed .admin-sidebar-head { justify-content: center; padding: 20px 8px; }
+.is-railed .admin-brand { display: none; }
+
+.admin-sidebar-nav { padding: 12px 10px; flex: 1; }
+
 .admin-nav-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 14px; border-radius: var(--radius-md);
-  color: rgba(255,255,255,0.65); font-size: 0.875rem;
-  text-decoration: none; transition: all .15s;
-  margin-bottom: 2px; font-family: var(--font-body);
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: var(--radius-md);
+  color: rgba(255,255,255,0.65); font-size: 0.9375rem;
+  text-decoration: none; transition: background .15s, color .15s;
+  margin-bottom: 3px; font-family: var(--font-body);
   border: none; background: transparent; width: 100%;
   cursor: pointer; text-align: left;
+  white-space: nowrap;
 }
+
+/* The icon is the thing you aim at in the rail, so it is sized for that
+   rather than for sitting beside a word. */
+.admin-nav-item .bi { font-size: 1.25rem; flex-shrink: 0; }
+
+.is-railed .admin-nav-item { justify-content: center; padding: 12px 0; gap: 0; }
+.is-railed .admin-nav-label { display: none; }
+/* Railed, a section heading becomes a rule. "MANAGEMENT" does not fit in
+   78px at any size worth reading - it came out as "MANAGEME" - and a line
+   says the same thing a heading says here: a new group starts. The text
+   stays in the markup for a screen reader. */
+.is-railed .admin-nav-section {
+  font-size: 0; padding: 0; overflow: hidden;
+  height: 1px; margin: 14px 14px 10px;
+  background: rgba(255,255,255,.12);
+}
+
+/* Except the first, which would draw a line above the very first item. */
+.is-railed .admin-sidebar-nav > .admin-nav-section:first-child { display: none; }
+
+.admin-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; min-width: 0;
+}
+
+.admin-brand-name {
+  display: block;
+  font-family: var(--font-display);
+  color: #fff; font-size: 1.25rem; line-height: 1;
+}
+
+.admin-brand-sub {
+  display: block;
+  color: var(--gold); font-size: .625rem;
+  letter-spacing: .08em; text-transform: uppercase;
+}
+
+.admin-sidebar-foot {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.admin-nav-item.is-signout { color: #E58C8C; }
+.admin-nav-item.is-signout:hover { color: #fff; background: rgba(229,140,140,.16); }
 .admin-nav-item:hover {
   background: rgba(255,255,255,0.08);
   color: #fff;
@@ -651,15 +771,41 @@ html[data-theme="dark"] .alert-info {
 }
 .admin-content { padding: 24px; flex: 1; }
 
+/* The top bar's two halves. Both were inline, so the page title was set in
+   the display serif on every admin screen by repetition rather than by a
+   rule anything could change. */
+.admin-topbar-titles { min-width: 0; }
+
+.admin-page-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem; color: var(--text);
+  line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.admin-page-sub {
+  font-size: .75rem; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.admin-topbar-user { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.admin-topbar-name { font-size: .8125rem; color: var(--text); }
+
+/* Below this the name is the first thing to go: the face already says who
+   is signed in, and the page title needs the room more. */
+@media (max-width: 560px) { .admin-topbar-name { display: none; } }
+
+.nav-avatar.is-admin { border-color: var(--primary); }
+
 /* ── PROFILE ────────────────────────────────────────────────── */
 .profile-header-card {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 55%, #3d1a12 100%);
   position: relative; overflow: hidden;
 }
 .profile-stat-val {
-  font-family: var(--font-display);
   color: var(--gold); font-size: 1.5rem;
   font-weight: 700; line-height: 1;
+  letter-spacing: -.01em;
 }
 .profile-stat-lbl {
   color: rgba(255,255,255,0.55);
@@ -1002,26 +1148,6 @@ html[data-theme="dark"] .alert-info {
   background: var(--gold-bg); color: var(--primary);
   font-weight: 700;
 }
-
-/* ── CHURCH CARD ────────────────────────────────────────────── */
-.church-card {
-  border-radius: var(--radius-xl); overflow: hidden;
-  background: #fff; box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-light);
-  transition: box-shadow .2s; cursor: pointer;
-}
-.church-card:hover { box-shadow: var(--shadow-lg); }
-.church-card-img {
-  width: 100%; height: 176px;
-  object-fit: cover; display: block;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-}
-.church-card-img-wrap {
-  height: 176px; position: relative; overflow: hidden;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  display: flex; align-items: center; justify-content: center;
-}
-.church-card-body { padding: 16px; }
 
 /* ── ITINERARY DETAILS BAR (the map in planning mode) ────────── */
 /* A row of fields above the map. Flex rather than a fixed grid so the
@@ -1387,6 +1513,31 @@ html[data-theme="dark"] .giya-loading { background: var(--bg); }
 }
 .gs-row-body { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
 
+/* A section standing in for itself while the page's pictures arrive.
+
+   The skeleton is display:none until the script says otherwise, and the real
+   content is untouched until then - so a page whose JavaScript failed shows
+   the content, not a grey rectangle that never resolves. That is the whole
+   reason the states are this way round. */
+.section-skeleton { display: none; }
+
+[data-loading-section].is-loading > .section-skeleton { display: block; }
+[data-loading-section].is-loading > .section-real     { display: none; }
+
+/* Shaped like a home card: icon tile, heading, two lines, a link. */
+.gs-card {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 20px;
+  min-height: 200px;
+}
+
+.gs-card .gs-thumb { width: 48px; height: 48px; border-radius: 16px; }
+.gs-card-go { width: 84px; height: 10px; margin-top: auto; }
+
+/* Shaped like an activity row. */
+.gs-row-date { width: 56px; height: 56px; border-radius: 12px; }
+.gs-row-when { width: 74px; height: 10px; flex-shrink: 0; }
+
 html[data-theme="dark"] .gs-row { background: transparent; }
 html[data-theme="dark"] .gs {
   background: linear-gradient(100deg,
@@ -1428,7 +1579,11 @@ img.gs-img.is-loaded { background: none; animation: none; }
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .footer-grid { grid-template-columns: 1fr 1fr; }
-  .admin-sidebar { width: 220px; }
+
+  /* The narrower sidebar sets the PROPERTY, not the width. Setting width
+     here overrode var(--admin-rail) outright, so between 768 and 1024 the
+     collapse toggle moved the chevron and nothing else. */
+  .admin-layout { --admin-rail: 220px; }
 }
 @media (max-width: 768px) {
   .page-wrap { padding: 24px 16px; }
@@ -1673,8 +1828,13 @@ img.gs-img.is-loaded { background: none; animation: none; }
   @media (prefers-reduced-motion: reduce) {
     .active-layout .map-wrap { transition: none; }
   }
+  /* Below this the sidebar is a strip across the top, so there is no rail
+     to collapse into and the toggle would be a button that does nothing. */
   .admin-layout { flex-direction: column; }
   .admin-sidebar { width: 100%; height: auto; position: relative; }
+  .admin-rail-toggle { display: none; }
+  .admin-topbar { padding: 0 16px; }
+  .admin-content { padding: 16px 14px; }
 }
 @media (max-width: 600px) {
   .auth-card { border-radius: 0; min-height: calc(100vh - 64px); }
@@ -1682,15 +1842,6 @@ img.gs-img.is-loaded { background: none; animation: none; }
 }
 
 /* ── LEAFLET TOOLTIP ────────────────────────────────────────── */
-.giya-tooltip {
-  background: var(--text) !important; color: #fff !important;
-  border: none !important; border-radius: var(--radius-sm) !important;
-  font-size: 0.75rem !important; font-weight: 600 !important;
-  padding: 4px 10px !important; font-family: var(--font-body) !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-}
-.giya-tooltip::before { border-top-color: var(--text) !important; }
-
 /* ── PROGRESS BAR ───────────────────────────────────────────── */
 /* ── PLAN HUB LAYOUT ─────────────────────────────────────────
    The grid and its breakpoints. These were three !important overrides in a
@@ -2110,7 +2261,44 @@ img.gs-img.is-loaded { background: none; animation: none; }
          align-items: center; justify-content: center; padding: 16px;
          background: rgba(36,28,24,0.5); backdrop-filter: blur(4px); }
 .modal.is-open { display: flex; }
-.modal-dialog { width: 100%; max-width: 460px; }
+/* 460px is right for a confirmation and wrong for a form.
+
+   The schedule modal has eleven fields and the destination modal has more
+   than that plus a map, and both were being squeezed into a column narrower
+   than a phone in landscape - so every row was one field tall and the form
+   ran off the bottom of the screen.
+
+   The width is a property so a dialog can ask for what it needs, and every
+   value is a min() against the viewport, so "wide" on a desktop is still
+   inside the screen on a phone. */
+.modal-dialog {
+  width: 100%;
+  max-width: min(var(--modal-w, 460px), calc(100vw - 32px));
+}
+
+/* A form with two or three columns of fields. */
+.modal-dialog.is-wide  { --modal-w: 880px; }
+
+/* A form with a map in it as well. */
+.modal-dialog.is-wider { --modal-w: 1060px; }
+
+@media (max-width: 600px) {
+  /* Edge to edge, with the gutter the page keeps everywhere else. */
+  .modal-dialog { max-width: calc(100vw - 24px); }
+}
+/* A modal that holds a form rather than a sentence. The padding was an
+   inline style, and so was a max-width that never applied because the
+   dialog around it was narrower than the value being set. */
+.dm-form-modal {
+  border: none;
+  border-radius: var(--radius-2xl);
+  padding: 28px;
+}
+
+@media (max-width: 600px) {
+  .dm-form-modal { padding: 20px 16px; }
+}
+
 .modal-content { background: #fff; border-radius: var(--radius-2xl);
                  box-shadow: 0 24px 64px rgba(0,0,0,0.22);
                  max-height: 90vh; overflow-y: auto;
@@ -2140,22 +2328,7 @@ img.gs-img.is-loaded { background: none; animation: none; }
 .chart-bar  { fill: var(--primary); }
 .chart-bar:hover { fill: var(--primary-dark); }
 
-/* ── Offline map (SVG projection, no tile server) ───────────── */
-.offline-map { width: 100%; height: 100%; display: block; background: #FBF1DF; }
-.om-water   { fill: #DCE9F2; }
-.om-land    { fill: #F3E7CF; stroke: rgba(142,59,47,0.14); stroke-width: 1; }
-.om-grid    { stroke: rgba(142,59,47,0.07); stroke-width: 1; }
-.om-route   { fill: none; stroke: var(--primary); stroke-width: 2;
-              stroke-dasharray: 7 5; opacity: .75; }
-.om-pin     { cursor: pointer; transition: transform .15s; transform-origin: center bottom; }
-.om-pin:hover { transform: scale(1.12); }
-.om-pin-label { font-size: 0.5625rem; font-weight: 700; fill: #fff;
-                font-family: var(--font-body); pointer-events: none; text-anchor: middle; }
-.om-name { font-size: 0.625rem; fill: var(--text); font-family: var(--font-body);
-           text-anchor: middle; pointer-events: none; }
-.om-me   { fill: #2E86DE; stroke: #fff; stroke-width: 3; }
-.om-attrib { font-size: 0.5625rem; fill: var(--text-muted); font-family: var(--font-body); }
-/* ── Profile preferences ─────────────────────────────────────────────── */
+/* ── Offline map (SVG projection, no tile server) ───────────── *//* ── Profile preferences ─────────────────────────────────────────────── */
 
 .pref-choice {
     flex: 1;
@@ -2189,6 +2362,10 @@ img.gs-img.is-loaded { background: none; animation: none; }
     cursor: pointer;
 }
 .pref-toggle-row + .pref-toggle-row { border-top: 1px solid var(--border); }
+
+/* A lone switch that has no sibling above it to draw the line for it - a
+   form modal with one toggle in the middle of a column of fields. */
+.pref-toggle-row.is-ruled { border-top: 1px solid var(--border); margin-top: 6px; }
 
 .pref-switch { position: relative; flex-shrink: 0; }
 .pref-switch input { position: absolute; opacity: 0; width: 44px; height: 24px; margin: 0; cursor: pointer; }
@@ -2343,18 +2520,7 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
 .star-picker input:checked ~ label { color: var(--gold); }
 .star-picker input:focus-visible + label { outline: 3px solid var(--gold); outline-offset: 2px; }
 
-/* ── Favorite heart on cards ─────────────────────────────────── */
-
-.fav-btn {
-  position: absolute; top: 12px; right: 12px;
-  width: 32px; height: 32px; border: 0; border-radius: 50%;
-  background: rgba(255,255,255,.9); color: var(--text-muted);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 2; transition: transform .12s ease, color .12s ease;
-}
-.fav-btn:hover { transform: scale(1.1); }
-.fav-btn.is-saved { color: #D4183D; }
-/* ── "Coming soon" tag on a preference that saves but has no effect yet ── */
+/* ── Favorite heart on cards ─────────────────────────────────── *//* ── "Coming soon" tag on a preference that saves but has no effect yet ── */
 
 /* ── Leaflet: photo pins, user marker, popups ───────────────── */
 .giya-pin-wrap { background: none; border: 0; }
@@ -2457,16 +2623,76 @@ html[data-theme="dark"] .leaflet-tile { filter: brightness(.78) saturate(.85) co
   font-family: var(--font-display); font-weight: 600;
   font-size: 1.125rem; color: var(--primary); margin: 0;
 }
+/* A field label, not a heading.
+
+   It was 15px bold in the full text colour - the same weight and nearly the
+   same size as the value underneath it - so a form of eight fields read as
+   sixteen equally loud lines. A label's job is to be found when looked for
+   and to stay out of the way otherwise. */
 .dm-label {
-  display: block; font-weight: 700; font-size: 0.9375rem;
-  color: var(--text); margin-bottom: 9px;
+  display: block;
+  font-weight: 600;
+  font-size: .8125rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  letter-spacing: .01em;
 }
 .dm-row { display: flex; flex-wrap: wrap; gap: 16px; }
 .dm-row > .field { margin-bottom: 4px; }
 
+/* A field's width, on a scale rather than per field. Every form on the admin
+   side had its own flex-basis written inline beside the label, which is how
+   one screen ended up with 180px, 200px and 230px fields in the same row -
+   three widths that are the same width once the row wraps.
+
+   The default is inside :where(), which contributes no specificity at all.
+   Written plainly as `.um-filters > .field` it was two classes, the same as
+   `.field.is-wide`, and it came later in the file - so every is-wide on a
+   filter row was silently ignored and the date pair rendered at 90px each,
+   showing "Choose a da". A default has to be weaker than the exceptions to
+   it, not merely earlier. */
+:where(.dm-row, .sm-filters, .um-filters) > .field { flex: 1 1 220px; }
+
+.field.is-full   { flex-basis: 100%; }
+.field.is-wide   { flex-basis: 300px; }
+.field.is-narrow { flex-basis: 160px; }
+.field.is-auto   { flex: 0 0 auto; }
+
+/* Two date inputs sharing one field. Each needs room for a whole date, and
+   a flex item will happily shrink below its basis to make a row fit - which
+   is how "Choose a date" came out as "Choose a da". The min-width makes the
+   row wrap instead of squeezing. */
+.field-dates { display: flex; gap: 8px; }
+.field-dates > .giya-input { flex: 1 1 150px; min-width: 130px; }
+
+/* A control that lines up with the bottom of taller fields beside it - a
+   checkbox next to a two-line input, say - rather than with their labels. */
+.field.is-bottom { align-self: flex-end; }
+
 .dm-map-note {
   display: flex; align-items: flex-start; gap: 6px;
   font-size: 0.8125rem; color: #999; margin: 14px 0 0; line-height: 1.5;
+}
+
+/* The same note with something following it, and the same note sitting
+   directly under the control it explains. */
+.dm-map-note.is-spaced { margin: 10px 0 14px; }
+.dm-map-note.is-tight  { margin-top: 6px; }
+
+/* The head of a modal that already has the form modal's padding. Without
+   this it carries its own 24px inside another 28px. */
+.dm-form-modal > .dm-modal-head { padding: 0 0 14px; margin-bottom: 14px; }
+
+/* The sample row shown in the bulk-import dialog. A block of CSV wants a
+   fixed pitch so the commas line up under the header above it. */
+.dm-csv-sample {
+  background: rgba(15,23,42,0.04);
+  padding: 12px;
+  border-radius: 12px;
+  font-family: var(--font-mono, ui-monospace, "SFMono-Regular", Menlo, monospace);
+  font-size: 11px; line-height: 1.5;
+  overflow: auto; white-space: pre-wrap;
+  margin: 0 0 18px;
 }
 .dm-map-canvas {
   flex: 1 1 420px; min-height: 232px;
@@ -2533,6 +2759,25 @@ html[data-theme="dark"] .dm-drop-circle { background: var(--surface); border-col
 .icon-btn.is-danger:hover { background: #B3182F; color: #fff; }
 
 /* ── Schedule Manager (Figma) ────────────────────────────────── */
+/* The search and the primary action on one line. They wrap to two on a
+   narrow screen, and the button goes full width there rather than sitting
+   stranded at one end of an empty row. */
+.sm-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sm-bar .sm-search { flex: 1 1 260px; margin-bottom: 0; }
+
+.sm-bar-action { flex: 0 0 auto; white-space: nowrap; }
+
+@media (max-width: 620px) {
+  .sm-bar { flex-wrap: wrap; }
+  .sm-bar-action { flex: 1 1 100%; justify-content: center; }
+}
+
 .sm-search {
   display: flex; align-items: center; gap: 10px;
   background: #fff; border: 1px solid var(--border);
@@ -2566,28 +2811,233 @@ html[data-theme="dark"] .sm-search { background: var(--surface); }
 html[data-theme="dark"] .sm-table th { background: var(--surface-2); color: var(--gold); }
 html[data-theme="dark"] .sm-table tbody tr:hover { background: var(--surface-2); }
 
-/* ── User Manager (Figma) ────────────────────────────────────── */
-.um-stats {
-  display: grid; gap: 16px; margin-bottom: 22px;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+/* ── ADMIN DASHBOARD ─────────────────────────────────────────
+   The charts and the activity feed. Both were inline, and the breakpoints
+   for the tile row were three !important overrides in a <style> block inside
+   the template - which is the only way to beat an inline grid, so the inline
+   grid is gone and they went with it. */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
 }
-.um-stat { display: flex; align-items: center; gap: 14px; padding: 20px; }
-.um-stat-icon {
-  width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 1.375rem;
+
+@media (max-width: 1000px) { .chart-grid { grid-template-columns: 1fr; } }
+
+.activity-row {
+  display: flex; align-items: center; gap: .75rem;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
 }
-.um-stat-label { display: block; font-size: 0.8125rem; color: var(--text); font-weight: 600; }
-.um-stat-value {
-  display: block; font-family: var(--font-display); font-weight: 700;
-  font-size: 1.625rem; color: var(--text); line-height: 1.25;
+
+.activity-row.is-last { border-bottom: 0; }
+
+.activity-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--gold-bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.um-stat-sub { display: block; font-size: 0.6875rem; color: var(--text-muted); }
+
+.activity-icon .bi { font-size: .9375rem; color: var(--primary); }
+
+.activity-text { flex: 1; font-size: .8125rem; color: var(--text); min-width: 0; }
+.activity-when { font-size: .6875rem; color: var(--text-muted); flex-shrink: 0; }
+
+/* ── ADMIN STAT TILE ─────────────────────────────────────────
+   One headline figure. Written by hand on three screens before this, with
+   three different heights and three different number sizes for the same kind
+   of fact. */
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  gap: 2px;
+}
+
+.stat-tile-icon {
+  width: 44px; height: 44px;
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  background: var(--gold-bg);
+  color: var(--primary);
+}
+
+.stat-tile-icon .bi { font-size: 1.25rem; }
+
+/* A tone per tile so a row of five is readable as five things rather than
+   one thing repeated. Same family, different weight of the same warmth. */
+.stat-tile-icon.is-primary { background: rgba(142,59,47,.10); color: var(--primary); }
+.stat-tile-icon.is-gold    { background: var(--gold-bg);      color: #9A7524; }
+.stat-tile-icon.is-green   { background: rgba(107,155,90,.14); color: #4B7A3B; }
+.stat-tile-icon.is-blue    { background: rgba(37,99,235,.10); color: #2563EB; }
+
+.stat-tile-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+
+.stat-tile-label {
+  font-size: .75rem;
+  color: var(--text-muted);
+}
+
+/* The second line some tiles carry: a share of the total, or a change since
+   last week. Muted, so the figure above it stays the thing you read first. */
+.stat-tile-sub {
+  font-size: .6875rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* A movement inside that line. Green for up, red for down, gold for a share
+   of something bought - the three the panel actually shows. */
+.stat-delta { font-weight: 700; font-variant-numeric: tabular-nums lining-nums; }
+.stat-delta.is-up   { color: #4B7A3B; }
+.stat-delta.is-down { color: #B3182F; }
+.stat-delta.is-gold { color: #9A7524; }
+
+/* It lifts under the cursor. Carried over from the reports page, which was
+   the only screen whose tiles did this - so now either every module answers
+   the cursor or none of them does. */
+.stat-tile { transition: transform .14s ease, box-shadow .14s ease; }
+.stat-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(36,28,24,.10); }
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-tile { transition: none; }
+  .stat-tile:hover { transform: none; }
+}
+
+/* A row of them. auto-fit rather than a fixed count, so five tiles on a
+   laptop become three and then two without a breakpoint per screen. */
+.stat-row {
+  display: grid;
+  /* 150, not 175. Five tiles at 175 need 939px and a 1180px laptop gives the
+     content column 864 - so users and reports broke 4 + 1, and a single tile
+     alone on a second row is the worst shape this can take. At 150 the five
+     fit, and the row still drops to three and then two on the way down. */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── ADMIN MODULE FURNITURE ──────────────────────────────────
+   The parts every management screen repeats: a table that scrolls sideways
+   instead of squashing, a list row, and the four or five cell treatments a
+   table of records needs. Each of these was written inline on between three
+   and six screens, with a different font size every time. */
+.adm-scroller { overflow: hidden; }
+.adm-scroller > div { overflow-x: auto; }
+
+/* A module that puts its filters and its table inside one card rather than
+   two. Schedules is the only one, but the padding was inline. */
+.adm-panel { padding: 22px; }
+@media (max-width: 600px) { .adm-panel { padding: 16px 14px; } }
+
+.adm-table-scroll { overflow-x: auto; margin-top: 18px; }
+
+/* The half-line of guidance under a field. Smaller than a label, and it
+   hangs off the control above rather than starting a new block. */
+.dm-note { font-size: .6875rem; color: var(--text-muted); margin: 4px 0 0; }
+
+/* Cell treatments. A reference wants a fixed pitch so the eye can compare
+   two of them; a name wants weight; a date wants to recede. */
+.giya-table .cell-ref    { font-family: var(--font-mono, ui-monospace, "SFMono-Regular", Menlo, monospace); font-size: .75rem; }
+.giya-table .cell-strong { font-weight: 600; }
+.giya-table .cell-amount { font-weight: 700; font-variant-numeric: tabular-nums lining-nums; }
+.giya-table .cell-muted  { font-size: .8125rem; color: var(--text-muted); }
+.giya-table .cell-small  { font-size: .8125rem; }
+
+/* A record shown as a card rather than a row, because it carries a
+   paragraph. Feedback is the only one, but it is three screens' worth of
+   layout if written by hand. */
+.adm-item { display: flex; align-items: flex-start; gap: .75rem; flex-wrap: wrap; }
+.adm-item-avatar { border-color: var(--primary); flex-shrink: 0; }
+.adm-item-main { flex: 1; min-width: 200px; }
+.adm-item-name { font-size: .875rem; font-weight: 700; color: var(--text); }
+.adm-item-meta { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+.adm-item-body { font-size: .8125rem; color: var(--text); line-height: 1.7; margin: 8px 0 0; }
+
+/* A select that sits beside a button rather than filling a form. */
+.giya-input.is-compact { width: auto; padding: 8px 12px; font-size: .8125rem; }
 
 .um-filters { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
 
-.badge-suspended { background: rgba(179,24,47,.12); color: #B3182F; }
+/* The filter row's fields sit on the shared width scale below; only the
+   margins are special, because a filter row has no space under each label. */
+.um-filters .field { margin: 0; }
+.um-filters .sm-search { margin: 0; }
 
-html[data-theme="dark"] .um-stat-icon { filter: brightness(.85); }
+/* The pair of buttons at the end of a bar: Reset and Export on two filter
+   rows, Import and Add on the destinations map.
+
+   All three were a d-flex that could not wrap, and "Export Schedule" beside
+   "Reset Filter" is 367px of buttons - so on a 320px phone the pair pushed
+   the whole admin page 77px sideways, sidebar included. It was never the
+   twelve-column table, which scrolls inside its own card exactly as it
+   should; it was two buttons that had no instruction to stack. */
+.adm-actions {
+  display: flex; gap: 8px;
+  flex: 0 0 auto; align-items: flex-end;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .adm-actions { flex: 1 1 100%; flex-wrap: wrap; }
+  .adm-actions > * { flex: 1 1 140px; justify-content: center; }
+}
+
+/* A face in a table cell. Smaller than the one in the top bar, because a row
+   is 56px tall and the name beside it is what you are reading. */
+.giya-table .cell-avatar {
+  width: 36px; height: 36px;
+  font-size: .75rem;
+  border-color: var(--primary);
+}
+
+.giya-table .cell-note { font-size: .6875rem; color: var(--text-muted); margin-top: 3px; }
+.giya-table .cell-star { color: var(--gold); font-size: .6875rem; }
+
+/* A picture standing in for the record: a church in the destinations table.
+   Square, cropped, and never allowed to squeeze the name beside it. */
+.giya-table .cell-thumb {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.giya-table td.is-flush { padding: 0; }
+.giya-table td.cell-empty { text-align: center; padding: 32px; color: var(--text-muted); }
+
+/* Two columns whose width is a decision rather than a consequence: the row
+   number, which is never more than three digits, and the action buttons,
+   which must not wrap. */
+.giya-table .col-no { width: 56px; }
+.giya-table .col-actions { width: 120px; }
+
+.sm-foot .per-page-label { font-size: .8125rem; color: var(--text-muted); }
+.sm-foot .per-page-select { width: 74px; padding: 6px 8px; }
+
+/* The same footer, but sitting inside the card rather than under it, so it
+   needs the card's own gutter instead of a gap above. */
+.sm-foot.is-inset { margin-top: 0; padding: 14px 18px; }
+
+/* A pair of fields sharing a row inside a form modal, and the sentence of
+   explanation that sometimes follows them. */
+.dm-col { flex: 1 1 180px; }
+.dm-hint { font-size: .75rem; color: var(--text-muted); margin: 0 0 14px; }
+
+/* Two buttons splitting the width of a modal footer. */
+.btn.is-grow { flex: 1; }
+
+.badge-suspended { background: rgba(179,24,47,.12); color: #B3182F; }
 
 /* ── Fullscreen map ──────────────────────────────────────────── */
 .map-grid.is-fullscreen {
@@ -2751,12 +3201,6 @@ body:has(.active-layout) { overflow: hidden; }
   display: flex; flex-direction: column; gap: 8px;
   flex-shrink: 0;
 }
-
-.ap-toolbar {
-  position: absolute; bottom: 24px; right: 24px; z-index: 10;
-  display: flex; flex-direction: column; gap: 8px;
-}
-
 /* ── ACTIVE PILGRIMAGE HEADER ────────────────────────────────
    In the sidebar the strip stacks: the way back, the route, the count, the
    candles. On a phone it folds - see the phone block further down - because
@@ -3537,8 +3981,9 @@ input[type="date"][readonly] { cursor: pointer; }
 .hero-stat { min-width: 0; }
 .hero-stat-value {
   display: block;
-  font-family: var(--font-display); font-weight: 700;
+  font-weight: 700;
   font-size: 1.5rem; line-height: 1; color: var(--gold);
+  letter-spacing: -.01em;
 }
 .hero-stat-label {
   display: block; margin-top: 5px;
@@ -4259,22 +4704,6 @@ button .bi::before,
 }
 
 /* ── Church card title links through ─────────────────────────── */
-.church-card-name {
-  font-size: 0.875rem; font-weight: 700;
-  line-height: 1.3; margin: 0;
-}
-.church-card-name a {
-  color: var(--text); text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: color .12s ease, border-color .12s ease;
-}
-.church-card-name a:hover,
-.church-card-name a:focus-visible {
-  color: var(--primary);
-  border-bottom-color: var(--gold);
-}
-.church-card-name a:focus-visible { outline: none; }
-
 html[data-theme="dark"] .church-card-name a:hover { color: var(--gold); }
 
 /* ── Arrival toast on the pilgrimage map ─────────────────────── */
@@ -4423,7 +4852,9 @@ html[data-theme="dark"] .arrive-toast { background: var(--surface); }
    ---------------------------------------------------------------- */
 .dm-modal {
   border: none; border-radius: var(--radius-2xl);
-  padding: 0; max-width: 620px;
+  /* No max-width of its own: the dialog around it decides, and a value here
+     only ever fought with that one. */
+  padding: 0;
   display: flex; flex-direction: column;
   max-height: min(88vh, 900px);
   overflow: hidden;
@@ -4485,7 +4916,11 @@ html[data-theme="dark"] .arrive-toast { background: var(--surface); }
 .dm-filter-field {
   display: flex; flex-direction: column;
   min-width: 0; margin: 0;              /* no stray bottom margin */
+  flex: 1 1 190px;
 }
+
+/* The search field, which earns more room than the two selects beside it. */
+.dm-filter-field.is-wide { flex-basis: 320px; }
 .dm-filter-field .dm-label { margin-bottom: 6px; }
 .dm-filter-field .giya-input { width: 100%; height: 44px; }
 
@@ -4980,8 +5415,7 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 ========================================================= */
 
 .report-card,
-.report-section-card,
-.report-summary-card {
+.report-section-card {
     background: var(--surface, #fff);
     border: 1px solid var(--border-light, #eee);
     border-radius: 16px;
@@ -5197,35 +5631,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     font-size: 1rem;
 }
 
-/* SUMMARY */
-
-.report-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    margin-bottom: 18px;
-}
-
-.report-summary-card {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px;
-}
-
-.report-summary-icon {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border-radius: 9px;
-    background: var(--gold-bg);
-    color: var(--primary);
-}
-
 /* PREVIEW */
 
 .report-preview-grid {
@@ -5283,7 +5688,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 
 @media (max-width: 1200px) {
     .report-filter { grid-template-columns: 1fr 1fr; }
-    .report-summary-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 800px) {
@@ -5295,16 +5699,12 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 }
 
 @media (max-width: 600px) {
-    .report-summary-grid { grid-template-columns: 1fr 1fr; }
     .report-actions { flex-direction: column; }
 
     .report-generate-btn,
     .report-clear-btn { width: 100%; }
 }
 
-@media (max-width: 400px) {
-    .report-summary-grid { grid-template-columns: 1fr; }
-}
 /* ════════════════════════════════════════════════════════════════
    ADMIN - Reports, GIYA dressing
    The page worked; it just looked like any admin panel. These give it
@@ -5342,28 +5742,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 }
 
 /*
-   ── Summary tiles ────────────────────────────────────────────────
-   Every tile was --gold-bg with a --primary glyph, so five different
-   measurements read as one block of gold. A tint each makes them
-   scannable, and the hues follow what the rest of the app already
-   uses for these ideas: maroon for people, gold for a journey, green
-   for an arrival, blue for a conversation, deep gold for money.
-   -------------------------------------------------------------- */
-.report-summary-icon.is-users       { background: rgba(142,59,47,.12);  color: var(--primary); }
-.report-summary-icon.is-itineraries { background: rgba(215,169,74,.20); color: #8A6415; }
-.report-summary-icon.is-visits      { background: rgba(107,155,90,.18); color: #4A7238; }
-.report-summary-icon.is-feedback    { background: rgba(37,99,235,.12);  color: #2E5AA8; }
-.report-summary-icon.is-revenue     { background: rgba(107,45,34,.12);  color: var(--primary-dark); }
-
-.report-summary-card {
-  transition: transform .14s ease, box-shadow .14s ease;
-}
-.report-summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(36,28,24,.10);
-}
-
-/*
    ── Ranked destinations ──────────────────────────────────────────
    The top three carry the pilgrimage: giving them medal colours says
    which church the devotees actually walk to, without another column.
@@ -5377,11 +5755,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 }
 .report-destination-item:nth-child(3) .report-rank {
   background: linear-gradient(135deg, #D9A277, #B47A4E); color: #4A2E18;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .report-summary-card { transition: none; }
-  .report-summary-card:hover { transform: none; }
 }
 
 /* ── Reports: alignment ──────────────────────────────────────────
@@ -5411,18 +5784,14 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 }
 
 /*
-   2. The five summary numbers did not share a line. Four labels fit on
-      one line and "Paid Revenue - 73 transactions" wrapped to two, and
-      because the card centred its contents the taller block pushed that
-      number 13px above its neighbours.
+   2. The five summary numbers did not share a line, because the card
+      centred its contents and "Paid Revenue - 73 transactions" wrapped
+      to two lines while the other four labels did not.
 
-      Aligning to the top fixes it for any label length, which matters
-      because these are counts - one more digit, or a longer month, and
-      centring goes ragged again. The icon is nudged to sit on the
-      number's own line rather than at the very top of the card.
+      .stat-tile is a top-aligned column, so the figures line up for any
+      label length - which matters, because these are counts and one
+      more digit used to make the row ragged again.
 */
-.report-summary-card { align-items: flex-start; }
-.report-summary-icon { margin-top: 1px; }
 
 /*
    3. The result header aligned its icon on the text baseline, which put
@@ -5460,3 +5829,52 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ── ADMIN REPORTS: the pieces that were written inline ──────────
+   Every one of these was a style attribute on the element, which is why
+   the same "small muted caption" appeared at .65rem, .67rem, .68rem and
+   .69rem on one page. There are three sizes here now, not six. */
+.report-card-title {
+  margin: 0 0 3px;
+  font-family: var(--font-display);
+  font-size: 1rem; color: var(--text);
+}
+.report-card-sub { margin: 0; font-size: .72rem; color: var(--text-muted); }
+
+.report-error-list { margin: 0; padding-left: 18px; }
+
+.report-result-title { font-size: .78rem; color: var(--text); }
+.report-result-count { font-size: .69rem; color: var(--text-muted); }
+.report-date-range .bi { color: var(--primary); }
+
+/* The head strip of a section card. It was the same three declarations
+   three times over, once per card. */
+.report-section-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light, #eee);
+}
+
+/* "No records match your filters" inside a full-width report table. */
+.report-empty-cell { text-align: center; padding: 30px 15px; }
+.report-empty-icon { display: block; font-size: 1.5rem; color: #AAA; margin-bottom: 7px; }
+.report-empty-title { display: block; font-size: .78rem; margin-bottom: 3px; }
+.report-empty-sub { font-size: .69rem; color: var(--text-muted); }
+
+/* The same idea in one of the two small preview tables, which keep a fixed
+   height so the pair stays level whether or not either has rows. */
+.report-blank-cell { height: 110px; text-align: center; color: var(--text-muted); }
+.report-blank-icon { display: block; font-size: 1.2rem; margin-bottom: 5px; }
+.report-blank-text { font-size: .69rem; }
+
+.report-placeholder-title { display: block; font-size: .76rem; color: var(--text); margin-bottom: 2px; }
+.report-placeholder-sub { margin: 0; font-size: .69rem; color: var(--text-muted); }
+
+.report-table th.is-right,
+.report-table td.is-right { text-align: right; }
+
+.report-rating { color: #C99000; font-weight: 700; }
+
+/* The ranked list of destinations under its own heading. */
+.report-rank-list { padding: 4px 16px; }
+.report-rank-name { flex: 1; font-size: .72rem; font-weight: 500; color: var(--text); }
+.report-rank-count { font-size: .69rem; font-weight: 600; color: var(--primary); }

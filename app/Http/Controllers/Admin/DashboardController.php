@@ -18,11 +18,15 @@ class DashboardController extends Controller
     {
         return view('admin.dashboard', [
             'stats' => [
-                ['label' => 'Total Users',  'value' => User::count(),                       'icon' => 'people-fill'],
-                ['label' => 'Destinations', 'value' => Church::active()->count(),           'icon' => 'building'],
-                ['label' => 'Total Visits', 'value' => VisitHistory::count(),               'icon' => 'geo-alt-fill'],
-                ['label' => 'Itineraries',  'value' => Itinerary::count(),                  'icon' => 'journal-text'],
-                ['label' => 'Feedback',     'value' => Feedback::count(),                   'icon' => 'chat-dots-fill'],
+                /* GIYA's own icons, and a tone each so a row of five reads as
+                   five things rather than one thing repeated. An itinerary is
+                   a route, not a notebook; feedback is a rating, not a speech
+                   bubble; a devotee is a pilgrim, not a generic person. */
+                ['label' => 'Total Users',  'value' => User::count(),             'icon' => 'giya-pilgrim', 'tone' => 'primary'],
+                ['label' => 'Destinations', 'value' => Church::active()->count(), 'icon' => 'giya-spires',  'tone' => 'gold'],
+                ['label' => 'Total Visits', 'value' => VisitHistory::count(),     'icon' => 'giya-nearby',  'tone' => 'green'],
+                ['label' => 'Itineraries',  'value' => Itinerary::count(),        'icon' => 'giya-route',   'tone' => 'blue'],
+                ['label' => 'Feedback',     'value' => Feedback::count(),         'icon' => 'giya-star',    'tone' => 'gold'],
             ],
             'monthlyVisits'  => $this->monthlyVisits(),
             'popularChurches'=> $this->popularChurches(),
@@ -68,13 +72,13 @@ class DashboardController extends Controller
         $items = [];
 
         foreach (User::orderByDesc('created_at')->take(3)->get() as $u) {
-            $items[] = ['icon' => 'person-plus-fill', 'text' => "New user registered: {$u->name}", 'at' => $u->created_at];
+            $items[] = ['icon' => 'giya-pilgrim', 'text' => "New user registered: {$u->name}", 'at' => $u->created_at];
         }
         foreach (VisitHistory::orderByDesc('visited_at')->take(3)->get() as $v) {
-            $items[] = ['icon' => 'geo-alt-fill', 'text' => "Visit logged at {$v->church_name}", 'at' => $v->visited_at];
+            $items[] = ['icon' => 'giya-nearby', 'text' => "Visit logged at {$v->church_name}", 'at' => $v->visited_at];
         }
         foreach (Feedback::with('church')->orderByDesc('created_at')->take(2)->get() as $f) {
-            $items[] = ['icon' => 'star-fill', 'text' => "Feedback received for " . ($f->church->name ?? 'a destination') . " ({$f->rating}★)", 'at' => $f->created_at];
+            $items[] = ['icon' => 'giya-star', 'text' => "Feedback received for " . ($f->church->name ?? 'a destination') . " ({$f->rating}★)", 'at' => $f->created_at];
         }
 
         usort($items, fn ($a, $b) => ($b['at'] ?? Carbon::minValue()) <=> ($a['at'] ?? Carbon::minValue()));
