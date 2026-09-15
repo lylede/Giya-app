@@ -26,6 +26,12 @@ window.GiyaLeaflet = (function () {
         finding:     'Finding your location\u2026',
         noGeo:       'This browser cannot share a location.',
         denied:      'Location permission was denied. Allow it in the address bar to use this.',
+        /* Not the same thing as being denied, and the difference matters:
+           there is no permission to grant, so a devotee sent to look for one
+           will not find it. Browsers refuse geolocation outright on a plain
+           http:// page that is not localhost, which is exactly what a phone
+           testing against a laptop over the LAN is looking at. */
+        insecure:    'Location needs a secure connection. This page is on http, so the browser will not share it - open the site over https, or on the computer running it.',
         noFix:       'Could not get a location fix. Try again outdoors or check GPS.',
         noTicking:   'Location is off, so stops will not tick themselves. Turn it on to check in automatically.',
         noFollow:    'Could not follow your location.',
@@ -37,6 +43,29 @@ window.GiyaLeaflet = (function () {
 
     function say(cfg, key) {
         return (cfg && cfg.labels && cfg.labels[key]) || TEXT[key];
+    }
+
+    /**
+     * Will the browser hand over a location at all on this origin?
+     *
+     * Geolocation is gated behind a secure context. https:// qualifies, and
+     * so does localhost; a plain http:// address on the LAN does not, which
+     * is the setup every phone testing against a laptop is in.
+     *
+     * isSecureContext is the browser's own answer and is supported
+     * everywhere geolocation is, so the host checks below are only a
+     * fallback for anything that predates it.
+     */
+    function secureEnough() {
+        if (typeof window.isSecureContext === 'boolean') return window.isSecureContext;
+
+        var host = window.location.hostname;
+
+        return window.location.protocol === 'https:'
+            || host === 'localhost'
+            || host === '127.0.0.1'
+            || host === '[::1]'
+            || window.location.protocol === 'file:';
     }
 
     var CEBU = { lat: 10.3157, lng: 123.8854 };
@@ -350,6 +379,17 @@ window.GiyaLeaflet = (function () {
 
         /* ---- locate me ---- */
         function locate(onDone) {
+            /* Checked before the call, not after it. On an insecure origin
+               getCurrentPosition does not reject with its own reason: it
+               invokes the error callback with code 1, the same code a real
+               refusal carries, so the page told the devotee they had denied
+               a permission they were never asked for. */
+            if (!secureEnough()) {
+                if (cfg.onStatus) cfg.onStatus(say(cfg, 'insecure'), 'error');
+                if (onDone) onDone();
+                return;
+            }
+
             if (!navigator.geolocation) {
                 if (cfg.onStatus) cfg.onStatus(say(cfg, 'noGeo'), 'error');
                 return;
@@ -963,6 +1003,12 @@ window.GiyaLeaflet = (function () {
         }
 
         function locate(done) {
+            if (!secureEnough()) {
+                if (cfg.onStatus) cfg.onStatus(say(cfg, 'insecure'), 'error');
+                if (done) done();
+                return;
+            }
+
             if (!navigator.geolocation) {
                 if (cfg.onStatus) cfg.onStatus(say(cfg, 'noGeo'), 'error');
                 if (done) done();
@@ -1027,6 +1073,15 @@ window.GiyaLeaflet = (function () {
         var announced = {};
 
         function track() {
+            /* Same gate as locate(). Without it the watch is started on an
+               insecure origin, fires its error callback once with code 1 and
+               then never again, so arrival detection is silently off for the
+               whole pilgrimage with nothing on screen to say so. */
+            if (!secureEnough()) {
+                if (cfg.onStatus) cfg.onStatus(say(cfg, 'insecure'), 'error');
+                return;
+            }
+
             if (!navigator.geolocation || watchId !== null) return;
 
             watchId = navigator.geolocation.watchPosition(

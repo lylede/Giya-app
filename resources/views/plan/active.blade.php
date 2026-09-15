@@ -4,23 +4,6 @@
 
 @push('head')
 <link rel="stylesheet" href="{{ asset('assets/css/leaflet.css') }}?v={{ filemtime(public_path('assets/css/leaflet.css')) }}">
-<style>
-    body { overflow: hidden; }
-    .active-layout { height: calc(100vh - 64px); }
-    .ap-head { background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-               padding: 20px; position: relative; overflow: hidden; flex-shrink: 0; }
-    .ap-head::after { content:''; position:absolute; top:-15px; right:-15px; width:96px; height:96px;
-                      border-radius:50%; background:var(--gold); opacity:.15; }
-    .ap-banner { padding: 14px 16px; background: var(--gold-bg);
-                 border-bottom: 1px solid rgba(142,59,47,.12); flex-shrink: 0; }
-    .ap-list { flex: 1; overflow-y: auto; padding: 8px 0; }
-    .ap-list::-webkit-scrollbar { width: 4px; }
-    .ap-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
-    .ap-foot { padding: 14px; border-top: 1px solid var(--border);
-               display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-    .ap-toolbar { position: absolute; bottom: 24px; right: 24px; z-index: 10;
-                  display: flex; flex-direction: column; gap: 8px; }
-</style>
 @endpush
 
 @section('content')
@@ -50,27 +33,46 @@
 
     <aside class="active-sidebar">
         <div class="ap-head">
-            <div style="position:relative">
-                <a href="{{ route('plan.index') }}"
-                   style="display:inline-flex;align-items:center;gap:4px;color:rgba(255,255,255,.7);font-size: 0.75rem;margin-bottom:10px">
-                    <i class="bi bi-chevron-left"></i> {{ __('giya.plan.all_itineraries') }}
+            @php
+                $visitedNow = $stops->where('is_visited', true)->count();
+                /* The count is split around the number so the number can be
+                   replaced on its own as stops tick, without the sentence
+                   around it having to be rebuilt in the script. */
+                [$countBefore, $countAfter] = explode(':done', __('giya.plan.stops_visited', [
+                    'done' => ':done', 'total' => $stops->count(),
+                ]), 2);
+            @endphp
+
+            <div class="ap-head-inner">
+                {{-- On a phone the label is hidden and the chevron alone is
+                     the button, so the strip spends its width on the route
+                     rather than on the way back out of it. The label is still
+                     in the markup for a screen reader and for the sidebar,
+                     where there is room for it. --}}
+                <a href="{{ route('plan.index') }}" class="ap-back">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                    <span class="ap-back-label">{{ __('giya.plan.all_itineraries') }}</span>
                 </a>
-                <h1 style="font-family:var(--font-display);color:#fff;font-size: 1.1875rem;margin:0 0 2px">{{ $itinerary->name }}</h1>
-                {{-- The count is split around the number so the number can be
-                     replaced on its own as stops tick, without the sentence
-                     around it having to be rebuilt in the script. --}}
-                @php
-                    $visitedNow = $stops->where('is_visited', true)->count();
-                    [$countBefore, $countAfter] = explode(':done', __('giya.plan.stops_visited', [
-                        'done' => ':done', 'total' => $stops->count(),
-                    ]), 2);
-                @endphp
-                <p style="color:rgba(255,255,255,.7);font-size: 0.75rem;margin:0">{{ $countBefore }}<span
-                    id="visitedCount">{{ $visitedNow }}</span>{{ $countAfter }}</p>
-                <div class="progress-track" style="margin-top:12px">
-                    <div class="progress-fill" id="progressBar" style="width:{{ $itinerary->progressPercent() }}%"></div>
+
+                <div class="ap-head-row">
+                    <div class="ap-head-titles">
+                        <h1 class="ap-title">{{ $itinerary->name }}</h1>
+                        <p class="ap-count">{{ $countBefore }}<span
+                            id="visitedCount">{{ $visitedNow }}</span>{{ $countAfter }}</p>
+                    </div>
+
+                    {{-- One candle per stop, lit as each is marked. Rendered
+                         already-lit for stops visited before this page load,
+                         so returning to a half-finished route shows where you
+                         are rather than replaying it.
+
+                         Beside the route on a phone, under it in the sidebar:
+                         stacked, the strip was 151px of a 664px screen. --}}
+                    <x-candle-progress :total="$stops->count()" :done="$visitedNow"
+                                       id="candleRow" class="ap-candles" />
                 </div>
-                <div id="progressLabel" style="color:var(--gold);font-size: 0.75rem;font-weight:700;margin-top:4px">
+
+                <div id="progressLabel" class="ap-percent">
                     {{ __('giya.plan.percent_done', ['pct' => $itinerary->progressPercent()]) }}
                 </div>
             </div>
@@ -325,16 +327,140 @@ const GiyaActive = (function () {
     */
     const sheet = document.querySelector('.active-sidebar');
     const grab  = document.getElementById('apGrab');
+    const head  = document.querySelector('.ap-head');
 
-    const SHEET_CLOSED = 196;
+    /* Both heights are measured, never typed.
+
+       They were typed: 104 for the strip and 196 for the closed sheet, in
+       the JS and again in the stylesheet. Both went stale the moment their
+       contents changed - the candle row is 46px where the progress bar it
+       replaced was 8, so the strip clipped it; and a phone with a home
+       indicator adds env(safe-area-inset-bottom) to the sheet's foot, so the
+       real sheet is taller than 196 and the map's attribution, which reads
+       the same number, printed itself across the church name.
+
+       Anything that has to clear either one reads the property, so measuring
+       once fixes every one of them at the same time. */
+    /* A floor against a measurement taken before the strip has rendered, not
+       a design value. It was 104 - the height the strip used to be - and once
+       the strip folded to 63 the floor went on pushing the map 41px further
+       down than the strip actually reaches, leaving a band of dead colour
+       nobody asked for. Low enough now that only a genuinely broken
+       measurement can hit it. */
+    const HEAD_MIN = 40;
+    const SHEET_MIN = 150;
+
+    let SHEET_CLOSED = 196;
+
+    function measureHead() {
+        if (!head) return;
+
+        // Only on the phone layout, where the strip is fixed over the map.
+        if (getComputedStyle(head).position !== 'fixed') return;
+
+        const layout = document.querySelector('.active-layout');
+        if (!layout) return;
+
+        /* The distance from the top of the layout to the bottom of the strip,
+           which is what the map is inset by.
+
+           Today that equals the strip's own height, because the layout and
+           the fixed strip both start just below the navbar - swapping one
+           formula for the other changes nothing and the probe says so. It is
+           written this way because it is what the map actually needs, and the
+           two stop being equal the moment the navbar height or the strip's
+           offset changes. */
+        const strip = head.getBoundingClientRect();
+        const top = layout.getBoundingClientRect().top;
+
+        const offset = Math.max(HEAD_MIN, Math.ceil(strip.bottom - top));
+
+        /* On the layout, not on the document element.
+
+           .active-layout declares --ap-head itself, and a custom property
+           declared on a closer ancestor beats one inherited from further up.
+           Publishing to documentElement therefore changed nothing for
+           anything inside the layout - the measurement was correct, was
+           written, and the map went on reading the stylesheet's 128px
+           default. Setting it here is an inline declaration on the same
+           element, which does win. */
+        layout.style.setProperty('--ap-head', offset + 'px');
+    }
+
+    function measureSheet() {
+        if (!sheet || sheet.classList.contains('is-open')) return;
+
+        sheet.classList.add('is-measuring');
+        const natural = Math.ceil(sheet.getBoundingClientRect().height);
+        sheet.classList.remove('is-measuring');
+
+        /* Clamped. A measurement taken mid-transition, or before a web font
+           has swapped, can come back as something absurd, and a closed sheet
+           that fills the screen takes the map with it. */
+        SHEET_CLOSED = Math.min(Math.max(natural, SHEET_MIN), Math.round(window.innerHeight * 0.55));
+
+        setSheet(SHEET_CLOSED);
+    }
 
     function sheetOpenHeight() {
+        const layout = document.querySelector('.active-layout');
+
+        const headPx = parseInt(
+            getComputedStyle(layout || document.documentElement).getPropertyValue('--ap-head'), 10
+        ) || HEAD_MIN;
+
         // Enough of the map left to see where you are going.
-        return Math.round(Math.min(window.innerHeight * 0.62, window.innerHeight - 64 - 104 - 24));
+        return Math.round(Math.min(window.innerHeight * 0.62, window.innerHeight - 64 - headPx - 24));
     }
 
     function setSheet(px) {
         document.documentElement.style.setProperty('--ap-sheet', Math.round(px) + 'px');
+    }
+
+    function remeasure() {
+        measureHead();
+        measureSheet();
+    }
+
+    remeasure();
+
+    /* After the web fonts land, because a strip measured in the fallback face
+       is a strip measured at the wrong height. */
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(remeasure);
+    }
+
+    window.addEventListener('resize', remeasure);
+    window.addEventListener('orientationchange', function () {
+        // After the rotation has actually happened, not as it is announced.
+        setTimeout(remeasure, 250);
+    });
+
+    /* Measuring once at load is not enough, and the reason is not exotic: a
+       stylesheet that arrives late, a church name that wraps to a second
+       line, a translated button that is taller in Cebuano, or the safe-area
+       padding a home indicator adds - any of them changes the sheet after
+       the measurement and leaves the published height describing a sheet
+       that no longer exists.
+
+       So the parts are watched instead. Deliberately the parts and not the
+       sheet: the sheet's own height is what this code sets, and observing
+       something you set is a loop. The banner, the handle and the foot are
+       sized by their contents and by nothing here. */
+    if (window.ResizeObserver) {
+        const watch = new ResizeObserver(function () {
+            // Next frame - the observer fires mid-layout, and measuring the
+            // sheet requires changing its height, which layout is busy with.
+            window.requestAnimationFrame(remeasure);
+        });
+
+        /* border-box, not the default content-box. The safe-area inset a home
+           indicator costs arrives as padding on .ap-foot, and padding does
+           not move the content box at all - so the default observer watched
+           the exact change it was added for and saw nothing. */
+        sheet.querySelectorAll('.ap-grab, .ap-banner, .ap-foot').forEach(function (el) {
+            watch.observe(el, { box: 'border-box' });
+        });
     }
 
     function openSheet(open) {
@@ -478,7 +604,7 @@ const GiyaActive = (function () {
         const next  = cur ? stops[stops.indexOf(cur) + 1] : null;
 
         document.getElementById('visitedCount').textContent  = done;
-        document.getElementById('progressBar').style.width   = pct + '%';
+        window.GiyaCandles.set(document.getElementById('candleRow'), done);
         document.getElementById('progressLabel').textContent =
             @json(__('giya.plan.percent_done', ['pct' => ':pct'])).replace(':pct', pct);
 

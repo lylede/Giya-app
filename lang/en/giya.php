@@ -79,7 +79,7 @@ return [
     'home' => [
         'eyebrow'         => 'Metro Cebu Religious Tourism',
         'title'           => 'Discover the Sacred Heart of Cebu',
-        'lead'            => "Giya is your companion for pilgrimage and religious tourism across Metro Cebu — find churches, plan routes, and walk in faith through the Philippines' oldest diocese.",
+        'lead'            => "Giya is your companion for pilgrimage and religious tourism across Metro Cebu: find churches, plan routes, and walk in faith through the Philippines' oldest diocese.",
         'explore_map'     => 'Explore the Map',
         'journey'         => 'Start Your Journey',
         'journey_lead'    => "Choose how you want to explore Metro Cebu's sacred places",

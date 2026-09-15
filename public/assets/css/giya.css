@@ -195,7 +195,7 @@ img { max-width: 100%; display: block; }
   .nav-bell      { display: none; }
   .btn-signout   { display: none; }
   .hamburger-btn { display: flex !important; }
-  .d-md-none     { display: none; }
+
 }
 @media (min-width: 768px) {
   .mobile-menu { display: none !important; }
@@ -270,7 +270,7 @@ img { max-width: 100%; display: block; }
 .btn-danger:hover { background: rgba(212,24,61,0.15); }
 
 .btn-sm { padding: 8px 16px; font-size: 0.8125rem; border-radius: var(--radius-md); }
-.btn-lg { padding: 16px 32px; font-size: 1rem; }
+
 .btn-w-full { width: 100%; }
 
 /* ── FORM CONTROLS ──────────────────────────────────────────── */
@@ -412,7 +412,7 @@ html[data-theme="dark"] .alert-info {
 }
 .badge-primary { background: var(--primary); color: #fff; }
 .badge-gold    { background: var(--gold); color: var(--text); }
-.badge-muted   { background: rgba(122,99,85,0.12); color: var(--text-muted); }
+
 .badge-brown   { background: rgba(142,59,47,0.1); color: var(--primary); }
 .badge-amber   { background: rgba(215,169,74,0.18); color: #8E6A20; }
 .badge-green   { background: rgba(34,139,34,0.1); color: #1a6b1a; }
@@ -424,18 +424,7 @@ html[data-theme="dark"] .alert-info {
 .status-Draft     { background: rgba(122,99,85,0.1); color: var(--text-muted); }
 
 /* ── MODAL ──────────────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 2000;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(36,28,24,0.5);
-  backdrop-filter: blur(4px);
-}
-.modal-box {
-  background: #fff; border-radius: var(--radius-2xl);
-  padding: 28px; max-width: 440px; width: 100%;
-  margin: 0 16px; box-shadow: var(--shadow-xl);
-  animation: modalIn .2s ease;
-}
+
 @keyframes modalIn {
   from { opacity:0; transform: scale(.96) translateY(8px); }
   to   { opacity:1; transform: scale(1) translateY(0); }
@@ -450,7 +439,19 @@ html[data-theme="dark"] .alert-info {
 
 /* ── PAGE LAYOUT ────────────────────────────────────────────── */
 .page-wrap { max-width: 1280px; margin: 0 auto; padding: 48px 20px; }
-.page-wrap-sm { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+/* Gold rather than the default ink, on the dark hero. */
+.eyebrow-text.is-gold { color: var(--gold); }
+
+/* Every home section below the hero sits on the same rhythm. */
+.home-section { margin-bottom: 56px; }
+
+.home-section-ruled {
+  margin-bottom: 56px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 48px;
+}
+
 .section-header {
   display: flex; align-items: flex-end;
   justify-content: space-between; margin-bottom: 24px;
@@ -598,14 +599,7 @@ html[data-theme="dark"] .alert-info {
 .auth-tab:hover:not(.active) {
   background: rgba(142,59,47,0.05); color: var(--primary);
 }
-.auth-divider {
-  display: flex; align-items: center;
-  gap: 12px; margin: 16px 0;
-}
-.auth-divider span { font-size: 0.75rem; color: var(--text-muted); }
-.auth-divider::before, .auth-divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--border);
-}
+
 .auth-footer {
   text-align: center; margin-top: 16px;
   font-size: 0.8125rem; color: var(--text-muted);
@@ -685,7 +679,9 @@ html[data-theme="dark"] .alert-info {
   box-shadow: var(--shadow-lg); transform: translateY(-2px);
 }
 .plan-card.featured { border: 2px solid var(--primary); }
-.plan-card-accent { height: 6px; }
+/* The bar across the top of a plan card. The colour was an inline style on
+   the element; it belongs here with the rest of the card's accent. */
+.plan-card-accent { height: 6px; background: var(--card-accent); }
 .plan-card-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
 /* Buttons do not wrap anywhere else in GIYA, and should not: a wrapped
    toolbar button looks broken. A plan card is the exception - its call to
@@ -697,6 +693,294 @@ html[data-theme="dark"] .alert-info {
   text-align: center;
   line-height: 1.35;
 }
+
+/* ── PREMIUM PLAN CARDS ──────────────────────────────────────
+   One colour for all four. They are four ways into the same activity, not
+   four categories, and four different browns said they were unrelated.
+
+   The bubble is two organic shapes, not one circle: a pale wave behind and
+   the solid accent in front, offset from each other and scaled at slightly
+   different rates. That offset is the whole effect - a single shape reads
+   as a circle growing, and two overlapping ones read as liquid, because
+   the edge between them keeps moving as they travel.
+
+   isolation:isolate is what makes it work. The bubble sits at z-index:-1 so
+   the text stays above it, and without a stacking context of its own that
+   -1 would put it behind the card's own background instead of on top.
+
+   Only transform animates. Growing width and height would relayout the card
+   sixty times a second and drag the whole grid with it. */
+.plan-card {
+  position: relative;
+  isolation: isolate;
+
+  --card-accent: var(--primary);
+  --card-ink: #fff;
+
+  /* The pale wave. A fixed value rather than a colour-mix of the accent,
+     because --primary is the same hex in both themes and one literal is
+     easier to check against the design than an arithmetic result. */
+  --card-accent-soft: #B4685B;
+}
+
+.liquid-wave {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.liquid-wave i {
+  position: absolute;
+  display: block;
+  transition: transform 1s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Anchored to the top-right corner and bleeding well off it, so at rest the
+   card shows a corner wave rather than a shape sitting on it. Most of each
+   blob is outside the card and clipped away; what is left is the corner and
+   nothing else.
+
+   The pale one is the larger and sits further out on both axes, so its rim
+   shows along the bottom-left of the solid one. That rim is the whole point -
+   it is what separates two waves from one circle.
+
+   The sizes are properties rather than literals because the two card families
+   are different shapes. A wave that is a corner on a 380px-tall plan card is
+   two fifths of a 180px-tall home card, and the same numbers on both looked
+   like a mistake on the shorter one. */
+.liquid-wave .b1 {
+  width: var(--b1-size); height: var(--b1-size);
+  right: var(--b1-right); top: var(--b1-top);
+  background: var(--card-accent-soft);
+  border-radius: 46% 54% 43% 57% / 52% 41% 59% 48%;
+}
+
+.liquid-wave .b2 {
+  width: var(--b2-size); height: var(--b2-size);
+  right: var(--b2-right); top: var(--b2-top);
+  background: var(--card-accent);
+  border-radius: 54% 46% 60% 40% / 44% 56% 44% 56%;
+  transition-delay: .05s;
+}
+
+/* The default is the plan card's: about 108px of wave across the corner and
+   74 down. */
+.plan-card, .home-card {
+  --b1-size: 160px; --b1-right: -52px; --b1-top: -86px;
+  --b2-size: 140px; --b2-right: -44px; --b2-top: -78px;
+}
+
+/* Focus counts as hover. The cards are links, and a keyboard user should
+   see what a mouse user sees.
+
+   The scale is generous because the blob is not a circle: its border-radius
+   makes the effective radius in the worst direction about 40% of its width,
+   so covering the far corner of the card needs roughly ten, not the seven a
+   circle of the same size would need. The excess is clipped and costs
+   nothing - stopping short is what would show.
+
+   --wave-scale lets a shorter card ask for less; the home cards have no list
+   of points and are about half the height, so they do not need ten. */
+.plan-card, .home-card { --wave-scale: 10; }
+
+.plan-card:hover .b1, .plan-card:focus-visible .b1,
+.home-card:hover .b1, .home-card:focus-visible .b1 {
+  transform: scale(calc(var(--wave-scale) * .95));
+}
+
+.plan-card:hover .b2, .plan-card:focus-visible .b2,
+.home-card:hover .b2, .home-card:focus-visible .b2 {
+  transform: scale(var(--wave-scale));
+}
+
+.plan-card-num {
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 50%;
+  font-size: .75rem; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  transition: color .35s ease, border-color .35s ease;
+}
+
+.plan-card-rule {
+  display: block;
+  width: 34px; height: 3px;
+  border-radius: 2px;
+  background: var(--card-accent);
+  margin: 0 0 12px;
+  transition: width .45s cubic-bezier(.2, .9, .3, 1), background-color .35s ease;
+}
+
+/* The tile is the accent at rest, the way the reference has it, and the
+   shadow is what stops it reading as a flat square of colour. */
+.plan-card-icon {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--card-accent-soft), var(--card-accent));
+  box-shadow: 0 10px 18px rgba(142, 59, 47, .28);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .35s ease, box-shadow .35s ease;
+}
+
+.plan-card-icon i { font-size: 1.375rem; color: #fff; transition: color .35s ease; }
+
+/* The badge sits on its own line under the icon rather than opposite it.
+   Opposite the icon it shared the top-right corner with the wave and the
+   number, and a dark badge on the dark wave is not a badge - "Traditional
+   Route" was rendering as an unreadable "Trac". The corner belongs to the
+   wave; the badge has the width of the card to itself down here. */
+.plan-card-badge-row { display: block; margin: 14px 0 12px; }
+
+.plan-card-title { display: block; font-size: .9375rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 8px; }
+.plan-card-desc  { display: block; font-size: .75rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 14px; }
+.plan-card-points { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.plan-card-point { font-size: .6875rem; color: var(--text); }
+.plan-card-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--card-accent); flex-shrink: 0; }
+
+.plan-card-title, .plan-card-desc, .plan-card-point,
+.plan-card-dot, .plan-card .badge, .plan-card .btn {
+  transition: color .35s ease, background-color .35s ease, border-color .35s ease;
+}
+
+.plan-card:hover, .plan-card:focus-visible { border-color: var(--card-accent); }
+
+.plan-card:hover .plan-card-title,
+.plan-card:hover .plan-card-desc,
+.plan-card:hover .plan-card-point,
+.plan-card:focus-visible .plan-card-title,
+.plan-card:focus-visible .plan-card-desc,
+.plan-card:focus-visible .plan-card-point {
+  color: var(--card-ink);
+}
+
+.plan-card:hover .plan-card-dot,
+.plan-card:focus-visible .plan-card-dot { background: var(--card-ink); }
+
+.plan-card:hover .plan-card-rule,
+.plan-card:focus-visible .plan-card-rule { width: 64px; background: var(--card-ink); }
+
+/* The tile inverts so it keeps its own contrast once the card is flooded. */
+.plan-card:hover .plan-card-icon,
+.plan-card:focus-visible .plan-card-icon {
+  background: var(--card-ink);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, .18);
+}
+
+.plan-card:hover .plan-card-icon i,
+.plan-card:focus-visible .plan-card-icon i { color: var(--card-accent); }
+
+.plan-card:hover .badge,
+.plan-card:focus-visible .badge {
+  background: transparent;
+  border: 1px solid var(--card-ink);
+  color: var(--card-ink);
+}
+
+.plan-card:hover .btn,
+.plan-card:focus-visible .btn {
+  background: var(--card-ink);
+  border-color: var(--card-ink);
+  color: var(--card-accent);
+}
+
+/* With motion turned down the card still changes - it arrives rather than
+   travels. The colour is information; the sweep is not. */
+@media (prefers-reduced-motion: reduce) {
+  .liquid-wave { display: none; }
+
+  .plan-card:hover, .plan-card:focus-visible,
+  .home-card:hover, .home-card:focus-visible { background: var(--card-accent); }
+
+  .plan-card:hover .plan-card-num,
+  .plan-card:focus-visible .plan-card-num { border-color: var(--card-ink); color: var(--card-ink); }
+}
+
+/* ── HOME JOURNEY CARDS ──────────────────────────────────────
+   The four ways in, on the home page. Same wave as the plan hub, because
+   two of them lead to the same two screens and a different treatment for
+   the same destination is just noise.
+
+   Shorter than the plan cards - an icon, a line, a sentence and a link,
+   with no list of points - so they ask the wave for a smaller scale. */
+.home-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  text-decoration: none;
+
+  --card-accent: var(--primary);
+  --card-ink: #fff;
+  --card-accent-soft: #B4685B;
+
+  /* Roughly three quarters of the plan card's wave, for a card roughly half
+     its height: about 82px across the corner and 56 down. */
+  --b1-size: 122px; --b1-right: -40px; --b1-top: -66px;
+  --b2-size: 106px; --b2-right: -34px; --b2-top: -60px;
+
+  /* A smaller shape on a smaller card still has less distance to cover, so
+     the scale comes down with it rather than staying at the hub's ten. */
+  --wave-scale: 8.5;
+}
+
+.home-card-icon {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg, var(--card-accent-soft), var(--card-accent));
+  box-shadow: 0 10px 18px rgba(142, 59, 47, .28);
+  transition: background .35s ease, box-shadow .35s ease;
+}
+
+.home-card-icon i { font-size: 1.375rem; color: #fff; transition: color .35s ease; }
+
+.home-card-title { display: block; font-size: .9375rem; font-weight: 700; color: var(--text); }
+.home-card-desc  { display: block; font-size: .75rem; color: var(--text-muted); margin-top: 4px; line-height: 1.6; }
+
+.home-card-go {
+  margin-top: auto;
+  font-size: .75rem; font-weight: 700;
+  color: var(--card-accent);
+  display: flex; align-items: center; gap: 4px;
+}
+
+.home-card-go i { font-size: .6875rem; transition: transform .35s cubic-bezier(.2, .9, .3, 1); }
+
+.home-card-title, .home-card-desc, .home-card-go {
+  transition: color .35s ease;
+}
+
+.home-card:hover, .home-card:focus-visible { border-color: var(--card-accent); }
+
+.home-card:hover .home-card-title,
+.home-card:hover .home-card-desc,
+.home-card:hover .home-card-go,
+.home-card:focus-visible .home-card-title,
+.home-card:focus-visible .home-card-desc,
+.home-card:focus-visible .home-card-go { color: var(--card-ink); }
+
+/* The chevron moves the way the card is asking you to. */
+.home-card:hover .home-card-go i,
+.home-card:focus-visible .home-card-go i { transform: translateX(4px); }
+
+/* The tile inverts so it keeps its own contrast once the card is flooded. */
+.home-card:hover .home-card-icon,
+.home-card:focus-visible .home-card-icon {
+  background: var(--card-ink);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, .18);
+}
+
+.home-card:hover .home-card-icon i,
+.home-card:focus-visible .home-card-icon i { color: var(--card-accent); }
 
 /* A checkbox with an explanation under its label, in the admin forms. The
    label wraps the input so the whole block is the hit area - a 13px tick box
@@ -895,12 +1179,7 @@ html[data-theme="dark"] .history-thumb-badge { background: var(--bg); }
 }
 
 /* ── MAP PAGE ───────────────────────────────────────────────── */
-.map-layout { display: flex; overflow: hidden; }
-.map-layout .map-sidebar {
-  width: 340px; flex-shrink: 0; background: #fff;
-  border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; overflow: hidden;
-}
+
 .map-wrap { flex: 1; position: relative; }
 #map { width: 100%; height: 100%; }
 
@@ -1155,8 +1434,7 @@ img.gs-img.is-loaded { background: none; animation: none; }
   .page-wrap { padding: 24px 16px; }
   .section-title { font-size: 1.375rem; }
   .auth-header h1 { font-size: 1.25rem; }
-  .map-layout { flex-direction: column; }
-  .map-layout .map-sidebar { width: 100%; height: 240px; border-right: none; border-bottom: 1px solid var(--border); }
+
   /* The pilgrimage, on a phone.
 
      Stacking the two panes gave the sidebar a fixed 260px, and its header
@@ -1172,38 +1450,137 @@ img.gs-img.is-loaded { background: none; animation: none; }
      that rather than guessing. */
   .active-layout {
     display: block; position: relative; overflow: hidden;
-    /* Back link, name, count and the bar - measured, not guessed: at 92px
-       the bar was being sliced by its last pixel. */
-    --ap-head: 104px;
+
+    /* A starting value only. The strip is measured after it renders and the
+       real height is published back over this, because a number typed here
+       is a number that goes stale: 104px was measured for an 8px progress
+       bar, and the 46px candle row that replaced it was sliced by 14px on
+       every phone. Anything that has to clear the strip reads the property,
+       so re-measuring is the whole fix. */
+    --ap-head: 128px;
   }
 
+  /* The strip folds instead of stacking.
+
+     Stacked it was four rows - back link, route, count, candles - and 151px
+     of a 664px screen, which is more than a fifth of the phone spent saying
+     where you already know you are. Folded it is two: the chevron and the
+     route on one line with the candles beside them, the count under. */
   .active-layout .ap-head {
     position: fixed; top: 64px; left: 0; right: 0; z-index: 620;
-    height: var(--ap-head); padding: 10px 16px;
+
+    /* Sized by its contents, not by the variable it publishes - the variable
+       is for everything else. Setting both would be a loop. */
+    height: auto; min-height: 0;
+    padding: 8px 14px 10px;
     display: flex; flex-direction: column; justify-content: center;
   }
+
   /* The decorative circle is for a 340px column, not a full-width strip. */
   .active-layout .ap-head::after { display: none; }
-  .active-layout .ap-head h1 {
-    font-size: 1.0625rem; margin: 0 0 2px;
+
+  /* The chevron alone. The label is still read aloud; it is the twelve
+     characters of "All itineraries" that the strip cannot afford. */
+  .active-layout .ap-back {
+    position: absolute; left: 0; top: 2px;
+    width: 26px; height: 26px;
+    margin: 0;
+    justify-content: center;
+    font-size: .9375rem;
+  }
+
+  .active-layout .ap-back-label {
+    position: absolute; width: 1px; height: 1px;
+    margin: -1px; padding: 0; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* Route and candles on one line. The candles take what is left after the
+     name, down to a floor - a name long enough to need the whole width still
+     leaves the row readable, and the candles shrink rather than wrap. */
+  .active-layout .ap-head-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 30px;
+  }
+
+  .active-layout .ap-head-titles { flex: 1 1 auto; min-width: 0; }
+
+  .active-layout .ap-title {
+    font-size: 1.0625rem; margin: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .active-layout .ap-head a { margin-bottom: 4px !important; }
-  .active-layout .ap-head .progress-track { margin-top: 8px !important; }
-  /* "0 of 3 stops visited" and the bar already say this, and the strip has
-     no room for a third way of saying it. */
+
+  .active-layout .ap-count { font-size: .6875rem; }
+
+  .active-layout .ap-candles {
+    flex: 0 1 auto;
+    width: 44%;
+    max-width: 190px;
+    min-width: 56px;
+    height: 34px;
+    margin: 0;
+    justify-content: flex-end;
+  }
+
+  /* Shorter candles for a shorter strip. */
+  .active-layout .ap-candles .candle { max-width: 14px; }
+  .active-layout .ap-candles .candle-wax { height: 15px; }
+  .active-layout .ap-candles .candle-flame { bottom: 19px; width: 7px; height: 10px; margin-left: -3.5px; }
+  .active-layout .ap-candles .candle-glow  { bottom: 13px; width: 24px; height: 24px; margin-left: -12px; }
+
+  /* "0 of 3 stops visited" and the candles already say this, and the strip
+     has no room for a third way of saying it. */
   .active-layout #progressLabel { display: none; }
 
   /* Closed, the list is not peeking through the gap - a few pixels of a row
      read as something broken rather than as a hint. */
   .active-sidebar:not(.is-open) .ap-list { display: none; }
 
-  /* Leaflet's own corners sit at the bottom of the map, which now runs on
-     behind the sheet - so the attribution was printed across the one button
-     the screen exists for. */
-  .active-layout .leaflet-bottom { bottom: calc(var(--ap-sheet, 196px) + 2px); }
+  /* The map stops where the sheet starts, rather than running on behind it
+     and having every control inside it pushed back up by the sheet's height.
 
-  .active-layout .map-wrap { position: absolute; inset: var(--ap-head) 0 0 0; }
+     That push was the old answer and it kept going wrong, because the map and
+     the sheet were measuring from different bottoms: the sheet is fixed to
+     the visual viewport, the map was absolute inside a layout sized with
+     100vh, and on iOS those differ by the height of the browser toolbar.
+     Leaflet's attribution was offset by exactly the right amount from exactly
+     the wrong place, and landed on the church name.
+
+     Ending the map at the sheet's top removes the question. The attribution
+     sits at the bottom of the map, which IS the top of the sheet, and no
+     offset is needed anywhere. Nothing is lost visually - the sheet is
+     opaque, so the part of the map that used to run behind it was never
+     visible. */
+  .active-layout .map-wrap {
+    position: absolute;
+    inset: var(--ap-head) 0 var(--ap-sheet, 196px) 0;
+
+    /* Matched to the sheet's own transition, so the two edges move together
+       instead of the map snapping and the sheet sliding. */
+    transition: bottom .28s cubic-bezier(.2, .8, .2, 1);
+  }
+
+  /* One frame with the height off, so the closed sheet can be measured
+     rather than assumed. 196px was the assumption, and it is wrong on any
+     phone with a home indicator: .ap-foot adds env(safe-area-inset-bottom)
+     to its padding, which is 34px on an iPhone. The map's attribution reads
+     the same property, which is how it ended up printed across the church
+     name. */
+  .active-sidebar.is-measuring {
+    height: auto !important;
+    transition: none !important;
+  }
+
+  /* One frame with the height off, so the closed sheet can be measured
+     rather than assumed. 196px was the assumption, and it is wrong on any
+     phone with a home indicator: .ap-foot adds env(safe-area-inset-bottom)
+     to its padding, which is 34px on an iPhone. */
+  .active-sidebar.is-measuring {
+    height: auto !important;
+    transition: none !important;
+  }
 
   .active-sidebar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 640;
@@ -1275,15 +1652,27 @@ img.gs-img.is-loaded { background: none; animation: none; }
   body:has(.active-layout) .giya-fab { bottom: calc(var(--ap-sheet, 196px) + 14px); }
 
   /* The legend goes to one line here - three stacked labels were taking a
-     fifth of a phone-sized map. */
+     fifth of a phone-sized map. It still wrapped to two at 390px, which put
+     it back to a sixth, so the dashes and the gaps are tighter again and
+     nowrap keeps it honest: if it cannot fit on one line it scrolls rather
+     than growing downward into the map. */
   .active-layout .ap-legend {
-    flex-direction: row; flex-wrap: wrap;
-    gap: 3px 9px; padding: 5px 8px;
-    top: 10px; left: 10px; max-width: calc(100% - 74px);
-    font-size: 0.5625rem;
+    flex-direction: row; flex-wrap: nowrap;
+    gap: 0 7px; padding: 4px 7px;
+    top: 8px; left: 8px; max-width: calc(100% - 66px);
+    font-size: .5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
-  .active-layout .ap-legend-item { gap: 4px; }
-  .active-layout .ap-legend-dash { width: 13px; }
+  .active-layout .ap-legend::-webkit-scrollbar { display: none; }
+  .active-layout .ap-legend-item { gap: 3px; }
+  .active-layout .ap-legend-dash { width: 11px; }
+
+  /* The map's own edge moves with the sheet; under reduced motion it just
+     arrives there. */
+  @media (prefers-reduced-motion: reduce) {
+    .active-layout .map-wrap { transition: none; }
+  }
   .admin-layout { flex-direction: column; }
   .admin-sidebar { width: 100%; height: auto; position: relative; }
 }
@@ -1303,14 +1692,365 @@ img.gs-img.is-loaded { background: none; animation: none; }
 .giya-tooltip::before { border-top-color: var(--text) !important; }
 
 /* ── PROGRESS BAR ───────────────────────────────────────────── */
-.progress-track {
-  height: 8px; border-radius: 999px;
-  overflow: hidden; background: rgba(255,255,255,0.2);
+/* ── PLAN HUB LAYOUT ─────────────────────────────────────────
+   The grid and its breakpoints. These were three !important overrides in a
+   @push('head') block inside the template, which is the only way to beat an
+   inline grid-template-columns - so the inline one is gone and the
+   !importants went with it. */
+.hub-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin: 0 0 10px;
 }
-.progress-fill {
-  height: 100%; border-radius: 999px;
-  background: linear-gradient(to right, var(--gold), var(--gold-light));
-  transition: width .5s ease;
+
+.hub-lead {
+  color: var(--text-muted);
+  font-size: .9375rem;
+  line-height: 1.7;
+  max-width: 580px;
+  margin: 0 0 40px;
+}
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 48px;
+}
+
+@media (max-width: 1024px) { .plan-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 620px)  { .plan-grid { grid-template-columns: 1fr; } }
+
+.hub-bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 40px;
+}
+
+@media (max-width: 900px) { .hub-bottom { grid-template-columns: 1fr; } }
+
+.hub-section-title { font-size: 1.25rem; }
+
+.plan-card-cta { margin-top: auto; justify-content: center; }
+
+/* A link should not have to say it is not underlined at every call site. */
+.plan-card, .home-card, .history-item { text-decoration: none; }
+
+/* ── RECENT ITINERARIES ROW ──────────────────────────────────── */
+.history-icon .bi { font-size: 1.125rem; color: var(--primary); }
+.history-body     { flex: 1; min-width: 0; }
+
+.history-name {
+  display: block;
+  font-size: .875rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.history-meta {
+  display: block;
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.history-chevron { color: var(--text-muted); }
+
+/* ── HOME: UPCOMING ACTIVITIES ───────────────────────────────
+   A row per event: a date tile, the name and church, the date. The soonest
+   one carries the primary colour and the rest are gold-on-cream, so the list
+   has a "next" rather than five rows shouting equally. */
+.home-bottom-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 900px) {
+  .home-bottom-grid { grid-template-columns: 1fr; }
+}
+
+.event-heading { margin-bottom: 4px; }
+.event-lead    { margin-bottom: 20px; }
+
+.event-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.event-date {
+  width: 56px; height: 56px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 4px;
+  background: var(--gold-bg);
+}
+
+.event-date.is-soonest { background: var(--primary); }
+
+.event-kind {
+  font-size: .5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--primary);
+}
+
+.event-date.is-soonest .event-kind { color: var(--gold); }
+
+.event-body  { flex: 1; min-width: 0; }
+.event-name  { font-size: .875rem; font-weight: 700; color: var(--text); }
+.event-where { font-size: .75rem; color: var(--text-muted); }
+.event-where .bi { font-size: .6875rem; }
+
+.event-when {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+/* ── HOME: CLOSING CARD ──────────────────────────────────────
+   position:relative on the copy and the buttons, because upgrade-card paints
+   a decorative shape of its own and both need to sit above it. */
+.home-cta {
+  padding: 28px;
+  min-height: 320px;
+}
+
+.home-cta-copy,
+.home-cta-actions { position: relative; }
+
+.home-cta-icon {
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  background: rgba(215, 169, 74, .2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+
+.home-cta-icon .bi { font-size: 1.375rem; color: var(--gold); }
+
+.home-cta-title {
+  font-family: var(--font-display);
+  color: #fff;
+  font-size: 1.375rem;
+  line-height: 1.3;
+  margin: 0 0 12px;
+}
+
+.home-cta-lead {
+  color: rgba(255, 255, 255, .7);
+  font-size: .8125rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* ── REVEAL ON SCROLL ────────────────────────────────────────
+   Rows arrive in order instead of all at once.
+
+   Note what is NOT here: no rule hides anything by default. The hidden state
+   lives behind .is-armed, which only giya-reveal.js adds, so a page whose
+   JavaScript failed shows all its content rather than none of it. A reveal
+   that hides first and shows later is one script error away from a blank
+   screen.
+
+   The stagger is a custom property the script sets per child, rather than a
+   long list of :nth-child rules - the map's result list is as long as the
+   search makes it, and nth-child stops at whatever number was typed out. */
+[data-reveal].is-armed > * {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity .5s ease, transform .55s cubic-bezier(.16, 1, .3, 1);
+  transition-delay: calc(var(--reveal-i, 0) * 60ms);
+  will-change: opacity, transform;
+}
+
+/* is-in is on the item, not on the container: each card arrives as it
+   reaches the screen, which on a phone is one at a time. */
+[data-reveal].is-armed > .is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Once it has arrived, stop asking the compositor to keep a layer for it. */
+[data-reveal] > .is-in { will-change: auto; }
+
+/* Only the transition. The script reads the motion setting once at startup
+   and never arms a container when it is on, so the hidden state is already
+   unreachable in that case; the one path left is the setting being turned on
+   while a row is mid-flight, and cutting the transition is what stops it.
+
+   Setting opacity and transform here as well was the first version. Both were
+   redundant - the revealed state sets them - and the probe proved it by
+   passing with them deleted. Rules that cannot be reached are not safety, they
+   are just more to read. */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal].is-armed > * { transition: none; }
+}
+
+/* ── CANDLE PROGRESS ─────────────────────────────────────────
+   One candle per stop, lit as each church is visited.
+
+   Both places this appears sit on the dark brown panel, so the unlit wax is
+   a pale warm grey that reads against it and the lit wax warms towards the
+   gold rather than changing hue.
+
+   Everything that moves is transform and opacity. The flame sits in a fixed
+   box and scales inside it, so a row of twenty flickering candles never asks
+   the browser to lay the row out again.
+
+   Each candle flexes: twenty share the row and come out thin, seven come out
+   full width. max-width stops three candles becoming three fence posts. */
+.candle-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 6px;
+  height: 46px;
+}
+
+.candle {
+  position: relative;
+  flex: 1 1 0;
+  max-width: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* The wax. Narrower than the candle box so the flame has room to be wider
+   than the column it sits on without the columns touching. */
+.candle-wax {
+  width: 64%;
+  height: 22px;
+  border-radius: 3px 3px 2px 2px;
+  background: linear-gradient(to right, #C9BCAE, #EDE3D6 38%, #C9BCAE);
+  transition: background .5s ease;
+}
+
+.candle-wick {
+  width: 2px;
+  height: 4px;
+  border-radius: 1px;
+  background: #6B5647;
+  transition: background .35s ease;
+}
+
+/* The flame and its halo are both absolutely placed above the wick, so
+   neither one takes part in the column's layout. */
+.candle-flame,
+.candle-glow {
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+}
+
+/* A teardrop: a circle with one corner pulled to a point, rotated so the
+   point is up. Cheaper and sharper at this size than an SVG path. */
+.candle-flame {
+  bottom: 26px;
+  width: 9px; height: 12px;
+  margin-left: -4.5px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(ellipse at 50% 72%, #FFF4D2 0%, var(--gold-light, #E8C06A) 42%, var(--gold, #D7A94A) 78%, rgba(215, 169, 74, 0) 100%);
+
+  /* Unlit: no flame at all, collapsed onto the wick it would rise from. */
+  opacity: 0;
+  transform: scale(.2);
+  transform-origin: 50% 100%;
+  transition: opacity .25s ease, transform .45s cubic-bezier(.2, 1.5, .4, 1);
+}
+
+.candle-glow {
+  bottom: 18px;
+  width: 34px; height: 34px;
+  margin-left: -17px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 192, 106, .55) 0%, rgba(232, 192, 106, .18) 45%, rgba(232, 192, 106, 0) 70%);
+  opacity: 0;
+  transform: scale(.4);
+  transition: opacity .4s ease, transform .6s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* The one that is next. Not lit - just the wick saying where the flame goes,
+   so the row reads as a place in a sequence rather than a score. */
+.candle.is-next .candle-wick { background: var(--gold, #D7A94A); }
+
+.candle.is-lit .candle-wax {
+  background: linear-gradient(to right, #C2A886, #F3E6CE 38%, #C2A886);
+}
+
+.candle.is-lit .candle-wick { background: #4A3A2E; }
+
+.candle.is-lit .candle-flame {
+  opacity: 1;
+  transform: scale(1);
+  animation: candle-flicker 2.4s ease-in-out infinite;
+}
+
+.candle.is-lit .candle-glow {
+  opacity: 1;
+  transform: scale(1);
+  animation: candle-breathe 2.4s ease-in-out infinite;
+}
+
+/* Lighting. Added by the script for one beat when a stop is marked, then
+   removed - the bloom is the moment, the flicker is the steady state.
+
+   The delays are staggered by the script so that lighting several at once
+   (loading a route that is already half done) runs along the row rather than
+   going up all together. */
+.candle.is-lighting .candle-flame { animation: candle-catch .55s cubic-bezier(.2, 1.5, .4, 1) both; }
+.candle.is-lighting .candle-glow  { animation: candle-bloom .75s cubic-bezier(.16, 1, .3, 1) both; }
+
+@keyframes candle-catch {
+  0%   { opacity: 0; transform: scale(.2)  translateY(2px); }
+  35%  { opacity: 1; transform: scale(1.5) translateY(-1px); }
+  70%  { transform: scale(.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes candle-bloom {
+  0%   { opacity: 0; transform: scale(.4); }
+  30%  { opacity: 1; transform: scale(1.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* A real flame is never still and never symmetric. Both of these are slow
+   and shallow on purpose: a row of candles that jitters is a row of candles
+   nobody can read the count off. */
+@keyframes candle-flicker {
+  0%, 100% { transform: scale(1)      skewX(0deg); }
+  25%      { transform: scale(1.06, .96) skewX(2deg); }
+  50%      { transform: scale(.97, 1.05) skewX(-1.5deg); }
+  75%      { transform: scale(1.04, .98) skewX(1deg); }
+}
+
+@keyframes candle-breathe {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: .72; transform: scale(1.08); }
+}
+
+/* Lit is lit, whether or not it moves. The flame and the glow still appear,
+   they simply do not catch, bloom, flicker or breathe. */
+@media (prefers-reduced-motion: reduce) {
+  .candle-flame, .candle-glow { transition: none; }
+
+  .candle.is-lit .candle-flame,
+  .candle.is-lit .candle-glow,
+  .candle.is-lighting .candle-flame,
+  .candle.is-lighting .candle-glow { animation: none; opacity: 1; transform: scale(1); }
 }
 
 /* ── STAR RATING ────────────────────────────────────────────── */
@@ -1338,15 +2078,14 @@ img.gs-img.is-loaded { background: none; animation: none; }
    A deliberately small set - only what the GIYA templates use.
    ============================================================ */
 .d-flex          { display: flex; }
-.d-block         { display: block; }
-.d-inline-flex   { display: inline-flex; }
+
 .d-none          { display: none !important; }
 .flex-column     { flex-direction: column; }
 .flex-wrap       { flex-wrap: wrap; }
 .flex-row-reverse{ flex-direction: row-reverse; }
 .align-items-center      { align-items: center; }
 .align-items-start       { align-items: flex-start; }
-.justify-content-center  { justify-content: center; }
+
 .justify-content-between { justify-content: space-between; }
 .justify-content-end     { justify-content: flex-end; }
 .text-center { text-align: center; }
@@ -1362,7 +2101,6 @@ img.gs-img.is-loaded { background: none; animation: none; }
 .gap-1 { gap: .25rem; } .gap-2 { gap: .5rem; } .gap-3 { gap: .75rem; } .gap-4 { gap: 1.5rem; }
 .bg-transparent { background: transparent; }
 .border-0 { border: 0; }
-.fs-5 { font-size: 1.1rem; }
 
 @media (min-width: 576px) { .d-sm-inline { display: inline; } }
 @media (max-width: 575px) { .d-sm-inline { display: none; } }
@@ -1523,7 +2261,6 @@ html[data-theme="dark"] body { background: var(--bg); color: var(--text); }
    If you add a new white surface later, add it here too.
 */
 html[data-theme="dark"] .card,
-html[data-theme="dark"] .modal-box,
 html[data-theme="dark"] .modal-content,
 html[data-theme="dark"] .auth-card,
 html[data-theme="dark"] .admin-topbar,
@@ -1582,8 +2319,6 @@ html[data-theme="dark"] .pref-switch-track { background: #4A3B32; }
 
 /* Badges and chips. */
 html[data-theme="dark"] .badge-gold { background: rgba(215,169,74,0.20); color: var(--gold); }
-html[data-theme="dark"] .giya-chip,
-html[data-theme="dark"] .pref-soon { background: var(--surface-2); color: var(--text-muted); }
 
 /* Flash messages. */
 html[data-theme="dark"] .alert,
@@ -1620,18 +2355,6 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
 .fav-btn:hover { transform: scale(1.1); }
 .fav-btn.is-saved { color: #D4183D; }
 /* ── "Coming soon" tag on a preference that saves but has no effect yet ── */
-.pref-soon {
-  margin-left: auto;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 3px 9px;
-}
 
 /* ── Leaflet: photo pins, user marker, popups ───────────────── */
 .giya-pin-wrap { background: none; border: 0; }
@@ -1720,19 +2443,6 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
 }
 .map-note.is-error { background: rgba(212,24,61,.08); color: #B3182F; border-color: rgba(212,24,61,.25); }
 
-.route-stop {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 11px; border-radius: 10px;
-  background: var(--bg-secondary); border: 1px solid var(--border);
-  margin-bottom: 6px; font-size: 0.8125rem;
-}
-.route-stop .n {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: var(--primary); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.6875rem; font-weight: 700; flex-shrink: 0;
-}
-
 html[data-theme="dark"] .giya-pin-frame,
 html[data-theme="dark"] .giya-pin-tail { border-color: #2E241E; }
 html[data-theme="dark"] .giya-pin-tail { border-top-color: #2E241E; }
@@ -1742,7 +2452,7 @@ html[data-theme="dark"] .leaflet-container { background: #1D1714; }
 html[data-theme="dark"] .leaflet-tile { filter: brightness(.78) saturate(.85) contrast(1.05); }
 
 /* ── Destination Manager (Figma node 157:55) ─────────────────── */
-.dm-panel { padding: 26px 24px 24px; margin-bottom: 22px; }
+
 .dm-panel-title {
   font-family: var(--font-display); font-weight: 600;
   font-size: 1.125rem; color: var(--primary); margin: 0;
@@ -1754,15 +2464,6 @@ html[data-theme="dark"] .leaflet-tile { filter: brightness(.78) saturate(.85) co
 .dm-row { display: flex; flex-wrap: wrap; gap: 16px; }
 .dm-row > .field { margin-bottom: 4px; }
 
-.dm-map-box {
-  display: flex; flex-wrap: wrap; gap: 18px;
-  background: var(--bg); border: 1px solid #EEDCD1;
-  border-radius: var(--radius-md); padding: 16px;
-}
-.dm-map-side { flex: 0 1 260px; display: flex; flex-direction: column; }
-.dm-map-heading { font-weight: 700; font-size: 0.9375rem; color: var(--text); }
-.dm-map-hint { font-size: 0.8125rem; color: var(--text); margin: 0 0 14px; }
-.dm-choose-btn { width: 100%; max-width: 250px; height: 52px; }
 .dm-map-note {
   display: flex; align-items: flex-start; gap: 6px;
   font-size: 0.8125rem; color: #999; margin: 14px 0 0; line-height: 1.5;
@@ -1792,9 +2493,6 @@ html[data-theme="dark"] .leaflet-tile { filter: brightness(.78) saturate(.85) co
 .dm-drop-text { font-size: 0.8125rem; color: var(--text); max-width: 180px; }
 .dm-drop-sub { font-size: 0.75rem; color: #999; }
 
-.dm-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 22px; }
-.dm-btn-wide { flex: 0 1 250px; height: 56px; font-size: 0.9375rem; }
-
 .dm-filters {
   display: flex; flex-wrap: wrap; gap: 16px;
   align-items: flex-end; margin-bottom: 18px;
@@ -1808,14 +2506,8 @@ html[data-theme="dark"] .leaflet-tile { filter: brightness(.78) saturate(.85) co
 }
 .icon-btn:hover { background: var(--gold); color: #fff; }
 
-html[data-theme="dark"] .dm-map-box,
 html[data-theme="dark"] .dm-drop { background: var(--surface-2); border-color: var(--border); }
 html[data-theme="dark"] .dm-drop-circle { background: var(--surface); border-color: var(--border); }
-
-@media (max-width: 900px) {
-  .dm-map-side { flex: 1 1 100%; }
-  .dm-btn-wide { flex: 1 1 100%; }
-}
 
 /* ── Map category chips ──────────────────────────────────────
    These sit on a white card, so they cannot reuse .btn-ghost -
@@ -2006,6 +2698,103 @@ html[data-theme="dark"] .ap-summary { background: rgba(46,36,30,.94); color: var
   font-size: 0.6875rem; font-weight: 600; color: var(--text);
   max-width: 46%;
 }
+
+/* ── ACTIVE PILGRIMAGE: THE SCREEN ───────────────────────────
+   These were a <style> block inside the template, which is where a rule goes
+   to be forgotten: it cannot be overridden per theme, it is re-sent on every
+   page load, and nothing else in the app can see it.
+
+   100dvh, not 100vh. On iOS Safari 100vh is the height the page WOULD be with
+   the toolbars hidden, so the layout ran further down than the screen while
+   the sheet - position:fixed - sat above the toolbar. The two were measuring
+   from different bottoms, which is how the map's attribution ended up printed
+   across the church name even after the sheet's height was being published
+   correctly. dvh follows the toolbars, so both agree. */
+body:has(.active-layout) { overflow: hidden; }
+
+.active-layout {
+  height: calc(100vh - 64px);
+  height: calc(100dvh - 64px);
+}
+
+.ap-head {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ap-head::after {
+  content: ''; position: absolute;
+  top: -15px; right: -15px;
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: .15;
+}
+
+.ap-banner {
+  padding: 14px 16px;
+  background: var(--gold-bg);
+  border-bottom: 1px solid rgba(142, 59, 47, .12);
+  flex-shrink: 0;
+}
+
+.ap-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+.ap-list::-webkit-scrollbar { width: 4px; }
+.ap-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+.ap-foot {
+  padding: 14px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 8px;
+  flex-shrink: 0;
+}
+
+.ap-toolbar {
+  position: absolute; bottom: 24px; right: 24px; z-index: 10;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+/* ── ACTIVE PILGRIMAGE HEADER ────────────────────────────────
+   In the sidebar the strip stacks: the way back, the route, the count, the
+   candles. On a phone it folds - see the phone block further down - because
+   stacked it was 151px of a 664px screen and the map is the point. */
+.ap-head-inner { position: relative; }
+
+.ap-back {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: rgba(255, 255, 255, .7);
+  font-size: .75rem;
+  margin-bottom: 10px;
+  text-decoration: none;
+}
+
+.ap-back:hover { color: #fff; }
+
+.ap-title {
+  font-family: var(--font-display);
+  color: #fff;
+  font-size: 1.1875rem;
+  margin: 0 0 2px;
+}
+
+.ap-count {
+  color: rgba(255, 255, 255, .7);
+  font-size: .75rem;
+  margin: 0;
+}
+
+.ap-candles { margin-top: .5rem; }
+
+.ap-percent {
+  color: var(--gold);
+  font-size: .75rem;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
 .ap-legend-item { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .ap-legend-dash { width: 22px; height: 0; flex-shrink: 0; border-radius: 999px; }
 .ap-legend-dash.is-live     { border-top: 4px solid #2563EB; }
@@ -2074,7 +2863,6 @@ html[data-theme="dark"] .ap-legend { background: rgba(46,36,30,.94); }
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
 }
-.mx-search { margin-bottom: 10px; }
 
 /* Chips scroll sideways instead of wrapping to three rows. */
 .mx-chips {
@@ -2086,44 +2874,9 @@ html[data-theme="dark"] .ap-legend { background: rgba(46,36,30,.94); }
 .cat-chip { flex: 0 0 auto; }
 
 /* ── Route panel ─────────────────────────────────────────────── */
-.mx-route {
-  padding: 14px; flex-shrink: 0;
-  background: var(--gold-bg);
-  border-bottom: 1px solid var(--border-light);
-}
-.mx-route-head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 8px; margin-bottom: 2px;
-}
-.mx-route-head h2 {
-  font-size: 0.6875rem; font-weight: 800; letter-spacing: .07em;
-  text-transform: uppercase; color: var(--text-muted); margin: 0;
-}
-.mx-route-distance {
-  font-size: 0.8125rem; font-weight: 800; color: var(--primary);
-  font-variant-numeric: tabular-nums;
-}
-.mx-route-actions { display: flex; gap: 8px; margin-top: 10px; }
-.mx-route-actions > * { flex: 1; }
-.mx-route-note {
-  font-size: 0.625rem; line-height: 1.5;
-  color: var(--text-muted); margin: 8px 0 0;
-}
 
 /* ── Route stop rows ─────────────────────────────────────────── */
-.route-stop {
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 9px; margin-bottom: 5px;
-  background: #fff; border: 1px solid var(--border-light);
-  border-radius: 9px; font-size: 0.8125rem;
-}
-.route-stop:last-of-type { margin-bottom: 0; }
-.route-stop .n {
-  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
-  background: var(--primary); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.625rem; font-weight: 800;
-}
+
 .mx-stop-drop {
   width: 22px; height: 22px; flex-shrink: 0;
   background: none; border: 0; border-radius: 6px; cursor: pointer;
@@ -2149,26 +2902,10 @@ html[data-theme="dark"] .ap-legend { background: rgba(46,36,30,.94); }
 
 .map-grid.is-fullscreen .map-sidebar { height: 100%; }
 
-html[data-theme="dark"] .mx-route { background: var(--surface-2); }
-html[data-theme="dark"] .route-stop { background: var(--surface); }
-
 .map-grid { display: grid; grid-template-columns: 340px 1fr; gap: 18px; }
 
-
 /* ── Add-to-route button on destination rows ─────────────────── */
-.mx-add {
-  width: 30px; height: 30px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--gold-bg); color: var(--primary);
-  border: 1px solid var(--border); border-radius: 9px;
-  cursor: pointer; font-size: 0.8125rem;
-  transition: background .15s, color .15s, border-color .15s;
-}
-.mx-add:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
-.mx-add:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
-.mx-add.is-added { background: #166534; color: #fff; border-color: #166534; }
 
-html[data-theme="dark"] .mx-add { background: var(--surface-2); color: var(--gold); }
 html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
 
 /* ════════════════════════════════════════════════════════════════
@@ -2418,23 +3155,7 @@ html[data-theme="dark"] .gc-box { background: var(--surface); }
 .giya-fab:active { transform: scale(.96); }
 .giya-fab:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 
-.giya-fab-icon {
-  width: 48px; height: 48px; flex-shrink: 0;
-  border-radius: 50%;
-  background: rgba(255,255,255,.14);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.25rem;
-}
-
 /* Width animates from zero, so the collapsed state is a clean circle. */
-.giya-fab-label {
-  max-width: 0; opacity: 0;
-  white-space: nowrap;
-  font-size: 0.875rem; font-weight: 700;
-  transition: max-width .18s ease, opacity .14s ease;
-}
-.giya-fab:hover .giya-fab-label,
-.giya-fab:focus-visible .giya-fab-label { max-width: 120px; opacity: 1; }
 
 /* A slow breathing ring, so it reads as available without nagging. */
 .giya-fab::after {
@@ -2453,15 +3174,15 @@ html[data-theme="dark"] .gc-box { background: var(--surface); }
 
 @media (max-width: 600px) {
   .giya-fab { right: 16px; bottom: 16px; height: 52px; }
-  .giya-fab-icon { width: 44px; height: 44px; font-size: 1.125rem; }
+
   /* No hover on touch, so never reserve room for the label. */
   .giya-fab:hover { gap: 0; padding: 0 4px; }
-  .giya-fab:hover .giya-fab-label { max-width: 0; opacity: 0; }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
   .giya-fab::after { animation: none; }
-  .giya-fab, .giya-fab-label { transition: none; }
+  .giya-fab { transition: none; }
 }
 
 html[data-theme="dark"] .giya-fab { box-shadow: 0 6px 22px rgba(0,0,0,.55); }
@@ -2562,7 +3283,6 @@ input[type="date"][readonly] { background-color: var(--bg-input); opacity: 1; }
 input[type="date"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 .gdp, .gdp-day, .gdp-nav, .gdp-link { touch-action: manipulation; }
 
-
 .gdp {
   position: absolute; z-index: 2500;
   display: none;
@@ -2640,7 +3360,6 @@ input[type="date"] { touch-action: manipulation; -webkit-user-select: none; user
 .gdp-link.is-primary { color: var(--primary); }
 
 html[data-theme="dark"] .gdp { background: var(--surface); }
-
 
 @media (prefers-reduced-motion: reduce) { .gdp.is-open { animation: none; } }
 
@@ -2950,97 +3669,18 @@ html[data-theme="dark"] .notif-item.is-unread .notif-icon { background: var(--su
    chips sit below and scroll sideways rather than wrapping.
    ════════════════════════════════════════════════════════════════ */
 
-.home-searchbar {
-  background: #fff;
-  border-bottom: 1px solid var(--border-light);
-}
-.hs-form {
-  max-width: 1280px; margin: 0 auto;
-  padding: 16px 20px;
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-}
-
 /* Field + button, never separated. */
-.hs-row {
-  display: flex; align-items: stretch; gap: 10px;
-  flex: 1 1 320px; min-width: 0;
-}
-
-.hs-field { position: relative; flex: 1; min-width: 0; }
-.hs-field img {
-  position: absolute; left: 16px; top: 50%;
-  transform: translateY(-50%); pointer-events: none;
-}
-.hs-field .giya-input {
-  width: 100%; padding-left: 44px;
-  text-overflow: ellipsis;
-}
-
-.hs-submit {
-  flex: 0 0 auto; padding: 12px 22px;
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-}
-.hs-submit-icon { display: none; }
 
 /* Chips: one row, scrolled, never four lines deep. */
-.hs-chips {
-  display: flex; gap: 8px; flex: 0 1 auto;
-  overflow-x: auto; scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-.hs-chips::-webkit-scrollbar { display: none; }
-
-.hs-chip {
-  flex: 0 0 auto;
-  padding: 8px 16px; border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #fff; color: var(--primary);
-  font-size: 0.8125rem; font-weight: 600;
-  text-decoration: none; white-space: nowrap;
-  transition: background .15s ease, border-color .15s ease, color .15s ease;
-}
-.hs-chip:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
-
-@media (max-width: 900px) {
-  .hs-form { flex-direction: column; align-items: stretch; gap: 10px; }
-  .hs-row { flex: 1 1 auto; }
-  .hs-chips { width: 100%; }
-}
 
 @media (max-width: 480px) {
-  .hs-form { padding: 14px 16px; }
-  /* The button becomes an icon, so the field keeps the width it needs. */
-  .hs-submit { padding: 0; width: 46px; flex: 0 0 46px; }
-  .hs-submit-text { display: none; }
-  .hs-submit-icon { display: inline-block; font-size: 0.9375rem; }
-  .hs-chip { padding: 7px 14px; font-size: 0.75rem; }
-}
 
-html[data-theme="dark"] .home-searchbar { background: var(--surface); }
+  /* The button becomes an icon, so the field keeps the width it needs. */
+
+}
 
 /* On the hero the bar has no strip of its own - in either theme. The generic
    dark rule above was painting a black band across the hero image. */
-html[data-theme="dark"] .home-searchbar.is-on-hero { background: transparent; }
-
-html[data-theme="dark"] .home-searchbar.is-on-hero .hs-field .giya-input {
-  background: rgba(28, 22, 19, .88);
-  border-color: rgba(215,169,74,.34);
-  color: var(--text);
-}
-html[data-theme="dark"] .home-searchbar.is-on-hero .hs-field .bi { color: var(--gold); }
-
-html[data-theme="dark"] .home-searchbar.is-on-hero .hs-chip {
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.24);
-  color: #fff;
-}
-html[data-theme="dark"] .home-searchbar.is-on-hero .hs-chip.is-active,
-html[data-theme="dark"] .home-searchbar.is-on-hero .hs-chip:hover {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--primary-dark);
-}
-html[data-theme="dark"] .hs-chip { background: var(--surface); }
 
 /* ── Home card grids ─────────────────────────────────────────────
    auto-fit rather than auto-fill: with four cards and room for five,
@@ -3095,22 +3735,6 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
 
 .chat-page { display: flex; flex-direction: column; }
 
-.chat-header {
-  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
-}
-.chat-avatar {
-  width: 52px; height: 52px; flex-shrink: 0;
-  border-radius: 16px; background: var(--primary);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.375rem; color: var(--gold);
-}
-.chat-header h1 {
-  font-family: var(--font-display); font-size: 1.5rem; margin: 0; color: var(--text);
-}
-.chat-header p {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 0.8125rem; color: var(--text-muted); margin: 3px 0 0;
-}
 .chat-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: #16A34A; flex-shrink: 0;
@@ -3251,7 +3875,7 @@ html[data-theme="dark"] .hs-chip { background: var(--surface); }
   .chat-bubble { max-width: 84%; font-size: 0.8125rem; }
   .chat-starters { padding: 0 16px 14px; }
   .chat-composer { padding: 12px; }
-  .chat-header h1 { font-size: 1.25rem; }
+
 }
 
 html[data-theme="dark"] .chat-log,
@@ -3431,67 +4055,81 @@ body.ai-panel-locked .giya-fab { opacity: 0; pointer-events: none; }
 /* The home search hands its term to the map rather than showing results in
    place, so the old dropdown styles are gone. The map filters by name,
    location and category - see map.blade.php. */
-.home-searchbar { position: relative; z-index: 20; }
-.hs-form { position: relative; }
-button.hs-chip { font-family: var(--font-body); }
 
 /* ── Search sitting on the hero ──────────────────────────────────
    On a dark photographic background the bar needs its own contrast:
    a translucent white field with a blur behind it, rather than the
    white strip it used when it had its own row.
    ---------------------------------------------------------------- */
-.home-searchbar.is-on-hero {
-  background: transparent;
-  border-bottom: 0;
-  margin-top: 0;
-  margin-bottom: clamp(28px, 4vh, 44px);
-  max-width: none;          /* spans the hero, matching the navbar edge */
-}
-.home-searchbar.is-on-hero .hs-form { padding: 0; }
-
-.home-searchbar.is-on-hero .hs-field .giya-input {
-  background: rgba(255,255,255,.94);
-  border: 1px solid rgba(255,255,255,.5);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 22px rgba(20,10,6,.28);
-}
-.home-searchbar.is-on-hero .hs-field .giya-input:focus {
-  background: #fff;
-  border-color: var(--gold);
-}
 
 /* Chips read as light-on-dark here, unlike on a white strip. */
-.home-searchbar.is-on-hero .hs-chip {
-  background: rgba(255,255,255,.14);
-  border-color: rgba(255,255,255,.34);
-  color: #fff;
-  backdrop-filter: blur(4px);
-}
-.home-searchbar.is-on-hero .hs-chip:hover {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--primary-dark);
-}
 
 /* The results panel stays a solid card - it holds real content. */
-.home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
-
-@media (max-width: 560px) {
-  .home-searchbar.is-on-hero { margin-bottom: 20px; max-width: none; }
-  .home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
-}
 
 /* ── Hero inner spacing ──────────────────────────────────────────
    Was a fixed 48px top, which reads well on a phone and sits far too
    close under the navbar on a wide screen. clamp() scales it with the
    viewport rather than picking one number for every device.
    ---------------------------------------------------------------- */
+/* ── HOME HERO ───────────────────────────────────────────────
+   The photograph, the scrim over it and the copy on top. All of this used to
+   be inline style attributes on the elements themselves, which meant the
+   hero's design lived in a Blade template and could not be read, overridden
+   per theme, or changed without editing markup. */
+.hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* Dark enough that white text clears 4.5:1 over the brightest part of the
+   photograph, which is the sky at the top right. */
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(142, 59, 47, .9) 0%, rgba(36, 28, 24, .82) 100%);
+}
+
+.hero-mark {
+  position: absolute;
+  top: 32px; right: 64px;
+  opacity: .1;
+}
+
 .hero-inner {
   position: relative;
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: clamp(32px, 7vh, 72px) 20px clamp(56px, 9vh, 96px);
+}
+
+.hero-copy { max-width: 680px; }
+
+.hero-title {
+  font-family: var(--font-display);
+  color: #fff;
+  font-size: clamp(32px, 5vw, 54px);
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.hero-lead {
+  color: rgba(255, 255, 255, .8);
+  font-size: 1rem;
+  line-height: 1.75;
+  max-width: 560px;
+  margin: 0 0 24px;
 }
 
 @media (max-width: 560px) {
@@ -3504,33 +4142,13 @@ button.hs-chip { font-family: var(--font-body); }
    the gap on the left of the input. A font glyph inherits colour, so
    it can be tinted to suit whichever background it sits on.
    ---------------------------------------------------------------- */
-.hs-field { position: relative; }
-.hs-field .bi {
-  position: absolute; left: 16px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  pointer-events: none;
-  z-index: 2;
-}
-.home-searchbar.is-on-hero .hs-field .bi { color: #8A6E5C; }
 
 /* Full width across the hero. */
-.hero-inner .home-searchbar.is-on-hero .hs-row { max-width: none; }
-.hero-inner .home-searchbar.is-on-hero .hs-results { left: 0; right: 0; }
 
 /* On a very wide screen a full-bleed field looks empty, so cap it there. */
-@media (min-width: 1400px) {
-  .home-searchbar.is-on-hero { max-width: 1100px; }
-}
 
 /* A chip stays lit while its word is in the search box, so the devotee can see
    what they picked before pressing Search. */
-.home-searchbar.is-on-hero .hs-chip.is-active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--primary-dark);
-}
 
 /* ════════════════════════════════════════════════════════════════
    CHURCH DETAIL - polish
@@ -3613,15 +4231,6 @@ button.hs-chip { font-family: var(--font-body); }
 }
 
 /* ── Stops carried over from the map ─────────────────────────── */
-.plan-preset-note {
-  display: flex; align-items: flex-start; gap: 7px;
-  margin: 6px 0 0;
-  font-size: 0.6875rem; line-height: 1.55;
-  color: #166534;
-}
-.plan-preset-note .bi { flex-shrink: 0; margin-top: 2px; font-size: 0.75rem; }
-
-html[data-theme="dark"] .plan-preset-note { color: #6FBF8B; }
 
 /* ── Icons inside buttons must not intercept the click ───────────
    A .bi is an inline element with a ::before mask. It sits above the
@@ -3633,7 +4242,6 @@ html[data-theme="dark"] .plan-preset-note { color: #6FBF8B; }
 button .bi,
 button .bi::before,
 .chat-starter .bi,
-.hs-chip .bi,
 .map-tool .bi,
 .icon-btn .bi {
   pointer-events: none;
@@ -4220,9 +4828,6 @@ html[data-theme="dark"] .giya-popup span   { color: #6B5B4E; }
 .guide.is-happy .guide-hand-r { transform: translateY(-4px) rotate(12deg); }
 
 /* ── Header, now that the avatar has moved into the face ──────── */
-.chat-header-slim { margin-bottom: 14px; }
-.chat-header-slim h1 { text-align: center; }
-.chat-header-slim p  { justify-content: center; }
 
 /* An offline guide is dimmer, and its lantern is out. */
 .guide[data-online="0"] .guide-lamp {
@@ -4370,12 +4975,6 @@ html[data-theme="dark"] .guide-hand { background: var(--surface); }
 html[data-theme="dark"] .guide-bubble { background: var(--surface); color: var(--text); }
 html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface); }
 
-
-
-
-
-
-
 /* =========================================================
    ADMIN REPORTS
 ========================================================= */
@@ -4401,7 +5000,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     padding: 16px 18px;
     border-bottom: 1px solid var(--border-light, #eee);
 }
-
 
 /* BUTTONS */
 
@@ -4431,7 +5029,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     color: #888;
     cursor: not-allowed;
 }
-
 
 /* FILTER */
 
@@ -4504,7 +5101,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     text-decoration: none;
 }
 
-
 /* ERROR */
 
 .report-error {
@@ -4516,7 +5112,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     color: #a62929;
     font-size: .72rem;
 }
-
 
 /* RESULT */
 
@@ -4540,7 +5135,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     font-size: .68rem;
     color: var(--text-muted);
 }
-
 
 /* TABLE */
 
@@ -4578,7 +5172,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 
 .report-small-table { min-width: 500px; }
 
-
 /* PLACEHOLDER */
 
 .report-placeholder {
@@ -4603,7 +5196,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     color: var(--primary);
     font-size: 1rem;
 }
-
 
 /* SUMMARY */
 
@@ -4634,7 +5226,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     color: var(--primary);
 }
 
-
 /* PREVIEW */
 
 .report-preview-grid {
@@ -4643,7 +5234,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     gap: 14px;
     margin-bottom: 18px;
 }
-
 
 /* STATUS */
 
@@ -4662,7 +5252,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 .report-status-danger { background: #fce8e8; color: #a32f2f; }
 
 .report-status-neutral { background: #eee; color: #666; }
-
 
 /* DESTINATIONS */
 
@@ -4689,7 +5278,6 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     font-size: .65rem;
     font-weight: 700;
 }
-
 
 /* RESPONSIVE */
 
