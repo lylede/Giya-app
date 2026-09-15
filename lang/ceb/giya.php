@@ -69,7 +69,7 @@ return [
     'home' => [
         'eyebrow'         => 'Relihiyosong Turismo sa Metro Cebu',
         'title'           => 'Diskobreha ang Sagradong Kasingkasing sa Cebu',
-        'lead'            => 'Ang Giya mao ang imong kauban sa peregrinasyon ug relihiyosong turismo sa tibuok Metro Cebu — pangitaa ang mga simbahan, planoha ang imong ruta, ug paglakaw uban ang pagtuo sa pinakakaraang diyosesis sa Pilipinas.',
+        'lead'            => 'Ang Giya mao ang imong kauban sa peregrinasyon ug relihiyosong turismo sa tibuok Metro Cebu: pangitaa ang mga simbahan, planoha ang imong ruta, ug paglakaw uban ang pagtuo sa pinakakaraang diyosesis sa Pilipinas.',
         'explore_map'     => 'Suhira ang Mapa',
         'journey'         => 'Sugdi ang Imong Panaw',
         'journey_lead'    => 'Pilia kon unsaon nimo pagsuhid ang sagradong mga dapit sa Metro Cebu',

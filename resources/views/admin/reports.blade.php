@@ -187,7 +187,7 @@
                         : 'Beginning'
                     }}
 
-                    <span>—</span>
+                    <span>-</span>
 
                     {{ $filters['to']
                         ? \Illuminate\Support\Carbon::parse($filters['to'])->format('M d, Y h:i A')
@@ -219,7 +219,7 @@
 
                         <tr>
                             @foreach ($row as $value)
-                                <td>{{ filled($value) ? $value : '—' }}</td>
+                                <td>{{ filled($value) ? $value : '-' }}</td>
                             @endforeach
                         </tr>
 

@@ -47,9 +47,9 @@
                             <span id="visitedCount">0</span> of <span id="totalCountA">7</span>
                         </div>
                         <div style="color:rgba(255,255,255,0.8);font-size: 0.8125rem;margin-top:2px">{{ __('giya.plan.marked_visited') }}</div>
-                        <div class="progress-track" style="margin-top:14px">
-                            <div class="progress-fill" id="progressBar" style="width:0%"></div>
-                        </div>
+                        {{-- The bar is gone. Seven candles say the same thing
+                             and say it as the thing the route actually is. --}}
+                        <x-candle-progress :total="7" :done="0" id="candleRow" class="mt-3" />
                         <div id="progressLabel" style="color:var(--gold);font-size: 0.75rem;font-weight:700;margin-top:6px">{{ __('giya.plan.complete', ['percent' => 0]) }}</div>
                     </div>
                 </div>
@@ -180,7 +180,11 @@ const GiyaVisita = (function () {
         document.getElementById('totalCountA').textContent  = total;
         document.getElementById('countValue').textContent   = total;
         document.getElementById('countLabel').textContent   = @json(__('giya.plan.stops_count', ['count' => ':count'])).replace(':count', total);
-        document.getElementById('progressBar').style.width  = pct + '%';
+        /* The row can change length here: the devotee adds and removes
+           churches before starting, so it is regrown before it is lit. */
+        const row = document.getElementById('candleRow');
+        window.GiyaCandles.grow(row, total);
+        window.GiyaCandles.set(row, done);
         document.getElementById('progressLabel').textContent = @json(__('giya.plan.complete', ['percent' => ':percent'])).replace(':percent', pct);
 
         document.getElementById('churchList').innerHTML = list.map(function (c, i) {

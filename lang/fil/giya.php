@@ -69,7 +69,7 @@ return [
     'home' => [
         'eyebrow'         => 'Relihiyosong Turismo sa Metro Cebu',
         'title'           => 'Tuklasin ang Sagradong Puso ng Cebu',
-        'lead'            => 'Ang Giya ay iyong kasama sa peregrinasyon at relihiyosong turismo sa buong Metro Cebu — maghanap ng mga simbahan, magplano ng ruta, at lumakad nang may pananampalataya sa pinakamatandang diyosesis ng Pilipinas.',
+        'lead'            => 'Ang Giya ay iyong kasama sa peregrinasyon at relihiyosong turismo sa buong Metro Cebu: maghanap ng mga simbahan, magplano ng ruta, at lumakad nang may pananampalataya sa pinakamatandang diyosesis ng Pilipinas.',
         'explore_map'     => 'Tuklasin ang Mapa',
         'journey'         => 'Simulan ang Iyong Paglalakbay',
         'journey_lead'    => 'Piliin kung paano mo nais tuklasin ang mga sagradong lugar sa Metro Cebu',

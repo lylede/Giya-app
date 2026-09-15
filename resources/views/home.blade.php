@@ -20,12 +20,11 @@
 @endphp
 
 {{-- ─────────────────────────────── Hero ─────────────────────────────── --}}
-<section style="position:relative;overflow:hidden;min-height:520px;display:flex;align-items:center">
-    <img src="{{ asset('images/backgrounds/hero-basilica.svg') }}" alt=""
-         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
-    <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(142,59,47,0.9) 0%,rgba(36,28,24,0.82) 100%)"></div>
+<section class="hero">
+    <img src="{{ asset('images/backgrounds/hero-basilica.svg') }}" alt="" class="hero-bg">
+    <div class="hero-scrim"></div>
 
-    <div style="position:absolute;top:32px;right:64px;opacity:.1">
+    <div class="hero-mark" aria-hidden="true">
         <svg width="120" height="120" viewBox="0 0 120 120" fill="none" aria-hidden="true">
             <rect x="48" y="8" width="24" height="104" rx="8" fill="#D7A94A"/>
             <rect x="8" y="44" width="104" height="24" rx="8" fill="#D7A94A"/>
@@ -33,19 +32,15 @@
     </div>
 
     <div class="hero-inner">
-        <div style="max-width:680px">
+        <div class="hero-copy">
             <div class="eyebrow">
                 <span class="eyebrow-bar"></span>
-                <span class="eyebrow-text" style="color:var(--gold)">{{ __('giya.home.eyebrow') }}</span>
+                <span class="eyebrow-text is-gold">{{ __('giya.home.eyebrow') }}</span>
             </div>
 
-            <h1 style="font-family:var(--font-display);color:#fff;font-size:clamp(32px,5vw,54px);line-height:1.15;font-weight:700;margin:0 0 16px">
-                {{ __('giya.home.title') }}
-            </h1>
+            <h1 class="hero-title">{{ __('giya.home.title') }}</h1>
 
-            <p style="color:rgba(255,255,255,0.8);font-size: 1rem;line-height:1.75;max-width:560px;margin:0 0 24px">
-                {{ __('giya.home.lead') }}
-            </p>
+            <p class="hero-lead">{{ __('giya.home.lead') }}</p>
 
             <div class="d-flex flex-wrap gap-3 mb-4">
                 <a href="{{ route('map') }}" class="btn btn-gold">
@@ -77,7 +72,7 @@
 <div class="page-wrap">
 
     {{-- ───────────────────────── Quick actions ──────────────────────── --}}
-    <section style="margin-bottom:56px">
+    <section class="home-section">
         <div class="section-header">
             <div>
                 <h2 class="section-title">{{ __('giya.home.journey') }}</h2>
@@ -85,7 +80,7 @@
             </div>
         </div>
 
-        <div class="home-grid home-grid-sm">
+        <div class="home-grid home-grid-sm" data-reveal>
             @foreach ([
                 /* GIYA's own icons: a church inside a place marker, a route
                    with its stops and a flag, the seven churches, and Giya's
@@ -99,17 +94,27 @@
                 ['giya-seven',     __('giya.home.card_visita'), __('giya.home.card_visita_d'), auth()->check() ? 'plan.visita' : 'login', []],
                 ['giya-assistant', __('giya.home.card_ask'),    __('giya.home.card_ask_d'),    auth()->check() ? 'chatbot' : 'login', []],
             ] as [$icon, $title, $desc, $route, $params])
-                <a href="{{ route($route, $params) }}" class="card card-hover"
-                   style="padding:20px;display:flex;flex-direction:column;gap:12px;text-decoration:none">
-                    <span style="width:48px;height:48px;border-radius:16px;background:var(--gold-bg);display:flex;align-items:center;justify-content:center">
-                        <i class="bi bi-{{ $icon }}" style="font-size: 1.375rem;color:var(--primary)"></i>
+                <a href="{{ route($route, $params) }}" class="card card-hover home-card">
+                    {{-- The same wave as the plan hub: a pale shape behind the
+                         solid accent, both anchored off the top-right corner
+                         and clipped to the card. Two of these cards lead to
+                         the same screens the hub does, so giving them a
+                         different hover would say they were different
+                         places. --}}
+                    <span class="liquid-wave" aria-hidden="true">
+                        <i class="b1"></i><i class="b2"></i>
+                    </span>
+
+                    <span class="home-card-icon">
+                        <i class="bi bi-{{ $icon }}"></i>
                     </span>
                     <span>
-                        <span style="display:block;font-size: 0.9375rem;font-weight:700;color:var(--text)">{{ $title }}</span>
-                        <span style="display:block;font-size: 0.75rem;color:var(--text-muted);margin-top:4px;line-height:1.6">{{ $desc }}</span>
+                        <span class="home-card-title">{{ $title }}</span>
+                        <span class="home-card-desc">{{ $desc }}</span>
                     </span>
-                    <span style="margin-top:auto;font-size: 0.75rem;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:4px">
-                        {{ $route === 'login' ? __('giya.home.sign_in_go') : __('giya.home.get_started') }} <i class="bi bi-chevron-right" style="font-size: 0.6875rem"></i>
+                    <span class="home-card-go">
+                        {{ $route === 'login' ? __('giya.home.sign_in_go') : __('giya.home.get_started') }}
+                        <i class="bi bi-chevron-right"></i>
                     </span>
                 </a>
             @endforeach
@@ -117,7 +122,7 @@
     </section>
 
     {{-- ──────────────────── Featured destinations ───────────────────── --}}
-    <section style="margin-bottom:56px;border-top:1px solid var(--border-light);padding-top:48px">
+    <section class="home-section-ruled">
         <div class="section-header">
             <div>
                 <h2 class="section-title">{{ __('giya.home.featured') }}</h2>
@@ -169,29 +174,30 @@
     </section>
 
     {{-- ─────────────── Upcoming activities + CTA card ───────────────── --}}
-    <section style="border-top:1px solid var(--border-light);padding-top:48px">
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:32px" class="home-bottom-grid">
+    <section class="home-section-ruled">
+        <div class="home-bottom-grid">
 
             <div>
-                <h2 class="section-title" style="margin-bottom:4px">{{ __('giya.home.events') }}</h2>
-                <p class="section-subtitle" style="margin-bottom:20px">{{ __('giya.home.events_lead') }}</p>
+                <h2 class="section-title event-heading">{{ __('giya.home.events') }}</h2>
+                <p class="section-subtitle event-lead">{{ __('giya.home.events_lead') }}</p>
 
+                <div data-reveal>
                 @forelse ($upcoming as $i => $event)
-                    <div class="d-flex align-items-center gap-3 card"
-                         style="padding:14px;margin-bottom:10px;box-shadow:var(--shadow-sm)">
-                        <span style="width:56px;height:56px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;
-                                     background:{{ $i === 0 ? 'var(--primary)' : 'var(--gold-bg)' }}">
-                            <span style="font-size: 0.5625rem;font-weight:700;text-transform:uppercase;line-height:1.2;
-                                         color:{{ $i === 0 ? 'var(--gold)' : 'var(--primary)' }}">{{ $event->event_type }}</span>
+                    {{-- The soonest one is the only one in the primary colour.
+                         Everything after it is the same weight, because a list
+                         where each row shouts equally has no next. --}}
+                    <div class="card event-row">
+                        <span @class(['event-date', 'is-soonest' => $i === 0])>
+                            <span class="event-kind">{{ $event->event_type }}</span>
                         </span>
-                        <div style="flex:1;min-width:0">
-                            <div style="font-size: 0.875rem;font-weight:700;color:var(--text)">{{ $event->event_name }}</div>
-                            <div style="font-size: 0.75rem;color:var(--text-muted)">
-                                <i class="bi bi-building" style="font-size: 0.6875rem"></i>
+                        <div class="event-body">
+                            <div class="event-name">{{ $event->event_name }}</div>
+                            <div class="event-where">
+                                <i class="bi bi-building"></i>
                                 {{ $event->church->name ?? 'Metro Cebu' }}
                             </div>
                         </div>
-                        <div style="font-size: 0.75rem;font-weight:700;color:var(--primary);white-space:nowrap">
+                        <div class="event-when">
                             {{ $event->schedule_date?->format('M j, Y') ?? ($event->recurrence ?? __('giya.home.recurring')) }}
                         </div>
                     </div>
@@ -199,22 +205,19 @@
                     <x-empty-state icon="calendar-event" :title="__('giya.home.no_events')"
                                    :desc="__('giya.home.no_events_d')" />
                 @endforelse
+                </div>
             </div>
 
-            <div class="upgrade-card d-flex flex-column" style="padding:28px;min-height:320px">
-                <div style="position:relative">
-                    <span style="width:48px;height:48px;border-radius:16px;background:rgba(215,169,74,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:16px">
-                        <i class="bi bi-stars" style="font-size: 1.375rem;color:var(--gold)"></i>
+            <div class="upgrade-card d-flex flex-column home-cta">
+                <div class="home-cta-copy">
+                    <span class="home-cta-icon">
+                        <i class="bi bi-stars"></i>
                     </span>
-                    <h3 style="font-family:var(--font-display);color:#fff;font-size: 1.375rem;line-height:1.3;margin:0 0 12px">
-                        {{ __('giya.home.cta_title') }}
-                    </h3>
-                    <p style="color:rgba(255,255,255,0.7);font-size: 0.8125rem;line-height:1.7;margin:0">
-                        {{ __('giya.home.cta_lead') }}
-                    </p>
+                    <h3 class="home-cta-title">{{ __('giya.home.cta_title') }}</h3>
+                    <p class="home-cta-lead">{{ __('giya.home.cta_lead') }}</p>
                 </div>
 
-                <div class="d-flex flex-column gap-2 mt-auto pt-4" style="position:relative">
+                <div class="d-flex flex-column gap-2 mt-auto pt-4 home-cta-actions">
                     <a href="{{ auth()->check() ? route('map', ['plan' => 1]) : route('login') }}" class="btn btn-gold btn-w-full">{{ auth()->check() ? __('giya.home.plan_mine') : __('giya.home.sign_in_plan') }}</a>
                     <a href="{{ auth()->check() ? route('chatbot') : route('login') }}" class="btn btn-ghost btn-ghost-inverse btn-w-full">{{ auth()->check() ? __('giya.home.card_ask') : __('giya.home.create_acct') }}</a>
                 </div>
@@ -224,13 +227,6 @@
     </section>
 </div>
 
-@push('head')
-<style>
-    @media (max-width: 900px) {
-        .home-bottom-grid { grid-template-columns: 1fr !important; }
-    }
-</style>
-@endpush
 @endsection
 
 @push('scripts')
