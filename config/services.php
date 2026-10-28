@@ -34,10 +34,15 @@ return [
     |--------------------------------------------------------------------------
     | Powers the Giya AI assistant. Free key: https://console.groq.com/keys
     | Without a key the assistant answers from the database alone and says so.
+    |
+    | Groq retires models. llama-3.3-70b-versatile was shut down on Aug 16,
+    | 2026 and every question then fell back to "offline". If that happens
+    | again, laravel.log says "Groq model ... is not available"; pick a current
+    | model from https://console.groq.com/docs/models and set GROQ_MODEL.
     */
     'groq' => [
         'key'   => env('GROQ_API_KEY'),
-        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
     ],
 
     /*

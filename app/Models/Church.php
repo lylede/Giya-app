@@ -25,7 +25,7 @@ class Church extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'category_id', 'name', 'location', 'municipality', 'address', 'description',
+        'category_id', 'name', 'location', 'municipality', 'address', 'description', 'history',
         'latitude', 'longitude', 'opening_time', 'closing_time',
         'is_featured', 'is_major', 'is_active', 'created_at', 'updated_at',
     ];
