@@ -83,6 +83,26 @@ return [
         ))))),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Supabase Storage - uploaded photos on the hosted app
+    |--------------------------------------------------------------------------
+    | Vercel and Render wipe the app's own disk on every restart, so a photo
+    | saved there would vanish. When these are set, new church photos and
+    | profile pictures go to a public Supabase Storage bucket instead (see
+    | App\Support\Uploads). Left blank - as on a laptop - uploads are saved
+    | locally exactly as before.
+    |
+    | url:    https://<project-ref>.supabase.co
+    | key:    the project's SECRET / service_role key (server-side only)
+    | bucket: a PUBLIC bucket, created in the Supabase dashboard
+    */
+    'supabase' => [
+        'url'    => env('SUPABASE_URL'),
+        'key'    => env('SUPABASE_SERVICE_KEY'),
+        'bucket' => env('SUPABASE_BUCKET', 'giya-uploads'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

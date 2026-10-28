@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Uploads;
 use App\Http\Controllers\Controller;
 use App\Models\Church;
 use App\Models\ChurchCategory;
@@ -193,7 +194,11 @@ class ChurchController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            $this->replacePhoto($church, $request->file('photo'), $data['caption'] ?? null);
+            try {
+                $this->replacePhoto($church, $request->file('photo'), $data['caption'] ?? null);
+            } catch (\RuntimeException $e) {
+                return back()->with('error', $message.' But the photo could not be uploaded - please try again.');
+            }
         }
 
         return back()->with('success', $message);
@@ -300,7 +305,11 @@ class ChurchController extends Controller
             'caption' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $this->replacePhoto($church, $request->file('photo'), $request->caption);
+        try {
+            $this->replacePhoto($church, $request->file('photo'), $request->caption);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', 'The photo could not be uploaded - please try again.');
+        }
 
         return back()->with('success', 'Photo updated for '.$church->name.'.');
     }
@@ -464,6 +473,30 @@ class ChurchController extends Controller
      */
     protected function replacePhoto(Church $church, $file, ?string $caption): void
     {
+        /* On the hosted app (Vercel/Render) the local disk is wiped on every
+           restart, so the photo goes to Supabase Storage instead. Uploaded
+           first and the old one removed only after, so a failed upload never
+           leaves a church with no photo. */
+        if (Uploads::cloud()) {
+            $url = Uploads::put($file, 'churches/'.Uploads::freshName(static::photoBasename($church), $file));
+
+            foreach ($church->images()->where('is_primary', true)->get() as $old) {
+                $this->deleteImageFile($old->image_url);
+                $old->delete();
+            }
+
+            ChurchImage::create([
+                'church_id'   => $church->id,
+                'image_url'   => $url,
+                'caption'     => $caption ?: $church->name,
+                'is_primary'  => true,
+                'uploaded_at' => now(),
+                'created_at'  => now(),
+            ]);
+
+            return;
+        }
+
         $dir = public_path('images/churches');
 
         if (! is_dir($dir)) {
@@ -558,6 +591,11 @@ class ChurchController extends Controller
      */
     protected function deleteImageFile(?string $url): void
     {
+        if (Uploads::owns($url)) {
+            Uploads::delete($url);
+            return;
+        }
+
         if (! $url || str_starts_with($url, 'http') || str_ends_with($url, '.svg')) {
             return;
         }

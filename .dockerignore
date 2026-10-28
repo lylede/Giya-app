@@ -1,0 +1,24 @@
+# Never ship secrets or local state into the image.
+.env
+.env.*
+!.env.example
+.git
+.github
+.idea
+.vscode
+node_modules
+vendor
+tests
+*.patch
+*.log
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/public/*
+bootstrap/cache/*.php
+public/storage
+public/hot
+# Offline map tiles are large; the map falls back to online tiles without them.
+public/tiles/*
+!public/tiles/blank.png
