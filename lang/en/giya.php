@@ -30,6 +30,8 @@ return [
         'search_label'   => 'Search churches',
         'notifications'  => 'Notifications',
         'mark_all_read'  => 'Mark all read',
+        'notif_empty'    => 'Nothing yet. Schedules, replies to your reviews and pilgrimage reminders appear here.',
+        'notif_dismiss'  => 'Dismiss notification',
         'loading'        => 'Loading…',
         'sign_in'        => 'Sign In',
         'sign_out'       => 'Sign Out',
@@ -116,6 +118,7 @@ return [
     ],
 
     'church' => [
+        'history'       => 'History',
         'churches'      => 'Churches',
         'church'        => 'Church',
         'mass_schedule' => 'Mass Schedule',

@@ -1,0 +1,45 @@
+# Render Blueprint - the backup host. New > Blueprint > pick this repo.
+# Secrets marked "sync: false" are typed into Render's dashboard, never here.
+services:
+  - type: web
+    name: giya
+    runtime: docker
+    plan: free
+    region: singapore          # next to the Neon database
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    envVars:
+      - key: APP_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_BUCKET
+        value: giya-uploads
+      - key: MAYA_BASE_URL
+        value: https://pg-sandbox.paymaya.com
+      - key: MAYA_PUBLIC_KEY
+        sync: false
+      - key: MAYA_SECRET_KEY
+        sync: false

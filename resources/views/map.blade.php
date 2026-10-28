@@ -346,8 +346,10 @@
         return false;
     }
 
+    /* Used for text as well as attributes: every church field below came
+       from an admin form or an import file, and this page is public. */
     function escapeAttr(value) {
-        return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
                             .replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
@@ -533,9 +535,9 @@ onLocated: function (me) {
             wrap.innerHTML = stops.map(function (s, i) {
                 return '<li class="mx-tray-item">' +
                     '<span class="mx-tray-n">' + (i + 1) + '.</span>' +
-                    '<span class="mx-tray-name">' + s.name + '</span>' +
+                    '<span class="mx-tray-name">' + escapeAttr(s.name) + '</span>' +
                     '<button type="button" class="mx-stop-drop" data-drop="' + s.id + '" ' +
-                            'aria-label="Remove ' + s.name + '">&times;</button>' +
+                            'aria-label="Remove ' + escapeAttr(s.name) + '">&times;</button>' +
                 '</li>';
             }).join('');
 
@@ -683,19 +685,19 @@ onLocated: function (me) {
             return '<article class="mx-row' + (picked ? ' is-picked' : '') + '" data-church="' + c.id + '">' +
                 '<span class="mx-thumb">' +
                     (c.image
-                        ? '<img src="' + c.image + '" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'is-empty\')">'
+                        ? '<img src="' + escapeAttr(c.image) + '" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'is-empty\')">'
                         : '<i class="bi bi-building"></i>') +
                 '</span>' +
                 '<div class="mx-row-body">' +
                     '<h3>' +
                         (c.details
-                            ? '<a href="' + c.details + '" data-details="' + c.details + '" data-church="' + c.name + '">' +
-                                  c.name + (GUEST ? ' <i class="bi bi-lock-fill mx-lock" title="Sign in to view"></i>' : '') +
+                            ? '<a href="' + escapeAttr(c.details) + '" data-details="' + escapeAttr(c.details) + '" data-church="' + escapeAttr(c.name) + '">' +
+                                  escapeAttr(c.name) + (GUEST ? ' <i class="bi bi-lock-fill mx-lock" title="Sign in to view"></i>' : '') +
                               '</a>'
-                            : c.name) +
+                            : escapeAttr(c.name)) +
                     '</h3>' +
                     '<p class="mx-row-place">' +
-                        '<i class="bi bi-geo-alt-fill"></i>' + c.location +
+                        '<i class="bi bi-geo-alt-fill"></i>' + escapeAttr(c.location || '') +
                         /* A bare "12.3 km" reads as "from you". It only is
                            when we have the devotee's own position; measured
                            from the middle of the map it would be a false
@@ -706,7 +708,7 @@ onLocated: function (me) {
                     '<p class="mx-row-tags">' +
                         (c.rating > 0 ? '<span class="mx-star"><i class="bi bi-star-fill"></i>' + c.rating.toFixed(1) + '</span>' : '') +
                         (c.open ? '<span class="mx-tag is-open">Open</span>' : '') +
-                        '<span class="mx-tag">' + c.category + '</span>' +
+                        '<span class="mx-tag">' + escapeAttr(c.category || '') + '</span>' +
 
                         /* Under Major the list is one church per town, and the
                            town is the reason each one is in it - so it is said
@@ -718,7 +720,7 @@ onLocated: function (me) {
                 '</div>' +
                 '<button type="button" class="mx-pick' + (picked ? ' is-on' : '') + '" ' +
                         'data-add="' + c.id + '" role="switch" aria-checked="' + picked + '" ' +
-                        'aria-label="' + trans('select_route', { church: c.name }) + '">' +
+                        'aria-label="' + escapeAttr(trans('select_route', { church: c.name })) + '">' +
                     '<i class="bi bi-check-lg"></i>' +
                 '</button>' +
             '</article>';

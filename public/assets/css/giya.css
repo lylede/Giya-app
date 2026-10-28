@@ -4074,6 +4074,19 @@ input[type="date"][readonly] { cursor: pointer; }
 .notif-msg   { display: block; font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px; line-height: 1.45; }
 .notif-when  { display: block; font-size: 0.625rem; color: var(--text-muted); margin-top: 3px; }
 
+/* Dismiss sits beside the item rather than inside it: a button inside the
+   item's <a> would be invalid HTML and its click would follow the link. */
+.notif-row { position: relative; }
+.notif-row .notif-item { padding-right: 38px; }
+.notif-dismiss {
+  position: absolute; top: 8px; right: 8px;
+  width: 26px; height: 26px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 0; cursor: pointer;
+  color: var(--text-muted); font-size: 1rem; line-height: 1;
+}
+.notif-dismiss:hover, .notif-dismiss:focus-visible { background: var(--border-light); color: var(--text); }
+
 .notif-empty {
   padding: 26px 18px; text-align: center;
   font-size: 0.75rem; line-height: 1.6; color: var(--text-muted); margin: 0;

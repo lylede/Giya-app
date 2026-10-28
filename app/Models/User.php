@@ -78,6 +78,29 @@ class User extends Authenticatable
         return $this->role === 'admin';
     }
 
+    /**
+     * Sign this devotee out of every browser except, optionally, this one.
+     *
+     * Used after a password change or reset: whoever knew the old password
+     * should not keep a live session. The remember-me token is rotated so a
+     * "remember me" cookie stops working too. Laravel's own
+     * logoutOtherDevices() assumes a `password` column, which GIYA does not
+     * have, so this does the equivalent directly.
+     */
+    public function endOtherSessions(?string $keepSessionId = null): void
+    {
+        $this->forceFill(['remember_token' => \Illuminate\Support\Str::random(60)])->saveQuietly();
+
+        if (config('session.driver') !== 'database') {
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::table(config('session.table', 'sessions'))
+            ->where('user_id', $this->id)
+            ->when($keepSessionId, fn ($q, $id) => $q->where('id', '!=', $id))
+            ->delete();
+    }
+
     public function initials(): string
     {
         return strtoupper(mb_substr($this->name, 0, 1));
