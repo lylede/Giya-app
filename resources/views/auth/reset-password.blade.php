@@ -48,7 +48,4 @@
         <button type="submit" class="btn btn-primary btn-w-full">{{ __('giya.auth.reset_pw') }}</button>
     </form>
 @endsection
-<<<<<<< HEAD
     
-=======
->>>>>>> 9e17d0b772795efd4269070fe20c1372b61e8d47
