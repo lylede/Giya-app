@@ -150,7 +150,7 @@ class HostingTest extends TestCase
     /** A key pasted with a trailing line break made the request invalid: a 500 on Vercel. */
     public function test_a_key_with_a_stray_line_break_is_trimmed_and_cannot_cause_a_500(): void
     {
-        putenv("SUPABASE_SERVICE_KEY=sb_secret_abc \n");
+        putenv("SUPABASE_SERVICE_KEY=sb_secret_a\nbc \n");
         $config = require config_path('services.php');
         putenv('SUPABASE_SERVICE_KEY');
 
@@ -166,6 +166,17 @@ class HostingTest extends TestCase
             ->post(route('admin.destinations.photo', $church), ['photo' => $this->png()])
             ->assertRedirect()
             ->assertSessionHas('error');
+    }
+
+    public function test_deleting_an_old_photo_never_throws(): void
+    {
+        $this->useSupabase(fake: false);
+        config(['services.supabase.key' => "bad\nkey"]);
+        Http::fake();
+
+        Uploads::delete(self::SUPABASE.'/storage/v1/object/public/giya-uploads/churches/old.png');
+
+        $this->assertTrue(true, 'delete() threw');
     }
 
     /** The preview stayed white: [hidden] { display:none !important } beat style.display. */

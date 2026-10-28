@@ -48,7 +48,7 @@ return [
     | model from https://console.groq.com/docs/models and set GROQ_MODEL.
     */
     'groq' => [
-        'key'   => trim((string) env('GROQ_API_KEY')),
+        'key'   => preg_replace('/\s+/', '', (string) env('GROQ_API_KEY')),
         'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
     ],
 
@@ -73,8 +73,8 @@ return [
     */
     'maya' => [
         'base_url' => trim((string) env('MAYA_BASE_URL', 'https://pg-sandbox.paymaya.com')),
-        'public'   => trim((string) env('MAYA_PUBLIC_KEY', '')),
-        'secret'   => trim((string) env('MAYA_SECRET_KEY', '')),
+        'public'   => preg_replace('/\s+/', '', (string) env('MAYA_PUBLIC_KEY', '')),
+        'secret'   => preg_replace('/\s+/', '', (string) env('MAYA_SECRET_KEY', '')),
 
         // Maya posts webhooks from a fixed set of addresses and signs nothing,
         // so the address is the only cheap filter available. It is a filter,
@@ -106,7 +106,9 @@ return [
     */
     'supabase' => [
         'url'    => trim((string) env('SUPABASE_URL')),
-        'key'    => trim((string) env('SUPABASE_SERVICE_KEY')),
+        // Keys never contain whitespace, so ALL of it goes - including a line
+        // break in the middle from a key that wrapped when it was copied.
+        'key'    => preg_replace('/\s+/', '', (string) env('SUPABASE_SERVICE_KEY')),
         'bucket' => trim((string) env('SUPABASE_BUCKET', 'giya-uploads')),
     ],
 
