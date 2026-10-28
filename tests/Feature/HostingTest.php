@@ -134,6 +134,28 @@ class HostingTest extends TestCase
         $this->assertSame('images/churches/simala-shrine.png', ChurchImage::where('church_id', $church->id)->value('image_url'));
     }
 
+    /** An unreachable Supabase used to surface as a 500 page. */
+    public function test_an_unreachable_storage_shows_a_message_not_a_500(): void
+    {
+        $this->useSupabase(fake: false);
+        Http::fake(fn () => throw new \Illuminate\Http\Client\ConnectionException('Could not resolve host'));
+        $church = $this->church();
+
+        $this->actingAs($this->user('admin'))
+            ->post(route('admin.destinations.photo', $church), ['photo' => $this->png()])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+    }
+
+    /** The preview stayed white: [hidden] { display:none !important } beat style.display. */
+    public function test_the_upload_preview_toggles_the_hidden_attribute(): void
+    {
+        $view = file_get_contents(resource_path('views/admin/destinations.blade.php'));
+
+        $this->assertStringContainsString('img.hidden = !src;', $view);
+        $this->assertStringNotContainsString("img.style.display = 'block'", $view);
+    }
+
     public function test_a_profile_picture_goes_to_supabase(): void
     {
         $this->useSupabase();

@@ -524,11 +524,28 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 
     function field(id) { return document.getElementById(id); }
 
+    /* Show a photo in the upload box, or the "click to upload" prompt when
+       src is null. Toggles the hidden attribute: giya.css has
+       [hidden] { display: none !important; }, which beat the old
+       style.display = 'block' - the photo loaded but never appeared, and with
+       the prompt hidden the admin saw an empty white box. */
+    function showPhoto(src) {
+        const img = field('dropPreview');
+
+        img.hidden = !src;
+        field('dropPrompt').hidden = !!src;
+
+        if (src) {
+            img.src = src;
+        } else {
+            img.removeAttribute('src');
+        }
+    }
+
     function clearForm() {
         field('destForm').reset();
         field('churchId').value = '';
-        field('dropPreview').style.display = 'none';
-        field('dropPrompt').style.display = '';
+        showPhoto(null);
         field('destModalTitle').textContent = 'Add Destination';
         field('btnSave').textContent = 'Save Destination';
     }
@@ -555,12 +572,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
             field('f-history').value   = c.history || '';
             field('f-status').value    = c.active ? 'Published' : 'Draft';
 
-            if (c.image) {
-                const img = field('dropPreview');
-                img.src = c.image;
-                img.style.display = 'block';
-                field('dropPrompt').style.display = 'none';
-            }
+            if (c.image) showPhoto(c.image);
 
             field('destModalTitle').textContent = 'Edit Destination';
             field('btnSave').textContent = 'Save Changes';
@@ -674,13 +686,13 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 
     function preview(file) {
         if (!file) return;
+        if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+            alert('Choose a JPG, PNG or WEBP image.');
+            return;
+        }
+
         const reader = new FileReader();
-        reader.onload = function (e) {
-            const img = field('dropPreview');
-            img.src = e.target.result;
-            img.style.display = 'block';
-            field('dropPrompt').style.display = 'none';
-        };
+        reader.onload = function (e) { showPhoto(e.target.result); };
         reader.readAsDataURL(file);
     }
 
