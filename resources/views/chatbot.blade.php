@@ -209,7 +209,7 @@
                                     <span class="guide-lamp"></span>
                                 </span>
                             </span>
-                            <div class="chat-bubble chat-bubble-bot">{!! nl2br(e($m->message)) !!}</div>
+                            <div class="chat-bubble chat-bubble-bot">{!! \App\Support\Text::chatHtml($m->message) !!}</div>
                         </div>
                     @endif
                 @endforeach
@@ -376,6 +376,15 @@
 
     function scroll() { log.scrollTop = log.scrollHeight; }
 
+    // Reply text -> safe HTML: escape first, then **bold**, _italic_ and
+    // line breaks. Escaping first means a reply can never inject markup.
+    function fmt(text) {
+        return esc(text)
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/(^|[\s(])_([^_\n]+?)_(?=[\s.,!?)]|$)/g, '$1<em>$2</em>')
+            .replace(/\n/g, '<br>');
+    }
+
     function esc(v) {
         return String(v == null ? '' : v)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -439,9 +448,7 @@
                 '</span>' +
             '</span>' +
             '<div class="chat-bubble chat-bubble-bot' + (ok ? '' : ' is-offline') + '">' +
-                esc(text)
-                    .replace(/\n/g, '<br>')
-                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                fmt(text) +
             '</div>';
         log.appendChild(row);
         scroll();
