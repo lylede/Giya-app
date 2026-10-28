@@ -117,6 +117,10 @@ class ProfileController extends Controller
             'updated_at'    => now(),
         ]);
 
+        // Anyone else signed in with the old password is signed out; this
+        // browser stays signed in.
+        $user->endOtherSessions($request->session()->getId());
+
         return redirect()->route('profile')->with('success', 'Password changed successfully.');
     }
     /**

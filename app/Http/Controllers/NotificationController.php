@@ -42,6 +42,19 @@ class NotificationController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /** Dismiss one notification from the panel. */
+    public function destroy(Notification $notification): JsonResponse
+    {
+        abort_unless($notification->user_id === Auth::id(), 403);
+
+        $notification->delete();
+
+        return response()->json([
+            'ok'     => true,
+            'unread' => Notification::where('user_id', Auth::id())->unread()->count(),
+        ]);
+    }
+
     public function markAllRead(): JsonResponse
     {
         Notification::where('user_id', Auth::id())->unread()->update(['is_read' => true]);

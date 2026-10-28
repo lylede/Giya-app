@@ -24,8 +24,11 @@ new class extends Component
         ]);
 
         $user = app(RegisterAction::class)->execute($data, request());
-        session()->flash('success', "Welcome to GIYA, {$user->firstName()}!");
-        $this->redirect(route('home'), navigate: true);
+        // Same as RegisterController: the account is created, not signed in,
+        // so send them to sign in rather than to /home (which would bounce
+        // them to the login page anyway, under a "Welcome" banner).
+        session()->flash('success', "Account created. Sign in to begin, {$user->firstName()}.");
+        $this->redirect(route('login'), navigate: true);
     }
 };
 ?>

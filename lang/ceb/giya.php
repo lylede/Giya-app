@@ -20,6 +20,8 @@ return [
         'search_label'   => 'Pangitaa ang simbahan',
         'notifications'  => 'Mga Pahibalo',
         'mark_all_read'  => 'Markahi tanan nga nabasa',
+        'notif_empty'    => 'Wala pay bisan unsa. Ang mga iskedyul, tubag sa imong mga review ug mga pahinumdom sa panaw makita dinhi.',
+        'notif_dismiss'  => 'Isalikway ang pahibalo',
         'loading'        => 'Nagkarga…',
         'sign_in'        => 'Sulod',
         'sign_out'       => 'Gawas',

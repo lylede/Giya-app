@@ -80,12 +80,12 @@ class ScheduleController extends Controller
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
 
-            fputcsv($out, ['No.', 'Destination', 'Event Name', 'Type', 'Day / Date',
+            \App\Support\Csv::put($out, ['No.', 'Destination', 'Event Name', 'Type', 'Day / Date',
                            'Time Frame Label', 'Start Time', 'End Time',
                            'Whole Day', 'Location', 'Status']);
 
             foreach ($rows as $i => $s) {
-                fputcsv($out, [
+                \App\Support\Csv::put($out, [
                     $i + 1,
                     $s->church->name ?? '',
                     $s->event_name,
