@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class NotificationController extends Controller
 {
@@ -35,7 +36,7 @@ class NotificationController extends Controller
 
     public function markRead(Notification $notification): JsonResponse
     {
-        abort_unless($notification->user_id === Auth::id(), 403);
+        Gate::authorize('update', $notification);
 
         $notification->update(['is_read' => true]);
 
@@ -45,7 +46,7 @@ class NotificationController extends Controller
     /** Dismiss one notification from the panel. */
     public function destroy(Notification $notification): JsonResponse
     {
-        abort_unless($notification->user_id === Auth::id(), 403);
+        Gate::authorize('delete', $notification);
 
         $notification->delete();
 

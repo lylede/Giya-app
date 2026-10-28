@@ -260,9 +260,13 @@ class Church extends Model
         $slug = \Illuminate\Support\Str::slug($this->name);
 
         // PNG first: SVG is for icons, photographs belong in a raster format.
-        foreach (['png', 'jpg', 'webp', 'svg'] as $ext) {
-            if (file_exists(public_path("images/churches/{$slug}.{$ext}"))) {
-                return asset("images/churches/{$slug}.{$ext}");
+        // {slug}-{id} first: that is the name a photo gets when another
+        // destination shares this one's slug (see ChurchController::photoBasename).
+        foreach (["{$slug}-{$this->id}", $slug] as $base) {
+            foreach (['png', 'jpg', 'webp', 'svg'] as $ext) {
+                if (file_exists(public_path("images/churches/{$base}.{$ext}"))) {
+                    return asset("images/churches/{$base}.{$ext}");
+                }
             }
         }
 
