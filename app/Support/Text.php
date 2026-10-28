@@ -28,4 +28,18 @@ final class Text
         // Don't leave ",," or ", ." behind.
         return preg_replace(['/,\s*,/u', '/,\s*([.!?:;])/u'], [',', '$1'], $text);
     }
+
+    /**
+     * A Giya AI reply as safe HTML for the chat bubble: escaped first, then
+     * **bold**, _italic_ and line breaks. The page's JavaScript does the
+     * same for new replies, so saved and live replies look identical.
+     */
+    public static function chatHtml(?string $text): string
+    {
+        $html = e((string) $text);
+        $html = preg_replace('/\*\*(.+?)\*\*/u', '<strong>$1</strong>', $html);
+        $html = preg_replace('/(^|[\s(])_([^_\n]+?)_(?=[\s.,!?)]|$)/mu', '$1<em>$2</em>', $html);
+
+        return nl2br($html, false);
+    }
 }

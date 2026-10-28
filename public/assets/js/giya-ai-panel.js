@@ -121,7 +121,10 @@
                 '</span>' +
             '</span>' +
             '<div class="chat-bubble chat-bubble-bot' + (ok ? '' : ' is-offline') + '">' +
-                esc(text).replace(/\n/g, '<br>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') +
+                esc(text)
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/(^|[\s(])_([^_\n]+?)_(?=[\s.,!?)]|$)/g, '$1<em>$2</em>')
+                    .replace(/\n/g, '<br>') +
             '</div>';
         log.appendChild(row);
         scroll();
