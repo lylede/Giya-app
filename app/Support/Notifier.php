@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Models\Church;
+use App\Models\ChurchFollow;
+use App\Models\DevoteePreference;
 use App\Models\Favorite;
 use App\Models\Feedback;
 use App\Models\Notification;
@@ -77,13 +79,21 @@ class Notifier
         $when = $schedule->day_label;
         $body = trim("{$schedule->event_type} at {$church->name}".($when ? " \u{b7} {$when}" : ''));
 
+        /* Posted (or moved) within a week of the event: this notification IS
+           the one-week reminder, so it carries the reminder's key and
+           Reminders will not add a second one. Only for a new event or a
+           moved date - an "Updated: new time" must still get through. */
+        $dateMoved = array_key_exists('schedule_date', $changed);
+        $key = ($isNew || $dateMoved) && Reminders::isDue($schedule) ? Reminders::key($schedule) : null;
+
         return self::fanOut(
-            self::devoteesFollowing($church->id),
+            self::wantingThis(self::devoteesFollowing($church->id), $schedule->event_type),
             [
-                'type'    => 'schedule',
-                'title'   => $schedule->event_name,
-                'message' => $isNew ? $body : "Updated: {$body}",
-                'url'     => route('churches.show', $church),
+                'type'       => 'schedule',
+                'title'      => $schedule->event_name,
+                'message'    => $isNew ? $body : "Updated: {$body}",
+                'url'        => route('churches.show', $church),
+                'dedupe_key' => $key,
             ]
         );
     }
@@ -169,13 +179,32 @@ class Notifier
      */
     private static function devoteesFollowing(int $churchId): array
     {
-        return Favorite::query()
-            ->where('church_id', $churchId)
-            ->where('is_active', true)
-            ->pluck('user_id')
-            ->unique()
-            ->values()
-            ->all();
+        // "Notify me" on the church page, with saved churches on by default.
+        return ChurchFollow::followersOf($churchId);
+    }
+
+    /**
+     * Drop devotees who switched this kind of event off in their profile
+     * (Feast Day Alerts, Mass Schedule Reminders).
+     *
+     * @param  array<int>  $userIds
+     * @return array<int>
+     */
+    private static function wantingThis(array $userIds, ?string $eventType): array
+    {
+        $column = match (strtolower((string) $eventType)) {
+            'feast day' => 'notify_feast_day',
+            'mass'      => 'notify_mass_schedule',
+            default     => null,
+        };
+
+        if ($column === null || $userIds === []) {
+            return $userIds;
+        }
+
+        $off = DevoteePreference::whereIn('user_id', $userIds)->where($column, false)->pluck('user_id')->all();
+
+        return array_values(array_diff($userIds, $off));
     }
 
     /**
@@ -189,13 +218,19 @@ class Notifier
         }
 
         $now = now();
+        $row += ['dedupe_key' => null];
 
         foreach (array_chunk($userIds, self::CHUNK) as $chunk) {
-            Notification::insert(array_map(fn (int $id) => $row + [
+            $rows = array_map(fn (int $id) => $row + [
                 'user_id'    => $id,
                 'is_read'    => false,
                 'created_at' => $now,
-            ], $chunk));
+            ], $chunk);
+
+            // With a key, someone who already has it is skipped, not an error.
+            $row['dedupe_key'] === null
+                ? Notification::insert($rows)
+                : Notification::insertOrIgnore($rows);
         }
 
         return count($userIds);

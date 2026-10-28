@@ -62,6 +62,21 @@
                     <i class="bi bi-heart-fill" aria-hidden="true"></i>
                     <span class="church-fav-text">{{ $church->isFavorited() ? __('giya.church.saved') : __('giya.common.save') }}</span>
                 </button>
+
+                {{-- Notify me: feast days, novenas and schedule changes here,
+                     plus a reminder a week before each dated event. --}}
+                @php
+                    $notified = \App\Models\ChurchFollow::isNotified((int) auth()->id(), $church->id);
+                @endphp
+                <button type="button"
+                        @class(['btn', 'btn-ghost', 'btn-ghost-inverse', 'church-notify', 'is-on' => $notified])
+                        data-url="{{ route('churches.notify', $church) }}"
+                        aria-pressed="{{ $notified ? 'true' : 'false' }}"
+                        title="{{ __('giya.church.notify_hint') }}"
+                        onclick="GiyaChurchNotify.toggle(this)">
+                    <i class="bi bi-bell-fill" aria-hidden="true"></i>
+                    <span class="church-notify-text">{{ $notified ? __('giya.church.notifying') : __('giya.church.notify_me') }}</span>
+                </button>
             @else
                 <a href="{{ route('login') }}" class="btn btn-ghost btn-ghost-inverse">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ __('giya.church.add_itinerary') }}
@@ -323,6 +338,31 @@
     });
 </script>
 <script>
+window.GiyaChurchNotify = {
+    toggle(btn) {
+        const on = !btn.classList.contains('is-on');
+        const label = (state) => state ? @json(__('giya.church.notifying')) : @json(__('giya.church.notify_me'));
+        const paint = (state) => {
+            btn.classList.toggle('is-on', state);
+            btn.setAttribute('aria-pressed', String(state));
+            btn.querySelector('.church-notify-text').textContent = label(state);
+        };
+
+        paint(on);   // flip first; put it back if the save fails
+
+        fetch(btn.dataset.url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+        })
+            .then(r => r.json())
+            .then(d => { if (!d.ok) throw new Error('rejected'); paint(d.notify); })
+            .catch(() => paint(!on));
+    },
+};
+
 window.GiyaChurchFav = {
     toggle(btn) {
         const saved = !btn.classList.contains('is-saved');

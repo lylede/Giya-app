@@ -108,6 +108,9 @@ return [
     ],
 
     'church' => [
+        'notify_me'     => 'Pahibaloa ko',
+        'notifying'     => 'Gipahibalo ka',
+        'notify_hint'   => 'Makadawat og mga piyesta, kalihokan ug kausaban sa iskedyul niining simbahana, ug pahinumdom usa ka semana una sa matag kalihokan.',
         'history'       => 'Kasaysayan',
         'churches'      => 'Mga Simbahan',
         'church'        => 'Simbahan',

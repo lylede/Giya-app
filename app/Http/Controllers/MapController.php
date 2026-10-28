@@ -150,6 +150,16 @@ class MapController extends Controller
         ]);
     }
 
+    /** The "Notify me" button on a church page. */
+    public function toggleNotify(Church $church): \Illuminate\Http\JsonResponse
+    {
+        abort_unless($church->is_active, 404);
+
+        $on = \App\Models\ChurchFollow::toggle((int) auth()->id(), $church->id);
+
+        return response()->json(['ok' => true, 'notify' => $on]);
+    }
+
     public function show(Church $church): View
     {
         abort_unless($church->is_active, 404);

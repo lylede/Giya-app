@@ -108,6 +108,9 @@ return [
     ],
 
     'church' => [
+        'notify_me'     => 'Abisuhan ako',
+        'notifying'     => 'Inaabisuhan ka',
+        'notify_hint'   => 'Makatanggap ng mga pista, kaganapan at pagbabago sa iskedyul ng simbahang ito, at paalala isang linggo bago ang bawat kaganapan.',
         'history'       => 'Kasaysayan',
         'churches'      => 'Mga Simbahan',
         'church'        => 'Simbahan',

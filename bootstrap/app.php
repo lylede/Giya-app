@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\EnsureAccountIsActive::class,
+            \App\Http\Middleware\DeliverDueReminders::class,
         ]);
 
         $middleware->alias([
