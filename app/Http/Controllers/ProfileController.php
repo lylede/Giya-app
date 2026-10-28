@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\VisitHistory;
 use App\Models\Favorite;
 use App\Models\Transaction;
+use App\Support\Uploads;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,13 +71,21 @@ class ProfileController extends Controller
         ];
 
         if ($request->hasFile('avatar')) {
-            // Drop the old file so uploads don't pile up on disk.
-            if ($user->avatar_url && ! str_starts_with($user->avatar_url, 'http')) {
-                Storage::disk('public')->delete(str_replace('storage/', '', $user->avatar_url));
+            $file = $request->file('avatar');
+
+            if (Uploads::cloud()) {
+                // Hosted app: the local disk is wiped on restart, so Supabase.
+                try {
+                    $changes['avatar_url'] = Uploads::put($file, 'avatars/'.Uploads::freshName('user-'.$user->id, $file));
+                } catch (\RuntimeException $e) {
+                    return back()->withInput()->withErrors(['avatar' => 'The photo could not be uploaded - please try again.']);
+                }
+            } else {
+                $changes['avatar_url'] = 'storage/' . $file->store('avatars', 'public');
             }
 
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $changes['avatar_url'] = 'storage/' . $path;
+            // Drop the old file so uploads don't pile up.
+            $this->deleteAvatarFile($user->avatar_url);
         }
 
         User::where('id', $user->id)->update($changes);
@@ -88,13 +97,21 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->avatar_url && ! str_starts_with($user->avatar_url, 'http')) {
-            Storage::disk('public')->delete(str_replace('storage/', '', $user->avatar_url));
-        }
+        $this->deleteAvatarFile($user->avatar_url);
 
         User::where('id', $user->id)->update(['avatar_url' => null, 'updated_at' => now()]);
 
         return redirect()->route('profile')->with('success', 'Photo removed.');
+    }
+
+    /** Remove an avatar this app stored, locally or in Supabase. */
+    private function deleteAvatarFile(?string $url): void
+    {
+        if (Uploads::owns($url)) {
+            Uploads::delete($url);
+        } elseif ($url && ! str_starts_with($url, 'http')) {
+            Storage::disk('public')->delete(str_replace('storage/', '', $url));
+        }
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -116,6 +133,10 @@ class ProfileController extends Controller
             'password_hash' => Hash::make($request->password),
             'updated_at'    => now(),
         ]);
+
+        // Anyone else signed in with the old password is signed out; this
+        // browser stays signed in.
+        $user->endOtherSessions($request->session()->getId());
 
         return redirect()->route('profile')->with('success', 'Password changed successfully.');
     }

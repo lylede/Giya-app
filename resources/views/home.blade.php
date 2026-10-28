@@ -16,7 +16,7 @@
             'image'    => $c->imagePath(),
             'url'      => route('churches.show', $c),
         ];
-    })->values()->toJson();
+    })->values()->toJson(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
 @endphp
 
 {{-- ─────────────────────────────── Hero ─────────────────────────────── --}}
@@ -273,7 +273,7 @@
         document.getElementById('procCat').textContent  = it.category || '';
         document.getElementById('procName').textContent  = it.name;
         document.getElementById('procLoc').innerHTML     =
-            '<i class="bi bi-geo-alt-fill"></i> ' + (it.location || '');
+            '<i class="bi bi-geo-alt-fill"></i> ' + window.giyaEsc(it.location || '');
         document.getElementById('procDesc').textContent  = it.desc || '';
         document.getElementById('procLink').href         = it.url;
 

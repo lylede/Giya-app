@@ -213,8 +213,8 @@
  * configured.
  */
 const GiyaActive = (function () {
-    const points = {!! $points->toJson() !!};
-    const stops  = {!! $stops->map(fn ($s) => ['id' => $s->id, 'name' => $s->church_name, 'order' => $s->stop_order, 'visited' => (bool) $s->is_visited, 'location' => $s->church?->location ?? 'Cebu'])->values()->toJson() !!};
+    const points = {!! $points->toJson(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
+    const stops  = {!! $stops->map(fn ($s) => ['id' => $s->id, 'name' => $s->church_name, 'order' => $s->stop_order, 'visited' => (bool) $s->is_visited, 'location' => $s->church?->location ?? 'Cebu'])->values()->toJson(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
     const csrf    = document.querySelector('meta[name="csrf-token"]').content;
     const markUrl = @js(route('plan.stop.visited'));
@@ -640,8 +640,8 @@ const GiyaActive = (function () {
                 '<span style="flex:1;min-width:0">' +
                   '<span style="display:block;font-size: 0.8125rem;color:' + (isDone ? 'var(--text-muted)' : 'var(--text)') +
                   ';font-weight:' + (isCur ? '700' : '500') + (isDone ? ';text-decoration:line-through' : '') + '">' +
-                  s.name + '</span>' +
-                  '<span style="display:block;font-size: 0.6875rem;color:var(--text-muted)">' + s.location + '</span>' +
+                  window.giyaEsc(s.name) + '</span>' +
+                  '<span style="display:block;font-size: 0.6875rem;color:var(--text-muted)">' + window.giyaEsc(s.location) + '</span>' +
                 '</span>' +
                 (isCur ? '<button type="button" onclick="GiyaActive.mark(' + s.id + ')" ' +
                          'style="padding:5px 11px;border-radius:8px;font-size: 0.6875rem;font-weight:700;border:none;' +

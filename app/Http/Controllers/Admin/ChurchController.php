@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Support\Uploads;
 use App\Http\Controllers\Controller;
 use App\Models\Church;
 use App\Models\ChurchCategory;
@@ -124,6 +125,7 @@ class ChurchController extends Controller
                 'open'        => $c->opening_time ? substr($c->opening_time, 0, 5) : '',
                 'close'       => $c->closing_time ? substr($c->closing_time, 0, 5) : '',
                 'description' => $c->description,
+                'history'     => $c->history,
                 'image'       => $c->imagePath(),
                 'active'      => (bool) $c->is_active,
             ])->values()->all(),
@@ -143,6 +145,7 @@ class ChurchController extends Controller
             'category'     => ['required', 'string', 'exists:church_categories,name'],
             'status'       => ['nullable', 'in:Published,Draft'],
             'description'  => ['nullable', 'string'],
+            'history'      => ['nullable', 'string', 'max:10000'],
             'latitude'     => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'    => ['nullable', 'numeric', 'between:-180,180'],
             'opening_time' => ['nullable', 'date_format:H:i'],
@@ -172,6 +175,7 @@ class ChurchController extends Controller
             'is_major'     => $request->boolean('is_major'),
             'address'      => $data['address'] ?? null,
             'description'  => $data['description'] ?? null,
+            'history'      => $data['history'] ?? null,
             'latitude'     => $data['latitude'] ?? null,
             'longitude'    => $data['longitude'] ?? null,
             'opening_time' => $data['opening_time'] ?? null,
@@ -190,7 +194,11 @@ class ChurchController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            $this->replacePhoto($church, $request->file('photo'), $data['caption'] ?? null);
+            try {
+                $this->replacePhoto($church, $request->file('photo'), $data['caption'] ?? null);
+            } catch (\RuntimeException $e) {
+                return back()->with('error', $message.' But the photo could not be uploaded - please try again.');
+            }
         }
 
         return back()->with('success', $message);
@@ -247,6 +255,7 @@ class ChurchController extends Controller
                 'location' => $data['location'],
                 'address' => $data['address'] ?? null,
                 'description' => $data['description'] ?? null,
+                'history' => $data['history'] ?? null,
                 'latitude' => $data['latitude'] ?? null,
                 'longitude' => $data['longitude'] ?? null,
                 'opening_time' => $data['opening_time'] ?? null,
@@ -296,7 +305,11 @@ class ChurchController extends Controller
             'caption' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $this->replacePhoto($church, $request->file('photo'), $request->caption);
+        try {
+            $this->replacePhoto($church, $request->file('photo'), $request->caption);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', 'The photo could not be uploaded - please try again.');
+        }
 
         return back()->with('success', 'Photo updated for '.$church->name.'.');
     }
@@ -400,6 +413,7 @@ class ChurchController extends Controller
             'opening_time' => $this->normalizeImportTime($normalized['opening_time'] ?? null),
             'closing_time' => $this->normalizeImportTime($normalized['closing_time'] ?? null),
             'description' => $normalized['description'] ?? null,
+            'history' => $normalized['history'] ?? null,
             'status' => $status,
             'image_url' => $normalized['image_url'] ?? null,
             'caption' => $normalized['caption'] ?? null,
@@ -445,7 +459,6 @@ class ChurchController extends Controller
         return $parsed === false ? null : date('H:i', $parsed);
     }
 
-    /** Swap the primary image, deleting the file the old row pointed at. */
     /**
      * Store the primary photograph for a destination.
      *
@@ -460,6 +473,30 @@ class ChurchController extends Controller
      */
     protected function replacePhoto(Church $church, $file, ?string $caption): void
     {
+        /* On the hosted app (Vercel/Render) the local disk is wiped on every
+           restart, so the photo goes to Supabase Storage instead. Uploaded
+           first and the old one removed only after, so a failed upload never
+           leaves a church with no photo. */
+        if (Uploads::cloud()) {
+            $url = Uploads::put($file, 'churches/'.Uploads::freshName(static::photoBasename($church), $file));
+
+            foreach ($church->images()->where('is_primary', true)->get() as $old) {
+                $this->deleteImageFile($old->image_url);
+                $old->delete();
+            }
+
+            ChurchImage::create([
+                'church_id'   => $church->id,
+                'image_url'   => $url,
+                'caption'     => $caption ?: $church->name,
+                'is_primary'  => true,
+                'uploaded_at' => now(),
+                'created_at'  => now(),
+            ]);
+
+            return;
+        }
+
         $dir = public_path('images/churches');
 
         if (! is_dir($dir)) {
@@ -472,8 +509,17 @@ class ChurchController extends Controller
             $old->delete();
         }
 
-        $slug = \Illuminate\Support\Str::slug($church->name);
-        $ext  = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+        $slug = static::photoBasename($church);
+
+        /* The extension comes from the file's actual content (its MIME type),
+           not from its name. A browser-supplied name is whatever the uploader
+           typed; the 'image|mimes' rule has already checked the content. */
+        $ext = match ($file->guessExtension()) {
+            'png'         => 'png',
+            'webp'        => 'webp',
+            'jpg', 'jpeg' => 'jpg',
+            default       => 'jpg',
+        };
 
         // One church, one photo file: a repeatedly edited destination should not
         // leave a trail of orphans behind it.
@@ -500,7 +546,26 @@ class ChurchController extends Controller
             'created_at'  => now(),
         ]);
     }
-        /** Remove a destination and everything attached to it. */
+        /**
+     * The file name (without extension) for a church's photo.
+     *
+     * Normally just the slug, as before. If another destination has a name
+     * that slugs the same ("San Roque Chapel" in two towns), the id is added:
+     * otherwise uploading a photo for one deleted the other's - the cleanup
+     * loop removes every {slug}.* it finds.
+     */
+    public static function photoBasename(Church $church): string
+    {
+        $slug = \Illuminate\Support\Str::slug($church->name);
+
+        $shared = Church::where('id', '!=', $church->id)
+            ->get(['id', 'name'])
+            ->contains(fn (Church $other) => \Illuminate\Support\Str::slug($other->name) === $slug);
+
+        return $shared ? "{$slug}-{$church->id}" : $slug;
+    }
+
+    /** Remove a destination and everything attached to it. */
     public function destroy(Church $church): RedirectResponse
     {
         $name = $church->name;
@@ -526,6 +591,11 @@ class ChurchController extends Controller
      */
     protected function deleteImageFile(?string $url): void
     {
+        if (Uploads::owns($url)) {
+            Uploads::delete($url);
+            return;
+        }
+
         if (! $url || str_starts_with($url, 'http') || str_ends_with($url, '.svg')) {
             return;
         }

@@ -27,6 +27,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'maya/webhook',
         ]);
 
+        // Trusted proxies (Vercel, Render, ngrok) are set in AppServiceProvider
+        // from config('app.trusted_proxies'), so they survive config:cache.
+
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureAccountIsActive::class,
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);

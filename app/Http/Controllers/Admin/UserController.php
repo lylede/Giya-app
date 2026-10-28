@@ -92,12 +92,12 @@ class UserController extends Controller
         return response()->streamDownload(function () use ($rows, $premium) {
             $out = fopen('php://output', 'w');
 
-            fputcsv($out, ['No.', 'Name', 'Email', 'Role', 'Joined',
+            \App\Support\Csv::put($out, ['No.', 'Name', 'Email', 'Role', 'Joined',
                            'Saved Destinations', 'Itineraries Created', 'Status',
                            'Plan', 'Premium Until']);
 
             foreach ($rows as $i => $u) {
-                fputcsv($out, [
+                \App\Support\Csv::put($out, [
                     $i + 1,
                     $u->name,
                     $u->email,
@@ -107,7 +107,9 @@ class UserController extends Controller
                     $u->itineraries_count,
                     $u->status,
                     isset($premium[$u->id]) ? 'Premium' : 'Free',
-                    $premium[$u->id]?->format('F j, Y') ?? '',
+                    // ?? null first: ?-> does not guard a missing array key, so
+                    // every free account crashed the whole export.
+                    ($premium[$u->id] ?? null)?->format('F j, Y') ?? '',
                 ]);
             }
 
