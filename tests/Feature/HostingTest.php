@@ -34,7 +34,7 @@ class HostingTest extends TestCase
         ]);
 
         if ($fake) {
-            Http::fake([self::SUPABASE.'/*' => Http::response(['Key' => 'ok'], 200)]);
+            Http::fake([self::SUPABASE.'/*' => Http::response(['Key' => 'giya-uploads/x', 'Id' => 'abc'], 200)]);
         }
     }
 
@@ -177,6 +177,34 @@ class HostingTest extends TestCase
         Uploads::delete(self::SUPABASE.'/storage/v1/object/public/giya-uploads/churches/old.png');
 
         $this->assertTrue(true, 'delete() threw');
+    }
+
+    /** The S3 endpoint was pasted as SUPABASE_URL: uploads went nowhere, silently. */
+    public function test_any_supabase_address_form_is_turned_into_the_project_url(): void
+    {
+        foreach ([
+            'https://abcd1234.supabase.co',
+            'https://abcd1234.supabase.co/',
+            'https://abcd1234.storage.supabase.co/storage/v1/s3',
+            'https://abcd1234.supabase.co/storage/v1',
+            'abcd1234.supabase.co',
+        ] as $given) {
+            config(['services.supabase.url' => $given]);
+            $this->assertSame('https://abcd1234.supabase.co', Uploads::projectUrl(), $given);
+        }
+    }
+
+    public function test_an_upload_supabase_did_not_confirm_is_an_error_not_a_success(): void
+    {
+        $this->useSupabase(fake: false);
+        Http::fake([self::SUPABASE.'/*' => Http::response('<html>not the storage API</html>', 200)]);
+        $church = $this->church();
+
+        $this->actingAs($this->user('admin'))
+            ->post(route('admin.destinations.photo', $church), ['photo' => $this->png()])
+            ->assertSessionHas('error');
+
+        $this->assertSame(0, ChurchImage::where('church_id', $church->id)->count());
     }
 
     /** The preview stayed white: [hidden] { display:none !important } beat style.display. */

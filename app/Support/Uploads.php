@@ -60,6 +60,20 @@ final class Uploads
             throw new RuntimeException('The photo could not be uploaded.', previous: $e);
         }
 
+        /* Supabase answers a real upload with {"Key": "<bucket>/<path>"}.
+           Anything else - a 200 from the wrong endpoint, an HTML page - is
+           not a saved photo, and saying "updated" for it left admins with a
+           photo that never appeared. */
+        if ($response->successful() && ! is_string($response->json('Key'))) {
+            Log::error('Supabase upload got an unexpected answer.', [
+                'path'   => $path,
+                'status' => $response->status(),
+                'body'   => mb_substr($response->body(), 0, 300),
+            ]);
+
+            throw new RuntimeException('The photo could not be uploaded (unexpected reply from storage - check SUPABASE_URL).');
+        }
+
         if ($response->failed()) {
             Log::error('Supabase upload failed.', [
                 'path'   => $path,
@@ -122,14 +136,32 @@ final class Uploads
 
     private static function publicBase(): string
     {
-        return rtrim((string) config('services.supabase.url'), '/')
-            .'/storage/v1/object/public/'.config('services.supabase.bucket').'/';
+        return self::projectUrl().'/storage/v1/object/public/'.config('services.supabase.bucket').'/';
     }
 
     private static function objectUrl(string $path): string
     {
-        return rtrim((string) config('services.supabase.url'), '/')
-            .'/storage/v1/object/'.config('services.supabase.bucket').'/'.ltrim($path, '/');
+        return self::projectUrl().'/storage/v1/object/'.config('services.supabase.bucket').'/'.ltrim($path, '/');
+    }
+
+    /**
+     * https://<project-ref>.supabase.co, whatever form SUPABASE_URL was given in.
+     *
+     * Supabase's dashboard shows several addresses for one project. Pasting
+     * the S3 endpoint (https://<ref>.storage.supabase.co/storage/v1/s3)
+     * instead of the Project URL sent every upload to the wrong API. The
+     * project ref is the first part of the host in all of them.
+     */
+    public static function projectUrl(): string
+    {
+        $url  = trim((string) config('services.supabase.url'));
+        $host = (string) parse_url(str_contains($url, '://') ? $url : 'https://'.$url, PHP_URL_HOST);
+
+        if (preg_match('/^([a-z0-9]+)\.(?:storage\.)?supabase\.(co|in)$/i', $host, $m)) {
+            return 'https://'.strtolower($m[1]).'.supabase.'.$m[2];
+        }
+
+        return rtrim($url, '/');   // self-hosted or unusual: use as given
     }
 
     private static function client(): \Illuminate\Http\Client\PendingRequest
