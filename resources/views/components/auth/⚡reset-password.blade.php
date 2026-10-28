@@ -1,8 +1,6 @@
 <?php
 
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use App\Actions\Auth\PasswordResetAction;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Livewire\Component;
 
@@ -22,26 +20,19 @@ new class extends Component
     public function resetPassword(): void
     {
         $data = $this->validate([
-            'email' => ['required', 'email', 'exists:devotees,email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', PasswordRule::min(8)],
         ], ['password.confirmed' => 'Passwords do not match.']);
 
-        $record = DB::table('password_reset_tokens')->where('email', $data['email'])->first();
-        if (! $record || ! Hash::check($this->token, $record->token)) {
-            $this->addError('token', 'This reset link is invalid. Please request a new one.');
-            return;
-        }
-        if (now()->diffInMinutes($record->created_at) > 60) {
-            DB::table('password_reset_tokens')->where('email', $data['email'])->delete();
-            $this->addError('token', 'This reset link has expired. Please request a new one.');
+        // One implementation, shared with PasswordResetController. This
+        // component used to carry its own copy, including the expiry bug.
+        try {
+            app(PasswordResetAction::class)->reset($this->token, $data['email'], $data['password']);
+        } catch (\RuntimeException $exception) {
+            $this->addError('token', $exception->getMessage());
             return;
         }
 
-        User::where('email', $data['email'])->update([
-            'password_hash' => Hash::make($data['password']),
-            'updated_at' => now(),
-        ]);
-        DB::table('password_reset_tokens')->where('email', $data['email'])->delete();
         session()->flash('success', 'Password reset successfully. Please sign in.');
         $this->redirect(route('login'), navigate: true);
     }

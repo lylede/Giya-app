@@ -60,6 +60,13 @@ Open http://127.0.0.1:8000
 
 ---
 
+## Putting it online
+
+See **[DEPLOY.md](DEPLOY.md)**: Neon (database) + Vercel (app, Render as
+backup) + Supabase Storage (uploaded photos), all free and in Singapore.
+
+---
+
 ## When it breaks
 
 | Error | Fix |

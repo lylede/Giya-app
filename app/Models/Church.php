@@ -25,7 +25,7 @@ class Church extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'category_id', 'name', 'location', 'municipality', 'address', 'description',
+        'category_id', 'name', 'location', 'municipality', 'address', 'description', 'history',
         'latitude', 'longitude', 'opening_time', 'closing_time',
         'is_featured', 'is_major', 'is_active', 'created_at', 'updated_at',
     ];
@@ -248,10 +248,18 @@ class Church extends Model
     /**
      * Local image path. Falls back to a generated SVG when the church has no
      * uploaded photo, so nothing ever points at a remote URL.
+     *
+     * One exception: a photo GIYA itself uploaded to its Supabase bucket on
+     * the hosted app (see App\Support\Uploads). Any other remote URL - an
+     * imported photo_url from some website - is still ignored.
      */
     public function imagePath(): string
     {
         $url = $this->image_url;
+
+        if (\App\Support\Uploads::owns($url)) {
+            return $url;
+        }
 
         if ($url && ! str_starts_with($url, 'http')) {
             return asset($url);
@@ -260,9 +268,13 @@ class Church extends Model
         $slug = \Illuminate\Support\Str::slug($this->name);
 
         // PNG first: SVG is for icons, photographs belong in a raster format.
-        foreach (['png', 'jpg', 'webp', 'svg'] as $ext) {
-            if (file_exists(public_path("images/churches/{$slug}.{$ext}"))) {
-                return asset("images/churches/{$slug}.{$ext}");
+        // {slug}-{id} first: that is the name a photo gets when another
+        // destination shares this one's slug (see ChurchController::photoBasename).
+        foreach (["{$slug}-{$this->id}", $slug] as $base) {
+            foreach (['png', 'jpg', 'webp', 'svg'] as $ext) {
+                if (file_exists(public_path("images/churches/{$base}.{$ext}"))) {
+                    return asset("images/churches/{$base}.{$ext}");
+                }
             }
         }
 

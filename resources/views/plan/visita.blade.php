@@ -156,11 +156,24 @@
 </style>
 @endpush
 
+@php
+    // Built here, not inside @json(...): Blade matches the directive's
+    // brackets textually and a closure in there defeats it.
+    $visitaChurches = $churches->map(fn ($c) => [
+        'id'       => $c->id,
+        'name'     => $c->name,
+        'location' => $c->location,
+        'color'    => $c->color(),
+    ])->values();
+@endphp
 @push('scripts')
 <script>
 const GiyaVisita = (function () {
-        const all = {!! $churches->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 
-        'location' => $c->location, 'color' => $c->color()])->values()->toJson() !!};
+        const esc = window.giyaEsc;
+        // Encoded with Blade's json directive rather than a raw toJson(): a
+        // plain toJson() leaves a closing script tag in a church name intact,
+        // which would end this script block early.
+        const all = @json($visitaChurches);
     /* Seven churches is the tradition, and the starting point. A route
        coming back from the map replaces it - the devotee has already chosen
        there, and re-imposing seven would throw their choice away. */
@@ -198,8 +211,8 @@ const GiyaVisita = (function () {
             return '<div class="vi-row ' + cls + '">' +
                 '<span style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(142,59,47,.15);background:' + badgeBg + '">' + inner + '</span>' +
                 '<span style="flex:1;min-width:0">' +
-                  '<span style="display:block;font-size: 0.875rem;font-weight:600;color:var(--text)' + (c.visited ? ';text-decoration:line-through;opacity:.65' : '') + '">' + c.name + '</span>' +
-                  '<span style="display:block;font-size: 0.6875rem;color:var(--text-muted);margin-top:2px">' + c.location + '</span>' +
+                  '<span style="display:block;font-size: 0.875rem;font-weight:600;color:var(--text)' + (c.visited ? ';text-decoration:line-through;opacity:.65' : '') + '">' + esc(c.name) + '</span>' +
+                  '<span style="display:block;font-size: 0.6875rem;color:var(--text-muted);margin-top:2px">' + esc(c.location) + '</span>' +
                   (isCurrent ? '<span class="badge badge-primary" style="margin-top:4px">Next stop</span>' : '') +
                 '</span>' +
                 '<span style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
@@ -219,9 +232,9 @@ const GiyaVisita = (function () {
         box.innerHTML = available.length
             ? available.map(c =>
                 '<button type="button" onclick="GiyaVisita.pick(' + c.id + ')" style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;background:var(--bg);border:1px solid var(--border);cursor:pointer;text-align:left;width:100%">' +
-                '<i class="bi bi-building" style="color:' + c.color + '"></i>' +
-                '<span><span style="display:block;font-size: 0.75rem;font-weight:600;color:var(--text)">' + c.name + '</span>' +
-                '<span style="display:block;font-size: 0.625rem;color:var(--text-muted)">' + c.location + '</span></span></button>').join('')
+                '<i class="bi bi-building" style="color:' + esc(c.color) + '"></i>' +
+                '<span><span style="display:block;font-size: 0.75rem;font-weight:600;color:var(--text)">' + esc(c.name) + '</span>' +
+                '<span style="display:block;font-size: 0.625rem;color:var(--text-muted)">' + esc(c.location) + '</span></span></button>').join('')
             : '<p style="font-size: 0.75rem;color:var(--text-muted);padding:8px;margin:0">Every destination is already in your route.</p>';
     }
 
@@ -275,8 +288,10 @@ const GiyaVisita = (function () {
         submit: function () {
             if (!list.length) { GiyaConfirm.ask({ title: @json(__('giya.plan.no_churches_t')), message: @json(__('giya.plan.no_churches_b')), ok: @json(__('giya.common.got_it')), cancel: @json(__('giya.common.close')), tone: 'primary' }); return; }
             document.getElementById('stopsInputs').innerHTML = list
-                .map(c => '<input type="hidden" name="stops[]" value="' + c.name.replace(/"/g, '&quot;') + '">')
-                .join('');
+                .map(c => '<input type="hidden" name="stops[]" value="' + esc(c.name) + '">')
+                .join('') +
+                // Ids too, so two churches with the same name stay distinct.
+                '<input type="hidden" name="stop_ids" value="' + esc(list.map(c => c.id).join(',')) + '">';
             document.getElementById('visitaForm').submit();
         },
     };

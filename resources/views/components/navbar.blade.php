@@ -304,7 +304,9 @@
                             <span>{{ __('giya.nav.notifications') }}</span>
                             <button type="button" class="notif-readall" id="notifReadAll">{{ __('giya.nav.mark_all_read') }}</button>
                         </div>
-                        <div class="notif-body" id="notifBody">
+                        <div class="notif-body" id="notifBody"
+                             data-empty="{{ __('giya.nav.notif_empty') }}"
+                             data-dismiss-label="{{ __('giya.nav.notif_dismiss') }}">
                             <p class="notif-empty">{{ __('giya.nav.loading') }}</p>
                         </div>
                     </div>

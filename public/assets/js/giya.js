@@ -196,7 +196,19 @@
 
     document.addEventListener('DOMContentLoaded', function () { shimmerImages(); });
 
-    window.GiyaUI = { Modal, togglePassword, shimmerImages };
+    /* Escape text before it goes into innerHTML. Church names, locations and
+       image paths come from the admin form and the CSV/JSON import, and the
+       map is public - one name like <img src=x onerror=...> would otherwise
+       run in every visitor's browser. Use it for every value that did not
+       come from a string literal in the script itself. */
+    function esc(v) {
+        return String(v == null ? '' : v)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    window.GiyaUI = { Modal, togglePassword, shimmerImages, esc };
+    window.giyaEsc = esc;
     window.GiyaProfile = Profile;
     window.giyaTogglePassword = togglePassword;   // used inline by the auth forms
 })(window, document);

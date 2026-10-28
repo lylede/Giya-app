@@ -258,12 +258,12 @@ window.GiyaLeaflet = (function () {
         var glow = opts.selected ? '0 0 0 3px rgba(215,169,74,.55),' : '';
 
         var inner = church.image
-            ? '<img src="' + church.image + '" alt="" ' +
+            ? '<img src="' + escapeHtml(church.image) + '" alt="" ' +
               'style="width:100%;height:100%;object-fit:cover;display:block">'
             : '<span style="display:flex;width:100%;height:100%;align-items:center;' +
-              'justify-content:center;background:' + (church.color || '#8E3B2F') +
+              'justify-content:center;background:' + escapeHtml(church.color || '#8E3B2F') +
               ';color:#fff;font-weight:700;font-size:' + Math.round(size * 0.42) + 'px">' +
-              (church.name || '?').charAt(0) + '</span>';
+              escapeHtml((church.name || '?').charAt(0)) + '</span>';
 
         var html =
             '<div class="giya-pin' + (opts.selected ? ' is-selected' : '') + '" ' +
@@ -361,7 +361,7 @@ window.GiyaLeaflet = (function () {
 
         function popupHtml(c) {
             return '<div class="giya-popup">' +
-                (c.image ? '<img src="' + c.image + '" alt="">' : '') +
+                (c.image ? '<img src="' + escapeHtml(c.image) + '" alt="">' : '') +
                 '<strong>' + escapeHtml(c.name) + '</strong>' +
                 '<span>' + escapeHtml(c.category || '') + ' &middot; ' + escapeHtml(c.location || '') + '</span>' +
                 (c.hours ? '<span>' + escapeHtml(c.hours) + '</span>' : '') +
@@ -731,7 +731,7 @@ window.GiyaLeaflet = (function () {
                     title: c.name
                 })
                     .on('click', function () { if (cfg.onChurchClick) cfg.onChurchClick(c); })
-                    .bindTooltip(c.name, { direction: 'top', offset: [0, -50] })
+                    .bindTooltip(escapeHtml(c.name), { direction: 'top', offset: [0, -50] })
                     .addTo(existing);
             });
         }
@@ -782,7 +782,7 @@ window.GiyaLeaflet = (function () {
            belongs there rather than on a button in the corner. */
         function popupFor(s) {
             return '<div class="giya-popup">' +
-                (s.image ? '<img src="' + s.image + '" alt="">' : '') +
+                (s.image ? '<img src="' + escapeHtml(s.image) + '" alt="">' : '') +
                 '<strong>' + escapeHtml(s.name) + '</strong>' +
                 '<span>' + say(cfg, 'popupStop').split(':order').join(s.order) +
                     ' &middot; ' + escapeHtml(s.location || '') + '</span>' +
