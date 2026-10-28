@@ -78,7 +78,7 @@ backup) + Supabase Storage (uploaded photos), all free and in Singapore.
 | `relation "..." does not exist` | Wrong database in `.env`, or `migrate` not run |
 | Images 404 | `php artisan storage:link` |
 | Blank map | `php artisan giya:tiles` |
-| "Find my location" does nothing | Use `127.0.0.1`, not a LAN IP — geolocation needs HTTPS or localhost |
+| "Find my location" does nothing | Use `127.0.0.1`, not a LAN IP: geolocation needs HTTPS or localhost |
 | Changes not showing | `php artisan view:clear` |
 
 Keep **one** database. Spares from earlier attempts cause errors that look like
@@ -100,7 +100,7 @@ php artisan view:clear
 
 ```
 app/Models/              16 models, one per ERD entity
-app/Console/Commands/    giya:tiles — offline tile downloader
+app/Console/Commands/    giya:tiles: offline tile downloader
 database/migrations/     full ERD schema
 public/assets/js/        leaflet.js (self-hosted) + giya-leaflet.js
 public/tiles/            offline map tiles

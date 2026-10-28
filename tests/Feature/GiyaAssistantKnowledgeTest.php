@@ -187,6 +187,43 @@ class GiyaAssistantKnowledgeTest extends TestCase
         });
     }
 
+    public function test_long_dashes_are_cleaned_out_of_ai_replies(): void
+    {
+        config(['services.groq.key' => 'gsk-test']);
+        Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => ['content' =>
+            "**San Guillermo Parish (Catmon Church)** \u{2013} Catmon, northern Cebu.\n\u{2014} Masses 9\u{2013}11 AM\nA shrine\u{2014}built in 1998."]]]])]);
+
+        $reply = app(GiyaAssistant::class)->ask('schedule for catmon church')['reply'];
+
+        $this->assertStringNotContainsString("\u{2013}", $reply);
+        $this->assertStringNotContainsString("\u{2014}", $reply);
+        $this->assertSame(
+            "**San Guillermo Parish (Catmon Church)**, Catmon, northern Cebu.\n- Masses 9-11 AM\nA shrine, built in 1998.",
+            $reply
+        );
+    }
+
+    public function test_the_prompt_tells_the_model_not_to_use_long_dashes(): void
+    {
+        $this->assertStringContainsString('Never use em dashes or en dashes', $this->promptFor('Hello'));
+    }
+
+    public function test_no_long_dashes_remain_in_giyas_own_text(): void
+    {
+        foreach (['resources', 'lang', 'app', 'database', 'public/assets/js'] as $dir) {
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(base_path($dir), \FilesystemIterator::SKIP_DOTS));
+
+            foreach ($files as $file) {
+                if ($file->getFilename() === 'leaflet.js' || ! preg_match('/\.(php|js|css)$/', $file->getFilename())) {
+                    continue;
+                }
+
+                $text = file_get_contents($file->getPathname());
+                $this->assertDoesNotMatchRegularExpression('/\x{2013}|\x{2014}|\\\\u201[34]|&[mn]dash;/u', $text, $file->getPathname());
+            }
+        }
+    }
+
     public function test_the_default_model_is_not_the_retired_one(): void
     {
         $config = file_get_contents(config_path('services.php'));
