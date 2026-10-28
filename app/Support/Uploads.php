@@ -47,12 +47,17 @@ final class Uploads
                     $file->getMimeType() ?: 'application/octet-stream'
                 )
                 ->post(self::objectUrl($path));
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            // Supabase unreachable (wrong SUPABASE_URL, network down): a
-            // clear message for the admin instead of a 500 page.
-            Log::error('Supabase unreachable.', ['path' => $path, 'message' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            // Supabase unreachable (wrong SUPABASE_URL, network down) or the
+            // request could not even be built (a key with a stray character):
+            // a clear message for the admin instead of a 500 page. The cause
+            // is logged - never the key itself.
+            Log::error('Supabase upload could not be sent.', [
+                'path'  => $path,
+                'error' => get_class($e).': '.preg_replace('/sb_[a-z]+_\S+|ey[\w-]{20,}\.\S+/', '[key hidden]', $e->getMessage()),
+            ]);
 
-            throw new RuntimeException('The photo could not be uploaded (storage unreachable).', previous: $e);
+            throw new RuntimeException('The photo could not be uploaded.', previous: $e);
         }
 
         if ($response->failed()) {

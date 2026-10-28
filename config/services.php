@@ -1,5 +1,12 @@
 <?php
 
+/*
+| Keys below are trim()med: a key pasted into a hosting dashboard often brings
+| an invisible trailing space or line break, and an HTTP header containing one
+| is rejected outright - in October 2026 that turned saving a church photo on
+| Vercel into a 500 page.
+*/
+
 return [
 
     /*
@@ -41,7 +48,7 @@ return [
     | model from https://console.groq.com/docs/models and set GROQ_MODEL.
     */
     'groq' => [
-        'key'   => env('GROQ_API_KEY'),
+        'key'   => trim((string) env('GROQ_API_KEY')),
         'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
     ],
 
@@ -65,9 +72,9 @@ return [
     | copies it can still pay with a test card straight away.
     */
     'maya' => [
-        'base_url' => env('MAYA_BASE_URL', 'https://pg-sandbox.paymaya.com'),
-        'public'   => env('MAYA_PUBLIC_KEY', ''),
-        'secret'   => env('MAYA_SECRET_KEY', ''),
+        'base_url' => trim((string) env('MAYA_BASE_URL', 'https://pg-sandbox.paymaya.com')),
+        'public'   => trim((string) env('MAYA_PUBLIC_KEY', '')),
+        'secret'   => trim((string) env('MAYA_SECRET_KEY', '')),
 
         // Maya posts webhooks from a fixed set of addresses and signs nothing,
         // so the address is the only cheap filter available. It is a filter,
@@ -98,9 +105,9 @@ return [
     | bucket: a PUBLIC bucket, created in the Supabase dashboard
     */
     'supabase' => [
-        'url'    => env('SUPABASE_URL'),
-        'key'    => env('SUPABASE_SERVICE_KEY'),
-        'bucket' => env('SUPABASE_BUCKET', 'giya-uploads'),
+        'url'    => trim((string) env('SUPABASE_URL')),
+        'key'    => trim((string) env('SUPABASE_SERVICE_KEY')),
+        'bucket' => trim((string) env('SUPABASE_BUCKET', 'giya-uploads')),
     ],
 
     'slack' => [
