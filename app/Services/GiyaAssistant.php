@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Support\Text;
 
 /**
  * Giya AI - a pilgrimage assistant grounded in this database.
@@ -73,7 +74,7 @@ class GiyaAssistant
             return [
                 'ok'     => false,
                 'reason' => 'no_key',
-                'reply'  => $this->offlineAnswer($question),
+                'reply'  => Text::withoutLongDashes($this->offlineAnswer($question)),
             ];
         }
 
@@ -112,13 +113,14 @@ class GiyaAssistant
         }
 
         if ($result['ok']) {
-            return $result;
+            // House style: no long dashes, even if the model slips.
+            return ['ok' => true, 'reply' => Text::withoutLongDashes($result['reply'])];
         }
 
         return [
             'ok'     => false,
             'reason' => $result['reason'],
-            'reply'  => $this->offlineAnswer($question, $result['reason']),
+            'reply'  => Text::withoutLongDashes($this->offlineAnswer($question, $result['reason'])),
         ];
     }
 
@@ -420,6 +422,8 @@ class GiyaAssistant
           Filipino.
         - Plain text only. You may use **bold** for church names; no headings,
           tables or other markdown - the chat window shows them as symbols.
+        - Never use em dashes or en dashes. Use a comma, a colon or a plain
+          hyphen instead.
         - You cannot book, pay, or change anything. Point the devotee to the Map
           or Plan Hub for those.
 

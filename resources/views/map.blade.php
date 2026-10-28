@@ -518,7 +518,7 @@ onLocated: function (me) {
                 note.textContent = trans('add_another');
                 note.className = 'route-mode';
             } else if (meta.pending) {
-                note.textContent = 'Straight-line estimate \u2014 checking roads\u2026';
+                note.textContent = 'Straight-line estimate, checking roads\u2026';
                 note.className = 'route-mode';
             } else {
                 const why = {
@@ -529,7 +529,7 @@ onLocated: function (me) {
                     empty:    'no road route found'
                 }[meta.reason] || 'roads unavailable';
 
-                note.textContent = 'Straight-line distance \u2014 ' + why;
+                note.textContent = 'Straight-line distance: ' + why;
                 note.className = 'route-mode is-direct';
             }
             wrap.innerHTML = stops.map(function (s, i) {
