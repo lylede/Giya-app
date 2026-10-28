@@ -108,6 +108,7 @@ return [
     ],
 
     'church' => [
+        'history'       => 'Kasaysayan',
         'churches'      => 'Mga Simbahan',
         'church'        => 'Simbahan',
         'mass_schedule' => 'Iskedyul ng Misa',

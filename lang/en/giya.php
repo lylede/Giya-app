@@ -118,6 +118,7 @@ return [
     ],
 
     'church' => [
+        'history'       => 'History',
         'churches'      => 'Churches',
         'church'        => 'Church',
         'mass_schedule' => 'Mass Schedule',

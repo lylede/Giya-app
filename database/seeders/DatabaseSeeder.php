@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             ReferenceDataSeeder::class,   // categories, itinerary types, plans
             UserSeeder::class,
             ChurchSeeder::class,
+            ChurchHistorySeeder::class,   // researched history for the seeded churches
             ScheduleSeeder::class,
             NotificationSeeder::class,
         ]);
