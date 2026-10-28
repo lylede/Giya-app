@@ -82,10 +82,16 @@ final class Uploads
 
         $path = substr($url, strlen(self::publicBase()));
 
-        $response = self::client()->delete(self::objectUrl($path));
+        // Removing an old photo is housekeeping: if it fails, the save must
+        // still succeed, so nothing here is allowed to throw.
+        try {
+            $response = self::client()->delete(self::objectUrl($path));
 
-        if ($response->failed() && $response->status() !== 404) {
-            Log::warning('Supabase delete failed.', ['path' => $path, 'status' => $response->status()]);
+            if ($response->failed() && $response->status() !== 404) {
+                Log::warning('Supabase delete failed.', ['path' => $path, 'status' => $response->status()]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Supabase delete could not be sent.', ['path' => $path, 'error' => get_class($e)]);
         }
     }
 
