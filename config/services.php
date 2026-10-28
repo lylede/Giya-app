@@ -50,6 +50,9 @@ return [
     'groq' => [
         'key'   => preg_replace('/\s+/', '', (string) env('GROQ_API_KEY')),
         'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
+        // Used when the main model is busy (free-plan per-minute limit).
+        // Each Groq model has its own allowance. Set to "" to disable.
+        'fallback_model' => env('GROQ_FALLBACK_MODEL', 'openai/gpt-oss-20b'),
     ],
 
     /*
