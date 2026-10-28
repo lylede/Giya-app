@@ -77,7 +77,7 @@ class GiyaAssistant
             ];
         }
 
-        $history = array_slice($history, -8);   // keep the request small
+        $history = $this->trimHistory($history);
 
         $messages = array_merge(
             [['role' => 'system', 'content' => $this->systemPrompt($question, $history)]],
@@ -85,15 +85,58 @@ class GiyaAssistant
             [['role' => 'user', 'content' => $question]]
         );
 
-        $model = (string) config('services.groq.model');
+        /* Groq's free plan allows about 8,000 tokens a minute PER MODEL, and
+           one question here is 2,000-4,000 with the church records. Two or
+           three quick questions used to hit the limit and the devotee was
+           told the AI was unreachable. Now a busy main model hands the
+           question to a second model, which has its own allowance. */
+        $models = array_values(array_unique(array_filter([
+            (string) config('services.groq.model'),
+            (string) config('services.groq.fallback_model'),
+        ])));
 
+        $result = ['ok' => false, 'reason' => 'upstream'];
+
+        foreach ($models as $i => $model) {
+            $result = $this->call($model, $messages);
+
+            // Only "busy" and "ran out of room" are worth a second model.
+            // A bad key or a network failure would fail there just the same.
+            if ($result['ok'] || ! in_array($result['reason'], ['rate_limited', 'empty'], true)) {
+                break;
+            }
+
+            if (isset($models[$i + 1])) {
+                Log::info("Groq model \"{$model}\" was {$result['reason']}; retrying on \"{$models[$i + 1]}\".");
+            }
+        }
+
+        if ($result['ok']) {
+            return $result;
+        }
+
+        return [
+            'ok'     => false,
+            'reason' => $result['reason'],
+            'reply'  => $this->offlineAnswer($question, $result['reason']),
+        ];
+    }
+
+    /**
+     * One request to one model.
+     *
+     * @param  array<int, array{role: string, content: string}>  $messages
+     * @return array{ok: bool, reply?: string, reason?: string}
+     */
+    protected function call(string $model, array $messages): array
+    {
         $payload = [
             'model'       => $model,
             'messages'    => $messages,
             'temperature' => 0.3,            // low: this is a factual assistant
-            // Room for a two-paragraph history answer. Reasoning models
-            // (gpt-oss, qwen3) also spend part of this budget thinking.
-            'max_tokens'  => 1500,
+            // Enough for a two-paragraph history answer. Kept modest because
+            // Groq counts it against the per-minute allowance.
+            'max_tokens'  => 900,
         ];
 
         // gpt-oss thinks before answering; "low" keeps that short so the
@@ -118,7 +161,7 @@ class GiyaAssistant
                     Log::warning("Groq model \"{$model}\" is not available (retired or misspelled). "
                         .'Set GROQ_MODEL in .env to a current model - see https://console.groq.com/docs/models');
                 } else {
-                    Log::warning('Groq returned '.$response->status().': '.$response->body());
+                    Log::warning("Groq ({$model}) returned ".$response->status().': '.mb_substr($response->body(), 0, 300));
                 }
 
                 return [
@@ -129,24 +172,35 @@ class GiyaAssistant
                         in_array($code, ['model_not_found', 'model_decommissioned'], true) => 'bad_model',
                         default => 'upstream',
                     },
-                    'reply'  => $this->offlineAnswer($question),
                 ];
             }
 
             $reply = trim((string) $response->json('choices.0.message.content'));
 
             return $reply === ''
-                ? ['ok' => false, 'reason' => 'empty', 'reply' => $this->offlineAnswer($question)]
+                ? ['ok' => false, 'reason' => 'empty']
                 : ['ok' => true, 'reply' => $reply];
         } catch (\Throwable $e) {
-            Log::warning('Groq call failed: '.$e->getMessage());
+            Log::warning("Groq ({$model}) call failed: ".$e->getMessage());
 
-            return [
-                'ok'     => false,
-                'reason' => 'offline',
-                'reply'  => $this->offlineAnswer($question),
-            ];
+            return ['ok' => false, 'reason' => 'offline'];
         }
+    }
+
+    /**
+     * The last few turns, each cut short. Earlier answers can be long (a
+     * church history), and resending them in full on every question was the
+     * biggest share of each request.
+     *
+     * @param  array<int, array{role: string, content: string}>  $history
+     * @return array<int, array{role: string, content: string}>
+     */
+    protected function trimHistory(array $history): array
+    {
+        return array_map(fn (array $m) => [
+            'role'    => $m['role'],
+            'content' => Str::limit((string) $m['content'], 600),
+        ], array_values(array_slice($history, -6)));
     }
 
     /* ------------------------------------------------------------------ */
@@ -384,8 +438,15 @@ class GiyaAssistant
      * missing key or a dropped connection degrades to something useful rather
      * than an error message.
      */
-    protected function offlineAnswer(string $question): string
+    protected function offlineAnswer(string $question, string $reason = 'offline'): string
     {
+        /* Busy is not broken. Telling a devotee the AI is unreachable when it
+           will answer again in a few seconds makes them give up on it. */
+        $busy = $reason === 'rate_limited';
+        $note = $busy
+            ? '_Giya AI is answering a lot of questions right now, so this comes straight from the destination records. Ask again in a few seconds for a full answer._'
+            : '_The AI assistant is offline, so this comes straight from the destination records._';
+
         $q = $this->normalize($question);
         $matches = $this->relevant($question, [])->take(3);
 
@@ -403,7 +464,7 @@ class GiyaAssistant
 
                 return $text;
             })->implode("\n\n")
-                ."\n\n_The AI assistant is offline, so this comes straight from the destination records._";
+                ."\n\n".$note;
         }
 
         foreach (['visita', 'seven', 'route', 'plan'] as $word) {
@@ -421,6 +482,11 @@ class GiyaAssistant
         }
 
         $count = Church::active()->count();
+
+        if ($busy) {
+            return 'Giya AI is answering a lot of questions right now. Please ask again in a few seconds - '
+                .'or ask about a church by name and I can answer from the destination records.';
+        }
 
         return 'I cannot reach the AI service right now, so I can only answer from the '
             ."destination records. GIYA currently has {$count} destinations across Metro Cebu - "

@@ -126,7 +126,65 @@ class GiyaAssistantKnowledgeTest extends TestCase
 
         Http::assertSent(fn (Request $r) => $r['model'] === 'openai/gpt-oss-120b'
             && $r['reasoning_effort'] === 'low'
-            && $r['max_tokens'] >= 1000);
+            && $r['max_tokens'] >= 800 && $r['max_tokens'] <= 1000);
+    }
+
+    /** Free plan: ~8,000 tokens a minute per model. A busy main model must not mean "offline". */
+    public function test_a_busy_main_model_hands_the_question_to_the_fallback(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.model' => 'openai/gpt-oss-120b',
+                'services.groq.fallback_model' => 'openai/gpt-oss-20b']);
+
+        Http::fake(['api.groq.com/*' => Http::sequence()
+            ->push(['error' => ['message' => 'Rate limit reached', 'code' => 'rate_limit_exceeded']], 429)
+            ->push(['choices' => [['message' => ['content' => 'Simala is in Sibonga.']]]])]);
+
+        $result = app(GiyaAssistant::class)->ask('Where is Simala?');
+
+        $this->assertTrue($result['ok']);
+        $this->assertSame('Simala is in Sibonga.', $result['reply']);
+        Http::assertSentCount(2);
+        Http::assertSent(fn (Request $r) => $r['model'] === 'openai/gpt-oss-20b');
+    }
+
+    public function test_when_both_models_are_busy_the_devotee_is_told_it_is_busy_not_offline(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.fallback_model' => 'openai/gpt-oss-20b']);
+        Http::fake(['api.groq.com/*' => Http::response(['error' => ['code' => 'rate_limit_exceeded']], 429)]);
+
+        $result = app(GiyaAssistant::class)->ask('who are you');
+
+        $this->assertFalse($result['ok']);
+        $this->assertSame('rate_limited', $result['reason']);
+        $this->assertStringContainsString('a lot of questions', $result['reply']);
+        $this->assertStringNotContainsString('cannot reach', $result['reply']);
+    }
+
+    public function test_a_bad_key_is_not_retried_on_another_model(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.fallback_model' => 'openai/gpt-oss-20b']);
+        Http::fake(['api.groq.com/*' => Http::response(['error' => ['code' => 'invalid_api_key']], 401)]);
+
+        $this->assertSame('bad_key', app(GiyaAssistant::class)->ask('hello')['reason']);
+        Http::assertSentCount(1);
+    }
+
+    public function test_only_the_last_few_turns_are_resent_and_each_is_cut_short(): void
+    {
+        $history = [];
+        for ($i = 0; $i < 10; $i++) {
+            $history[] = ['role' => 'user', 'content' => "question {$i}"];
+            $history[] = ['role' => 'assistant', 'content' => str_repeat('long answer ', 200)];
+        }
+
+        $this->promptFor('Tell me about Simala', $history);
+
+        Http::assertSent(function (Request $r) {
+            $turns = array_slice($r['messages'], 1, -1);   // minus system and the new question
+
+            return count($turns) === 6
+                && max(array_map(fn ($m) => mb_strlen($m['content']), $turns)) <= 603;
+        });
     }
 
     public function test_the_default_model_is_not_the_retired_one(): void
