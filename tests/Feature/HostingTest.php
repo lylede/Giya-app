@@ -147,6 +147,27 @@ class HostingTest extends TestCase
             ->assertSessionHas('error');
     }
 
+    /** A key pasted with a trailing line break made the request invalid: a 500 on Vercel. */
+    public function test_a_key_with_a_stray_line_break_is_trimmed_and_cannot_cause_a_500(): void
+    {
+        putenv("SUPABASE_SERVICE_KEY=sb_secret_abc \n");
+        $config = require config_path('services.php');
+        putenv('SUPABASE_SERVICE_KEY');
+
+        $this->assertSame('sb_secret_abc', $config['supabase']['key']);
+
+        // And even if a bad header slips through, saving shows a message.
+        $this->useSupabase(fake: false);
+        config(['services.supabase.key' => "sb_secret_abc\nbad"]);
+        Http::fake();
+        $church = $this->church();
+
+        $this->actingAs($this->user('admin'))
+            ->post(route('admin.destinations.photo', $church), ['photo' => $this->png()])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+    }
+
     /** The preview stayed white: [hidden] { display:none !important } beat style.display. */
     public function test_the_upload_preview_toggles_the_hidden_attribute(): void
     {
