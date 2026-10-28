@@ -48,6 +48,4 @@
         <button type="submit" class="btn btn-primary btn-w-full">{{ __('giya.auth.reset_pw') }}</button>
     </form>
 @endsection
-    <livewire:auth.reset-password :token="$token" :email="$email" />
-
     
