@@ -39,13 +39,21 @@ final class Uploads
      */
     public static function put(UploadedFile $file, string $path): string
     {
-        $response = self::client()
-            ->withHeaders(['x-upsert' => 'true'])
-            ->withBody(
-                (string) file_get_contents($file->getRealPath()),
-                $file->getMimeType() ?: 'application/octet-stream'
-            )
-            ->post(self::objectUrl($path));
+        try {
+            $response = self::client()
+                ->withHeaders(['x-upsert' => 'true'])
+                ->withBody(
+                    (string) file_get_contents($file->getRealPath()),
+                    $file->getMimeType() ?: 'application/octet-stream'
+                )
+                ->post(self::objectUrl($path));
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // Supabase unreachable (wrong SUPABASE_URL, network down): a
+            // clear message for the admin instead of a 500 page.
+            Log::error('Supabase unreachable.', ['path' => $path, 'message' => $e->getMessage()]);
+
+            throw new RuntimeException('The photo could not be uploaded (storage unreachable).', previous: $e);
+        }
 
         if ($response->failed()) {
             Log::error('Supabase upload failed.', [
