@@ -20,6 +20,8 @@ return [
         'search_label'   => 'Maghanap ng simbahan',
         'notifications'  => 'Mga Abiso',
         'mark_all_read'  => 'Markahang lahat bilang nabasa',
+        'notif_empty'    => 'Wala pa. Dito lalabas ang mga iskedyul, sagot sa iyong mga review at paalala sa paglalakbay.',
+        'notif_dismiss'  => 'Isara ang abiso',
         'loading'        => 'Naglo-load…',
         'sign_in'        => 'Mag-sign In',
         'sign_out'       => 'Mag-sign Out',

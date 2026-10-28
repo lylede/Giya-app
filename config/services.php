@@ -53,22 +53,29 @@ return [
     |   secret  - reads a payment's real status and registers webhooks. This
     |             one must never reach the browser or a public repository.
     |
-    | Sandbox keys are the published test pair from Maya's documentation, so a
-    | teammate can clone the repo and pay with a test card without waiting for
-    | credentials. Live keys go in .env only.
+    | Keys come from .env only - there are deliberately no defaults here. A
+    | default meant a production server with a missing MAYA_SECRET_KEY quietly
+    | ran on the sandbox pair, taking "payments" that were never real.
+    | .env.example carries Maya's published sandbox pair, so a teammate who
+    | copies it can still pay with a test card straight away.
     */
     'maya' => [
         'base_url' => env('MAYA_BASE_URL', 'https://pg-sandbox.paymaya.com'),
-        'public'   => env('MAYA_PUBLIC_KEY',  'pk-Z0OSzLvIcOI2UIvDhdTGVVfRSSeiGStnceqwUE7n0Ah'),
-        'secret'   => env('MAYA_SECRET_KEY',  'sk-X8qolYjy62kIzEbr0QRK1h4b4KDVHaNcwMYk39jInSl'),
+        'public'   => env('MAYA_PUBLIC_KEY', ''),
+        'secret'   => env('MAYA_SECRET_KEY', ''),
 
         // Maya posts webhooks from a fixed set of addresses and signs nothing,
         // so the address is the only cheap filter available. It is a filter,
         // not the security boundary - the payment is still re-fetched.
-        'webhook_ips' => [
-            '13.229.160.234', '3.1.199.75',       // sandbox
-            '18.138.50.235',  '3.1.207.200',      // production
-        ],
+        //
+        // Behind ngrok, Cloudflare or a load balancer, set TRUSTED_PROXIES in
+        // .env (see bootstrap/app.php) or every webhook arrives from the
+        // proxy's address and is dropped. MAYA_WEBHOOK_IPS="" turns the
+        // filter off entirely - the re-fetch still protects the payment.
+        'webhook_ips' => array_values(array_filter(array_map('trim', explode(',', (string) env(
+            'MAYA_WEBHOOK_IPS',
+            '13.229.160.234,3.1.199.75,18.138.50.235,3.1.207.200'   // sandbox x2, production x2
+        ))))),
     ],
 
     'slack' => [

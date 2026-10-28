@@ -784,7 +784,7 @@ class ReportController extends Controller
         array $filters
     ): void {
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'No.',
             'Name',
             'Email',
@@ -811,7 +811,7 @@ class ReportController extends Controller
 
         foreach ($rows as $i => $user) {
 
-            fputcsv($out, [
+            \App\Support\Csv::put($out, [
 
                 $i + 1,
 
@@ -848,7 +848,7 @@ class ReportController extends Controller
         array $filters
     ): void {
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Transaction ID',
             'User',
             'Email',
@@ -878,7 +878,7 @@ class ReportController extends Controller
 
         foreach ($rows as $transaction) {
 
-            fputcsv($out, [
+            \App\Support\Csv::put($out, [
 
                 $transaction
                     ->transaction_id,
@@ -942,7 +942,7 @@ class ReportController extends Controller
         array $filters
     ): void {
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'No.',
             'User',
             'Destination',
@@ -968,7 +968,7 @@ class ReportController extends Controller
 
         foreach ($rows as $i => $feedback) {
 
-            fputcsv($out, [
+            \App\Support\Csv::put($out, [
 
                 $i + 1,
 
@@ -1009,7 +1009,7 @@ class ReportController extends Controller
         array $filters
     ): void {
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'No.',
             'User',
             'Destination',
@@ -1036,7 +1036,7 @@ class ReportController extends Controller
 
         foreach ($rows as $i => $visit) {
 
-            fputcsv($out, [
+            \App\Support\Csv::put($out, [
 
                 $i + 1,
 
@@ -1081,7 +1081,7 @@ class ReportController extends Controller
         array $filters
     ): void {
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'No.',
             'User',
             'Itinerary Name',
@@ -1120,7 +1120,7 @@ class ReportController extends Controller
 
         foreach ($rows as $i => $itinerary) {
 
-            fputcsv($out, [
+            \App\Support\Csv::put($out, [
 
                 $i + 1,
 
@@ -1203,60 +1203,60 @@ class ReportController extends Controller
                 'created_at'
             );
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'GIYA System Summary Report'
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Generated At',
             now()->format(
                 'Y-m-d H:i:s'
             ),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Period From',
             $filters['from']
                 ?: 'All time',
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Period To',
             $filters['to']
                 ?: 'All time',
         ]);
 
-        fputcsv($out, []);
+        \App\Support\Csv::put($out, []);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Metric',
             'Value',
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Users',
             (clone $userQuery)->count(),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Itineraries Created',
             (clone $itineraryQuery)
                 ->count(),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Pilgrimage Visits',
             (clone $visitQuery)
                 ->count(),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Feedback Submitted',
             (clone $feedbackQuery)
                 ->count(),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Average Rating',
             round(
                 (float)
@@ -1266,13 +1266,13 @@ class ReportController extends Controller
             ),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Transactions',
             (clone $transactionQuery)
                 ->count(),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Paid Transactions',
 
             (clone $transactionQuery)
@@ -1283,7 +1283,7 @@ class ReportController extends Controller
                 ->count(),
         ]);
 
-        fputcsv($out, [
+        \App\Support\Csv::put($out, [
             'Revenue (PHP)',
 
             number_format(

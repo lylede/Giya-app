@@ -27,6 +27,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'maya/webhook',
         ]);
 
+        // Behind ngrok / Cloudflare / a load balancer, every request appears
+        // to come from the proxy unless it is trusted. That broke two things:
+        // the Maya webhook IP filter dropped every real webhook, and the login
+        // throttle counted all devotees as one IP. Unset = trust nothing.
+        if ($proxies = env('TRUSTED_PROXIES')) {
+            $middleware->trustProxies(
+                at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies))
+            );
+        }
+
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureAccountIsActive::class,
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);

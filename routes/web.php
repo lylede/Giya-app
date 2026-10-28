@@ -31,16 +31,16 @@ Route::get('/', [HomeController::class, 'landing'])->name('root');
 /* ---------------------------------------------------------------- Guest */
 Route::middleware('guest')->group(function () {
     Route::get('/login',  [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'store'])->name('login.store');
+    Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
 
     Route::get('/register',  [RegisterController::class, 'show'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+    Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:5,1')->name('register.store');
 
     Route::get('/forgot-password',  [PasswordResetController::class, 'showRequestForm'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->name('password.email');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])->middleware('throttle:5,1')->name('password.email');
 
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password',        [PasswordResetController::class, 'reset'])->name('password.update');
+    Route::post('/reset-password',        [PasswordResetController::class, 'reset'])->middleware('throttle:10,1')->name('password.update');
 });
 
 /* ------------------------------------------------------- Authenticated */
@@ -144,6 +144,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
     Route::get('/',                    [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
     Route::patch('/{notification}',    [\App\Http\Controllers\NotificationController::class, 'markRead'])->name('read');
+    Route::delete('/{notification}',   [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('destroy');
     Route::patch('/',                  [\App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('readAll');
     Route::delete('/',                 [\App\Http\Controllers\NotificationController::class, 'clear'])->name('clear');
 });
