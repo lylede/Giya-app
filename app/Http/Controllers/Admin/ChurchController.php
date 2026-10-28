@@ -445,7 +445,6 @@ class ChurchController extends Controller
         return $parsed === false ? null : date('H:i', $parsed);
     }
 
-    /** Swap the primary image, deleting the file the old row pointed at. */
     /**
      * Store the primary photograph for a destination.
      *
@@ -472,8 +471,17 @@ class ChurchController extends Controller
             $old->delete();
         }
 
-        $slug = \Illuminate\Support\Str::slug($church->name);
-        $ext  = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+        $slug = static::photoBasename($church);
+
+        /* The extension comes from the file's actual content (its MIME type),
+           not from its name. A browser-supplied name is whatever the uploader
+           typed; the 'image|mimes' rule has already checked the content. */
+        $ext = match ($file->guessExtension()) {
+            'png'         => 'png',
+            'webp'        => 'webp',
+            'jpg', 'jpeg' => 'jpg',
+            default       => 'jpg',
+        };
 
         // One church, one photo file: a repeatedly edited destination should not
         // leave a trail of orphans behind it.
@@ -500,7 +508,26 @@ class ChurchController extends Controller
             'created_at'  => now(),
         ]);
     }
-        /** Remove a destination and everything attached to it. */
+        /**
+     * The file name (without extension) for a church's photo.
+     *
+     * Normally just the slug, as before. If another destination has a name
+     * that slugs the same ("San Roque Chapel" in two towns), the id is added:
+     * otherwise uploading a photo for one deleted the other's - the cleanup
+     * loop removes every {slug}.* it finds.
+     */
+    public static function photoBasename(Church $church): string
+    {
+        $slug = \Illuminate\Support\Str::slug($church->name);
+
+        $shared = Church::where('id', '!=', $church->id)
+            ->get(['id', 'name'])
+            ->contains(fn (Church $other) => \Illuminate\Support\Str::slug($other->name) === $slug);
+
+        return $shared ? "{$slug}-{$church->id}" : $slug;
+    }
+
+    /** Remove a destination and everything attached to it. */
     public function destroy(Church $church): RedirectResponse
     {
         $name = $church->name;
