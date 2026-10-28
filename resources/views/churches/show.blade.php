@@ -140,6 +140,11 @@
             <p class="church-description is-empty">{{ __('giya.church.no_desc') }}</p>
         @endif
 
+        @if ($church->history)
+            <h3 class="church-history-title">{{ __('giya.church.history') }}</h3>
+            <div class="church-history">{!! nl2br(e($church->history)) !!}</div>
+        @endif
+
         <p class="church-info-meta is-address">
             <i class="bi bi-geo-alt" aria-hidden="true"></i>
             {{ $church->address ?? $church->location ?? 'Address not available' }}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Auth\PasswordResetAction;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 new class extends Component
@@ -12,16 +13,20 @@ new class extends Component
     public function sendLink(): void
     {
         $this->reset(['successMessage', 'warningMessage']);
-        $this->validate(['email' => ['required', 'email', 'exists:devotees,email']], [
-            'email.exists' => 'No GIYA account is registered with that email address.',
-        ]);
+        $this->validate(['email' => ['required', 'email']]);
+
         try {
-            app(PasswordResetAction::class)->sendLink($this->email);
+            app(PasswordResetAction::class)->sendLink($this->email, request()->ip());
+        } catch (ValidationException $exception) {
+            $this->addError('email', $exception->validator->errors()->first('email'));
+            return;
         } catch (\Throwable $exception) {
-            $this->warningMessage = 'Mail could not be sent. Your reset link was written to storage/logs/laravel.log.';
+            $this->warningMessage = PasswordResetAction::mailFailedMessage();
             return;
         }
-        $this->successMessage = "A reset link has been sent to {$this->email}. It expires in ".PasswordResetAction::TOKEN_TTL_MINUTES." minutes.";
+
+        // Same words whether or not the account exists.
+        $this->successMessage = PasswordResetAction::sentMessage();
     }
 };
 ?>

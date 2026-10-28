@@ -97,6 +97,29 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Hosting behind a proxy (Vercel, Render, ngrok, Cloudflare)
+    |--------------------------------------------------------------------------
+    |
+    | trusted_proxies: "*" when the app is only reachable through the host's
+    | proxy (true on Vercel and Render). Without it every visitor looks like
+    | the proxy's IP - which breaks the login throttle and Maya's webhook
+    | filter - and Laravel thinks the page is http, so it writes http:// links
+    | for CSS and images that the browser then blocks on an https page.
+    |
+    | force_https: always write https:// links. Belt and braces for the same
+    | problem; set on the hosted app, never on a laptop.
+    |
+    | Read from config (not env() in bootstrap/app.php) so they still work
+    | after "php artisan config:cache", which the hosted app runs on start.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES'),
+
+    'force_https' => (bool) env('FORCE_HTTPS', false),
+
     'key' => env('APP_KEY'),
 
     'previous_keys' => [

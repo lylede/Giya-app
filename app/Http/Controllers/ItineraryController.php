@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class ItineraryController extends Controller
@@ -127,6 +128,19 @@ class ItineraryController extends Controller
         ]);
 
         $itinerary = DB::transaction(function () use ($data) {
+            /* The allowance is checked again here, with the devotee's row
+               locked. The check at the top of store() is a fast path for the
+               message; on its own it was a race: two quick submits (a double
+               click, two tabs) both read "2 of 3", both passed, and a free
+               account ended up with 4. The lock makes the second request wait
+               until the first has committed, so it counts the new row.
+               (SQLite ignores the lock; PostgreSQL, which GIYA runs on, honours it.) */
+            $user = User::whereKey(Auth::id())->lockForUpdate()->first();
+
+            if (Itinerary::atFreeLimit($user)) {
+                return null;
+            }
+
             // ERD: itineraries.type is now a foreign key into itinerary_types.
             $type = ItineraryType::firstOrCreate(
                 ['name' => $data['type']],
@@ -174,13 +188,18 @@ class ItineraryController extends Controller
             return $itinerary;
         });
 
+        if (! $itinerary) {
+            return back()->with('error',
+                'You have reached the free limit of ' . self::FREE_LIMIT . ' itineraries. Upgrade to create more.');
+        }
+
         return redirect()->route('plan.show', $itinerary)
             ->with('success', 'Itinerary created. Your pilgrimage has begun.');
     }
 
     public function show(Itinerary $itinerary): View
     {
-        $this->authorizeOwner($itinerary);
+        Gate::authorize('view', $itinerary);
 
         if ($itinerary->status === 'Upcoming') {
             $itinerary->update(['status' => 'Active', 'updated_at' => now()]);
@@ -200,7 +219,7 @@ class ItineraryController extends Controller
         ]);
 
         $stop = ItineraryStop::with('itinerary')->findOrFail($data['stop_id']);
-        $this->authorizeOwner($stop->itinerary);
+        Gate::authorize('update', $stop->itinerary);
 
         /*
            Undo an automatic check-in.
@@ -261,7 +280,7 @@ class ItineraryController extends Controller
 
     public function destroy(Itinerary $itinerary): RedirectResponse
     {
-        $this->authorizeOwner($itinerary);
+        Gate::authorize('delete', $itinerary);
 
         // A soft delete, so the stops stay with it. Removing them would gut
         // the record we are deliberately keeping, and a deleted itinerary
@@ -280,10 +299,5 @@ class ItineraryController extends Controller
     private function atLimit(): bool
     {
         return Itinerary::atFreeLimit(Auth::user());
-    }
-
-    private function authorizeOwner(Itinerary $itinerary): void
-    {
-        abort_unless($itinerary->user_id === Auth::id(), 403);
     }
 }

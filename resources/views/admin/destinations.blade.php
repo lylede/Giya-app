@@ -271,7 +271,7 @@
 
                 <div class="dm-map-note is-spaced">
                     <i class="bi bi-info-circle"></i>
-                    Supported columns: name, category, location, address, latitude, longitude, opening_time, closing_time, description, status.
+                    Supported columns: name, category, location, address, latitude, longitude, opening_time, closing_time, description, history, status.
                 </div>
 
                 <pre class="dm-csv-sample">name,category,location,address,latitude,longitude,opening_time,closing_time,description,status
@@ -434,9 +434,15 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                 </div>
 
                 <div class="field">
-                    <label class="dm-label" for="f-desc">Historical Background</label>
-                    <textarea id="f-desc" name="description" class="giya-input" rows="4"
-                              placeholder="Historical and religious significance">{{ old('description') }}</textarea>
+                    <label class="dm-label" for="f-desc">Short Description</label>
+                    <textarea id="f-desc" name="description" class="giya-input" rows="2"
+                              placeholder="One or two lines, shown on cards and the home page">{{ old('description') }}</textarea>
+                </div>
+
+                <div class="field">
+                    <label class="dm-label" for="f-history">History</label>
+                    <textarea id="f-history" name="history" class="giya-input" rows="6"
+                              placeholder="When it was founded, by whom, and what happened since. Shown on the church page and used by Giya AI.">{{ old('history') }}</textarea>
                 </div>
 
                 <div class="field">
@@ -546,6 +552,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
             field('f-open').value      = c.open || '';
             field('f-close').value     = c.close || '';
             field('f-desc').value      = c.description || '';
+            field('f-history').value   = c.history || '';
             field('f-status').value    = c.active ? 'Published' : 'Draft';
 
             if (c.image) {

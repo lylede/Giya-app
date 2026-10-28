@@ -1,0 +1,13 @@
+# Serves Laravel's public/ folder through FrankenPHP.
+{
+	frankenphp
+	# The host (Vercel / Render) terminates HTTPS in front of us.
+	auto_https off
+	admin off
+}
+
+:{$PORT:80} {
+	root * /app/public
+	encode zstd br gzip
+	php_server
+}

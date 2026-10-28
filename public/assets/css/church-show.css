@@ -159,6 +159,19 @@
     color:var(--text-muted);
 }
 
+.church-history-title {
+    font-size:1rem;
+    font-weight:700;
+    color:var(--text);
+    margin:18px 0 6px;
+}
+
+.church-history {
+    color:var(--text);
+    line-height:1.75;
+    margin-bottom:16px;
+}
+
 .church-info-meta {
     color:var(--text-muted);
     font-size:0.875rem;

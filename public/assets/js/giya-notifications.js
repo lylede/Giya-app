@@ -28,12 +28,21 @@
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    /* Both strings arrive translated from the navbar. They live under
+       data-empty and data-dismiss-label - NOT data-dismiss, which is the
+       button's own attribute: if the panel body carried it, closest() below
+       would match the body for every click and no notification would open. */
+    function emptyHtml() {
+        return '<p class="notif-empty">' + escapeHtml(body.dataset.empty || 'Nothing yet.') + '</p>';
+    }
+
     function render(data) {
         if (!data.items || !data.items.length) {
-            body.innerHTML = '<p class="notif-empty">Nothing yet. ' +
-                'Schedules, replies to your reviews and pilgrimage reminders appear here.</p>';
+            body.innerHTML = emptyHtml();
             return;
         }
+
+        var dismissLabel = escapeHtml(body.dataset.dismissLabel || 'Dismiss');
 
         body.innerHTML = data.items.map(function (n) {
             var inner =
@@ -44,11 +53,16 @@
                     '<span class="notif-when">' + escapeHtml(n.when || '') + '</span>' +
                 '</span>';
 
-            return n.url
+            var item = n.url
                 ? '<a class="notif-item' + (n.read ? '' : ' is-unread') + '" href="' +
-                      escapeHtml(n.url) + '" data-notif="' + n.id + '">' + inner + '</a>'
-                : '<div class="notif-item' + (n.read ? '' : ' is-unread') + '" data-notif="' + n.id + '">' +
+                      escapeHtml(n.url) + '" data-notif="' + escapeHtml(n.id) + '">' + inner + '</a>'
+                : '<div class="notif-item' + (n.read ? '' : ' is-unread') + '" data-notif="' + escapeHtml(n.id) + '">' +
                       inner + '</div>';
+
+            return '<div class="notif-row">' + item +
+                '<button type="button" class="notif-dismiss" data-dismiss="' + escapeHtml(n.id) + '" ' +
+                        'aria-label="' + dismissLabel + '" title="' + dismissLabel + '">&times;</button>' +
+                '</div>';
         }).join('');
     }
 
@@ -157,8 +171,29 @@
         }
     });
 
+    // Dismissing one removes it for good. Checked first, and scoped to the
+    // button, so a click on the item itself still opens it.
+    panel.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-dismiss]');
+        if (!btn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        var row = btn.closest('.notif-row');
+        if (row) row.remove();
+        if (!body.querySelector('.notif-row')) body.innerHTML = emptyHtml();
+        badge(panel.querySelectorAll('.is-unread').length);
+
+        fetch('/notifications/' + encodeURIComponent(btn.dataset.dismiss), {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': token(), 'Accept': 'application/json' }
+        }).catch(function () {});
+    });
+
     // Opening one marks it read, without blocking the navigation.
     panel.addEventListener('click', function (e) {
+        if (e.target.closest('button[data-dismiss]')) return;
         var item = e.target.closest('[data-notif]');
         if (!item || !item.classList.contains('is-unread')) return;
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PasswordResetController extends Controller
@@ -19,20 +20,19 @@ class PasswordResetController extends Controller
     public function sendLink(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => ['required', 'email', 'exists:devotees,email'],
-        ], [
-            'email.exists' => 'No GIYA account is registered with that email address.',
+            'email' => ['required', 'email'],
         ]);
 
         try {
-            app(PasswordResetAction::class)->sendLink($request->email);
+            app(PasswordResetAction::class)->sendLink($request->email, $request->ip());
+        } catch (ValidationException $exception) {
+            return back()->withInput()->withErrors($exception->errors());
         } catch (\Throwable $exception) {
-            return back()->with('warning',
-                'Mail could not be sent. Your reset link was written to storage/logs/laravel.log.');
+            return back()->with('warning', PasswordResetAction::mailFailedMessage());
         }
 
-        return back()->with('success',
-            "A reset link has been sent to {$request->email}. It expires in " . PasswordResetAction::TOKEN_TTL_MINUTES . ' minutes.');
+        // The same words whether or not the account exists - see the action.
+        return back()->with('success', PasswordResetAction::sentMessage());
     }
 
     public function showResetForm(Request $request, string $token): View
@@ -47,7 +47,7 @@ class PasswordResetController extends Controller
     {
         $request->validate([
             'token' => ['required', 'string'],
-            'email' => ['required', 'email', 'exists:devotees,email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', Password::min(8)],
         ], [
             'password.confirmed' => 'Passwords do not match.',
