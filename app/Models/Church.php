@@ -248,10 +248,18 @@ class Church extends Model
     /**
      * Local image path. Falls back to a generated SVG when the church has no
      * uploaded photo, so nothing ever points at a remote URL.
+     *
+     * One exception: a photo GIYA itself uploaded to its Supabase bucket on
+     * the hosted app (see App\Support\Uploads). Any other remote URL - an
+     * imported photo_url from some website - is still ignored.
      */
     public function imagePath(): string
     {
         $url = $this->image_url;
+
+        if (\App\Support\Uploads::owns($url)) {
+            return $url;
+        }
 
         if ($url && ! str_starts_with($url, 'http')) {
             return asset($url);
