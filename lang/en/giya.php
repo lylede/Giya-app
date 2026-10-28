@@ -118,6 +118,9 @@ return [
     ],
 
     'church' => [
+        'notify_me'     => 'Notify me',
+        'notifying'     => 'Notifying you',
+        'notify_hint'   => 'Get feast days, events and schedule changes for this church, plus a reminder a week before each event.',
         'history'       => 'History',
         'churches'      => 'Churches',
         'church'        => 'Church',

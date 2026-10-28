@@ -110,6 +110,7 @@ Route::get('/map', [MapController::class, 'index'])->name('map');
 
 Route::middleware('auth')->group(function () {
     Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
+    Route::post('/churches/{church}/notify', [MapController::class, 'toggleNotify'])->name('churches.notify');
 });
 
 /* --------------------------------------------------------------- Admin */

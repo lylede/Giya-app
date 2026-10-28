@@ -4716,6 +4716,22 @@ button .bi::before,
   transform: scale(1.15);
 }
 
+/* ── Notify me, beside Save: same shape, gold bell when on ──── */
+.church-notify .bi { transition: transform .18s cubic-bezier(.2,.8,.3,1); opacity: .75; }
+.church-notify.is-on {
+  background: rgba(215,169,74,.22);
+  border-color: var(--gold);
+  color: #fff;
+}
+.church-notify.is-on .bi {
+  color: var(--gold);
+  opacity: 1;
+  transform: rotate(-12deg) scale(1.15);
+}
+@media (prefers-reduced-motion: reduce) {
+  .church-notify .bi, .church-fav .bi { transition: none; }
+}
+
 /* ── Church card title links through ─────────────────────────── */
 html[data-theme="dark"] .church-card-name a:hover { color: var(--gold); }
 
