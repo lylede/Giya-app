@@ -85,7 +85,10 @@
        are aiming at does not move as it opens. */
     .giya-nav .nav-search {
         display: none;                 /* shown from 900px up, see below */
-        align-items: center; gap: 6px;
+        align-items: center;
+        /* No gap while closed: the input is 0 wide but a gap would still
+           push the button 6px right, into the clipped edge. */
+        gap: 0;
         /* The links are absolutely centred and out of the flow, so this sits
            between the logo and the bell on its own. */
         margin: 0 0 0 auto;
@@ -99,9 +102,13 @@
         background: transparent;
         border: 1px solid transparent;
 
-        width: 38px;
+        /* Exactly the 34px button + 2px padding each side + 1px border each
+           side. It was 38px, which with the gap cut 8px off the right of the
+           circle - the magnifier looked flattened and smaller than the bell. */
+        width: 40px;
         overflow: hidden;
         transition: width .34s cubic-bezier(.2, .9, .3, 1),
+                    gap .34s cubic-bezier(.2, .9, .3, 1),
                     padding-left .34s cubic-bezier(.2, .9, .3, 1),
                     background .18s ease, border-color .18s ease;
     }
@@ -115,6 +122,7 @@
     .giya-nav .nav-search.is-open,
     .giya-nav .nav-search:has(input:not(:placeholder-shown)) {
         width: 320px;
+        gap: 6px;
         padding-left: 14px;
         background: rgba(255,255,255,.12);
         border-color: rgba(255,255,255,.16);
@@ -145,7 +153,7 @@
        opening the field. On touch it simply stays open. */
     @media (hover: none) {
         .giya-nav .nav-search {
-            width: 320px; padding-left: 14px;
+            width: 320px; gap: 6px; padding-left: 14px;
             background: rgba(255,255,255,.12);
             border-color: rgba(255,255,255,.16);
         }

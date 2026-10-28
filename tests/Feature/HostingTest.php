@@ -207,6 +207,15 @@ class HostingTest extends TestCase
         $this->assertSame(0, ChurchImage::where('church_id', $church->id)->count());
     }
 
+    /** The closed search circle was 38px wide around a 34px button plus a 6px gap: 8px clipped. */
+    public function test_the_closed_search_box_fits_its_round_button(): void
+    {
+        $nav = file_get_contents(resource_path('views/components/navbar.blade.php'));
+
+        $this->assertStringContainsString('width: 40px;', $nav);
+        $this->assertMatchesRegularExpression('/align-items: center;\s*\/\*[^*]*\*\/\s*gap: 0;/s', $nav);
+    }
+
     /** The preview stayed white: [hidden] { display:none !important } beat style.display. */
     public function test_the_upload_preview_toggles_the_hidden_attribute(): void
     {
