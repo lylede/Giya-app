@@ -117,7 +117,28 @@ class GiyaAssistantKnowledgeTest extends TestCase
         $prompt = $this->promptFor('Tell me about the Redemptorist Church');
 
         $this->assertStringContainsString('History: not recorded in GIYA', $prompt);
-        $this->assertStringContainsString('general background, not from GIYA', $prompt);
+        $this->assertStringContainsString('Your own general knowledge', $prompt);
+    }
+
+    /** "What is the most beautiful church in Cebu?" got "I don't know". */
+    public function test_the_assistant_may_answer_opinion_and_general_pilgrimage_questions(): void
+    {
+        $prompt = $this->promptFor('What is the most beautiful church in Cebu?');
+
+        $this->assertStringContainsString('the most beautiful church', $prompt);
+        $this->assertStringContainsString('Give two to', $prompt);
+        $this->assertStringContainsString('Visita Iglesia, Sinulog', $prompt);
+        $this->assertStringContainsString('what to wear', $prompt);
+        $this->assertStringNotContainsString('say GIYA does not have it yet', $prompt, 'The old "records only" rule is gone.');
+    }
+
+    /** Opening up the topics must not open up invented schedules. */
+    public function test_mass_times_and_hours_still_come_only_from_the_records(): void
+    {
+        $prompt = $this->promptFor('What time is Mass at Simala?');
+
+        $this->assertStringContainsString('Mass times, opening hours, addresses and event dates: ONLY from the', $prompt);
+        $this->assertStringContainsString('Never invent them, even for famous churches', $prompt);
     }
 
     public function test_gpt_oss_is_asked_to_think_briefly(): void
