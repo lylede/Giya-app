@@ -509,11 +509,28 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         latInput: '#f-lat',
         lngInput: '#f-lng',
 
-        /* A click on empty map means "put a destination here". */
-        onPin: function (lat, lng) {
+        /*
+         * The pin moved. Two different meanings:
+         *  - Dragging the pin, or the click after "Move pin", moves the
+         *    destination already in the form. Only the coordinates change;
+         *    the form is reopened exactly as it was (the picker has already
+         *    written the new latitude and longitude into it).
+         *  - Any other click on empty map means "a new destination here".
+         * Before, both cleared the form and opened an empty Add Destination,
+         * so moving a pin lost everything that had been typed.
+         */
+        onPin: function (lat, lng, how) {
+            const moving = picking || how === 'drag';
             picking = false;
             hint.textContent = 'Click the map to place a destination';
-            openModal(null, lat, lng);
+            hint.classList.remove('is-active');
+
+            if (moving) {
+                GiyaUI.Modal.open('destModal');
+                flashCoords();
+            } else {
+                openModal(null, lat, lng);
+            }
         },
 
         /* A click on a pin means "edit this one". */
@@ -523,6 +540,16 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
     /* ---------------------------------------------------------- modal ---- */
 
     function field(id) { return document.getElementById(id); }
+
+    /* Briefly highlight the coordinates so the admin sees what changed. */
+    function flashCoords() {
+        ['f-lat', 'f-lng'].forEach(function (id) {
+            const el = field(id);
+            el.classList.remove('is-updated');
+            void el.offsetWidth;                   // restart the animation
+            el.classList.add('is-updated');
+        });
+    }
 
     /* Show a photo in the upload box, or the "click to upload" prompt when
        src is null. Toggles the hidden attribute: giya.css has
