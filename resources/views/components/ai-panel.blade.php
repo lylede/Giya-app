@@ -12,7 +12,12 @@
 
     {{-- The guide's face is the conversation's profile picture: it sits in the
          head beside the name, rather than floating off the panel's corner. --}}
-    <div class="ai-panel-head">
+    <div class="ai-panel-head" id="giyaPanelHead">
+        {{-- Phone bottom sheet: drag this bar (or the whole header) down to
+             minimise, or tap it. A real button, so it also works by keyboard
+             and screen reader. Hidden on larger screens. --}}
+        <button type="button" class="ai-panel-grab" id="giyaPanelGrab"
+                aria-label="{{ __('giya.chat.minimise') }}"></button>
         <span class="ai-panel-mark" aria-hidden="true">
             <span class="guide-face">
                 <span class="guide-ear guide-ear-l"></span>

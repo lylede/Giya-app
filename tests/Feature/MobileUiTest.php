@@ -52,4 +52,13 @@ class MobileUiTest extends TestCase
         $this->assertStringContainsString('snake_case stays', $html);
         $this->assertStringContainsString('<br>', $html);
     }
+
+    public function test_the_ai_panel_has_a_working_grab_bar_on_phones(): void
+    {
+        $js = file_get_contents(public_path('assets/js/giya-ai-panel.js'));
+
+        $this->assertStringContainsString('giyaPanelGrab', file_get_contents(resource_path('views/components/ai-panel.blade.php')));
+        $this->assertStringContainsString("addEventListener('pointerdown', dragStart)", $js);
+        $this->assertStringContainsString('touch-action: none', $this->css('giya.css'));
+    }
 }

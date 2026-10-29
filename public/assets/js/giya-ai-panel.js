@@ -66,6 +66,66 @@
         if (e.key === 'Escape' && panel.classList.contains('is-open')) close();
     });
 
+    /* ------------------------------------------------- swipe down to close */
+    /*
+     * On a phone the panel is a bottom sheet with a grab bar. Dragging the
+     * header down moves the sheet with the finger; letting go past a quarter
+     * of its height, or with a quick flick, minimises it. Anything less
+     * springs back. Tapping the bar minimises it too. The conversation is
+     * saved on the server, so it is all there when the sheet opens again.
+     */
+    var head = document.getElementById('giyaPanelHead');
+    var grab = document.getElementById('giyaPanelGrab');
+    var sheet = window.matchMedia('(max-width: 640px)');
+
+    // Keyboard and screen readers press the bar like any button (a finger
+    // tap is handled in dragEnd, because the drag captures the pointer).
+    if (grab) grab.addEventListener('click', function (e) { if (e.detail === 0) close(); });
+
+    var startY = 0, lastY = 0, lastT = 0, speed = 0, dy = 0;
+    var dragging = false, dragMoved = false, onGrab = false;
+
+    function dragStart(e) {
+        if (!sheet.matches || !panel.classList.contains('is-open')) return;
+        // The expand and close buttons keep working as buttons.
+        if (e.target.closest('a, .ai-panel-close')) return;
+        dragging = true; dragMoved = false;
+        onGrab = !!(grab && e.target.closest('#giyaPanelGrab'));
+        startY = lastY = e.clientY; lastT = e.timeStamp; speed = 0; dy = 0;
+        panel.style.transition = 'none';
+        if (head.setPointerCapture) head.setPointerCapture(e.pointerId);
+    }
+
+    function dragMove(e) {
+        if (!dragging) return;
+        dy = Math.max(0, e.clientY - startY);          // down only
+        if (dy > 4) dragMoved = true;
+        var dt = e.timeStamp - lastT;
+        if (dt > 0) speed = (e.clientY - lastY) / dt;  // px per ms
+        lastY = e.clientY; lastT = e.timeStamp;
+        panel.style.transform = 'translateY(' + dy + 'px)';
+        scrim.style.opacity = String(Math.max(0, 1 - dy / panel.offsetHeight));
+        e.preventDefault();
+    }
+
+    function dragEnd() {
+        if (!dragging) return;
+        dragging = false;
+        panel.style.transition = '';
+        scrim.style.opacity = '';
+        var minimise = dy > panel.offsetHeight * 0.25 || (dy > 30 && speed > 0.5)
+            || (onGrab && !dragMoved);                  // a tap on the bar
+        panel.style.transform = '';                     // back to the class rules
+        if (minimise) close();
+    }
+
+    if (head) {
+        head.addEventListener('pointerdown', dragStart);
+        head.addEventListener('pointermove', dragMove);
+        head.addEventListener('pointerup', dragEnd);
+        head.addEventListener('pointercancel', dragEnd);
+    }
+
     /* ---------------------------------------------------------------- chat */
 
     function scroll() { log.scrollTop = log.scrollHeight; }
