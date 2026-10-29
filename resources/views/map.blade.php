@@ -179,17 +179,17 @@
                 </label>
 
 <div class="mx-chips" role="group" aria-label="{{ __('giya.map.filters') }}">
-                    {{-- No is-active: the script starts at 'All', so a lit
-                         Near chip claims a filter that is not running. --}}
-                    <button type="button" class="cat-chip" data-cat="Near">{{ __('giya.church.near') }}</button>
-
-                    {{-- The principal church of each town. Only offered when
-                         some church actually carries the flag - an empty
-                         filter teaches the devotee that the app is broken
-                         rather than that nothing has been marked yet. --}}
+                    {{-- Major first: the map opens on the main church of each
+                         town (and the shrines, basilica and cathedral) so it is
+                         not crowded with every parish. Near comes second and
+                         shows every church close by. Major is only offered
+                         when some church carries the flag - an empty filter
+                         teaches the devotee that the app is broken. --}}
                     @if ($hasMajors)
                         <button type="button" class="cat-chip" data-cat="Major">{{ __('giya.map.cat_major') }}</button>
                     @endif
+
+                    <button type="button" class="cat-chip" data-cat="Near">{{ __('giya.church.near') }}</button>
 
                     {{-- Chapel and Heritage do not get a chip. The list comes
                          from MapController::CHIPS_HIDDEN so the reason lives in
@@ -380,7 +380,10 @@
     const listBox  = document.getElementById('churchList');
     const routeBox = document.getElementById('routeBox');
 
-    let category = 'Near';
+    /* Opens on Major - one main church per town - so 170-odd parishes do
+       not bury the map. Without any major church, Near as before. */
+    const HAS_MAJORS = @json($hasMajors);
+    let category = HAS_MAJORS ? 'Major' : 'Near';
     // A search from the home page arrives as ?q= - start from it.
     let query = new URLSearchParams(window.location.search).get('q') || '';
     query = query.trim().toLowerCase();
@@ -472,7 +475,8 @@ onLocated: function (me) {
 
             renderList();
 
-            showNote(nearbyIds.length
+            // The count only describes Near; on Major it would mislabel the list.
+            if (category === 'Near') showNote(nearbyIds.length
                 ? trans('within', { count: nearbyIds.length, km: NEAR_KM })
                 : trans('none_within', { km: NEAR_KM }), 'info');
         },
@@ -561,6 +565,7 @@ onLocated: function (me) {
      */
     const KEYWORDS = @json($searchKeywords);
     const FALLBACK_CATEGORIES = ['Basilica', 'Shrine', 'Church'];
+    const MAJOR_CATEGORIES = ['Basilica', 'Cathedral', 'Shrine'];
     const FALLBACK_LIMIT = 12;
 
     function normalizeCategory(cat) {
@@ -611,7 +616,8 @@ onLocated: function (me) {
             }
 
             if (category === 'Major') {
-                return c.major === true;
+                // The town's main church, plus the pilgrimage churches.
+                return c.major === true || MAJOR_CATEGORIES.indexOf(normalizedChurchCategory) !== -1;
             }
 
             // A category chip filters by category. Pairing it with the radius
@@ -902,7 +908,10 @@ onLocated: function (me) {
         });
     });
 
-    document.querySelector('[data-cat="Near"]').classList.add('is-active');
+    document.querySelector('[data-cat="' + category + '"]').classList.add('is-active');
+
+    /* Locate quietly on Major too: the distances still sort Near and the
+       list as soon as the devotee switches over. */
     map.locate();
 
     document.addEventListener('click', function (e) {
