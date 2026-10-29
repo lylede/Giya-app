@@ -463,6 +463,7 @@ return [
         'greeting'       => 'Maayong buntag! Ako si Giya AI. Pangutana bahin sa mga simbahan sa Metro Cebu.',
         'note'           => 'Ang Giya AI motubag gikan sa mga rekord sa destinasyon sa GIYA. Mausab ang iskedyul sa misa - palihog kumpirmaha sa parokya sa dili pa molarga.',
         'open_full'      => 'Ablihi ang tibuok panid sa panag-istorya',
+        'minimise'       => 'Ipaubos ang Giya AI',
         'greeting_long'  => 'Maayong buntag! Ako si Giya AI. Pangutan-a ko bahin sa mga simbahan sa Metro Cebu, iskedyul sa misa, o pasagdi ko nga magplano ug ruta sa Visita Iglesia para nimo.',
         'greeting_panel' => 'Maayong buntag! Pangutan-a ko bahin sa mga simbahan, iskedyul sa misa, o ruta sa Visita Iglesia.',
         'guide_online'   => 'Maayong buntag. Pangutan-a ko bahin sa bisan unsang simbahan sa Metro Cebu.',
