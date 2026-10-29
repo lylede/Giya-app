@@ -14,8 +14,9 @@
 <body>
 
 <div class="admin-layout">
+    <div class="admin-scrim" id="adminScrim" hidden></div>
 
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar-head">
             <a href="{{ route('admin.dashboard') }}" class="admin-brand">
                 <img src="{{ asset('images/logo/giya-logo.svg') }}" alt="GIYA" width="32" height="32">
@@ -78,6 +79,11 @@
 
     <div class="admin-main">
         <header class="admin-topbar">
+            {{-- Phones: the menu is a drawer opened from here (giya-admin.js). --}}
+            <button type="button" class="admin-menu-btn" id="adminMenu"
+                    aria-label="Open the menu" aria-controls="adminSidebar" aria-expanded="false">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
             @unless (request()->routeIs('admin.dashboard'))
                 <x-back-link :href="route('admin.dashboard')" label="Back to Dashboard" compact class="admin-back" />
             @endunless
