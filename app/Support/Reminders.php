@@ -25,8 +25,9 @@ use Illuminate\Support\Facades\Cache;
  * never arrive twice - not on the next page, not from two tabs at once. If an
  * admin moves the date, the key changes and a fresh reminder is due.
  *
- * Only dated, one-off events get reminders (feast days, novenas, special
- * Masses). A weekly Mass would otherwise remind everyone every week.
+ * Dated, one-off events get reminders (feast days, novenas, special
+ * Masses), and so do yearly festivals - once a year, a week before that
+ * year's date. A weekly or monthly Mass would remind everyone too often.
  */
 final class Reminders
 {
@@ -61,10 +62,15 @@ final class Reminders
 
         $prefs = DevoteePreference::where('user_id', $user->id)->first();
 
+        // Yearly festivals whose date has passed move on to next year's.
+        Schedule::rollForwardDue();
+
         $rows = Schedule::with('church')
             ->whereIn('church_id', $churchIds)
             ->where('status', 'Published')
-            ->where(fn ($q) => $q->where('is_recurring', false)->orWhereNull('is_recurring'))
+            // One-off events, and yearly festivals (each year's date).
+            ->where(fn ($q) => $q->where('is_recurring', false)->orWhereNull('is_recurring')
+                ->orWhere('recurrence', 'like', 'Yearly%'))
             ->whereNotNull('schedule_date')
             // whereDate, not whereBetween: a date stored as "2027-01-20 00:00:00"
             // sorts after the string "2027-01-20", so the last day of the
@@ -94,7 +100,7 @@ final class Reminders
     public static function isDue(Schedule $schedule): bool
     {
         return $schedule->status === 'Published'
-            && ! $schedule->is_recurring
+            && (! $schedule->is_recurring || $schedule->isYearly())
             && $schedule->schedule_date
             && $schedule->schedule_date->betweenIncluded(today(), today()->addDays(self::DAYS_BEFORE));
     }

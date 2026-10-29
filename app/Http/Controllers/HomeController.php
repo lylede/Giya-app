@@ -65,11 +65,30 @@ class HomeController extends Controller
         return [
             // rating is derived now, so sort on the averaged feedback column.
             'featured'  => Church::active()->featured()->orderByRating()->take(4)->get(),
-            'upcoming'  => Schedule::with('church')->orderBy('schedule_date')->take(5)->get(),
+            'upcoming'  => $this->upcoming(),
             'stats'     => [
                 'churches' => Church::active()->count(),
                 'cities'   => Church::active()->distinct('location')->count('location'),
             ],
         ];
+    }
+
+    /**
+     * The next few published activities, soonest first. Dated ones from
+     * today on (a yearly festival shows this year's date); weekly and daily
+     * ones after them. It used to list past events first.
+     */
+    private function upcoming()
+    {
+        Schedule::rollForwardDue();
+
+        return Schedule::with('church')
+            ->where('status', 'Published')
+            ->where(fn ($q) => $q->whereNull('schedule_date')->orWhereDate('schedule_date', '>=', today()->toDateString()))
+            ->orderByRaw('schedule_date IS NULL')
+            ->orderBy('schedule_date')
+            ->orderBy('start_time')
+            ->take(5)
+            ->get();
     }
 }
