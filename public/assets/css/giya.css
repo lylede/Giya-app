@@ -6388,3 +6388,11 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
   .sm-filters .adm-actions, .um-filters .adm-actions { grid-column: 1 / -1; justify-content: stretch; }
 }
 .um-filters .sm-search { min-height: 0; }
+.sched-town-tag {
+  display: block; width: fit-content; margin-top: 3px;
+  padding: 1px 7px; border-radius: 999px;
+  background: rgba(215,169,74,.18); color: #7a5c00;
+  font-size: .625rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+/* Schedules: "Yearly - 3rd Sunday of January (Jan 17, 2027)" needs room. */
+.sm-table td:nth-child(5) { min-width: 170px; }

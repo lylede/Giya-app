@@ -303,6 +303,37 @@ class GiyaAssistant
         return implode("\n", $lines);
     }
 
+    /**
+     * Cebu's town festivals (schedules with no destination, from the
+     * province's festival list), added only when the conversation is about
+     * festivals, fiestas or a month - 53 lines would otherwise use up the
+     * free Groq allowance on every question.
+     */
+    protected function festivals(string $question, array $history): string
+    {
+        $text = mb_strtolower($question.' '.collect($history)->pluck('content')->take(-2)->implode(' '));
+        $months = 'january|february|march|april|may|june|july|august|september|october|november|december'
+                .'|enero|pebrero|marso|abril|mayo|hunyo|hulyo|agosto|setyembre|oktubre|nobyembre|disyembre';
+
+        if (! preg_match('/festival|fiesta|pista|kapistahan|feast|sinulog|celebrat|'.$months.'/u', $text)) {
+            return '';
+        }
+
+        Schedule::rollForwardDue();
+
+        $rows = Schedule::whereNull('church_id')
+            ->where('status', 'Published')
+            ->orderBy('schedule_date')
+            ->get()
+            ->map(fn (Schedule $s) => '- '.$s->event_name.', '.($s->location ?: 'Cebu').': '.$s->day_label
+                .($s->notes ? '. '.Str::limit(strtok($s->notes, "\n"), 90) : ''))
+            ->implode("\n");
+
+        return $rows === ''
+            ? ''
+            : "\nCEBU FESTIVALS (yearly, from the Cebu Provincial Tourism list in GIYA's records; dates are GIYA's and may change, so suggest confirming with the town):\n".$rows;
+    }
+
     /** "Sundays 06:00" / "Jan 18 09:00" - whichever the schedule has. */
     protected function when(Schedule $s): string
     {
@@ -454,6 +485,7 @@ class GiyaAssistant
 
         FULL RECORDS for the destinations this conversation is about:
         {$details}
+        {$this->festivals($question, $history)}
         PROMPT;
     }
 
