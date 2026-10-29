@@ -282,6 +282,57 @@ window.GiyaLeaflet = (function () {
         });
     }
 
+    /**
+     * The small pin the devotee map uses: a church glyph in a round badge.
+     *
+     * Photo pins are 46px each, and a Cebu City district puts dozens of
+     * churches within a few streets, so they piled into one unreadable heap.
+     * The photo still shows - in the popup, where it is big enough to see.
+     */
+    var CHURCH_GLYPH =
+        '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+          '<path fill="currentColor" d="M11 1h2v2h2v2h-2v2.2l5.5 3.6V23h-5.5v-5.2a1.5 1.5 0 0 0-3 0V23H4.5V10.8L11 7.2V5H9V3h2z"/>' +
+        '</svg>';
+
+    function churchDot(church, opts) {
+        opts = opts || {};
+        var size = opts.selected ? 32 : 26;
+
+        return L.divIcon({
+            html: '<span class="giya-dot' + (opts.selected ? ' is-selected' : '') + '">' +
+                    CHURCH_GLYPH + '</span>',
+            className: 'giya-pin-wrap',
+            iconSize: [size, size],
+            iconAnchor: [size / 2, size / 2],
+            popupAnchor: [0, -size / 2 - 2]
+        });
+    }
+
+    /**
+     * Nearby pins merge into one numbered bubble that splits apart as the
+     * devotee zooms in. Falls back to a plain layer group if the cluster
+     * script did not load, so the map still works - just busier.
+     */
+    function churchLayer() {
+        if (!L.markerClusterGroup) return L.layerGroup();
+
+        return L.markerClusterGroup({
+            maxClusterRadius: 45,          // px; raise to group more, lower to group less
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: true,       // fans out churches that share a spot
+            disableClusteringAtZoom: 16,   // street level: every church on its own
+            iconCreateFunction: function (cluster) {
+                var n = cluster.getChildCount();
+                var size = n < 10 ? 34 : n < 50 ? 40 : 46;
+                return L.divIcon({
+                    html: '<span>' + n + '</span>',
+                    className: 'giya-cluster',
+                    iconSize: [size, size]
+                });
+            }
+        });
+    }
+
     function userIcon() {
         return L.divIcon({
             html: '<span class="giya-me"><span class="giya-me-dot"></span></span>',
@@ -337,14 +388,14 @@ window.GiyaLeaflet = (function () {
 
         var markers = {};
         var churches = (cfg.churches || []).filter(function (c) { return c.lat && c.lng; });
-        var group = L.layerGroup().addTo(map);
+        var group = churchLayer().addTo(map);
         var routeLine = null;
         var meMarker = null;
         var me = null;
         var selected = [];
 
         churches.forEach(function (c) {
-            var m = L.marker([c.lat, c.lng], { icon: churchIcon(c), title: c.name })
+            var m = L.marker([c.lat, c.lng], { icon: churchDot(c), title: c.name })
                 .bindPopup(popupHtml(c))
                 .addTo(group);
 
@@ -560,7 +611,7 @@ window.GiyaLeaflet = (function () {
         function highlight() {
             churches.forEach(function (c) {
                 var m = markers[c.id];
-                if (m) m.setIcon(churchIcon(c, { selected: selected.indexOf(c.id) !== -1 }));
+                if (m) m.setIcon(churchDot(c, { selected: selected.indexOf(c.id) !== -1 }));
             });
         }
 
@@ -578,10 +629,12 @@ window.GiyaLeaflet = (function () {
                 var m = markers[c.id];
                 if (!m) return;
 
+                // Ask the group, not the map: a pin folded into a cluster
+                // bubble is in the group but not on the map.
                 if (ids.indexOf(c.id) !== -1) {
-                    if (!map.hasLayer(m)) m.addTo(group);
+                    if (!group.hasLayer(m)) group.addLayer(m);
                     shown.push([c.lat, c.lng]);
-                } else if (map.hasLayer(m)) {
+                } else if (group.hasLayer(m)) {
                     group.removeLayer(m);
                 }
             });
@@ -599,6 +652,14 @@ window.GiyaLeaflet = (function () {
         function focus(id) {
             var m = markers[id];
             if (!m) return;
+
+            // A clustered pin has no popup to open until it is split out.
+            if (group.zoomToShowLayer && group.hasLayer(m)) {
+                map.setView(m.getLatLng(), 16, { animate: false });
+                group.zoomToShowLayer(m, function () { m.openPopup(); });
+                return;
+            }
+
             map.setView(m.getLatLng(), 16, { animate: true });
             m.openPopup();
         }

@@ -4,6 +4,7 @@
 
 @push('head')
     <link rel="stylesheet" href="{{ asset('assets/css/leaflet.css') }}?v={{ filemtime(public_path('assets/css/leaflet.css')) }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/MarkerCluster.css') }}?v={{ filemtime(public_path('assets/css/MarkerCluster.css')) }}">
 @endpush
 
 @section('content')
@@ -289,6 +290,7 @@
 
 @push('scripts')
 <script src="{{ asset('assets/js/leaflet.js') }}?v={{ filemtime(public_path('assets/js/leaflet.js')) }}"></script>
+<script src="{{ asset('assets/js/leaflet.markercluster.js') }}?v={{ filemtime(public_path('assets/js/leaflet.markercluster.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-leaflet.js') }}?v={{ filemtime(public_path('assets/js/giya-leaflet.js')) }}"></script>
 <script>
 (function () {
