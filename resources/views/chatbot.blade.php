@@ -28,6 +28,7 @@
         max-width: none;
     }
 
+    .chat-page #guide { flex: 0 0 auto; margin-bottom: 4px; }
 
     .chat-page .chat-shell {
         flex: 1 1 auto; min-height: 0;
@@ -67,9 +68,9 @@
 */
 @media (max-width: 767px) {
     .chat-page.is-typing { height: calc(var(--vvh, 100dvh) - 64px); }
-    .chat-page.is-typing .chat-guide-pop { display: none; }
+    .chat-page.is-typing #guide { display: none; }
     .chat-page.is-typing .chat-bar { padding-top: 10px; padding-bottom: 10px; }
-    .chat-page.is-typing .chat-starters { display: none; }
+    /* The FAQ chips stay while typing: a tap still asks a question. */
 }
 
 /*
@@ -78,7 +79,17 @@
     must never be off screen, so everything optional goes before it does.
 */
 @media (max-width: 767px) and (max-height: 620px) {
+    .chat-page #guide .guide-bubble,
+    .chat-page #guide .guide-hands,
     .chat-page .chat-starters { display: none; }
+
+    .chat-page #guide .guide-face { width: 62px; height: 56px; }
+    .chat-page #guide .guide-screen { width: 46px; height: 38px; }
+    .chat-page #guide .guide-eye { width: 9px; height: 9px; top: 12px; }
+    .chat-page #guide .guide-eye-l { left: 9px; }
+    .chat-page #guide .guide-eye-r { right: 9px; }
+    .chat-page #guide .guide-mouth { bottom: 9px; width: 12px; margin-left: -6px; }
+    .chat-page #guide .guide-lamp { display: none; }
 
     .chat-page .chat-bar { padding-top: 8px; padding-bottom: 8px; }
     .chat-page .chat-log { padding: 10px 12px; }
@@ -88,67 +99,73 @@
 @endpush
 
 @section('content')
-<div class="page-wrap chat-page" style="max-width:900px">
+{{--
+    Two states.
+    is-intro (on arrival): only the guide and its message, the FAQ chips and
+    the text box - a calm start, no wall of old messages.
+    is-chatting (after tapping the text box or a chip, or sending): the chat
+    opens - header with a small robot, the conversation, chips, text box -
+    and the big guide steps aside. New chat starts again from the intro.
+--}}
+<div class="page-wrap chat-page is-intro" id="chatPage" style="max-width:900px">
+
+    {{--
+        The guide sits above the panel and reacts to what is happening: it looks
+        down while you type, glances up while it thinks, and smiles when an
+        answer arrives.
+
+        A face is not decoration here. A chat window with no visible state is
+        silent while it works, and silence reads as broken. The face is the
+        status indicator, and it is legible at a glance.
+    --}}
+    <div class="guide" id="guide" data-online="{{ $online ? '1' : '0' }}">
+        <div class="guide-bubble" id="guideBubble">
+            <span id="guideSay">
+                {{ $online ? __('giya.chat.guide_online') : __('giya.chat.guide_offline') }}
+            </span>
+        </div>
+
+        <div class="guide-face" aria-hidden="true">
+            <span class="guide-ear guide-ear-l"></span>
+            <span class="guide-ear guide-ear-r"></span>
+
+            <div class="guide-screen">
+                <span class="guide-eye guide-eye-l"><i></i></span>
+                <span class="guide-eye guide-eye-r"><i></i></span>
+                <span class="guide-mouth"></span>
+                <span class="guide-blush guide-blush-l"></span>
+                <span class="guide-blush guide-blush-r"></span>
+            </div>
+
+            {{-- A lantern rather than an antenna: giya means guide, and a
+                 lantern is what a guide carries. --}}
+            <span class="guide-lamp"></span>
+        </div>
+
+        <div class="guide-hands">
+            <span class="guide-hand guide-hand-l"></span>
+            <span class="guide-hand guide-hand-r"></span>
+        </div>
+    </div>
 
     <div class="card chat-shell">
                 {{-- Inside the panel, so the assistant reads as one box rather than a
              heading floating above a separate card. --}}
         <div class="chat-bar">
-            {{--
-                The guide: a small face beside the name that keeps reacting
-                (looks down while you type, up while it thinks, smiles at an
-                answer), so the chat is never silent while it works. Tap it
-                and the guide floats out with its speech bubble. It used to
-                sit above the chat and took a third of a phone screen.
-            --}}
-            <div class="guide chat-guide" id="guide" data-online="{{ $online ? '1' : '0' }}">
-                <button type="button" class="chat-guide-btn" id="guideToggle"
-                        aria-expanded="false" aria-controls="guidePop"
-                        aria-label="{{ __('giya.chat.guide_show') }}" title="{{ __('giya.chat.guide_show') }}">
-                    <span class="chat-bot-icon chat-guide-mini">
-                        <span class="guide-face" aria-hidden="true">
-                            <span class="guide-ear guide-ear-l"></span>
-                            <span class="guide-ear guide-ear-r"></span>
-                            <span class="guide-screen">
-                                <span class="guide-eye guide-eye-l"><i></i></span>
-                                <span class="guide-eye guide-eye-r"><i></i></span>
-                                <span class="guide-mouth"></span>
-                                <span class="guide-blush guide-blush-l"></span>
-                                <span class="guide-blush guide-blush-r"></span>
-                            </span>
-                            {{-- A lantern rather than an antenna: giya means guide. --}}
-                            <span class="guide-lamp"></span>
-                        </span>
+            {{-- The guide, small, beside its name. It mirrors the big guide's
+                 expressions (classes copied by the script below). --}}
+            <span class="chat-bot-icon chat-bar-guide guide" id="guideMini" aria-hidden="true">
+                <span class="guide-face">
+                    <span class="guide-ear guide-ear-l"></span>
+                    <span class="guide-ear guide-ear-r"></span>
+                    <span class="guide-screen">
+                        <span class="guide-eye guide-eye-l"><i></i></span>
+                        <span class="guide-eye guide-eye-r"><i></i></span>
+                        <span class="guide-mouth"></span>
                     </span>
-                </button>
-
-                {{-- Tapping the face: the guide itself floats out with its speech
-                     bubble above it. No card or window around it. --}}
-                <div class="chat-guide-pop" id="guidePop" hidden>
-                    <div class="guide-bubble" id="guideBubble" role="status">
-                        <span id="guideSay">
-                            {{ $online ? __('giya.chat.guide_online') : __('giya.chat.guide_offline') }}
-                        </span>
-                    </div>
-                    <div class="guide-face" aria-hidden="true">
-                        <span class="guide-ear guide-ear-l"></span>
-                        <span class="guide-ear guide-ear-r"></span>
-                        <div class="guide-screen">
-                            <span class="guide-eye guide-eye-l"><i></i></span>
-                            <span class="guide-eye guide-eye-r"><i></i></span>
-                            <span class="guide-mouth"></span>
-                            <span class="guide-blush guide-blush-l"></span>
-                            <span class="guide-blush guide-blush-r"></span>
-                        </div>
-                        <span class="guide-lamp"></span>
-                    </div>
-                    <div class="guide-hands">
-                        <span class="guide-hand guide-hand-l"></span>
-                        <span class="guide-hand guide-hand-r"></span>
-                    </div>
-                </div>
-            </div>
-
+                    <span class="guide-lamp"></span>
+                </span>
+            </span>
             <div class="chat-bar-title">
                 <strong>{{ __('giya.chat.title') }}</strong>
                 <span>
@@ -516,6 +533,19 @@
     // A mouse and a real keyboard: focusing the box for them is a help.
     const canAutoFocus = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
+    /* Intro -> conversation: the first tap on the text box or a chip (or
+       a key typed into the box) opens the chat. Not on focus alone, so a
+       computer that focuses the box for you still lands on the intro. */
+    const chatPage = document.getElementById('chatPage');
+    function openChat() {
+        if (!chatPage || !chatPage.classList.contains('is-intro')) return;
+        chatPage.classList.remove('is-intro');
+        chatPage.classList.add('is-chatting');
+        requestAnimationFrame(scroll);
+    }
+    input.addEventListener('pointerdown', openChat);
+    input.addEventListener('keydown', openChat);
+
     form.addEventListener('submit', function (e) {
         e.preventDefault();
         const text = input.value.trim();
@@ -524,7 +554,7 @@
 
     document.addEventListener('click', function (e) {
         const chip = e.target.closest('[data-ask]');
-        if (chip) ask(chip.dataset.ask);
+        if (chip) { openChat(); ask(chip.dataset.ask); }
     });
 
     scroll();
@@ -552,8 +582,13 @@
 
     let restTimer = null;
 
+    const mini = document.getElementById('guideMini');
+
     function setState(state, line) {
-        STATES.forEach(function (c) { guide.classList.toggle(c, c === state); });
+        STATES.forEach(function (c) {
+            guide.classList.toggle(c, c === state);
+            if (mini) mini.classList.toggle(c, c === state);
+        });
 
         if (line) {
             // Re-trigger the bubble's entrance so a repeat line still registers.
@@ -621,38 +656,11 @@
     /* A blink now and then, so an idle face is not a staring one. */
     setInterval(function () {
         if (guide.classList.contains('is-thinking')) return;
-        guide.classList.add('is-blinking');
-        setTimeout(function () { guide.classList.remove('is-blinking'); }, 160);
+        [guide, mini].forEach(function (g) { if (g) g.classList.add('is-blinking'); });
+        setTimeout(function () {
+            [guide, mini].forEach(function (g) { if (g) g.classList.remove('is-blinking'); });
+        }, 160);
     }, 4200);
-
-    /* ---- tap the small face to see the full guide ---- */
-    const toggle = document.getElementById('guideToggle');
-    const pop    = document.getElementById('guidePop');
-
-    function show(open) {
-        pop.hidden = !open;
-        guide.classList.toggle('is-open', open);
-        toggle.setAttribute('aria-expanded', String(open));
-        if (open) {
-            bubble.classList.remove('is-in');
-            void bubble.offsetWidth;
-            bubble.classList.add('is-in');
-        }
-    }
-
-    if (toggle && pop) {
-        toggle.addEventListener('click', function (e) {
-            e.stopPropagation();
-            show(pop.hidden);
-        });
-        // A tap anywhere else, or Escape, puts it away again.
-        document.addEventListener('click', function (e) {
-            if (!pop.hidden && !e.target.closest('#guidePop')) show(false);
-        });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !pop.hidden) { show(false); toggle.focus(); }
-        });
-    }
 
     setState('is-idle');
     bubble.classList.add('is-in');
