@@ -285,22 +285,39 @@ window.GiyaLeaflet = (function () {
     /**
      * The small pin the devotee map uses: a church glyph in a round badge.
      *
-     * Photo pins are 46px each, and a Cebu City district puts dozens of
-     * churches within a few streets, so they piled into one unreadable heap.
-     * The photo still shows - in the popup, where it is big enough to see.
+     * The old photo pins were 46px teardrops, and a Cebu City district puts
+     * dozens of churches within a few streets, so they piled into one heap.
+     * The badge keeps the photo but is round and small (36px), and nearby
+     * badges cluster. Churches with no photo yet show the glyph.
      */
     var CHURCH_GLYPH =
         '<svg viewBox="0 0 24 24" aria-hidden="true">' +
           '<path fill="currentColor" d="M11 1h2v2h2v2h-2v2.2l5.5 3.6V23h-5.5v-5.2a1.5 1.5 0 0 0-3 0V23H4.5V10.8L11 7.2V5H9V3h2z"/>' +
         '</svg>';
 
+    /* Destinations without a photo of their own get the shared placeholder
+       drawing, which is unreadable at badge size - they get the glyph. */
+    function hasPhoto(church) {
+        return !!church.image && church.image.indexOf('/placeholder.') === -1;
+    }
+
     function churchDot(church, opts) {
         opts = opts || {};
-        var size = opts.selected ? 32 : 26;
+        var photo = hasPhoto(church);
+        var size = photo ? (opts.selected ? 42 : 36) : (opts.selected ? 32 : 26);
+
+        /* The church's own photo in the round badge, so the devotee can tell
+           the churches apart on the map. If it fails to load, the glyph
+           takes its place rather than an empty circle. */
+        var inner = photo
+            ? '<img src="' + escapeHtml(church.image) + '" alt="" loading="lazy" ' +
+              'onerror="this.parentNode.classList.remove(\'has-photo\');' +
+              'this.parentNode.innerHTML=this.parentNode.getAttribute(\'data-glyph\')">'
+            : CHURCH_GLYPH;
 
         return L.divIcon({
-            html: '<span class="giya-dot' + (opts.selected ? ' is-selected' : '') + '">' +
-                    CHURCH_GLYPH + '</span>',
+            html: '<span class="giya-dot' + (photo ? ' has-photo' : '') + (opts.selected ? ' is-selected' : '') + '"' +
+                    (photo ? ' data-glyph="' + escapeHtml(CHURCH_GLYPH) + '"' : '') + '>' + inner + '</span>',
             className: 'giya-pin-wrap',
             iconSize: [size, size],
             iconAnchor: [size / 2, size / 2],
