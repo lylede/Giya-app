@@ -2556,6 +2556,10 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
   transition: transform .12s ease;
 }
 .giya-dot svg { width: 58%; height: 58%; display: block; }
+/* With the church's photo: the picture fills the circle, the white ring stays. */
+.giya-dot.has-photo { background: #fff; overflow: hidden; }
+.giya-dot img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.giya-dot.has-photo.is-selected { border-color: var(--gold, #D7A94A); }
 .giya-dot:hover { transform: scale(1.12); }
 .giya-dot.is-selected {
   background: var(--gold, #D7A94A); color: #fff;
