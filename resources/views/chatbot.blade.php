@@ -274,13 +274,40 @@
     let graceUntil = 0;
     let recheck = null;
 
+    /*
+        How tall the visible screen is with NO keyboard, measured while the
+        field is not focused. The keyboard is "open" only when the screen is
+        now much shorter than that.
+
+        It used to compare window.innerHeight with the visual viewport. On
+        newer iPhone Safari those two differ by well over 120px with no
+        keyboard at all (the floating toolbar), so the page decided the
+        keyboard was up, shrank the chat to keyboard size and hid the guide
+        and suggestions - and stayed like that.
+    */
+    let baseline = vv ? vv.height : 0;
+    function measureBaseline() {
+        if (vv && document.activeElement !== input) baseline = vv.height;
+    }
+    window.addEventListener('orientationchange', function () { setTimeout(measureBaseline, 400); });
+
+    function keyboardUp() {
+        return !!vv && document.activeElement === input && baseline - vv.height > 150;
+    }
+
     function sync() {
         if (!vv) return;                 // no measurement here; focus decides
 
+        if (document.activeElement !== input) {
+            measureBaseline();
+            page.classList.remove('is-typing');
+            page.style.removeProperty('--vvh');
+            return;
+        }
+
         page.style.setProperty('--vvh', vv.height + 'px');
 
-        // Under this it is a browser toolbar, not a keyboard.
-        if (window.innerHeight - vv.height > 120) {
+        if (keyboardUp()) {
             const wasOpen = page.classList.contains('is-typing');
             page.classList.add('is-typing');
 
@@ -476,9 +503,15 @@
             .catch(() => addBot(@json(__('giya.chat.unreachable')), false))
             .finally(() => {
                 input.disabled = send.disabled = false;
-                input.focus();
+                // On a computer, ready for the next question. On a phone a
+                // focus without a tap does not bring up the keyboard; it only
+                // confused the layout, so the person taps when ready.
+                if (canAutoFocus) input.focus();
             });
     }
+
+    // A mouse and a real keyboard: focusing the box for them is a help.
+    const canAutoFocus = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -492,7 +525,7 @@
     });
 
     scroll();
-    input.focus();
+    if (canAutoFocus) input.focus();
 })();
 </script>
 <script>

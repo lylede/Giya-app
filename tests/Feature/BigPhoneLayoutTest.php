@@ -47,4 +47,25 @@ class BigPhoneLayoutTest extends TestCase
     {
         $this->assertStringContainsString('.event-kind { font-size: .5rem; letter-spacing: -.01em; overflow-wrap: anywhere; }', $this->css());
     }
+
+    public function test_chat_keyboard_check_does_not_trust_inner_height(): void
+    {
+        $view = file_get_contents(resource_path('views/chatbot.blade.php'));
+
+        // iPhone Safari's innerHeight is far taller than the visible screen
+        // with no keyboard, which left the chat stuck in "typing" layout.
+        $this->assertStringNotContainsString('window.innerHeight - vv.height', $view);
+        $this->assertStringContainsString('baseline - vv.height > 150', $view);
+    }
+
+    public function test_chat_box_is_only_focused_automatically_on_a_computer(): void
+    {
+        $view = file_get_contents(resource_path('views/chatbot.blade.php'));
+        $panel = file_get_contents(public_path('assets/js/giya-ai-panel.js'));
+
+        foreach ([$view, $panel] as $code) {
+            $this->assertStringContainsString("matchMedia('(hover: hover) and (pointer: fine)')", $code);
+            $this->assertDoesNotMatchRegularExpression('/^\s*input\.focus\(\);/m', $code);
+        }
+    }
 }
