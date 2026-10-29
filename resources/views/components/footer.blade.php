@@ -37,6 +37,29 @@
             </div>
         </div>
 
+        {{-- Credits for the team who built GIYA, on the Home page footer. --}}
+        @if (request()->routeIs('home', 'root'))
+            @php
+                $developers = [
+                    ['Lyle Adrien Dedumo',   'Software Engineer'],
+                    ['Clint Eroll Capondag', 'UI/UX Designer'],
+                    ['Josh Efraim Padernal', 'Project Manager'],
+                    ['Ian Francis Loyola',   'Database Designer'],
+                ];
+            @endphp
+            <section class="footer-credits" aria-labelledby="footerDevelopers">
+                <div class="footer-col-title" id="footerDevelopers">{{ __('giya.footer.developers') }}</div>
+                <ul class="footer-credits-list">
+                    @foreach ($developers as [$name, $role])
+                        <li>
+                            <span class="footer-credit-name">{{ $name }}</span>
+                            <span class="footer-credit-role">{{ $role }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </section>
+        @endif
+
         <div class="footer-bottom">
             <span class="footer-copy">&copy; {{ date('Y') }} Giya · {{ __('giya.hub.copyright') }}</span>
             <span class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.3);font-size: 0.6875rem">

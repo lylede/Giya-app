@@ -41,6 +41,7 @@ return [
     ],
 
     'footer' => [
+        'developers'     => 'Developers',
         'explore'        => 'Explore',
         'find_churches'  => 'Find Churches',
         'plan_route'     => 'Plan Route',
