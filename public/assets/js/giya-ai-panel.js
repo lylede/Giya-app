@@ -33,6 +33,10 @@
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    // Focus the box for a mouse and keyboard only. On a phone an automatic
+    // focus throws the keyboard over half the sheet before anyone asked.
+    var canAutoFocus = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
     function open() {
         panel.hidden = false;
         scrim.hidden = false;
@@ -43,7 +47,7 @@
         });
         fab.setAttribute('aria-expanded', 'true');
         document.body.classList.add('ai-panel-locked');
-        setTimeout(function () { input.focus(); }, 260);
+        if (canAutoFocus) setTimeout(function () { input.focus(); }, 260);
     }
 
     function close() {
@@ -210,7 +214,7 @@
             .catch(function () { addBot('I could not reach the server. Try again in a moment.', false); })
             .finally(function () {
                 input.disabled = send.disabled = false;
-                input.focus();
+                if (canAutoFocus) input.focus();
             });
     }
 
