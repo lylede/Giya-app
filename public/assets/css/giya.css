@@ -6081,3 +6081,8 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
   .onb-track { scroll-behavior: auto; }
   .onb-dot, .onb-btn { transition: none; }
 }
+
+/* Admin destinations: the coordinates glow briefly after the pin moves. */
+@keyframes dm-coords-updated { from { background: #FCEFD2; border-color: var(--gold); } to { background: #fff; } }
+.giya-input.is-updated { animation: dm-coords-updated 1.6s ease-out; }
+@media (prefers-reduced-motion: reduce) { .giya-input.is-updated { animation: none; } }

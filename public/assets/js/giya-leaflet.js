@@ -696,12 +696,13 @@ window.GiyaLeaflet = (function () {
         var existing = L.layerGroup().addTo(map);
         var pin = null;
 
-        function report(latlng) {
+        // how: 'click' (a click on empty map) or 'drag' (the pin was dragged).
+        function report(latlng, how) {
             var lat = Math.round(latlng.lat * 1e8) / 1e8;
             var lng = Math.round(latlng.lng * 1e8) / 1e8;
             if (cfg.latInput) document.querySelector(cfg.latInput).value = lat.toFixed(8);
             if (cfg.lngInput) document.querySelector(cfg.lngInput).value = lng.toFixed(8);
-            if (cfg.onPin) cfg.onPin(lat, lng);
+            if (cfg.onPin) cfg.onPin(lat, lng, how || 'click');
         }
 
         function place(lat, lng, silent) {
@@ -711,11 +712,11 @@ window.GiyaLeaflet = (function () {
                     icon: churchIcon({ name: 'New', color: '#D7A94A' }, { selected: true, size: 44 }),
                     draggable: true, zIndexOffset: 1000
                 }).addTo(map);
-                pin.on('dragend', function (e) { report(e.target.getLatLng()); });
+                pin.on('dragend', function (e) { report(e.target.getLatLng(), 'drag'); });
             } else {
                 pin.setLatLng(ll);
             }
-            if (!silent) report(ll);
+            if (!silent) report(ll, 'click');
         }
 
         map.on('click', function (e) { place(e.latlng.lat, e.latlng.lng); });
