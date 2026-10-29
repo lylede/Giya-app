@@ -30,6 +30,9 @@ Route::get('/', [HomeController::class, 'landing'])->name('root');
 
 /* ---------------------------------------------------------------- Guest */
 Route::middleware('guest')->group(function () {
+    Route::get('/welcome',        [\App\Http\Controllers\OnboardingController::class, 'show'])->name('onboarding');
+    Route::get('/welcome/finish', [\App\Http\Controllers\OnboardingController::class, 'finish'])->name('onboarding.finish');
+
     Route::get('/login',  [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
 

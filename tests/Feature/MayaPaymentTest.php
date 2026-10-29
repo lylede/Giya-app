@@ -562,7 +562,8 @@ class MayaPaymentTest extends TestCase
             ->get(route('upgrade'))
             ->assertOk()
             ->assertDontSee('Pilgrim Annual')
-            ->assertDontSee('899');
+            // Text only: the CSS link's ?v=<file time> can contain "899" by chance.
+            ->assertDontSeeText('899');
     }
 
     public function test_the_page_refuses_to_take_money_with_no_keys_configured(): void

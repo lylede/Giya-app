@@ -538,4 +538,18 @@ return [
         'offline_map'    => 'Offline schematic map · coordinates projected from the GIYA database',
         'offline_aria'   => 'Map of pilgrimage destinations in Metro Cebu',
     ],
+    'onboarding' => [
+        'title'      => 'Welcome',
+        'skip'       => 'Skip',
+        'next'       => 'Next',
+        'start'      => 'Get Started',
+        'have_acct'  => 'I already have an account',
+        'slide'      => 'Slide :n of :total',
+        's1_title'   => 'Discover Sacred Places',
+        's1_text'    => 'Explore churches, shrines, basilicas, and religious destinations across Metro Cebu - all in one place',
+        's2_title'   => 'Plan Pilgrimage Routes',
+        's2_text'    => 'Create and organize your Visita Iglesia route. Visit 14 stations or design your own multi-church pilgrimage',
+        's3_title'   => 'AI-Guided Journeys',
+        's3_text'    => 'Get personalized itineraries and answers from our AI chatbot. Plan smarter, travel with meaning.',
+    ],
 ];

@@ -5976,3 +5976,108 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
   .fab-head-wrap .guide-face { transform: translate(-50%, -50%) scale(.38); }
   main { padding-bottom: 72px; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   WELCOME SLIDES (first visit)
+   Phone: full screen, as designed. Computer: the same slides in a
+   phone-width card in the middle of the page.
+   ════════════════════════════════════════════════════════════════ */
+.onb-page {
+  margin: 0; min-height: 100vh; min-height: 100svh;
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-body);
+  display: flex; align-items: center; justify-content: center;
+}
+.onb {
+  position: relative;
+  width: 100%; max-width: 430px;
+  height: 100vh; height: 100svh; max-height: 900px;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+}
+.onb-skip {
+  position: absolute; z-index: 2;
+  top: calc(18px + env(safe-area-inset-top)); right: 22px;
+  padding: 10px 6px;                      /* 44px tall touch target */
+  font-size: 0.875rem; font-weight: 700;
+  color: var(--text-muted); text-decoration: none;
+}
+.onb-skip:hover { color: var(--primary); }
+
+.onb-track {
+  flex: 1; display: flex;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  outline: none;
+}
+.onb-track::-webkit-scrollbar { display: none; }
+
+.onb-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center; scroll-snap-stop: always;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 0 32px 40px; box-sizing: border-box; text-align: center;
+}
+.onb-icon {
+  width: 78px; height: 78px; margin-bottom: 26px;
+  display: flex; align-items: center; justify-content: center;
+}
+.onb-icon img { width: 77px; height: 78px; }
+.onb-title {
+  font-family: var(--font-display); font-weight: 400;
+  font-size: 1.625rem; line-height: 1.25; margin: 0 0 10px; color: var(--text);
+}
+.onb-text {
+  max-width: 300px; margin: 0;
+  font-size: 0.875rem; line-height: 1.7; color: var(--text-muted);
+}
+
+.onb-foot {
+  padding: 0 24px calc(28px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; align-items: center;
+}
+.onb-dots { display: flex; gap: 6px; margin-bottom: 28px; }
+.onb-dot {
+  width: 10px; height: 10px; padding: 0; border: 0; border-radius: 999px;
+  background: #EBD5A9; cursor: pointer;
+  transition: width .2s ease, background .2s ease;
+}
+.onb-dot.is-on { width: 26px; background: var(--primary); }
+.onb-dot:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+.onb-btn {
+  width: 100%; height: 56px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; background: var(--primary); color: #fff;
+  font-size: 1rem; font-weight: 700; text-decoration: none;
+  transition: background .15s ease, transform .1s ease;
+}
+.onb-btn:hover { background: var(--primary-dark); color: #fff; }
+.onb-btn:active { transform: scale(.985); }
+.onb-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.onb-login {
+  margin-top: 14px; padding: 6px;
+  font-size: 0.8125rem; font-weight: 700; color: var(--primary); text-decoration: none;
+}
+/* With script, "I already have an account" appears on the last slide only,
+   keeping its space so the button does not jump. */
+.onb-js .onb-login { visibility: hidden; }
+.onb-js .onb-login.is-shown { visibility: visible; }
+
+/* A computer: the same slides in a phone-width card. */
+@media (min-width: 640px) {
+  .onb-page { background: var(--bg-alt, #F6EBDD); padding: 24px; box-sizing: border-box; }
+  .onb {
+    height: min(820px, calc(100vh - 48px));
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(36,28,24,.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onb-track { scroll-behavior: auto; }
+  .onb-dot, .onb-btn { transition: none; }
+}
