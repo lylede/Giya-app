@@ -6303,3 +6303,25 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
   display: block; position: relative; margin: 0 10px 0 0; width: 37px;
 }
 .chat-bar .chat-bar-guide.guide .guide-face { transform: translate(-50%, -50%) scale(.26) !important; }
+
+/* ── Footer: developer credits (Home page) ─────────────────────── */
+.footer-credits {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 24px; margin-bottom: 24px;
+}
+.footer-credits-list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+.footer-credit-name {
+  display: block; color: rgba(255,255,255,0.82);
+  font-size: 0.875rem; font-weight: 700; line-height: 1.35;
+}
+.footer-credit-role {
+  display: block; margin-top: 3px;
+  color: rgba(255,255,255,0.45); font-size: 0.75rem;
+}
+@media (max-width: 768px) {
+  .footer-credits-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+}

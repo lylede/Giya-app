@@ -31,6 +31,7 @@ return [
     ],
 
     'footer' => [
+        'developers'     => 'Mga Developer',
         'explore'        => 'Tuklasin',
         'find_churches'  => 'Maghanap ng Simbahan',
         'plan_route'     => 'Planuhin ang Ruta',
