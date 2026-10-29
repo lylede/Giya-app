@@ -528,4 +528,18 @@ return [
         'offline_map'    => 'Offline na schematic map · mga koordinado mula sa database ng GIYA',
         'offline_aria'   => 'Mapa ng mga destinasyon ng peregrinasyon sa Metro Cebu',
     ],
+    'onboarding' => [
+        'title'      => 'Maligayang pagdating',
+        'skip'       => 'Laktawan',
+        'next'       => 'Susunod',
+        'start'      => 'Magsimula',
+        'have_acct'  => 'May account na ako',
+        'slide'      => 'Slide :n ng :total',
+        's1_title'   => 'Tuklasin ang mga Banal na Lugar',
+        's1_text'    => 'Galugarin ang mga simbahan, dambana, basilika at relihiyosong destinasyon sa Metro Cebu - lahat sa iisang lugar',
+        's2_title'   => 'Magplano ng Ruta ng Peregrinasyon',
+        's2_text'    => 'Gumawa at ayusin ang iyong ruta sa Visita Iglesia. Bisitahin ang 14 na istasyon o gumawa ng sariling peregrinasyon sa maraming simbahan',
+        's3_title'   => 'Paglalakbay na Gabay ng AI',
+        's3_text'    => 'Makakuha ng personal na itinerary at sagot mula sa aming AI chatbot. Magplano nang matalino, maglakbay nang may kahulugan.',
+    ],
 ];

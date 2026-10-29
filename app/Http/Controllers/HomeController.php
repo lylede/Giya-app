@@ -20,6 +20,11 @@ class HomeController extends Controller
             return redirect()->route('home');
         }
 
+        // First visit on this phone or browser: the welcome slides first.
+        if (! \App\Http\Controllers\OnboardingController::seen(request())) {
+            return redirect()->route('onboarding');
+        }
+
         return view('home', $this->homeData());
     }
 

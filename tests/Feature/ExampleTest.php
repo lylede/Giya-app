@@ -19,6 +19,8 @@ class ExampleTest extends TestCase
 
     public function test_the_landing_page_answers(): void
     {
-        $this->get('/')->assertStatus(200);
+        // A returning visitor; a first visit goes to the welcome slides (OnboardingTest).
+        $this->withCookie(\App\Http\Controllers\OnboardingController::COOKIE, '1')
+            ->get('/')->assertStatus(200);
     }
 }

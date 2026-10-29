@@ -22,7 +22,7 @@ class HomeCardTest extends TestCase
 
     private function home(): string
     {
-        $html = $this->get('/')->getContent();
+        $html = $this->withCookie(\App\Http\Controllers\OnboardingController::COOKIE, '1')->get('/')->getContent();
 
         if (env('GIYA_DUMP_HOME')) {
             file_put_contents('/tmp/home.html', preg_replace(
