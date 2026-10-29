@@ -5970,7 +5970,10 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
   .chat-starters { padding: 0 12px 12px; }
 
   /* Floating guide: smaller, and never covering content. */
-  .giya-fab { right: 12px !important; bottom: calc(12px + env(safe-area-inset-bottom)) !important; }
+  /* Not on an itinerary: there it sits above the bottom sheet (rule near
+     .active-layout), or it would cover "Mark Current Visited". */
+  body:not(:has(.active-layout)) .giya-fab { right: 12px !important; bottom: calc(12px + env(safe-area-inset-bottom)) !important; }
+  body:has(.active-layout) .giya-fab { right: 12px !important; }
   .giya-fab,
   .fab-head-wrap { width: 46px !important; height: 43px !important; }
   .fab-head-wrap .guide-face { transform: translate(-50%, -50%) scale(.38); }
@@ -6149,3 +6152,100 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 html[data-theme="dark"] .giya-back:not(.is-dark) .giya-back-icon { background: var(--surface); }
 @media (prefers-reduced-motion: reduce) { .giya-back-icon { transition: none; } }
 .chat-page > .giya-back { align-self: flex-start; }
+
+/* ════════════════════════════════════════════════════════════════
+   BIG PHONES FIRST (6" phones and Pro Max: 390-440px wide)
+   Checked page by page at 360, 390, 412, 430 and 440px.
+   ════════════════════════════════════════════════════════════════ */
+
+/* Home, upcoming activities: a long type ("PROCESSION") ran out of its
+   tile. A little wider and tighter, and it may break if it must. */
+.event-date { width: 64px; }
+.event-kind { font-size: .5rem; letter-spacing: -.01em; overflow-wrap: anywhere; }
+
+@media (max-width: 768px) {
+  /* ── Admin: the menu is a drawer, not a screen-filling strip ──── */
+  .admin-sidebar {
+    position: fixed !important; top: 0; left: 0; bottom: 0;
+    width: min(84vw, 300px) !important; height: 100dvh !important;
+    z-index: 1600;
+    transform: translateX(-102%);
+    transition: transform .24s cubic-bezier(.2, .8, .2, 1);
+    box-shadow: 0 0 40px rgba(0,0,0,.35);
+  }
+  .admin-layout.is-drawer-open .admin-sidebar { transform: none; }
+  .admin-scrim {
+    position: fixed; inset: 0; z-index: 1590;
+    background: rgba(20,14,12,.45);
+  }
+  .admin-menu-btn {
+    width: 40px; height: 40px; flex-shrink: 0; margin-right: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: #fff; color: var(--primary); font-size: 1.25rem; cursor: pointer;
+  }
+  .admin-topbar {
+    position: sticky; top: 0; z-index: 900;
+    height: auto; min-height: 60px; padding: 8px 14px !important; gap: 0;
+  }
+  .admin-topbar .admin-back { margin-right: 8px; }
+  .admin-topbar-titles { flex: 1; min-width: 0; }
+  .admin-page-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Wide admin tables scroll sideways inside their card, not the page. */
+  .admin-content .table-wrap, .admin-content .adm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+@media (min-width: 769px) {
+  .admin-menu-btn, .admin-scrim { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .admin-sidebar { transition: none; } }
+
+@media (max-width: 767px) {
+  /* ── Giya AI page: the guide sits beside its bubble, small ─────── */
+  .chat-page .guide {
+    flex-direction: row-reverse; align-items: center; justify-content: flex-end;
+    gap: 12px; width: 100%; margin: 0 0 10px;
+  }
+  .chat-page .guide-bubble {
+    margin: 0; max-width: none; flex: 1;
+    text-align: left; font-size: .8125rem; padding: 9px 13px;
+  }
+  .chat-page .guide-bubble::before, .chat-page .guide-bubble::after { display: none; }
+  .chat-page .guide-hands, .chat-page .guide-lamp { display: none; }
+  .chat-page .guide-face { width: 62px; height: 56px; flex-shrink: 0; border-width: 2px; border-radius: 16px; box-shadow: 0 3px 0 rgba(36,28,24,.12); }
+  .chat-page .guide-screen { width: 46px; height: 38px; }
+  .chat-page .guide-eye { width: 9px; height: 9px; top: 12px; }
+  .chat-page .guide-eye-l { left: 9px; }
+  .chat-page .guide-eye-r { right: 9px; }
+  .chat-page .guide-mouth { bottom: 9px; width: 12px; margin-left: -6px; }
+  .chat-page .guide-ear { display: none; }
+  .chat-page > .giya-back { margin-bottom: 8px; }
+  /* What is above the conversation is now ~120px, not ~300px. */
+  .chat-log { max-height: calc(100svh - 330px); min-height: 300px; }
+}
+
+@media (max-width: 600px) {
+  /* ── Visita Iglesia: buttons on their own line under the church ── */
+  .vi-row { flex-wrap: wrap; row-gap: 10px; }
+  .vi-row .vi-info { flex: 1 1 calc(100% - 56px); }
+  .vi-row .vi-actions { flex: 1 1 100%; padding-left: 52px; }
+  .vi-row .vi-move { flex-direction: row !important; gap: 4px !important; }
+  .vi-row .route-btn {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #fff; border: 1px solid var(--border);
+  }
+  .vi-row .vi-mark { flex: 1; min-height: 38px; }
+  .vi-row .vi-drop { width: 38px !important; height: 38px !important; border-radius: 10px !important; }
+
+  /* ── Premium: no empty badge row above a card that has no badge ── */
+  .plan-badge-row.is-empty { display: none !important; }
+
+  /* ── Profile: the tab strip shows there is more to the right ──── */
+  .profile-tabs-strip {
+    padding: 0 8px !important; scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+            mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+  .profile-tabs-strip::-webkit-scrollbar { display: none; }
+  .profile-tabs-strip .profile-tab { padding: 14px 12px; white-space: nowrap; flex-shrink: 0; }
+}

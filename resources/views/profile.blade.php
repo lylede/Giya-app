@@ -52,7 +52,7 @@
 
 {{-- ───────────────────────────── Tabs ───────────────────────────────── --}}
 <div style="background:#fff;border-bottom:1px solid var(--border);position:sticky;top:64px;z-index:100">
-    <div style="max-width:900px;margin:0 auto;display:flex;padding:0 20px;overflow-x:auto">
+    <div class="profile-tabs-strip" style="max-width:900px;margin:0 auto;display:flex;padding:0 20px;overflow-x:auto">
         @foreach ([['overview',__('giya.profile.overview')],['visits',__('giya.profile.visit_history')],['itineraries',__('giya.profile.itineraries')],['favorites',__('giya.profile.favorites')],['preferences',__('giya.profile.preferences')]] as $i => [$id, $label])
             <button type="button" @class(['profile-tab', 'is-active' => $id === $activeTab])
                     data-tab="{{ $id }}" onclick="GiyaProfile.show('{{ $id }}', this)">{{ $label }}</button>

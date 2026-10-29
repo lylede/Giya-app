@@ -208,18 +208,18 @@ const GiyaVisita = (function () {
 
             return '<div class="vi-row ' + cls + '">' +
                 '<span style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(142,59,47,.15);background:' + badgeBg + '">' + inner + '</span>' +
-                '<span style="flex:1;min-width:0">' +
+                '<span class="vi-info" style="flex:1;min-width:0">' +
                   '<span style="display:block;font-size: 0.875rem;font-weight:600;color:var(--text)' + (c.visited ? ';text-decoration:line-through;opacity:.65' : '') + '">' + esc(c.name) + '</span>' +
                   '<span style="display:block;font-size: 0.6875rem;color:var(--text-muted);margin-top:2px">' + esc(c.location) + '</span>' +
                   (isCurrent ? '<span class="badge badge-primary" style="margin-top:4px">Next stop</span>' : '') +
                 '</span>' +
-                '<span style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
-                  '<span style="display:flex;flex-direction:column;gap:2px">' +
+                '<span class="vi-actions" style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
+                  '<span class="vi-move" style="display:flex;flex-direction:column;gap:2px">' +
                     '<button type="button" class="route-btn" onclick="GiyaVisita.move(' + i + ',-1)" style="color:' + (i === 0 ? '#D8C4BC' : 'var(--primary)') + ';font-size: 0.75rem">▲</button>' +
                     '<button type="button" class="route-btn" onclick="GiyaVisita.move(' + i + ',1)" style="color:' + (i === list.length - 1 ? '#D8C4BC' : 'var(--primary)') + ';font-size: 0.75rem">▼</button>' +
                   '</span>' +
-                  '<button type="button" onclick="GiyaVisita.toggle(' + i + ')" style="padding:8px 13px;border-radius:10px;font-size: 0.75rem;font-weight:700;border:none;cursor:pointer;min-width:100px;font-family:var(--font-body);background:' + (c.visited ? 'var(--gold-bg)' : 'var(--primary)') + ';color:' + (c.visited ? 'var(--primary)' : '#fff') + '">' + (c.visited ? @json(__('giya.plan.visited_b')) : @json(__('giya.plan.mark_visited_b'))) + '</button>' +
-                  '<button type="button" onclick="GiyaVisita.drop(' + i + ')" style="width:28px;height:28px;border-radius:8px;background:rgba(212,24,61,.08);color:#D4183D;border:none;cursor:pointer;font-size: 0.9375rem">×</button>' +
+                  '<button type="button" class="vi-mark" onclick="GiyaVisita.toggle(' + i + ')" style="padding:8px 13px;border-radius:10px;font-size: 0.75rem;font-weight:700;border:none;cursor:pointer;min-width:100px;font-family:var(--font-body);background:' + (c.visited ? 'var(--gold-bg)' : 'var(--primary)') + ';color:' + (c.visited ? 'var(--primary)' : '#fff') + '">' + (c.visited ? @json(__('giya.plan.visited_b')) : @json(__('giya.plan.mark_visited_b'))) + '</button>' +
+                  '<button type="button" class="vi-drop" aria-label="Remove" onclick="GiyaVisita.drop(' + i + ')" style="width:28px;height:28px;border-radius:8px;background:rgba(212,24,61,.08);color:#D4183D;border:none;cursor:pointer;font-size: 0.9375rem">×</button>' +
                 '</span></div>';
         }).join('');
     }

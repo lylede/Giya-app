@@ -1,0 +1,50 @@
+<?php
+
+namespace Tests\Feature;
+
+use Tests\TestCase;
+
+/**
+ * Phone layout rules (checked in a browser at 360-440px wide). These guard
+ * the wiring so a later change cannot quietly bring the old problems back.
+ */
+class BigPhoneLayoutTest extends TestCase
+{
+    private function css(): string
+    {
+        return file_get_contents(public_path('assets/css/giya.css'));
+    }
+
+    public function test_admin_menu_is_a_drawer_on_phones(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/admin.blade.php'));
+
+        $this->assertStringContainsString('id="adminMenu"', $layout);
+        $this->assertStringContainsString('id="adminScrim"', $layout);
+        $this->assertStringContainsString('.admin-layout.is-drawer-open .admin-sidebar { transform: none; }', $this->css());
+        $this->assertStringContainsString("getElementById('adminMenu')", file_get_contents(public_path('assets/js/giya-admin.js')));
+    }
+
+    public function test_the_floating_guide_never_covers_the_itinerary_button(): void
+    {
+        // The phone position applies everywhere except an itinerary, where
+        // the guide sits above the bottom sheet instead.
+        $this->assertStringContainsString('body:not(:has(.active-layout)) .giya-fab', $this->css());
+        $this->assertStringNotContainsString("  .giya-fab { right: 12px !important; bottom:", $this->css());
+    }
+
+    public function test_visita_stops_put_their_buttons_on_their_own_line(): void
+    {
+        $view = file_get_contents(resource_path('views/plan/visita.blade.php'));
+
+        foreach (['vi-info', 'vi-actions', 'vi-move', 'vi-mark', 'vi-drop'] as $class) {
+            $this->assertStringContainsString('class="'.$class.'"', $view);
+        }
+        $this->assertStringContainsString('.vi-row .vi-actions { flex: 1 1 100%;', $this->css());
+    }
+
+    public function test_long_event_types_fit_their_tile(): void
+    {
+        $this->assertStringContainsString('.event-kind { font-size: .5rem; letter-spacing: -.01em; overflow-wrap: anywhere; }', $this->css());
+    }
+}

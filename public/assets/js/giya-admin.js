@@ -50,3 +50,42 @@
         remember(railed);
     });
 })(window, document);
+
+/**
+ * Phones: the admin menu is a drawer.
+ *
+ * Stacked above the page, the full menu filled the first screen of every
+ * admin page, so the page itself started below the fold. On a phone it now
+ * slides in from the left when the menu button is pressed, and closes on the
+ * dimmed backdrop, Escape, or choosing a page.
+ */
+(function (window, document) {
+    'use strict';
+
+    var layout = document.querySelector('.admin-layout');
+    var button = document.getElementById('adminMenu');
+    var scrim  = document.getElementById('adminScrim');
+    var side   = document.getElementById('adminSidebar');
+    if (!layout || !button || !scrim || !side) return;
+
+    function set(open) {
+        layout.classList.toggle('is-drawer-open', open);
+        scrim.hidden = !open;
+        button.setAttribute('aria-expanded', String(open));
+        button.setAttribute('aria-label', open ? 'Close the menu' : 'Open the menu');
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (open) {
+            var first = side.querySelector('a, button');
+            if (first) first.focus();
+        }
+    }
+
+    button.addEventListener('click', function () { set(!layout.classList.contains('is-drawer-open')); });
+    scrim.addEventListener('click', function () { set(false); });
+    side.addEventListener('click', function (e) { if (e.target.closest('a')) set(false); });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && layout.classList.contains('is-drawer-open')) { set(false); button.focus(); }
+    });
+    // Turning a tablet to landscape past the breakpoint leaves no drawer to close.
+    window.matchMedia('(min-width: 769px)').addEventListener('change', function (m) { if (m.matches) set(false); });
+})(window, document);
