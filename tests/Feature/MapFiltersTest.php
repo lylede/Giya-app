@@ -178,7 +178,7 @@ class MapFiltersTest extends TestCase
         $html = $this->actingAs($this->devotee())->get(route('map'))->assertOk()->getContent();
 
         $this->assertMatchesRegularExpression(
-            "/if \\(category === 'Major'\\)\\s*\\{\\s*return c\\.major === true;/",
+            "/if \\(category === 'Major'\\)\\s*\\{[^}]*?return c\\.major === true/",
             $html,
             'Major must filter on the marker flag. Without this branch the chip '
             .'falls through to the category comparison, no church has the '
@@ -188,6 +188,20 @@ class MapFiltersTest extends TestCase
         /* And the town is what each result stands for, so it is shown. */
         $this->assertStringContainsString('mx-tag is-town', $html,
             'A Major result says which town it is the principal church of.');
+    }
+
+    /** The map opens on Major (one main church per town), with Near second. */
+    public function test_the_map_opens_on_major_when_there_are_major_churches(): void
+    {
+        $this->church('Cebu Metropolitan Cathedral', 'Cathedral', 'Cebu City', [
+            'municipality' => 'Cebu City', 'is_major' => true,
+        ]);
+
+        $html = $this->actingAs($this->devotee())->get(route('map'))->assertOk()->getContent();
+
+        $this->assertStringContainsString("let category = HAS_MAJORS ? 'Major' : 'Near';", $html);
+        $this->assertStringContainsString('const HAS_MAJORS = true;', $html);
+        $this->assertLessThan(strpos($html, 'data-cat="Near"'), strpos($html, 'data-cat="Major"'), 'Major comes first, Near second.');
     }
 
     public function test_the_markers_carry_the_town_and_the_flag(): void
