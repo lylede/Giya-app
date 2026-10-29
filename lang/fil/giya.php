@@ -463,6 +463,7 @@ return [
         'greeting'       => 'Maayong buntag! Ako si Giya AI. Magtanong tungkol sa mga simbahan sa Metro Cebu.',
         'note'           => 'Sumasagot ang Giya AI mula sa mga tala ng destinasyon ng GIYA. Nagbabago ang iskedyul ng misa - pakikumpirma sa parokya bago maglakbay.',
         'open_full'      => 'Buksan ang buong pahina ng usapan',
+        'guide_show'     => 'Ipakita ang sinasabi ni Giya',
         'minimise'       => 'Ibaba ang Giya AI',
         'greeting_long'  => 'Maayong buntag! Ako si Giya AI. Tanungin mo ako tungkol sa mga simbahan sa Metro Cebu, iskedyul ng misa, o hayaan mo akong magplano ng ruta ng Visita Iglesia para sa iyo.',
         'greeting_panel' => 'Maayong buntag! Tanungin mo ako tungkol sa mga simbahan, iskedyul ng misa, o ruta ng Visita Iglesia.',

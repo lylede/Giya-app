@@ -473,6 +473,7 @@ return [
         'greeting'       => 'Maayong buntag! I am Giya AI. Ask me about churches in Metro Cebu.',
         'note'           => "Giya AI answers from GIYA's destination records. Mass schedules change - please confirm with the parish before travelling.",
         'open_full'      => 'Open the full chat page',
+        'guide_show'     => 'Show what Giya is saying',
         'minimise'       => 'Minimise Giya AI',
         'greeting_long'  => 'Maayong buntag! I am Giya AI. Ask me about churches in Metro Cebu, mass schedules, or let me plan a Visita Iglesia route for you.',
         'greeting_panel' => 'Maayong buntag! Ask me about churches, mass schedules, or a Visita Iglesia route.',
