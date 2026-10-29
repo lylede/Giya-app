@@ -4,6 +4,8 @@
 @section('content')
 <div class="page-wrap">
 
+    <x-back-link :href="route('home')" :label="__('giya.back.home')" />
+
     <div class="eyebrow">
         <span class="eyebrow-bar"></span>
         <span class="eyebrow-text">{{ __('giya.plan.plan_journey') }}</span>

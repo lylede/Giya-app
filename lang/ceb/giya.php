@@ -542,4 +542,14 @@ return [
         's3_title'   => 'Panaw nga Giyahan sa AI',
         's3_text'    => 'Pagkuha og personal nga itinerary ug tubag gikan sa among AI chatbot. Plano nga maalamon, panaw nga may kahulogan.',
     ],
+    'back' => [
+        'home'        => 'Balik sa Home',
+        'map'         => 'Balik sa Mapa',
+        'itineraries' => 'Balik sa Akong mga Itinerary',
+        'itinerary'   => 'Balik sa itinerary',
+        'profile'     => 'Balik sa Profile',
+        'chat'        => 'Balik sa Giya AI',
+        'login'       => 'Balik sa Login',
+        'start'       => 'Balik sa sinugdanan',
+    ],
 ];

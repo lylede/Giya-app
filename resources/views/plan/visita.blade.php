@@ -4,9 +4,7 @@
 @section('content')
 <div class="page-wrap">
 
-    <a href="{{ route('plan.hub') }}" class="back-link">
-        <i class="bi bi-chevron-left"></i> {{ __('giya.plan.back_hub') }}
-    </a>
+    <x-back-link :href="route('plan.hub')" :label="__('giya.plan.back_hub')" />
 
     <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
         <h1 style="font-family:var(--font-display);font-size: 1.75rem;margin:0">{{ __('giya.plan.visita_title') }}</h1>

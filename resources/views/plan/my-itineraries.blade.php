@@ -4,9 +4,7 @@
 @section('content')
 <div class="page-wrap">
 
-    <a href="{{ route('plan.hub') }}" class="back-link">
-        <i class="bi bi-chevron-left"></i> {{ __('giya.plan.back_hub') }}
-    </a>
+    <x-back-link :href="route('plan.hub')" :label="__('giya.plan.back_hub')" />
 
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
         <div>

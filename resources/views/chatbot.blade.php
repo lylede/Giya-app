@@ -101,6 +101,8 @@
 @section('content')
 <div class="page-wrap chat-page" style="max-width:900px">
 
+    <x-back-link :href="route('home')" :label="__('giya.back.home')" />
+
     {{--
         The guide sits above the panel and reacts to what is happening: it looks
         down while you type, glances up while it thinks, and smiles when an
