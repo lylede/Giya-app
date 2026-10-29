@@ -93,7 +93,14 @@
                 @forelse ($schedules as $i => $s)
                     <tr>
                         <td>{{ $schedules->firstItem() + $i }}</td>
-                        <td class="cell-strong">{{ $s->church->name ?? '-' }}</td>
+                        <td class="cell-strong">
+                            @if ($s->church)
+                                {{ $s->church->name }}
+                            @else
+                                {{ $s->location ?: '-' }}
+                                <span class="sched-town-tag">Town festival</span>
+                            @endif
+                        </td>
                         <td>{{ $s->event_name }}</td>
                         <td><span class="badge badge-gold">{{ $s->event_type }}</span></td>
                         <td>{{ $s->day_label }}</td>
@@ -178,8 +185,8 @@
                 <div class="dm-row">
                     <div class="field is-full">
                         <label class="dm-label" for="s-church">Destination</label>
-                        <select id="s-church" name="church_id" class="giya-input" required>
-                            <option value="">Choose a destination…</option>
+                        <select id="s-church" name="church_id" class="giya-input">
+                            <option value="">None - a town festival (type the town in Location)</option>
                             @foreach ($churches as $church)
                                 <option value="{{ $church->id }}">{{ $church->name }}</option>
                             @endforeach
@@ -261,8 +268,17 @@
                         </div>
                     </div>
 
-                    <div class="dm-row" data-repeat="monthly yearly" hidden>
-                        <div class="field">
+                    <div class="field" data-repeat="yearly" hidden>
+                        <label class="dm-label" for="s-yearly-on">Every year on</label>
+                        <select id="s-yearly-on" name="repeat_yearly_on" class="giya-input">
+                            <option value="nth">A weekday of a month - e.g. 3rd Sunday of January</option>
+                            <option value="date">A date - e.g. every January 15</option>
+                            <option value="easter">Easter Sunday (date changes every year)</option>
+                        </select>
+                    </div>
+
+                    <div class="dm-row" data-repeat="monthly yearly" data-yearly="nth date" hidden>
+                        <div class="field" data-repeat="monthly yearly" data-yearly="nth">
                             <label class="dm-label" for="s-nth">On the</label>
                             <select id="s-nth" name="repeat_nth" class="giya-input">
                                 @foreach (\App\Support\Recurrence::NTH as $n => $label)
@@ -270,7 +286,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="field">
+                        <div class="field" data-repeat="monthly yearly" data-yearly="nth">
                             <label class="dm-label" for="s-weekday">Day</label>
                             <select id="s-weekday" name="repeat_weekday" class="giya-input">
                                 @foreach ($weekOrder as $d)
@@ -278,13 +294,17 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="field" data-repeat="yearly" hidden>
+                        <div class="field" data-repeat="yearly" data-yearly="nth date" hidden>
                             <label class="dm-label" for="s-month">Of</label>
                             <select id="s-month" name="repeat_month" class="giya-input">
                                 @foreach (\App\Support\Recurrence::MONTHS as $m => $name)
                                     <option value="{{ $m }}">{{ $name }}</option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="field" data-repeat="yearly" data-yearly="date" hidden>
+                            <label class="dm-label" for="s-day">Day</label>
+                            <input id="s-day" type="number" name="repeat_day" min="1" max="31" class="giya-input" placeholder="15">
                         </div>
                     </div>
 
@@ -421,18 +441,44 @@
         return out;
     }
 
+    // Same as App\Support\Recurrence::easter.
+    function easter(y) {
+        const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4,
+              f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
+              i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7,
+              m = Math.floor((a + 11 * h + 22 * l) / 451), n = h + l - 7 * m + 114;
+        return new Date(y, Math.floor(n / 31) - 1, (n % 31) + 1);
+    }
+
+    function nextYearly(on, month, day, count) {
+        const out = [], today = new Date(); today.setHours(0, 0, 0, 0);
+        if (on === 'date' && !day) return out;
+        for (let y = today.getFullYear(); out.length < count && y < today.getFullYear() + 5; y++) {
+            const d = on === 'easter' ? easter(y)
+                : new Date(y, month - 1, Math.min(day, new Date(y, month, 0).getDate()));
+            if (d >= today) out.push(d);
+        }
+        return out;
+    }
+
     function refreshRepeat() {
         const type = repeat.value;
+        const on = document.getElementById('s-yearly-on').value;
         document.querySelectorAll('[data-repeat]').forEach(function (el) {
-            el.hidden = el.dataset.repeat.split(' ').indexOf(type) === -1;
+            const forType = el.dataset.repeat.split(' ').indexOf(type) !== -1;
+            const forKind = type !== 'yearly' || !el.dataset.yearly || el.dataset.yearly.split(' ').indexOf(on) !== -1;
+            el.hidden = !(forType && forKind);
         });
         document.getElementById('s-date').required = type === 'none';
 
         const note = document.getElementById('s-next');
         if (type === 'monthly' || type === 'yearly') {
             const fmt = function (d) { return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); };
-            const dates = nextDates(type, +document.getElementById('s-nth').value,
-                +document.getElementById('s-weekday').value, +document.getElementById('s-month').value, 3);
+            const dates = type === 'yearly' && on !== 'nth'
+                ? nextYearly(on, +document.getElementById('s-month').value, +document.getElementById('s-day').value, 3)
+                : nextDates(type, +document.getElementById('s-nth').value,
+                    +document.getElementById('s-weekday').value, +document.getElementById('s-month').value, 3);
+            if (!dates.length || isNaN(dates[0])) { note.hidden = true; return; }
             note.innerHTML = 'Next date: <strong>' + fmt(dates[0]) + '</strong>' +
                 (dates.length > 1 ? ' <span>(then ' + dates.slice(1).map(fmt).join(', ') + ')</span>' : '') +
                 (type === 'yearly' ? '<br>Followers are reminded a week before, every year.' : '');
@@ -449,6 +495,8 @@
         document.getElementById('s-nth').value = '1';
         document.getElementById('s-weekday').value = '0';
         document.getElementById('s-month').value = '1';
+        document.getElementById('s-yearly-on').value = 'nth';
+        document.getElementById('s-day').value = '';
 
         let type = 'none';
         if (rule && rule.type) {
@@ -460,6 +508,8 @@
             if (rule.nth !== undefined) document.getElementById('s-nth').value = String(rule.nth);
             if (rule.weekday !== undefined) document.getElementById('s-weekday').value = String(rule.weekday);
             if (rule.month !== undefined) document.getElementById('s-month').value = String(rule.month);
+            if (rule.day !== undefined) { document.getElementById('s-yearly-on').value = 'date'; document.getElementById('s-day').value = String(rule.day); }
+            if (rule.easter !== undefined) document.getElementById('s-yearly-on').value = 'easter';
         } else if (label) {
             if (/daily/i.test(label)) {
                 type = 'daily';
@@ -478,9 +528,10 @@
     }
 
     repeat.addEventListener('change', refreshRepeat);
-    ['s-nth', 's-weekday', 's-month'].forEach(function (id) {
+    ['s-nth', 's-weekday', 's-month', 's-yearly-on'].forEach(function (id) {
         document.getElementById(id).addEventListener('change', refreshRepeat);
     });
+    document.getElementById('s-day').addEventListener('input', refreshRepeat);
     refreshRepeat();
 
     // A whole-day event has no start or end time.

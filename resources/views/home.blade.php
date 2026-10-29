@@ -203,7 +203,7 @@
                             <div class="event-name">{{ $event->event_name }}</div>
                             <div class="event-where">
                                 <i class="bi bi-building"></i>
-                                {{ $event->church->name ?? 'Metro Cebu' }}
+                                {{ $event->church->name ?? ($event->location ?: 'Cebu') }}
                             </div>
                         </div>
                         <div class="event-when">

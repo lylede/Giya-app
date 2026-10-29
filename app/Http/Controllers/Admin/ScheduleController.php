@@ -135,7 +135,9 @@ class ScheduleController extends Controller
     {
         $data = $request->validate([
             'schedule_id'      => ['nullable', 'integer', 'exists:schedules,id'],
-            'church_id'        => ['required', 'exists:churches,id'],
+            // Empty for a town festival (no GIYA destination); then the town
+            // goes in Location.
+            'church_id'        => ['nullable', 'required_without:location', 'exists:churches,id'],
             'event_name'       => ['required', 'string', 'max:200'],
             'event_type'       => ['required', 'in:'.implode(',', $this->types)],
             'time_frame_label' => ['nullable', 'string', 'max:100'],
@@ -147,16 +149,16 @@ class ScheduleController extends Controller
             'repeat_type'      => ['nullable', 'in:none,daily,weekly,monthly,yearly'],
             'repeat_days'      => ['nullable', 'array', 'required_if:repeat_type,weekly'],
             'repeat_days.*'    => ['integer', 'between:0,6'],
-            'repeat_nth'       => ['nullable', 'required_if:repeat_type,monthly,yearly', 'in:1,2,3,4,-1'],
-            'repeat_weekday'   => ['nullable', 'required_if:repeat_type,monthly,yearly', 'integer', 'between:0,6'],
-            'repeat_month'     => ['nullable', 'required_if:repeat_type,yearly', 'integer', 'between:1,12'],
+            'repeat_yearly_on' => ['nullable', 'in:nth,date,easter'],
+            'repeat_nth'       => ['nullable', 'in:1,2,3,4,-1'],
+            'repeat_weekday'   => ['nullable', 'integer', 'between:0,6'],
+            'repeat_month'     => ['nullable', 'integer', 'between:1,12'],
+            'repeat_day'       => ['nullable', 'integer', 'between:1,31'],
             'notes'            => ['nullable', 'string'],
         ], [
             'end_time.after'          => 'End time must be later than the start time.',
+            'church_id.required_without' => 'Pick a destination, or type the town in Location for a town festival.',
             'repeat_days.required_if' => 'Pick at least one day of the week.',
-            'repeat_nth.required_if'  => 'Pick which week (1st, 2nd, 3rd, 4th or last).',
-            'repeat_weekday.required_if' => 'Pick the day of the week.',
-            'repeat_month.required_if'   => 'Pick the month.',
             'schedule_date.required_if'  => 'Pick the date, or choose how it repeats.',
         ]);
 
@@ -177,11 +179,26 @@ class ScheduleController extends Controller
             }
         }
 
+        $type = $data['repeat_type'] ?? null;
         $rule = Recurrence::fromInput(
-            $data['repeat_type'] ?? null, $data['repeat_days'] ?? [],
+            $type, $data['repeat_days'] ?? [],
             $data['repeat_nth'] ?? null, $data['repeat_weekday'] ?? null, $data['repeat_month'] ?? null,
+            $data['repeat_yearly_on'] ?? 'nth', $data['repeat_day'] ?? null,
         );
-        unset($data['repeat_type'], $data['repeat_days'], $data['repeat_nth'], $data['repeat_weekday'], $data['repeat_month']);
+
+        // A repeat was chosen but a part of it is missing: say which part.
+        if (in_array($type, ['monthly', 'yearly'], true) && ! $rule) {
+            $on = $data['repeat_yearly_on'] ?? 'nth';
+            throw \Illuminate\Validation\ValidationException::withMessages(
+                $type === 'yearly' && $on === 'date'
+                    ? ['repeat_day' => 'Pick the month and a day that exists in it.']
+                    : ($type === 'yearly' && empty($data['repeat_month'])
+                        ? ['repeat_month' => 'Pick the month.']
+                        : ['repeat_nth' => 'Pick which week (1st, 2nd, 3rd, 4th or last) and the day.'])
+            );
+        }
+        unset($data['repeat_type'], $data['repeat_days'], $data['repeat_nth'], $data['repeat_weekday'],
+              $data['repeat_month'], $data['repeat_yearly_on'], $data['repeat_day']);
 
         $data['recurrence_rule'] = $rule;
         $data['recurrence']      = $rule ? Recurrence::label($rule) : null;

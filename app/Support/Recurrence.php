@@ -13,6 +13,8 @@ use Illuminate\Support\Carbon;
  *   ['type' => 'monthly', 'nth' => 1, 'weekday' => 5]           1st Friday
  *   ['type' => 'yearly',  'nth' => 3, 'weekday' => 0, 'month' => 1]
  *                                                    3rd Sunday of January
+ *   ['type' => 'yearly',  'month' => 1, 'day' => 15]            every January 15
+ *   ['type' => 'yearly',  'easter' => 0]                        Easter Sunday
  * Weekdays are 0 = Sunday ... 6 = Saturday (as Carbon counts them).
  * nth is 1-4, or -1 for "last".
  *
@@ -37,8 +39,18 @@ final class Recurrence
      * Build a rule from the form, or null for "does not repeat".
      * Returns null too when a required part is missing.
      */
-    public static function fromInput(?string $type, array $days = [], $nth = null, $weekday = null, $month = null): ?array
+    public static function fromInput(?string $type, array $days = [], $nth = null, $weekday = null, $month = null,
+                                     ?string $yearlyOn = null, $day = null): ?array
     {
+        // Yearly has three kinds: Nth weekday (default), a fixed date, Easter.
+        if ($type === 'yearly' && $yearlyOn === 'date') {
+            return isset(self::MONTHS[(int) $month]) && self::validDay((int) $month, $day)
+                ? ['type' => 'yearly', 'month' => (int) $month, 'day' => (int) $day] : null;
+        }
+        if ($type === 'yearly' && $yearlyOn === 'easter') {
+            return ['type' => 'yearly', 'easter' => 0];
+        }
+
         return match ($type) {
             'daily'   => ['type' => 'daily'],
             'weekly'  => ($d = self::cleanDays($days)) ? ['type' => 'weekly', 'days' => $d] : null,
@@ -57,8 +69,12 @@ final class Recurrence
             'daily'   => 'Daily',
             'weekly'  => 'Weekly ('.implode(', ', array_map(fn ($d) => self::WEEKDAYS[$d], $rule['days'])).')',
             'monthly' => 'Monthly - '.self::NTH[$rule['nth']].' '.self::WEEKDAYS[$rule['weekday']],
-            'yearly'  => 'Yearly - '.self::NTH[$rule['nth']].' '.self::WEEKDAYS[$rule['weekday']]
-                         .' of '.self::MONTHS[$rule['month']],
+            'yearly'  => match (true) {
+                isset($rule['easter']) => 'Yearly - Easter Sunday',
+                isset($rule['day'])    => 'Yearly - '.self::MONTHS[$rule['month']].' '.$rule['day'],
+                default                => 'Yearly - '.self::NTH[$rule['nth']].' '.self::WEEKDAYS[$rule['weekday']]
+                                          .' of '.self::MONTHS[$rule['month']],
+            },
         };
     }
 
@@ -75,7 +91,11 @@ final class Recurrence
 
         if ($rule['type'] === 'yearly') {
             for ($year = $from->year; $year <= $from->year + 1; $year++) {
-                $date = self::nthWeekday($year, $rule['month'], $rule['nth'], $rule['weekday']);
+                $date = match (true) {
+                    isset($rule['easter']) => self::easter($year)->addDays((int) $rule['easter']),
+                    isset($rule['day'])    => self::fixedDate($year, $rule['month'], $rule['day']),
+                    default                => self::nthWeekday($year, $rule['month'], $rule['nth'], $rule['weekday']),
+                };
                 if ($date->gte($from)) {
                     return $date;
                 }
@@ -113,6 +133,33 @@ final class Recurrence
         }
 
         return $date->addWeeks($nth - 1);
+    }
+
+    /** Easter Sunday (Gregorian, the "anonymous" algorithm - no PHP extension needed). */
+    public static function easter(int $year): Carbon
+    {
+        $a = $year % 19; $b = intdiv($year, 100); $c = $year % 100;
+        $d = intdiv($b, 4); $e = $b % 4; $f = intdiv($b + 8, 25);
+        $g = intdiv($b - $f + 1, 3); $h = (19 * $a + $b - $d - $g + 15) % 30;
+        $i = intdiv($c, 4); $k = $c % 4; $l = (32 + 2 * $e + 2 * $i - $h - $k) % 7;
+        $m = intdiv($a + 11 * $h + 22 * $l, 451);
+        $month = intdiv($h + $l - 7 * $m + 114, 31);
+        $day = (($h + $l - 7 * $m + 114) % 31) + 1;
+
+        return Carbon::create($year, $month, $day)->startOfDay();
+    }
+
+    /** A fixed date; Feb 29 falls back to Feb 28 in other years. */
+    private static function fixedDate(int $year, int $month, int $day): Carbon
+    {
+        return Carbon::create($year, $month, 1)->startOfDay()
+            ->day(min($day, Carbon::create($year, $month, 1)->daysInMonth));
+    }
+
+    private static function validDay(int $month, $day): bool
+    {
+        return is_numeric($day) && (int) $day >= 1
+            && (int) $day <= Carbon::create(2024, max(1, min(12, $month)), 1)->daysInMonth;
     }
 
     private static function cleanDays(array $days): array
