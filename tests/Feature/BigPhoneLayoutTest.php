@@ -68,4 +68,20 @@ class BigPhoneLayoutTest extends TestCase
             $this->assertDoesNotMatchRegularExpression('/^\s*input\.focus\(\);/m', $code);
         }
     }
+
+    public function test_the_chat_guide_is_a_face_in_the_header_that_pops_up(): void
+    {
+        $view = file_get_contents(resource_path('views/chatbot.blade.php'));
+
+        $this->assertStringContainsString('id="guideToggle"', $view);
+        $this->assertStringContainsString('aria-controls="guidePop"', $view);
+        $this->assertStringContainsString('<div class="chat-guide-pop" id="guidePop" hidden>', $view);
+        // The robot itself floats out with its bubble, not inside a card.
+        $pop = substr($view, strpos($view, 'id="guidePop"'), 900);
+        $this->assertStringContainsString('guide-bubble', $pop);
+        $this->assertStringContainsString('guide-face', $pop);
+        // The face sits inside the chat header, not above the chat.
+        $this->assertLessThan(strpos($view, 'id="chatLog"'), strpos($view, 'id="guide"'));
+        $this->assertGreaterThan(strpos($view, 'class="chat-bar"'), strpos($view, 'id="guide"'));
+    }
 }

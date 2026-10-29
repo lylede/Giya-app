@@ -10,8 +10,6 @@
 
     <div style="position:relative;max-width:900px;margin:0 auto;padding:36px 20px 28px">
 
-        <x-back-link :href="route('home')" :label="__('giya.back.home')" tone="dark" />
-
         <div class="d-flex align-items-center gap-4 mb-4 flex-wrap">
             @if ($user->avatarPath())
                 <img src="{{ $user->avatarPath() }}" alt="{{ $user->name }}"

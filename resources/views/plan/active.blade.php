@@ -49,8 +49,7 @@
                      rather than on the way back out of it. The label is still
                      in the markup for a screen reader and for the sidebar,
                      where there is room for it. --}}
-                <x-back-link :href="route('plan.index')" :label="__('giya.back.itineraries')"
-                             tone="dark" class="ap-back" />
+
 
                 <div class="ap-head-row">
                     <div class="ap-head-titles">

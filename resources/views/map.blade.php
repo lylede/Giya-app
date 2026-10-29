@@ -97,15 +97,12 @@
 <div style="max-width:1280px;margin:0 auto;padding:24px 20px 48px">
 
     <header class="mx-head">
-        {{-- Back to whichever planner sent us. For a Visita Iglesia route
-             that is its own screen, and the link carries the current stops,
-             so a church added or dropped here travels back with the devotee
-             rather than being lost on the way. --}}
-        @if ($openPlan)
-            <x-back-link id="planBack" :href="$isVisita ? route('plan.visita') : route('plan.hub')"
-                         :label="$isVisita ? __('giya.plan.back_visita') : __('giya.plan.back_hub')" />
-        @else
-            <x-back-link :href="route('home')" :label="__('giya.back.home')" />
+        {{-- Only when picking churches for a Visita Iglesia route: it takes
+             the chosen churches back to that planner (the link's ?stops= is
+             kept up to date below). Without it a devotee who adjusted their
+             churches here had no way back. Not a general back button. --}}
+        @if ($openPlan && $isVisita)
+            <x-back-link id="planBack" :href="route('plan.visita')" :label="__('giya.plan.back_visita')" />
         @endif
         <span class="eyebrow" id="mapEyebrow" @if ($openPlan) hidden @endif>{{ __('giya.map.eyebrow') }}</span>
         <h1 id="mapTitle">

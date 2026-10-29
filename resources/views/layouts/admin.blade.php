@@ -84,9 +84,6 @@
                     aria-label="Open the menu" aria-controls="adminSidebar" aria-expanded="false">
                 <i class="bi bi-list" aria-hidden="true"></i>
             </button>
-            @unless (request()->routeIs('admin.dashboard'))
-                <x-back-link :href="route('admin.dashboard')" label="Back to Dashboard" compact class="admin-back" />
-            @endunless
             <div class="admin-topbar-titles">
                 <div class="admin-page-title">@yield('page-title')</div>
                 <div class="admin-page-sub">@yield('page-subtitle')</div>

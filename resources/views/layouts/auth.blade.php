@@ -18,11 +18,6 @@
 <main class="auth-content">
 <div class="auth-card">
     <header class="auth-header">
-        @if (request()->routeIs('password.*'))
-            <x-back-link :href="route('login')" :label="__('giya.back.login')" tone="dark" class="auth-back" />
-        @else
-            <x-back-link :href="route('root')" :label="__('giya.back.start')" tone="dark" class="auth-back" />
-        @endif
         <div class="auth-header-brand">
             <img src="{{ asset('images/logo/giya-logo.svg') }}" alt="GIYA" width="32" height="32">
             <span class="auth-header-brand-name">Giya</span>
