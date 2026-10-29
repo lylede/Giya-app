@@ -6347,3 +6347,44 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
   font-size: .8125rem; line-height: 1.5; color: var(--text);
 }
 .sched-next span { color: var(--text-muted); }
+
+/* ════════════════════════════════════════════════════════════════
+   ADMIN FILTER ROWS (Schedules, Users)
+   Every field and both buttons share one height (45px) and one bottom
+   edge. Before, the buttons were 50px tall and dropped onto their own
+   row, left-aligned, so they lined up with nothing.
+   ════════════════════════════════════════════════════════════════ */
+.sm-filters, .um-filters { display: grid; gap: 14px 16px; align-items: end; }
+.sm-filters { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+.um-filters { grid-template-columns: minmax(0, 1.3fr) minmax(0, .8fr) minmax(0, 1.5fr); }
+.sm-filters > .field, .um-filters > .field { margin: 0; min-width: 0; }
+
+.sm-filters .giya-input, .um-filters .giya-input,
+.um-filters .sm-search,
+.sm-filters .adm-actions .btn, .um-filters .adm-actions .btn {
+  height: 45px; box-sizing: border-box;
+}
+.sm-filters .adm-actions .btn, .um-filters .adm-actions .btn {
+  padding-top: 0; padding-bottom: 0; white-space: nowrap;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+/* Users: three filters, then the buttons on the right of the next line. */
+.um-filters .adm-actions { grid-column: 1 / -1; justify-content: flex-end; }
+
+/* Not enough room for five things in one line: same as Users. */
+@media (max-width: 1100px) {
+  .sm-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sm-filters .adm-actions { grid-column: 1 / -1; justify-content: flex-end; }
+}
+@media (min-width: 1500px) {
+  .um-filters { grid-template-columns: minmax(0, 1.3fr) minmax(0, .8fr) minmax(0, 1.5fr) auto; }
+  .um-filters .adm-actions { grid-column: auto; }
+}
+
+/* Phones: one column; the two buttons share the last row equally. */
+@media (max-width: 640px) {
+  .sm-filters, .um-filters { grid-template-columns: minmax(0, 1fr); }
+  .sm-filters .adm-actions, .um-filters .adm-actions { grid-column: 1 / -1; justify-content: stretch; }
+}
+.um-filters .sm-search { min-height: 0; }

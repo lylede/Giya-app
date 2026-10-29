@@ -110,4 +110,13 @@ class BigPhoneLayoutTest extends TestCase
         $this->assertStringNotContainsString('.hero-stats { grid-template-columns: repeat(2, 1fr); }', $css);
         $this->assertMatchesRegularExpression('/\.hero-stats \{\s*display: grid;\s*grid-template-columns: repeat\(3, 1fr\);/', $css);
     }
+
+    public function test_admin_filter_buttons_match_the_fields_and_line_up(): void
+    {
+        $css = $this->css();
+
+        $this->assertStringContainsString('.sm-filters, .um-filters { display: grid; gap: 14px 16px; align-items: end; }', $css);
+        $this->assertStringContainsString('.sm-filters .adm-actions .btn, .um-filters .adm-actions .btn {'."\n".'  height: 45px;', $css);
+        $this->assertStringContainsString('.um-filters .sm-search { min-height: 0; }', $css);
+    }
 }
