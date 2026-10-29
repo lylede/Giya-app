@@ -552,4 +552,14 @@ return [
         's3_title'   => 'AI-Guided Journeys',
         's3_text'    => 'Get personalized itineraries and answers from our AI chatbot. Plan smarter, travel with meaning.',
     ],
+    'back' => [
+        'home'        => 'Back to Home',
+        'map'         => 'Back to Map',
+        'itineraries' => 'Back to My Itineraries',
+        'itinerary'   => 'Back to itinerary',
+        'profile'     => 'Back to Profile',
+        'chat'        => 'Back to Giya AI',
+        'login'       => 'Back to Login',
+        'start'       => 'Back to start page',
+    ],
 ];

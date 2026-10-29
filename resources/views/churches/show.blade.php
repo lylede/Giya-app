@@ -17,11 +17,10 @@
     <div class="church-hero-overlay"></div>
 
     <div class="church-hero-top">
-        <a href="{{ url()->previous() ?: route('map') }}"
-           aria-label="{{ __('giya.church.back_map') }}"
-           class="church-back-link">
-            <i class="bi bi-chevron-left" aria-hidden="true"></i>
-        </a>
+        @php
+            [$backUrl, $backLabel] = \App\Support\BackLink::previous(request(), route('map'), __('giya.back.map'));
+        @endphp
+        <x-back-link :href="$backUrl" :label="$backLabel" tone="dark" />
     </div>
 
     <div class="church-hero-content">

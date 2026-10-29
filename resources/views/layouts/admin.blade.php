@@ -78,6 +78,9 @@
 
     <div class="admin-main">
         <header class="admin-topbar">
+            @unless (request()->routeIs('admin.dashboard'))
+                <x-back-link :href="route('admin.dashboard')" label="Back to Dashboard" compact class="admin-back" />
+            @endunless
             <div class="admin-topbar-titles">
                 <div class="admin-page-title">@yield('page-title')</div>
                 <div class="admin-page-sub">@yield('page-subtitle')</div>

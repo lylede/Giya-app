@@ -101,11 +101,12 @@
              that is its own screen, and the link carries the current stops,
              so a church added or dropped here travels back with the devotee
              rather than being lost on the way. --}}
-        <a href="{{ $isVisita ? route('plan.visita') : route('plan.hub') }}" class="back-link" id="planBack"
-           style="margin-bottom:10px" @unless ($openPlan) hidden @endunless>
-            <i class="bi bi-chevron-left"></i>
-            {{ $isVisita ? __('giya.plan.back_visita') : __('giya.plan.back_hub') }}
-        </a>
+        @if ($openPlan)
+            <x-back-link id="planBack" :href="$isVisita ? route('plan.visita') : route('plan.hub')"
+                         :label="$isVisita ? __('giya.plan.back_visita') : __('giya.plan.back_hub')" />
+        @else
+            <x-back-link :href="route('home')" :label="__('giya.back.home')" />
+        @endif
         <span class="eyebrow" id="mapEyebrow" @if ($openPlan) hidden @endif>{{ __('giya.map.eyebrow') }}</span>
         <h1 id="mapTitle">
             @if (! $openPlan) {{ __('giya.map.title') }}
@@ -784,6 +785,7 @@ onLocated: function (me) {
         if (!BACK_KEEPS_STOPS) { return; }
 
         const link = document.getElementById('planBack');
+        if (!link) { return; }
         const ids  = (stops || []).map(function (s) { return s.id; }).filter(Boolean);
 
         link.href = ids.length ? BACK_BASE + '?stops=' + ids.join(',') : BACK_BASE;

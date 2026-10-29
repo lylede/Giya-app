@@ -542,4 +542,14 @@ return [
         's3_title'   => 'Paglalakbay na Gabay ng AI',
         's3_text'    => 'Makakuha ng personal na itinerary at sagot mula sa aming AI chatbot. Magplano nang matalino, maglakbay nang may kahulugan.',
     ],
+    'back' => [
+        'home'        => 'Bumalik sa Home',
+        'map'         => 'Bumalik sa Mapa',
+        'itineraries' => 'Bumalik sa Aking mga Itinerary',
+        'itinerary'   => 'Bumalik sa itinerary',
+        'profile'     => 'Bumalik sa Profile',
+        'chat'        => 'Bumalik sa Giya AI',
+        'login'       => 'Bumalik sa Login',
+        'start'       => 'Bumalik sa simula',
+    ],
 ];

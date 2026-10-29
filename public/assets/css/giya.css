@@ -6086,3 +6086,66 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
 @keyframes dm-coords-updated { from { background: #FCEFD2; border-color: var(--gold); } to { background: #fff; } }
 .giya-input.is-updated { animation: dm-coords-updated 1.6s ease-out; }
 @media (prefers-reduced-motion: reduce) { .giya-input.is-updated { animation: none; } }
+
+/* ════════════════════════════════════════════════════════════════
+   BACK BUTTON - one design on every page (components/back-link)
+   Rule: every page below Home has one, top-left, pointing to the
+   page it belongs to (its parent), always labelled "Back to <page>"
+   so the visitor knows where it goes before pressing it.
+   ════════════════════════════════════════════════════════════════ */
+.giya-back {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 44px;                     /* thumb-sized target */
+  margin: 0 0 14px;
+  color: var(--text-muted); text-decoration: none;
+  font-size: 0.875rem; font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+}
+.giya-back-icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: #fff; border: 1px solid var(--border);
+  color: var(--primary); font-size: 0.9375rem;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.giya-back:hover { color: var(--primary); }
+.giya-back:hover .giya-back-icon { border-color: var(--gold); transform: translateX(-2px); }
+.giya-back:focus-visible { outline: none; }
+.giya-back:focus-visible .giya-back-icon { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* On a photo or a dark bar. */
+.giya-back.is-dark { color: rgba(255,255,255,.88); }
+.giya-back.is-dark .giya-back-icon {
+  background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.5); color: #fff;
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+.giya-back.is-dark:hover { color: #fff; }
+.giya-back.is-dark:hover .giya-back-icon { background: rgba(255,255,255,.24); }
+
+/* Chevron only; the label stays for screen readers. */
+.giya-back.is-compact { margin: 0; gap: 0; }
+.giya-back.is-compact .giya-back-label,
+.active-layout .ap-back .giya-back-label {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Where it sits on particular pages. */
+.church-hero-top .giya-back { margin: 0; }
+.auth-header .auth-back { position: relative; z-index: 1; margin: -12px 0 10px -4px; }
+.admin-topbar .admin-back { margin-right: 12px; }
+.admin-topbar .admin-back + .admin-topbar-titles { flex: 1; }
+.ap-back.giya-back { margin-bottom: 8px; }
+.ap-back.giya-back .giya-back-icon { width: 32px; height: 32px; }
+@media (max-width: 768px) {
+  .active-layout .ap-back.giya-back {
+    position: absolute; left: 0; top: 0; width: 30px; height: 30px; min-height: 0; margin: 0;
+  }
+  .active-layout .ap-back.giya-back .giya-back-icon { width: 30px; height: 30px; font-size: .8125rem; }
+  .active-layout .ap-head-row { padding-left: 40px; }
+}
+
+html[data-theme="dark"] .giya-back:not(.is-dark) .giya-back-icon { background: var(--surface); }
+@media (prefers-reduced-motion: reduce) { .giya-back-icon { transition: none; } }
+.chat-page > .giya-back { align-self: flex-start; }
