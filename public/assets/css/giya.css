@@ -5953,15 +5953,14 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
     max-height: calc(100svh - 250px);
   }
 
-  .chat-row { gap: 0; }
-  .chat-row .chat-bot-icon { display: none; }
+  .chat-row { gap: 8px; }
 
   .chat-bubble {
     font-size: 0.9375rem;      /* 15px: readable without zooming */
     line-height: 1.6;
     padding: 11px 14px;
   }
-  .chat-bubble-bot  { max-width: 100%; border-top-left-radius: 6px; }
+  .chat-bubble-bot  { max-width: calc(100% - 46px); border-top-left-radius: 6px; }
   .chat-bubble-user { max-width: 85%;  border-top-right-radius: 6px; }
 
   .chat-composer { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
@@ -6229,47 +6228,67 @@ html[data-theme="dark"] .giya-back:not(.is-dark) .giya-back-icon { background: v
 }
 
 /* ════════════════════════════════════════════════════════════════
-   GIYA AI PAGE - the guide lives in the chat header
-   A small face beside "Giya AI Assistant" that keeps its expressions;
-   tapping it shows what it is saying in a speech bubble just under it.
-   Tap again, tap elsewhere or press Escape to close.
+   GIYA AI PAGE - the guide's message is a message box
+   Above the robot's head: a rectangle (square corners) with a pointed
+   tail angled down to the robot, instead of a rounded oval.
    ════════════════════════════════════════════════════════════════ */
-.chat-shell { position: relative; }
-.chat-page .chat-bar { position: relative; z-index: 3; padding: 12px 16px; justify-content: flex-start; }
+.chat-page .guide-bubble {
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 24px;
+}
+.chat-page .guide-bubble::before,
+.chat-page .guide-bubble::after { transform: none; border-left: 0; }
+.chat-page .guide-bubble::before {
+  left: calc(50% + 6px); bottom: -22px;
+  border-top: 22px solid var(--primary); border-right: 20px solid transparent;
+}
+.chat-page .guide-bubble::after {
+  left: calc(50% + 8.5px); bottom: -16px;
+  border-top: 16px solid #fff; border-right: 15px solid transparent;
+}
+html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(--surface); }
+
+/* The small robot beside each reply has its feet too (drawn here, so every
+   reply - saved, new, and in the floating panel - gets them). */
+.chat-bot-icon { height: 38px; }
+.chat-bot-icon .guide-face { top: 42%; }
+.chat-bot-icon::before,
+.chat-bot-icon::after {
+  content: ""; position: absolute; bottom: 0;
+  width: 9px; height: 6px; box-sizing: border-box;
+  background: #fff; border: 1.5px solid var(--primary-dark);
+  border-radius: 3px 3px 2px 2px;
+}
+.chat-bot-icon::before { left: 4px; }
+.chat-bot-icon::after  { right: 4px; }
+
+/* ════════════════════════════════════════════════════════════════
+   GIYA AI PAGE - intro, then conversation
+   Intro: the guide with its message, the FAQ chips and the text box.
+   Chatting: header (small robot + name), conversation, chips, text box.
+   ════════════════════════════════════════════════════════════════ */
+.chat-page.is-intro .chat-bar,
+.chat-page.is-intro .chat-log { display: none !important; }
+.chat-page.is-intro .chat-starters { padding-top: 14px; }
+.chat-page.is-chatting #guide { display: none !important; }
+.chat-page.is-chatting .chat-bar { padding-top: 12px; }
+
+/* Phones: the intro centres the guide in the space above the chips. */
+@media (max-width: 767px) {
+  .chat-page.is-intro #guide {
+    flex: 1 1 auto !important; justify-content: center; margin: 0 auto;
+  }
+  .chat-page.is-intro .chat-shell { flex: 0 0 auto !important; }
+}
+
+/* The small robot beside "Giya AI Assistant". It carries the guide's
+   expression classes, so it must not take the big guide's layout or
+   movement. */
+.chat-bar { justify-content: flex-start; }
 .chat-bar-title { flex: 1; min-width: 0; }
 .chat-bar > form { margin-left: auto; }
-
-.chat-guide { display: block; width: auto; margin: 0; position: static; }
-/* The robot itself is the button: no box around it. */
-.chat-guide-btn {
-  width: 50px; height: 46px; flex-shrink: 0; padding: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 0; border-radius: 12px; background: none; cursor: pointer;
-  transition: transform .15s ease;
+.chat-bar .chat-bar-guide.guide {
+  display: block; position: relative; margin: 0 10px 0 0; width: 37px;
 }
-.chat-guide-btn:hover { transform: translateY(-1px); }
-.chat-guide-btn:active { transform: scale(.94); }
-.chat-guide-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
-
-/* The small robot: same drawing as the big one (ears and lantern too),
-   keeps its expressions, never the big one's movement. */
-.chat-guide-mini { width: 46px !important; height: 42px !important; }
-.chat-guide .chat-guide-mini .guide-face { transform: translate(-50%, -44%) scale(.34) !important; }
-
-/* Tapped: the robot and its bubble float out under the header. */
-.chat-guide-pop {
-  position: absolute; top: calc(100% + 6px); left: 8px;
-  width: min(330px, calc(100% - 16px));
-  display: flex; flex-direction: column; align-items: center;
-  background: none; border: 0; box-shadow: none; padding: 0;
-  filter: drop-shadow(0 10px 18px rgba(36,28,24,.18));
-  z-index: 4;
-  animation: chat-guide-in .18s ease-out;
-}
-.chat-guide-pop[hidden] { display: none; }
-.chat-guide-pop .guide-bubble { margin: 0 0 14px; max-width: 100%; text-align: center; }
-@keyframes chat-guide-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .chat-guide-pop { animation: none; } }
-html[data-theme="dark"] .chat-guide-btn { background: var(--surface); }
-/* Floating over the conversation, the hands need a fill or text shows through. */
-.chat-guide-pop .guide-hand { background: #fff; }
+.chat-bar .chat-bar-guide.guide .guide-face { transform: translate(-50%, -50%) scale(.26) !important; }

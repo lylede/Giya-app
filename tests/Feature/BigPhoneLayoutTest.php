@@ -69,19 +69,37 @@ class BigPhoneLayoutTest extends TestCase
         }
     }
 
-    public function test_the_chat_guide_is_a_face_in_the_header_that_pops_up(): void
+    public function test_the_chat_guide_sits_above_the_chat_with_a_message_box(): void
     {
         $view = file_get_contents(resource_path('views/chatbot.blade.php'));
+        $css = file_get_contents(public_path('assets/css/giya.css'));
 
-        $this->assertStringContainsString('id="guideToggle"', $view);
-        $this->assertStringContainsString('aria-controls="guidePop"', $view);
-        $this->assertStringContainsString('<div class="chat-guide-pop" id="guidePop" hidden>', $view);
-        // The robot itself floats out with its bubble, not inside a card.
-        $pop = substr($view, strpos($view, 'id="guidePop"'), 900);
-        $this->assertStringContainsString('guide-bubble', $pop);
-        $this->assertStringContainsString('guide-face', $pop);
-        // The face sits inside the chat header, not above the chat.
-        $this->assertLessThan(strpos($view, 'id="chatLog"'), strpos($view, 'id="guide"'));
-        $this->assertGreaterThan(strpos($view, 'class="chat-bar"'), strpos($view, 'id="guide"'));
+        // The robot is above the chat card, its message above its head.
+        $this->assertLessThan(strpos($view, 'class="card chat-shell"'), strpos($view, 'id="guide"'));
+        $this->assertLessThan(strpos($view, 'class="guide-face"'), strpos($view, 'id="guideBubble"'));
+        // A message box, not an oval.
+        $this->assertStringContainsString(".chat-page .guide-bubble {\n  border-radius: 6px;", $css);
+        // Typing hides the robot but keeps the FAQ chips.
+        $this->assertStringContainsString('.chat-page.is-typing #guide { display: none; }', $view);
+        $this->assertStringNotContainsString('.chat-page.is-typing .chat-starters { display: none; }', $view);
+        // Replies keep their small robot, feet included.
+        $this->assertStringNotContainsString('.chat-row .chat-bot-icon { display: none; }', $css);
+        $this->assertStringContainsString('.chat-bot-icon::before,', $css);
+    }
+
+    public function test_the_chat_opens_on_the_guide_and_shows_the_conversation_on_tap(): void
+    {
+        $view = file_get_contents(resource_path('views/chatbot.blade.php'));
+        $css = file_get_contents(public_path('assets/css/giya.css'));
+
+        // Arrival: guide, chips and text box only.
+        $this->assertStringContainsString('class="page-wrap chat-page is-intro"', $view);
+        $this->assertStringContainsString(".chat-page.is-intro .chat-bar,\n.chat-page.is-intro .chat-log { display: none !important; }", $css);
+        // Tapping the box or a chip opens the conversation.
+        $this->assertStringContainsString("input.addEventListener('pointerdown', openChat);", $view);
+        $this->assertStringContainsString('if (chip) { openChat(); ask(chip.dataset.ask); }', $view);
+        $this->assertStringContainsString('.chat-page.is-chatting #guide { display: none !important; }', $css);
+        // ...with the small robot beside "Giya AI Assistant".
+        $this->assertStringContainsString('id="guideMini"', $view);
     }
 }
