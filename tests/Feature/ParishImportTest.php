@@ -124,6 +124,23 @@ class ParishImportTest extends TestCase
         $this->assertFalse((bool) Church::where('name', 'San Narciso Parish')->value('is_major'), 'Consolacion already had its main church.');
     }
 
+    public function test_each_cebu_city_district_parish_is_major(): void
+    {
+        $redemptorist = $this->church('Redemptorist Church', 'Cebu City', 10.31285, 123.89747);
+        $this->data([
+            ['name' => 'St. Joseph the Patriarch Parish', 'address' => 'Mabolo, Cebu City', 'town' => 'Cebu City',
+             'lat' => 10.3147, 'lng' => 123.91377, 'pin' => 'exact', 'main' => 'district'],
+            ['name' => 'San Isidro Labrador Parish', 'address' => 'Talamban, Cebu City', 'town' => 'Cebu City',
+             'lat' => 10.36847, 'lng' => 123.91705, 'pin' => 'exact', 'main' => 'district'],
+            ['name' => 'Our Mother of Perpetual Help Parish - Redemptorists', 'address' => 'Gen. Maxilom Ave., Cebu City',
+             'town' => 'Cebu City', 'lat' => 10.31285, 'lng' => 123.89747, 'pin' => 'exact', 'main' => 'district'],
+        ]);
+        $this->import();
+
+        $this->assertSame(3, Church::where('is_major', true)->count(), 'Two new district parishes and the existing one.');
+        $this->assertTrue((bool) $redemptorist->fresh()->is_major);
+    }
+
     public function test_feast_days_become_yearly_schedules(): void
     {
         $this->assertSame(['type' => 'yearly', 'month' => 11, 'day' => 25], ImportParishes::feastRule('November 25'));
@@ -158,9 +175,11 @@ class ParishImportTest extends TestCase
         $rows = require database_path('data/archdiocese_parishes.php');
 
         $this->assertCount(170, $rows);
+        $this->assertGreaterThanOrEqual(110, count(array_filter($rows, fn ($r) => $r['pin'] === 'exact')), 'Most are pinned on the church itself.');
         foreach ($rows as $r) {
             $this->assertDoesNotMatchRegularExpression('/chapel|chaplaincy/i', $r['name']);
             $this->assertContains($r['pin'], ['exact', 'town']);
+            $this->assertContains($r['main'], [true, false, 'district']);
             $this->assertNotNull($r['lat']);
         }
     }

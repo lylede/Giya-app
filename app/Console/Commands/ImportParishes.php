@@ -33,6 +33,8 @@ use Illuminate\Console\Command;
  *
  * Each town's main church (its poblacion parish) is marked Major, unless
  * the town already has one, so the map can open on one church per town.
+ * Cebu City is too big for one: each district's parish is marked Major,
+ * including one that is already in GIYA.
  * Each parish's feast day becomes a yearly Feast Day schedule - for an
  * existing destination too, when it has no Feast Day yet. Feasts that move
  * with Easter are left in the description instead.
@@ -49,7 +51,7 @@ class ImportParishes extends Command
     {
         $parishes = require ($this->option('file') ?: database_path('data/archdiocese_parishes.php'));
         $dry = (bool) $this->option('dry-run');
-        $existing = Church::all(['id', 'name', 'location', 'municipality', 'address', 'latitude', 'longitude']);
+        $existing = Church::all(['id', 'name', 'location', 'municipality', 'address', 'latitude', 'longitude', 'is_active', 'is_major']);
         $majorTowns = Church::where('is_major', true)->pluck('municipality')->filter()->map(fn ($t) => mb_strtolower($t))->all();
         $rows = [];
         $added = $drafts = $skipped = $feasts = 0;
@@ -61,14 +63,25 @@ class ImportParishes extends Command
 
             if ($same) {
                 $skipped++;
-                $note = $feast && $this->addFeast($same, $p, $feast, $dry) ? ' (feast day added)' : '';
-                $feasts += $note ? 1 : 0;
+                $feastAdded = $feast && $this->addFeast($same, $p, $feast, $dry);
+                $feasts += $feastAdded ? 1 : 0;
+                $note = $feastAdded ? ' (feast day added)' : '';
+
+                // A Cebu City district parish already in GIYA becomes Major too.
+                if (($p['main'] ?? null) === 'district' && $same->exists && ! $same->is_major) {
+                    $dry || $same->update(['is_major' => true]);
+                    $note .= ' (marked Major)';
+                }
                 $rows[] = [$p['name'], $p['town'], 'already in GIYA as '.$same->name.$note];
                 continue;
             }
 
             $town = ChurchController::townIn($p['town']) ?? $p['town'];
-            $major = ! empty($p['main']) && ! in_array(mb_strtolower($town), $majorTowns, true);
+
+            /* 'district': Cebu City is too big for one main church, so each
+               district's parish is one (Mabolo, Lahug, Talamban...). */
+            $major = ($p['main'] ?? null) === 'district'
+                || (($p['main'] ?? null) === true && ! in_array(mb_strtolower($town), $majorTowns, true));
             if ($major) {
                 $majorTowns[] = mb_strtolower($town);
             }
@@ -168,6 +181,11 @@ class ImportParishes extends Command
             $oneWordOk = ($brgy !== '' && str_contains($cTown, $brgy))
                 || (in_array($this->categoryFor($p['name']), ['Basilica', 'Cathedral'], true)
                     && $this->categoryFor($p['name']) === $this->categoryFor($c->name));
+
+            // Same name in the same barangay: the same church, even if one pin is off.
+            if ($nameMatch && $shorter >= 2 && $brgy !== '' && str_contains($cTown, $brgy)) {
+                return $c;
+            }
 
             if ($nameMatch && ($km !== null ? $km < 0.6 : ($shorter >= 2 ? $placeOk : $oneWordOk))) {
                 return $c;
