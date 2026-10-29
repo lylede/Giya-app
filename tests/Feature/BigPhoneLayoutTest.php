@@ -102,4 +102,12 @@ class BigPhoneLayoutTest extends TestCase
         // ...with the small robot beside "Giya AI Assistant".
         $this->assertStringContainsString('id="guideMini"', $view);
     }
+
+    public function test_home_stats_stay_three_in_one_row_on_phones(): void
+    {
+        $css = $this->css();
+
+        $this->assertStringNotContainsString('.hero-stats { grid-template-columns: repeat(2, 1fr); }', $css);
+        $this->assertMatchesRegularExpression('/\.hero-stats \{\s*display: grid;\s*grid-template-columns: repeat\(3, 1fr\);/', $css);
+    }
 }

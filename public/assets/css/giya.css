@@ -3991,8 +3991,19 @@ input[type="date"][readonly] { cursor: pointer; }
   color: rgba(255,255,255,.62);
 }
 
-@media (max-width: 380px) {
-  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+/* Three in one row on every phone (it used to drop to 2 + 1 at 380px and
+   below - smaller iPhones and any iPhone with Display Zoom on). Narrow
+   screens get slightly smaller text instead; a long label wraps under
+   its own number. */
+@media (max-width: 430px) {
+  .hero-stats { gap: 14px 10px; }
+  .hero-stat-value { font-size: 1.375rem; }
+  .hero-stat-label { font-size: 0.6875rem; }
+}
+@media (max-width: 360px) {
+  .hero-stats { gap: 12px 8px; }
+  .hero-stat-value { font-size: 1.25rem; }
+  .hero-stat-label { font-size: 0.65rem; }
 }
 
 /* ════════════════════════════════════════════════════════════════
