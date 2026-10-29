@@ -220,24 +220,75 @@
                     </div>
                 </div>
 
-                <div class="dm-row">
-                    <div class="field">
-                        <label class="dm-label" for="s-recurrence">Repeats on</label>
-                        <select id="s-recurrence" name="recurrence" class="giya-input">
-                            <option value="">Does not repeat - one-off date</option>
-                            @foreach ($days as $day)
-                                <option value="{{ $day }}">{{ $day }}</option>
-                            @endforeach
-                        </select>
-                        <p class="dm-note">
-                            Leave blank for a single-date event, then set the date below.
-                        </p>
+                {{--
+                    How it repeats. One-off events take a date; repeating ones
+                    take a rule, and GIYA works out the dates itself - e.g.
+                    Yearly, 3rd Sunday of January = Sinulog every year, with a
+                    reminder a week before each one.
+                --}}
+                @php
+                    $wd = \App\Support\Recurrence::WEEKDAYS;
+                    $weekOrder = [1, 2, 3, 4, 5, 6, 0];
+                @endphp
+                <div class="sched-repeat">
+                    <div class="dm-row">
+                        <div class="field">
+                            <label class="dm-label" for="s-repeat">Repeats</label>
+                            <select id="s-repeat" name="repeat_type" class="giya-input">
+                                <option value="none">Does not repeat - one date</option>
+                                <option value="daily">Every day</option>
+                                <option value="weekly">Weekly - on certain days</option>
+                                <option value="monthly">Monthly - e.g. 1st Friday</option>
+                                <option value="yearly">Yearly - e.g. 3rd Sunday of January</option>
+                            </select>
+                        </div>
+
+                        <div class="field" data-repeat="none">
+                            <label class="dm-label" for="s-date">Date</label>
+                            <input id="s-date" type="date" name="schedule_date" class="giya-input">
+                        </div>
                     </div>
 
-                    <div class="field">
-                        <label class="dm-label" for="s-date">Date (one-off only)</label>
-                        <input id="s-date" type="date" name="schedule_date" class="giya-input">
+                    <div class="field" data-repeat="weekly" hidden>
+                        <span class="dm-label">On</span>
+                        <div class="sched-days" role="group" aria-label="Days of the week">
+                            @foreach ($weekOrder as $d)
+                                <label class="sched-day">
+                                    <input type="checkbox" name="repeat_days[]" value="{{ $d }}">
+                                    <span>{{ substr($wd[$d], 0, 3) }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
+
+                    <div class="dm-row" data-repeat="monthly yearly" hidden>
+                        <div class="field">
+                            <label class="dm-label" for="s-nth">On the</label>
+                            <select id="s-nth" name="repeat_nth" class="giya-input">
+                                @foreach (\App\Support\Recurrence::NTH as $n => $label)
+                                    <option value="{{ $n }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="dm-label" for="s-weekday">Day</label>
+                            <select id="s-weekday" name="repeat_weekday" class="giya-input">
+                                @foreach ($weekOrder as $d)
+                                    <option value="{{ $d }}" @selected($d === 0)>{{ $wd[$d] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="field" data-repeat="yearly" hidden>
+                            <label class="dm-label" for="s-month">Of</label>
+                            <select id="s-month" name="repeat_month" class="giya-input">
+                                @foreach (\App\Support\Recurrence::MONTHS as $m => $name)
+                                    <option value="{{ $m }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <p class="sched-next" id="s-next" aria-live="polite" hidden></p>
                 </div>
 
                 <div class="dm-row">
@@ -299,7 +350,7 @@
         document.getElementById('s-type').value      = 'Mass';
         document.getElementById('s-label').value     = '';
         document.getElementById('s-location').value  = '';
-        document.getElementById('s-recurrence').value = '';
+        setRepeat(null, null);
         document.getElementById('s-date').value      = '';
         document.getElementById('s-start').value     = '';
         document.getElementById('s-end').value       = '';
@@ -326,7 +377,7 @@
             document.getElementById('s-type').value       = s.event_type || 'Mass';
             document.getElementById('s-label').value      = s.time_frame_label || '';
             document.getElementById('s-location').value   = s.location || '';
-            document.getElementById('s-recurrence').value = s.recurrence || '';
+            setRepeat(s.recurrence_rule, s.recurrence);
             document.getElementById('s-date').value       = s.schedule_date ? s.schedule_date.substring(0, 10) : '';
             document.getElementById('s-start').value      = s.start_time ? s.start_time.substring(0, 5) : '';
             document.getElementById('s-end').value        = s.end_time ? s.end_time.substring(0, 5) : '';
@@ -340,6 +391,97 @@
             GiyaUI.Modal.open(modal);
         });
     });
+
+    /* ---- Repeats: show the parts that apply, and the next date ---- */
+    const repeat = document.getElementById('s-repeat');
+    const WD = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    function nthWeekday(year, month, nth, weekday) {   // month 1-12
+        if (nth === -1) {
+            const d = new Date(year, month, 0);
+            while (d.getDay() !== weekday) d.setDate(d.getDate() - 1);
+            return d;
+        }
+        const d = new Date(year, month - 1, 1);
+        while (d.getDay() !== weekday) d.setDate(d.getDate() + 1);
+        d.setDate(d.getDate() + 7 * (nth - 1));
+        return d;
+    }
+
+    // Same rule as App\Support\Recurrence::next, so the preview matches what is saved.
+    function nextDates(type, nth, weekday, month, count) {
+        const out = [], today = new Date(); today.setHours(0, 0, 0, 0);
+        let y = today.getFullYear(), m = today.getMonth() + 1;
+        for (let i = 0; out.length < count && i < 40; i++) {
+            const d = type === 'yearly' ? nthWeekday(y + i, month, nth, weekday)
+                                        : nthWeekday(y, m, nth, weekday);
+            if (type === 'monthly') { m++; if (m > 12) { m = 1; y++; } }
+            if (d >= today) out.push(d);
+        }
+        return out;
+    }
+
+    function refreshRepeat() {
+        const type = repeat.value;
+        document.querySelectorAll('[data-repeat]').forEach(function (el) {
+            el.hidden = el.dataset.repeat.split(' ').indexOf(type) === -1;
+        });
+        document.getElementById('s-date').required = type === 'none';
+
+        const note = document.getElementById('s-next');
+        if (type === 'monthly' || type === 'yearly') {
+            const fmt = function (d) { return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); };
+            const dates = nextDates(type, +document.getElementById('s-nth').value,
+                +document.getElementById('s-weekday').value, +document.getElementById('s-month').value, 3);
+            note.innerHTML = 'Next date: <strong>' + fmt(dates[0]) + '</strong>' +
+                (dates.length > 1 ? ' <span>(then ' + dates.slice(1).map(fmt).join(', ') + ')</span>' : '') +
+                (type === 'yearly' ? '<br>Followers are reminded a week before, every year.' : '');
+            note.hidden = false;
+        } else {
+            note.hidden = true;
+        }
+    }
+
+    /* Fill the builder from a saved rule, or from an old label like
+       "Weekly (Sunday)" / "Daily" on rows saved before rules existed. */
+    function setRepeat(rule, label) {
+        document.querySelectorAll('input[name="repeat_days[]"]').forEach(function (c) { c.checked = false; });
+        document.getElementById('s-nth').value = '1';
+        document.getElementById('s-weekday').value = '0';
+        document.getElementById('s-month').value = '1';
+
+        let type = 'none';
+        if (rule && rule.type) {
+            type = rule.type;
+            (rule.days || []).forEach(function (d) {
+                const c = document.querySelector('input[name="repeat_days[]"][value="' + d + '"]');
+                if (c) c.checked = true;
+            });
+            if (rule.nth !== undefined) document.getElementById('s-nth').value = String(rule.nth);
+            if (rule.weekday !== undefined) document.getElementById('s-weekday').value = String(rule.weekday);
+            if (rule.month !== undefined) document.getElementById('s-month').value = String(rule.month);
+        } else if (label) {
+            if (/daily/i.test(label)) {
+                type = 'daily';
+            } else {
+                WD.forEach(function (name, i) {
+                    if (label.indexOf(name) !== -1) {
+                        type = 'weekly';
+                        const c = document.querySelector('input[name="repeat_days[]"][value="' + i + '"]');
+                        if (c) c.checked = true;
+                    }
+                });
+            }
+        }
+        repeat.value = type;
+        refreshRepeat();
+    }
+
+    repeat.addEventListener('change', refreshRepeat);
+    ['s-nth', 's-weekday', 's-month'].forEach(function (id) {
+        document.getElementById(id).addEventListener('change', refreshRepeat);
+    });
+    refreshRepeat();
 
     // A whole-day event has no start or end time.
     document.getElementById('s-whole').addEventListener('change', function () {

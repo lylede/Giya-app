@@ -6325,3 +6325,25 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
 @media (max-width: 768px) {
   .footer-credits-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
 }
+
+/* ── Admin schedules: how an event repeats ─────────────────────── */
+.sched-repeat .field[hidden], .sched-repeat .dm-row[hidden] { display: none !important; }
+.sched-days { display: flex; flex-wrap: wrap; gap: 6px; }
+.sched-day { position: relative; cursor: pointer; }
+.sched-day input { position: absolute; opacity: 0; pointer-events: none; }
+.sched-day span {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 48px; height: 38px; padding: 0 10px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--bg-secondary, #FBF0E0); color: var(--text);
+  font-size: .8125rem; font-weight: 600;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.sched-day input:checked + span { background: var(--primary); border-color: var(--primary); color: #fff; }
+.sched-day input:focus-visible + span { outline: 3px solid var(--gold); outline-offset: 2px; }
+.sched-next {
+  margin: 2px 0 12px; padding: 10px 12px;
+  border-radius: 10px; background: rgba(215,169,74,.14);
+  font-size: .8125rem; line-height: 1.5; color: var(--text);
+}
+.sched-next span { color: var(--text-muted); }
