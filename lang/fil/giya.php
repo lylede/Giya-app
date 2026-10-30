@@ -251,6 +251,10 @@ return [
     ],
 
     'plan' => [
+        'name_trip'      => 'Pangalanan ang iyong peregrinasyon',
+        'save_start'     => 'I-save at simulan',
+        'default_name'   => 'Peregrinasyon sa :town',
+        'default_name_plain' => 'Peregrinasyon',
         'hub'               => 'Sentro ng Plano ng Peregrinasyon',
         'plan_journey'      => 'Planuhin ang Iyong Paglalakbay',
         'recent'            => 'Mga Bagong Itineraryo',

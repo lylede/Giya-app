@@ -261,6 +261,10 @@ return [
     ],
 
     'plan' => [
+        'name_trip'      => 'Name your pilgrimage',
+        'save_start'     => 'Save & start',
+        'default_name'   => ':town Pilgrimage',
+        'default_name_plain' => 'Pilgrimage',
         'hub'               => 'Pilgrimage Plan Hub',
         'plan_journey'      => 'Plan Your Journey',
         'recent'            => 'Recent Itineraries',
