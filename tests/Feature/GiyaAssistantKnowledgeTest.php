@@ -381,4 +381,47 @@ class GiyaAssistantKnowledgeTest extends TestCase
         $this->assertCount(2, $sizes);
         $this->assertLessThanOrEqual($sizes[0], $sizes[1], 'The retry is not larger than the first try.');
     }
+
+    /** Every answer was the same self-introduction; the model was copying its own earlier replies. */
+    public function test_earlier_self_introductions_are_left_out_and_the_question_comes_first(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.model' => 'openai/gpt-oss-120b']);
+        Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => ['content' => 'The Basilica del Santo Niño.']]]])]);
+
+        $intro = "I'm Giya AI, the warm, local pilgrimage guide built for GIYA. I know the history of Cebu's churches.";
+        app(GiyaAssistant::class)->ask('oldest church in cebu', [
+            ['role' => 'user', 'content' => 'hehy'],
+            ['role' => 'assistant', 'content' => $intro],
+            ['role' => 'user', 'content' => 'are you online?'],
+            ['role' => 'assistant', 'content' => $intro],
+        ]);
+
+        $sent = null;
+        Http::assertSent(function (Request $request) use (&$sent) { $sent = $request->data(); return true; });
+
+        $roles = array_column($sent['messages'], 'role');
+        $this->assertSame(['system', 'user', 'user', 'user'], $roles, 'The introductions are not sent back to the model.');
+        $this->assertSame('oldest church in cebu', end($sent['messages'])['content']);
+
+        $system = $sent['messages'][0]['content'];
+        $this->assertStringContainsString('HOW TO ANSWER', $system);
+        $this->assertStringContainsString('Do NOT introduce yourself', $system);
+        $this->assertStringEndsWith("A church's town and address come only from the records above.", trim($system));
+    }
+
+    /** A real answer from Giya stays in the history (only introductions are dropped). */
+    public function test_real_answers_stay_in_the_history(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.model' => 'openai/gpt-oss-120b']);
+        Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => ['content' => 'It opens at 5 AM.']]]])]);
+
+        app(GiyaAssistant::class)->ask('when does it open?', [
+            ['role' => 'user', 'content' => 'oldest church in cebu'],
+            ['role' => 'assistant', 'content' => 'The **Basilica del Santo Niño**, founded in 1565.'],
+        ]);
+
+        $sent = null;
+        Http::assertSent(function (Request $request) use (&$sent) { $sent = $request->data(); return true; });
+        $this->assertSame(['system', 'user', 'assistant', 'user'], array_column($sent['messages'], 'role'));
+    }
 }
