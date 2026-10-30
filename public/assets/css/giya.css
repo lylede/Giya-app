@@ -6737,3 +6737,12 @@ article.card.is-highlight { box-shadow: 0 0 0 3px var(--gold, #D7A94A), var(--sh
 .saved-card .saved-stars { margin-top: auto; }
 .saved-card .saved-stars + .saved-card-actions { margin-top: 0; }
 .saved-card .saved-stars { min-height: 38px; display: flex; align-items: center; }
+
+/* Giya is catching its breath: the wait, then "Ask again". */
+.chat-again {
+  display: inline-flex; align-items: center; margin-top: 10px; padding: 7px 14px;
+  border-radius: 999px; border: 1px solid var(--primary, #8E3B2F);
+  background: var(--primary, #8E3B2F); color: #fff; font-weight: 700; font-size: .8125rem;
+  cursor: pointer;
+}
+.chat-again:disabled { background: transparent; color: var(--text-muted, #7A6A5E); border-color: var(--border, #E5D9CC); cursor: default; }

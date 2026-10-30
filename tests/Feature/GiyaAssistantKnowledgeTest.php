@@ -171,14 +171,34 @@ class GiyaAssistantKnowledgeTest extends TestCase
     public function test_when_both_models_are_busy_the_devotee_is_told_it_is_busy_not_offline(): void
     {
         config(['services.groq.key' => 'gsk-test', 'services.groq.fallback_model' => 'openai/gpt-oss-20b']);
-        Http::fake(['api.groq.com/*' => Http::response(['error' => ['code' => 'rate_limit_exceeded']], 429)]);
+        Http::fake(['api.groq.com/*' => Http::response(['error' => ['code' => 'rate_limit_exceeded']], 429, ['retry-after' => '14'])]);
 
         $result = app(GiyaAssistant::class)->ask('who are you');
 
         $this->assertFalse($result['ok']);
-        $this->assertSame('rate_limited', $result['reason']);
-        $this->assertStringContainsString('a lot of questions', $result['reply']);
-        $this->assertStringNotContainsString('cannot reach', $result['reply']);
+        $this->assertSame('busy', $result['reason']);
+        $this->assertSame(14, $result['retry_after'], 'The wait Groq asked for.');
+        $this->assertSame(__('giya.chat.busy', ['seconds' => 14]), $result['reply']);
+        $this->assertStringNotContainsString('offline', $result['reply']);
+    }
+
+    /** A busy reply is not kept: "Ask again" must not leave the question in the chat twice. */
+    public function test_a_busy_reply_is_not_saved_in_the_conversation(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.fallback_model' => null]);
+        Http::fake(['api.groq.com/*' => Http::response(['error' => ['code' => 'rate_limit_exceeded']], 429)]);
+
+        $user = User::create([
+            'name' => 'Lyle', 'email' => 'busy@example.com', 'password_hash' => bcrypt('secret'),
+            'role' => 'devotee', 'status' => 'Active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->actingAs($user)->postJson(route('chatbot.send'), ['message' => 'What is the oldest church?'])
+            ->assertOk()
+            ->assertJsonPath('reason', 'busy')
+            ->assertJsonPath('retry_after', 20);
+
+        $this->assertSame(0, \App\Models\ChatMessage::count());
     }
 
     public function test_a_bad_key_is_not_retried_on_another_model(): void

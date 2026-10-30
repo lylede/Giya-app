@@ -494,6 +494,9 @@ return [
     ],
 
     'chat' => [
+        'busy'           => 'Nagpahulay kadiyot si Giya: daghang pangutana ang dungan nga niabot. Palihug pangutana pag-usab human sa mga :seconds segundos.',
+        'ask_again'      => 'Pangutana pag-usab',
+        'ask_again_in'   => 'Pangutana pag-usab sa :s s',
         'title'          => 'Giya AI Assistant',
         'subtitle'       => 'Giya sa peregrinasyon para sa Metro Cebu',
         'offline'        => 'Offline - motubag gikan sa mga rekord',
