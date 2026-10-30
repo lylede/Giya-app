@@ -364,4 +364,18 @@ class MapFiltersTest extends TestCase
         $this->assertStringNotContainsString('scrollIntoView', $body, 'scrollIntoView moves the whole page on a phone.');
         $this->assertStringContainsString('listBox.scrollTo', $body, 'Only the list scrolls, inside itself.');
     }
+
+    /** Phones get the Google Maps shape: full-screen map, floating search, a bottom sheet with a church card. */
+    public function test_the_map_has_a_bottom_sheet_for_phones(): void
+    {
+        $html = $this->actingAs($this->devotee())->get(route('map'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-page="map"', $html, 'Scopes the phone layout to this page.');
+        $this->assertStringContainsString('id="sheetGrab"', $html);
+        $this->assertStringContainsString('id="churchCard"', $html);
+        $this->assertStringContainsString("sheet: function () { return phone.matches; }", $html, 'On phones a pin opens the card, not a popup.');
+        foreach (['data-card-dir', 'data-card-add', 'see_details'] as $action) {
+            $this->assertStringContainsString($action, $html, "The card has $action.");
+        }
+    }
 }

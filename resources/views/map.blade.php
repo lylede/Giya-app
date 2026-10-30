@@ -2,6 +2,9 @@
 
 @section('title', __('giya.nav.map'))
 
+{{-- Scopes the phone layout (full-screen map, bottom sheet) to this page. --}}
+@section('body-attr') data-page="map" @endsection
+
 @push('head')
     <link rel="stylesheet" href="{{ asset('assets/css/leaflet.css') }}?v={{ filemtime(public_path('assets/css/leaflet.css')) }}">
     <link rel="stylesheet" href="{{ asset('assets/css/MarkerCluster.css') }}?v={{ filemtime(public_path('assets/css/MarkerCluster.css')) }}">
@@ -54,6 +57,11 @@
         'major_only'     => __('giya.map.major_only'),
         'show_all'       => __('giya.map.show_all', ['count' => ':count']),
         'no_pin'         => __('giya.map.no_pin'),
+        'see_details'    => __('giya.church.see_details'),
+        'directions'     => __('giya.church.directions'),
+        'add_to_route'   => __('giya.church.add_to_route'),
+        'in_route'       => __('giya.map.in_route'),
+        'close'          => __('giya.map.card_close'),
         'exit_full'      => __('giya.common.exit_full'),
         'fullscreen'     => __('giya.map.fullscreen'),
         'signin_title'   => __('giya.map.signin_title'),
@@ -171,7 +179,16 @@
 
     <div class="map-grid">
 
-        <aside class="map-sidebar card">
+        <aside class="map-sidebar card" id="mapSheet">
+
+            {{-- Phones only: the grip of the bottom sheet. Drag it, or tap it
+                 to step between peek, half and full. --}}
+            <button type="button" class="mx-grab" id="sheetGrab" aria-label="{{ __('giya.map.sheet_toggle') }}">
+                <span></span>
+            </button>
+
+            {{-- Phones only: the church that was tapped, in place of the list. --}}
+            <section class="mx-card" id="churchCard" hidden aria-live="polite"></section>
 
             <div class="mx-controls">
                 <h2 class="mx-title">{{ __('giya.map.explore') }}</h2>
@@ -436,8 +453,13 @@
         });
     }
 
+    /* Phones get the Google Maps shape: the map fills the screen, search and
+       filters float on it, and the churches live in a bottom sheet. */
+    const phone = window.matchMedia('(max-width: 768px)');
+
     const map = GiyaLeaflet.browse({
         element: 'giyaMap',
+        sheet: function () { return phone.matches; },
         churches: churches,
 
         labels: @json($mapLabels),
@@ -487,6 +509,8 @@ onLocated: function (me) {
                 : trans('none_within', { km: NEAR_KM }), 'info');
         },
         onSelect: function (id) {
+            if (phone.matches) { showCard(id, false); return; }
+
             const row = listBox.querySelector('article[data-church="' + id + '"]');
             if (!row) return;
 
@@ -1015,7 +1039,14 @@ onLocated: function (me) {
 
         // Anywhere else on the row centres the map on it.
         const row = e.target.closest('[data-church]');
-        if (row) map.focus(Number(row.dataset.church));
+        if (!row) return;
+
+        if (phone.matches) {
+            showCard(Number(row.dataset.church), true);
+            return;
+        }
+
+        map.focus(Number(row.dataset.church));
     });
 
     showReminder();
@@ -1057,6 +1088,202 @@ onLocated: function (me) {
     if (initialChurchId) {
         setTimeout(function () { map.focus(initialChurchId); }, 0);
     }
+
+
+    /* ================================================== phone: bottom sheet */
+
+    const sheetEl  = document.getElementById('mapSheet');
+    const grab     = document.getElementById('sheetGrab');
+    const card     = document.getElementById('churchCard');
+    const grid     = document.querySelector('.map-grid');
+    const mapShell = document.querySelector('.giya-map-shell');
+    const floatBar = document.createElement('div');
+    floatBar.className = 'mx-float';
+
+    const PEEK = 148;
+    let sheetState = 'peek';
+    let cardId = null;
+
+    /* Elements that move into the phone layout, each remembering its place
+       so a rotation to a wide screen puts it back. */
+    const moves = [
+        [document.querySelector('.mx-controls'), floatBar],
+        [document.getElementById('mapNote'),     floatBar],
+        [document.querySelector('.mx-head'),     sheetEl, card],
+        [document.getElementById('planForm'),    sheetEl, card],
+    ].filter(function (m) { return m[0]; }).map(function (m) {
+        const mark = document.createComment('map-home');
+        m[0].parentNode.insertBefore(mark, m[0]);
+        return { el: m[0], to: m[1], before: m[2] || null, mark: mark };
+    });
+
+    function heights() {
+        const total = grid.clientHeight;
+        const top = floatBar.offsetTop + floatBar.offsetHeight + 8;
+        return {
+            peek: PEEK,
+            half: Math.round(total * 0.5),
+            full: Math.max(PEEK, total - top),
+            card: Math.min(Math.max(PEEK, total - top), card.scrollHeight + 34)
+        };
+    }
+
+    function setSheet(state) {
+        sheetState = state;
+        sheetEl.style.height = heights()[state] + 'px';
+        sheetEl.dataset.state = state;
+    }
+
+    function layout() {
+        if (phone.matches) {
+            if (!floatBar.parentNode) mapShell.appendChild(floatBar);
+            moves.forEach(function (m) { m.to.insertBefore(m.el, m.before); });
+            setSheet(cardId ? 'card' : sheetState === 'card' ? 'peek' : sheetState);
+        } else {
+            moves.forEach(function (m) { m.mark.parentNode.insertBefore(m.el, m.mark.nextSibling); });
+            if (floatBar.parentNode) floatBar.remove();
+            sheetEl.style.height = '';
+            hideCard();
+        }
+        setTimeout(function () { map.map.invalidateSize(); }, 60);
+    }
+
+    /* Puts the church in the part of the map the sheet leaves uncovered. */
+    function centreOn(c, zoomIn) {
+        if (c.lat == null || c.lng == null) return;
+        const lm = map.map;
+        const z = zoomIn ? Math.max(lm.getZoom(), 16) : lm.getZoom();
+        const covered = sheetEl.offsetHeight;
+        const pt = lm.project([c.lat, c.lng], z).add([0, covered / 2]);
+        lm.setView(lm.unproject(pt, z), z, { animate: true });
+    }
+
+    function churchById(id) {
+        return churches.filter(function (c) { return c.id === id; })[0];
+    }
+
+    function cardHtml(c) {
+        const picked = map.selected().indexOf(c.id) !== -1;
+        return '<button type="button" class="mx-card-close" data-card-close aria-label="' + escapeAttr(trans('close')) + '">' +
+                   '<i class="bi bi-x-lg"></i></button>' +
+            '<div class="mx-card-top">' +
+                '<img class="mx-card-photo" src="' + escapeAttr(c.image || '') + '" alt="">' +
+                '<div>' +
+                    '<h2 class="mx-card-name">' + escapeAttr(c.name) + '</h2>' +
+                    '<p class="mx-card-meta">' + escapeAttr(c.category || '') + ' &middot; ' + escapeAttr(c.location || '') + '</p>' +
+                    '<p class="mx-card-meta">' +
+                        (c.rating > 0 ? '<span class="mx-star"><i class="bi bi-star-fill"></i>' + c.rating.toFixed(1) + '</span> ' : '') +
+                        (c.open ? '<span class="mx-tag is-open">Open</span> ' : '') +
+                        (c.hours ? escapeAttr(c.hours) : '') +
+                    '</p>' +
+                '</div>' +
+            '</div>' +
+            '<div class="mx-card-actions">' +
+                '<button type="button" class="btn btn-primary" data-card-dir="' + c.id + '"><i class="bi bi-sign-turn-right-fill"></i> ' + escapeAttr(trans('directions')) + '</button>' +
+                (c.details
+                    ? '<a class="btn btn-outline" href="' + escapeAttr(c.details) + '" data-details="' + escapeAttr(c.details) + '" data-church="' + escapeAttr(c.name) + '">' +
+                          '<i class="bi bi-info-circle"></i> ' + escapeAttr(trans('see_details')) + '</a>'
+                    : '') +
+                '<button type="button" class="btn btn-outline' + (picked ? ' is-on' : '') + '" data-card-add="' + c.id + '">' +
+                    '<i class="bi bi-' + (picked ? 'check-lg' : 'plus-lg') + '"></i> ' + escapeAttr(trans(picked ? 'in_route' : 'add_to_route')) + '</button>' +
+            '</div>';
+    }
+
+    function showCard(id, zoomIn) {
+        const c = churchById(id);
+        if (!c) return;
+        cardId = id;
+        card.innerHTML = cardHtml(c);
+        card.hidden = false;
+        sheetEl.classList.add('is-card');
+        setSheet('card');
+        centreOn(c, zoomIn);
+    }
+
+    function hideCard() {
+        cardId = null;
+        card.hidden = true;
+        card.innerHTML = '';
+        sheetEl.classList.remove('is-card');
+    }
+
+    sheetEl.addEventListener('click', function (e) {
+        if (e.target.closest('[data-card-close]')) {
+            hideCard();
+            setSheet('peek');
+            return;
+        }
+
+        const dir = e.target.closest('[data-card-dir]');
+        if (dir) { GiyaLeaflet.directionsTo(Number(dir.dataset.cardDir)); return; }
+
+        const add = e.target.closest('[data-card-add]');
+        if (add) {
+            const id = Number(add.dataset.cardAdd);
+            if (map.selected().indexOf(id) !== -1) map.removeStop(id); else GiyaLeaflet.addStop(id);
+            if (cardId === id) card.innerHTML = cardHtml(churchById(id));
+        }
+    });
+
+    /* ---- dragging the sheet: from the grip, the results line or the card top */
+    (function () {
+        let startY = null, startH = 0, moved = false;
+        const order = ['peek', 'half', 'full'];
+
+        function down(e) {
+            if (!phone.matches || e.target.closest('button:not(.mx-grab), a, input')) return;
+            startY = e.clientY; startH = sheetEl.offsetHeight; moved = false;
+            sheetEl.classList.add('is-dragging');
+        }
+        function move(e) {
+            if (startY === null) return;
+            const dy = e.clientY - startY;
+            if (Math.abs(dy) > 6) moved = true;
+            const h = heights();
+            sheetEl.style.height = Math.min(h.full, Math.max(80, startH - dy)) + 'px';
+        }
+        function up(e) {
+            if (startY === null) return;
+            const dy = e.clientY - startY;
+            startY = null;
+            sheetEl.classList.remove('is-dragging');
+
+            if (cardId && dy > 60) { hideCard(); setSheet('peek'); return; }
+
+            if (!moved) {
+                if (cardId) return setSheet('card');
+                return setSheet(order[(order.indexOf(sheetState) + 1) % order.length]);
+            }
+
+            // The nearest stop, nudged in the direction of the swipe.
+            const h = heights(), now = sheetEl.offsetHeight - (dy < 0 ? -40 : 40);
+            const pool = cardId ? ['card', 'full'] : order;
+            let best = pool[0];
+            pool.forEach(function (st) { if (Math.abs(h[st] - now) < Math.abs(h[best] - now)) best = st; });
+            setSheet(best);
+        }
+
+        [grab, document.getElementById('listHeading'), card].forEach(function (el) {
+            el.addEventListener('pointerdown', down);
+        });
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+        window.addEventListener('pointercancel', up);
+    })();
+
+    /* Searching or picking a filter shows the results, not just the peek. */
+    document.getElementById('mapSearch').addEventListener('focus', function () {
+        if (phone.matches) { hideCard(); setSheet('half'); }
+    });
+    document.querySelectorAll('.cat-chip').forEach(function (b) {
+        b.addEventListener('click', function () {
+            if (phone.matches) { hideCard(); if (sheetState === 'peek') setSheet('half'); }
+        });
+    });
+
+    (phone.addEventListener ? phone.addEventListener('change', layout) : phone.addListener(layout));
+    window.addEventListener('resize', function () { if (phone.matches) setSheet(sheetState); });
+    layout();
 
     renderList();
 })();

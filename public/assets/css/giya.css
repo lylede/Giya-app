@@ -6459,3 +6459,106 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
 
 /* The church the devotee tapped on the map, marked in the list. */
 .mx-row.is-focus { box-shadow: 0 0 0 2px var(--gold, #D7A94A); }
+
+/* ══ Map on phones: full-screen map, floating search, bottom sheet ═══════
+   Google Maps shape. The map fills the screen under the navbar; search and
+   filters float at the top; the church list is a sheet that slides up from
+   the bottom (peek / half / full); tapping a church turns the sheet into
+   its card with Directions, See details and Add to route. */
+.mx-grab { display: none; }
+.mx-card[hidden] { display: none; }
+
+@media (max-width: 768px) {
+  body[data-page="map"] { overflow: hidden; overscroll-behavior: none; }
+  body[data-page="map"] .giya-footer,
+  body[data-page="map"] .giya-fab { display: none !important; }
+
+  body[data-page="map"] main > div { padding: 0 !important; max-width: none !important; }
+
+  body[data-page="map"] .map-grid {
+    position: fixed; z-index: 5;
+    top: var(--nav-height, 56px); left: 0; right: 0; bottom: 0;
+    display: block; margin: 0; gap: 0;
+  }
+  body[data-page="map"] .giya-map-shell { position: absolute; inset: 0; order: 0; }
+  body[data-page="map"] .giya-map-canvas { height: 100% !important; border-radius: 0; border: 0; }
+  body[data-page="map"] .giya-loading { border-radius: 0; }
+
+  /* Search and filters, floating on the map. */
+  body[data-page="map"] .mx-float {
+    position: absolute; z-index: 1001; top: 10px; left: 12px; right: 12px;
+    pointer-events: none;                 /* the map stays draggable between chips */
+  }
+  body[data-page="map"] .mx-float > * { pointer-events: auto; }
+  body[data-page="map"] .mx-float .mx-controls { padding: 0; background: none; border: 0; }
+  body[data-page="map"] .mx-float .mx-title { display: none; }
+  body[data-page="map"] .mx-float .mx-search-field {
+    background: #fff; border: 0; min-height: 48px; margin-bottom: 8px;
+    box-shadow: 0 2px 10px rgba(36,28,24,.22);
+  }
+  body[data-page="map"] .mx-float .mx-search-field input { font-size: 1rem; }
+  body[data-page="map"] .mx-float .mx-chips { flex-wrap: nowrap; overflow-x: auto; padding: 0 0 4px; }
+  body[data-page="map"] .mx-float .cat-chip:not(.is-active) {
+    background: #fff; box-shadow: 0 1px 5px rgba(36,28,24,.2); border-color: transparent;
+  }
+  body[data-page="map"] .mx-float .map-note { margin: 6px 56px 0 0; background: #FDF1EF; box-shadow: 0 2px 8px rgba(36,28,24,.18); }
+
+  /* Map buttons sit under the floating bar; full screen is the default here. */
+  body[data-page="map"] .map-tools { top: 118px; right: 12px; }
+  body[data-page="map"] #btnFullscreen { display: none; }
+
+  /* The sheet. */
+  body[data-page="map"] .map-sidebar {
+    position: absolute; z-index: 1002; left: 0; right: 0; bottom: 0;   /* over Leaflet's controls (1000) */
+    height: 148px; max-height: none; margin: 0;
+    display: flex; flex-direction: column;
+    border-radius: 18px 18px 0 0; border: 0;
+    box-shadow: 0 -4px 18px rgba(36,28,24,.18);
+    padding-bottom: env(safe-area-inset-bottom);
+    transition: height .26s cubic-bezier(.2,.8,.2,1);
+    order: 0;
+  }
+  body[data-page="map"] .map-sidebar.is-dragging { transition: none; }
+  body[data-page="map"] .mx-grab {
+    display: block; flex: 0 0 auto; width: 100%; padding: 9px 0 5px;
+    background: none; border: 0; cursor: grab; touch-action: none;
+  }
+  body[data-page="map"] .mx-grab span {
+    display: block; width: 40px; height: 5px; margin: 0 auto;
+    border-radius: 3px; background: #D5C8BC;
+  }
+  body[data-page="map"] .mx-list-head { touch-action: none; padding-top: 2px; }
+  body[data-page="map"] .mx-list { flex: 1 1 auto; min-height: 0; max-height: none; overscroll-behavior: contain; }
+
+  /* Planning on a phone: the trip's name, date and notes ride in the sheet. */
+  body[data-page="map"] .map-sidebar .mx-head { display: none; padding: 0 14px; margin: 0; }
+  body[data-page="map"] .map-sidebar:has(#planForm:not([hidden])) .mx-head { display: block; }
+  body[data-page="map"] .map-sidebar .mx-head p,
+  body[data-page="map"] .map-sidebar .mx-head .eyebrow { display: none; }
+  body[data-page="map"] .map-sidebar .mx-head h1 { font-size: 1.05rem; margin: 0 0 6px; }
+  body[data-page="map"] .map-sidebar .plan-bar { margin: 0 12px 8px; padding: 10px; box-shadow: none; }
+
+  /* The church card, in place of the list. */
+  body[data-page="map"] .map-sidebar.is-card .mx-list-head,
+  body[data-page="map"] .map-sidebar.is-card .mx-list,
+  body[data-page="map"] .map-sidebar.is-card .mx-tray { display: none !important; }
+  body[data-page="map"] .mx-card { position: relative; padding: 2px 16px 14px; touch-action: none; }
+  .mx-card-close {
+    position: absolute; top: 0; right: 12px; width: 34px; height: 34px;
+    border-radius: 50%; border: 0; background: var(--bg-secondary, #F3ECE4); color: #241C18;
+  }
+  .mx-card-top { display: flex; gap: 12px; align-items: flex-start; padding-right: 40px; }
+  .mx-card-photo { width: 76px; height: 76px; flex: 0 0 76px; border-radius: 12px; object-fit: cover; background: #F5E9D9; }
+  .mx-card-name { font-family: var(--font-display); font-size: 1.1rem; line-height: 1.25; margin: 0 0 4px; color: #241C18; }
+  .mx-card-meta { font-size: .8125rem; color: var(--text-muted); margin: 0 0 3px; }
+  .mx-card-actions {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 14px;
+  }
+  .mx-card-actions .btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    padding: 9px 4px; border-radius: 14px; font-size: .75rem; font-weight: 700; line-height: 1.15; text-align: center;
+  }
+  .mx-card-actions .btn i { font-size: 1.05rem; }
+  .mx-card-actions .btn.is-on { background: var(--gold-bg, #F6EBD7); }
+}
+html[data-theme="dark"] .mx-card-name { color: #F3ECE4; }
