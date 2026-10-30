@@ -416,16 +416,33 @@ window.GiyaLeaflet = (function () {
         var me = null;
         var selected = [];
 
-        churches.forEach(function (c) {
-            var m = L.marker([c.lat, c.lng], { icon: churchDot(c), title: c.name })
-                .bindPopup(popupHtml(c), {
+        /* On a phone the page shows a church in its bottom sheet instead of a
+           popup (cfg.sheet() says when). The popup is bound on demand so
+           a tap in sheet mode never opens one. */
+        function sheetMode() {
+            return typeof cfg.sheet === 'function' && cfg.sheet();
+        }
+
+        function openPopupFor(m, c) {
+            if (!m.getPopup()) {
+                m.bindPopup(popupHtml(c), {
                     autoPanPadding: [10, 10],
                     maxWidth: 260,
                     className: compactPopups() ? 'giya-popup-compact' : ''
-                })
+                });
+            }
+            m.openPopup();
+        }
+
+        churches.forEach(function (c) {
+            var m = L.marker([c.lat, c.lng], { icon: churchDot(c), title: c.name })
                 .addTo(group);
 
-            m.on('click', function () { if (cfg.onSelect) cfg.onSelect(c.id); });
+            m.on('click', function () {
+                if (!sheetMode()) openPopupFor(m, c);
+                if (cfg.onSelect) cfg.onSelect(c.id);
+            });
+            m._giyaChurch = c;
             markers[c.id] = m;
         });
 
@@ -688,15 +705,23 @@ window.GiyaLeaflet = (function () {
             var m = markers[id];
             if (!m) return;
 
+            var c = m._giyaChurch;
+
+            // In sheet mode the sheet shows the church; the map only centres it.
+            if (sheetMode()) {
+                map.setView(m.getLatLng(), Math.max(map.getZoom(), 16), { animate: true });
+                return;
+            }
+
             // A clustered pin has no popup to open until it is split out.
             if (group.zoomToShowLayer && group.hasLayer(m)) {
                 map.setView(m.getLatLng(), 16, { animate: false });
-                group.zoomToShowLayer(m, function () { m.openPopup(); });
+                group.zoomToShowLayer(m, function () { openPopupFor(m, c); });
                 return;
             }
 
             map.setView(m.getLatLng(), 16, { animate: true });
-            m.openPopup();
+            openPopupFor(m, c);
         }
 
         /** Hand the ordered stops to Google Maps for turn-by-turn (needs data). */
