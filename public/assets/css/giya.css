@@ -6727,3 +6727,13 @@ body:has(#arriveToast.is-open) .giya-fab { opacity: 0; pointer-events: none; }
 .saved-stars { margin: 0 0 12px; font-size: .8125rem; font-weight: 700; color: var(--text); }
 .saved-stars i { color: var(--gold, #D7A94A); }
 article.card.is-highlight { box-shadow: 0 0 0 3px var(--gold, #D7A94A), var(--shadow-sm); }
+
+/* Saved Itineraries: cards in a row are the same height and their buttons
+   sit on one line, however many stops or ratings each card shows. */
+.itin-grid { align-items: stretch; }
+.saved-card { display: flex; flex-direction: column; height: 100%; }
+.saved-card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+.saved-card-actions { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border-light); }
+.saved-card .saved-stars { margin-top: auto; }
+.saved-card .saved-stars + .saved-card-actions { margin-top: 0; }
+.saved-card .saved-stars { min-height: 38px; display: flex; align-items: center; }
