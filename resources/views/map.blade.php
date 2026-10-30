@@ -51,6 +51,9 @@
         'following'      => __('giya.map.following'),
         'add_another'    => __('giya.map.add_another'),
         'no_match'       => __('giya.map.no_match'),
+        'major_only'     => __('giya.map.major_only'),
+        'show_all'       => __('giya.map.show_all', ['count' => ':count']),
+        'no_pin'         => __('giya.map.no_pin'),
         'exit_full'      => __('giya.common.exit_full'),
         'fullscreen'     => __('giya.map.fullscreen'),
         'signin_title'   => __('giya.map.signin_title'),
@@ -468,6 +471,7 @@ onLocated: function (me) {
             hasLocation = true;
 
             churches.forEach(function (c) {
+                if (c.lat == null || c.lng == null) return;   // listed, but not on the map
                 distances[c.id] = haversineKm(me.lat, me.lng, c.lat, c.lng);
             });
 
@@ -581,7 +585,7 @@ onLocated: function (me) {
         if (!query) return true;
 
         const words = query.split(/\s+/).filter(Boolean);
-        const haystack = (c.name + ' ' + (c.location || '') + ' ' + (c.category || '')).toLowerCase();
+        const haystack = (c.name + ' ' + (c.location || '') + ' ' + (c.address || '') + ' ' + (c.town || '') + ' ' + (c.category || '')).toLowerCase();
 
         return words.every(function (w) {
             if (KEYWORDS.open.indexOf(w) !== -1)   return c.open;
@@ -606,6 +610,13 @@ onLocated: function (me) {
                or a Heritage church was not in All either. Two different ways
                of being not-all, in the filter named All. */
             if (category === 'All') {
+                return true;
+            }
+
+            /* A search looks through every church. Major and Near only
+               decide what the map opens on; typing a name that is not a main
+               church, or not nearby, must still find it. */
+            if (query && (category === 'Major' || category === 'Near')) {
                 return true;
             }
 
@@ -722,6 +733,7 @@ onLocated: function (me) {
                            begins with a street name. */
                         (category === 'Major' && c.town
                             ? '<span class="mx-tag is-town">' + escapeAttr(c.town) + '</span>' : '') +
+                        (c.lat == null ? '<span class="mx-tag is-nopin">' + escapeAttr(trans('no_pin')) + '</span>' : '') +
                     '</p>' +
                 '</div>' +
                 '<button type="button" class="mx-pick' + (picked ? ' is-on' : '') + '" ' +
@@ -730,8 +742,24 @@ onLocated: function (me) {
                     '<i class="bi bi-check-lg"></i>' +
                 '</button>' +
             '</article>';
-        }).join('');
+        }).join('') + moreRow(list.length);
     }
+
+    /* Under Major the list is a selection, so say so and offer the rest -
+       otherwise a church an admin published looks missing. */
+    function moreRow(shown) {
+        if (category !== 'Major' || query || churches.length <= shown) return '';
+
+        return '<p class="mx-more">' + escapeAttr(trans('major_only')) +
+               ' <button type="button" class="mx-more-btn" data-show-all>' +
+               escapeAttr(trans('show_all', { count: churches.length })) + '</button></p>';
+    }
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('[data-show-all]')) return;
+        const all = document.querySelector('[data-cat="All"]');
+        if (all) all.click();
+    });
 
     /* ---- zoom ---- */
     document.getElementById('btnZoomIn').addEventListener('click', function () { map.map.zoomIn(); });

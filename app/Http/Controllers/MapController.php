@@ -105,13 +105,17 @@ class MapController extends Controller
             'hasMajors'  => $churches->contains(fn (Church $c) => $c->is_major),
 
             // Plain array for Leaflet - no Eloquent objects cross into JS.
+            /* Every published church, pinned or not. One without a pin is
+               still listed (and searchable) - it just has no marker - so a
+               church an admin published is never missing from the app. */
             'markers' => $churches
-                ->filter(fn (Church $c) => $c->latitude && $c->longitude)
                 ->map(fn (Church $c) => [
                     'id'       => $c->id,
                     'details'  => route('churches.show', $c),
                     'name'     => $c->name,
                     'location' => $c->location,
+                    // Searched too, so a barangay ("Yati", "Mabolo") finds its parish.
+                    'address'  => $c->address,
 
                     /* The town, and whether this is its principal church.
                        Both are read by the Major chip - the flag to filter
@@ -132,8 +136,8 @@ class MapController extends Controller
 
                         return $name;
                     })(),
-                    'lat'      => (float) $c->latitude,
-                    'lng'      => (float) $c->longitude,
+                    'lat'      => $c->latitude && $c->longitude ? (float) $c->latitude : null,
+                    'lng'      => $c->latitude && $c->longitude ? (float) $c->longitude : null,
                     'image'    => $c->imagePath(),
                     'color'    => $c->color(),
                     'rating'   => (float) $c->rating,
