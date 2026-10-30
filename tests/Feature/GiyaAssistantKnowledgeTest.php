@@ -424,4 +424,29 @@ class GiyaAssistantKnowledgeTest extends TestCase
         Http::assertSent(function (Request $request) use (&$sent) { $sent = $request->data(); return true; });
         $this->assertSame(['system', 'user', 'assistant', 'user'], array_column($sent['messages'], 'role'));
     }
+
+    /** The pop-up chat reloads the saved conversation on any page; only your own, and looking creates nothing. */
+    public function test_the_popup_can_reload_your_own_conversation(): void
+    {
+        $mk = fn ($email) => User::create([
+            'name' => 'U', 'email' => $email, 'password_hash' => bcrypt('secret'),
+            'role' => 'devotee', 'status' => 'Active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $me = $mk('me@example.com');
+        $other = $mk('other@example.com');
+
+        // Looking before any chat creates no session.
+        $this->actingAs($me)->getJson(route('chatbot.history'))->assertOk()->assertJsonPath('messages', []);
+        $this->assertSame(0, \App\Models\ChatSession::count());
+
+        $session = \App\Models\ChatSession::create(['user_id' => $me->id, 'status' => 'Active', 'started_at' => now(), 'created_at' => now()]);
+        \App\Models\ChatMessage::create(['session_id' => $session->id, 'sender_type' => 'user', 'message' => 'oldest church in cebu', 'created_at' => now()]);
+        \App\Models\ChatMessage::create(['session_id' => $session->id, 'sender_type' => 'assistant', 'message' => 'The Basilica del Santo Niño.', 'created_at' => now()]);
+
+        $this->actingAs($me)->getJson(route('chatbot.history'))->assertOk()
+            ->assertJsonPath('messages.0', ['from' => 'user', 'text' => 'oldest church in cebu'])
+            ->assertJsonPath('messages.1', ['from' => 'bot', 'text' => 'The Basilica del Santo Niño.']);
+
+        $this->actingAs($other)->getJson(route('chatbot.history'))->assertOk()->assertJsonPath('messages', []);
+    }
 }

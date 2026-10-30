@@ -225,6 +225,7 @@
     }
 
     function ask(text, again) {
+        if (!chatHistory) { loadHistory().then(function () { ask(text, again); }); return; }
         if (!again) addUser(text);
         input.value = '';
         input.disabled = send.disabled = true;
@@ -250,6 +251,38 @@
                 if (canAutoFocus) input.focus();
             });
     }
+
+    /* ---- the conversation so far ----
+       The panel is drawn fresh on every page, so it used to start empty after
+       moving to Plan or refreshing, although the server kept the whole
+       conversation. It is fetched once per page, the first time the panel
+       opens, and shown under the greeting. */
+    var chatHistory = null;
+
+    function loadHistory() {
+        if (chatHistory) return chatHistory;
+        var url = fab.dataset.historyUrl;
+        if (!url) return (chatHistory = Promise.resolve());
+
+        chatHistory = fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : { messages: [] }; })
+            .then(function (d) {
+                var msgs = (d && d.messages) || [];
+                msgs.forEach(function (m) {
+                    if (m.from === 'user') addUser(m.text); else addBot(m.text, true);
+                });
+                // A conversation under way does not need the starter questions.
+                var starters = document.getElementById('giyaPanelStarters');
+                if (starters && msgs.length) starters.hidden = true;
+                scroll();
+            })
+            .catch(function () { /* the panel still works without it */ });
+
+        return chatHistory;
+    }
+
+    // Opening the panel brings the conversation back.
+    fab.addEventListener('click', function () { loadHistory(); });
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();

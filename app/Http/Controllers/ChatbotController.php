@@ -38,6 +38,29 @@ class ChatbotController extends Controller
         ]);
     }
 
+    /**
+     * The conversation so far, for the pop-up chat.
+     *
+     * The pop-up is drawn fresh on every page, so without this it started
+     * empty after moving to another page or refreshing, although the
+     * conversation was saved all along. Read-only: no session is created
+     * just by looking.
+     */
+    public function history(): JsonResponse
+    {
+        $session = ChatSession::where('user_id', Auth::id())->where('status', 'Active')->first();
+
+        $messages = $session
+            ? $session->messages()->orderByDesc('id')->take(30)->get()->reverse()->values()
+                ->map(fn (ChatMessage $m) => [
+                    'from' => $m->sender_type === 'user' ? 'user' : 'bot',
+                    'text' => $m->message,
+                ])
+            : collect();
+
+        return response()->json(['ok' => true, 'messages' => $messages]);
+    }
+
     public function send(Request $request): JsonResponse
     {
         $data = $request->validate([
