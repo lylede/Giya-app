@@ -214,6 +214,16 @@ return [
     ],
 
     'hub' => [
+        'in_progress' => 'Nagpadayon',
+        'progress' => ':done sa :total ka simbahan ang nabisitahan',
+        'next' => 'Sunod: :name',
+        'continue' => 'Padayon',
+        'your_trips' => 'Imong mga panaw',
+        'manage' => 'Dumala ang mga panaw',
+        'rate' => 'I-rate',
+        'st_upcoming' => 'Umaabot',
+        'st_completed' => 'Nahuman',
+        'stops' => ':count ka hunong',
         'c1_title'     => 'Paghimo ug Kaugalingong Itinerary',
         'c1_badge'     => 'Mapasibo',
         'c1_desc'      => 'Paghimo ug kaugalingong ruta. Pagpili ug mga destinasyon, itakda ang petsa, ug han-aya ang imong mga hunongan.',

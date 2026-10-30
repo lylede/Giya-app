@@ -27,11 +27,24 @@ class ItineraryController extends Controller
     {
         $userId = Auth::id();
 
+        /* One list of trips, with how far each one got, and - only while a
+           trip is being walked - the banner to continue it. "In progress"
+           means a church on it has been visited; opening a trip to look at
+           it does not start it. */
+        $trips = Itinerary::where('user_id', $userId)
+            ->withCount(['stops as visited_count' => fn ($q) => $q->where('is_visited', true)])
+            ->orderByRaw("CASE status WHEN 'Active' THEN 0 WHEN 'Upcoming' THEN 1 ELSE 2 END")
+            ->orderByDesc('updated_at')
+            ->take(20)
+            ->get();
+
+        $active = $trips->firstWhere('status', 'Active');
+        $next = $active?->stops()->with('church')->where('is_visited', false)->orderBy('stop_order')->first();
+
         return view('plan.hub', [
-            'itineraries' => Itinerary::where('user_id', $userId)
-                ->orderByDesc('created_at')->take(5)->get(),
-            'activeItinerary' => Itinerary::where('user_id', $userId)
-                ->where('status', 'Active')->latest('updated_at')->first(),
+            'itineraries'     => $trips,
+            'activeItinerary' => $active,
+            'activeNext'      => $next,
         ]);
     }
 
@@ -203,9 +216,8 @@ class ItineraryController extends Controller
     {
         Gate::authorize('view', $itinerary);
 
-        if ($itinerary->status === 'Upcoming') {
-            $itinerary->update(['status' => 'Active', 'updated_at' => now()]);
-        }
+        // Opening a trip only shows it. It becomes "In progress" (Active)
+        // when its first church is visited - see markVisited().
 
         $stops = $itinerary->stops()->with('church')->get();
 
@@ -314,6 +326,10 @@ class ItineraryController extends Controller
                 Notification::where('user_id', Auth::id())
                     ->where('dedupe_key', 'arrive:'.$stop->id)
                     ->delete();
+
+                // Back to "In progress", or to "Upcoming" if nothing is left visited.
+                $anyLeft = ItineraryStop::where('itinerary_id', $stop->itinerary_id)->where('is_visited', true)->exists();
+                $stop->itinerary->update(['status' => $anyLeft ? 'Active' : 'Upcoming', 'updated_at' => now()]);
             });
 
             return response()->json(['ok' => true, 'undone' => true]);
@@ -340,6 +356,11 @@ class ItineraryController extends Controller
                 ->where('is_visited', false)->count();
 
             if ($remaining > 0) {
+                // The first church visited starts the trip.
+                if ($stop->itinerary->status !== 'Active') {
+                    $stop->itinerary->update(['status' => 'Active', 'updated_at' => now()]);
+                }
+
                 return false;
             }
 
