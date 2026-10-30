@@ -165,6 +165,15 @@
             </button>
         </div>
 
+        {{-- Notes about the trip itself ("Location is off...") sit in a thin
+             bar across the top of the map, never over the route, and can be
+             closed. The distance is a small pill in the bottom-left corner. --}}
+        <div class="ap-notice" id="apNotice" hidden role="status">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span id="apNoticeText"></span>
+            <button type="button" class="ap-notice-close" id="apNoticeClose" aria-label="{{ __('giya.common.dismiss') }}">&times;</button>
+        </div>
+
         <div class="ap-summary" id="routeSummary"></div>
 
         {{-- What the colours on the route mean. Three lines on a map are only
@@ -246,6 +255,40 @@ const GiyaActive = (function () {
         }, 9000);
     }
 
+    /* ---- the distance pill and the notice bar ----
+
+       The distance is a small pill in the map's bottom-left corner. It fades
+       after a while so it does not sit on the route, and comes back whenever
+       the distance changes. Notes about the trip go in the bar along the top. */
+    const summaryEl = document.getElementById('routeSummary');
+    let summaryTimer = null;
+
+    function showSummary(text) {
+        if (!summaryEl || !text) return;
+        if (summaryEl.textContent !== text || summaryEl.classList.contains('is-quiet')) {
+            summaryEl.textContent = text;
+            summaryEl.classList.remove('is-quiet');
+        }
+        clearTimeout(summaryTimer);
+        summaryTimer = setTimeout(function () { summaryEl.classList.add('is-quiet'); }, 8000);
+    }
+
+    const noticeEl = document.getElementById('apNotice');
+    const layoutEl = document.querySelector('.active-layout');
+
+    function showNotice(text) {
+        if (!noticeEl || !text) return;
+        document.getElementById('apNoticeText').textContent = text;
+        noticeEl.hidden = false;
+        layoutEl && layoutEl.classList.add('has-notice');
+        layoutEl && layoutEl.style.setProperty('--ap-notice-h', noticeEl.offsetHeight + 'px');
+    }
+
+    document.getElementById('apNoticeClose').addEventListener('click', function () {
+        noticeEl.hidden = true;
+        layoutEl && layoutEl.classList.remove('has-notice');
+    });
+
     const liveMap = GiyaLeaflet.pilgrimage({
         element: 'activeMap',
         stops: points,
@@ -263,25 +306,18 @@ const GiyaActive = (function () {
         currentId: (stops.find(s => !s.visited) || {}).id,
         onArrive: announceArrival,
         onStatus: function (message, kind) {
-            const el = document.getElementById('routeSummary');
-            if (el && kind === 'error') { el.textContent = message; }
+            if (kind === 'error') showNotice(message);
         },
         onLocated: function (here, next, distanceKm) {
-            const el = document.getElementById('routeSummary');
-            if (el) {
-                el.textContent = @json(__('giya.plan.km_to', ['km' => ':km', 'name' => ':name']))
-                    .replace(':km', distanceKm.toFixed(1)).replace(':name', next.name);
-            }
+            showSummary(@json(__('giya.plan.km_to', ['km' => ':km', 'name' => ':name']))
+                .replace(':km', distanceKm.toFixed(1)).replace(':name', next.name));
         },
         onRoads: function (d) {
-            const el = document.getElementById('routeSummary');
-            if (el) {
-                el.textContent = (d.duration_min
-                        ? @json(__('giya.plan.km_roads_min', ['km' => ':km', 'min' => ':min']))
-                            .replace(':min', d.duration_min)
-                        : @json(__('giya.plan.km_roads', ['km' => ':km'])))
-                    .replace(':km', d.distance_km);
-            }
+            showSummary((d.duration_min
+                    ? @json(__('giya.plan.km_roads_min', ['km' => ':km', 'min' => ':min']))
+                        .replace(':min', d.duration_min)
+                    : @json(__('giya.plan.km_roads', ['km' => ':km'])))
+                .replace(':km', d.distance_km));
         }
     });
 
