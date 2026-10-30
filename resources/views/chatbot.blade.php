@@ -503,8 +503,38 @@
         scroll();
     }
 
-    function ask(text) {
-        addUser(text);
+    /* "Giya is catching its breath": the message, and a button that counts
+       down the wait Groq asked for and then asks the same question again. */
+    function addBusy(text, seconds, question) {
+        addBot(text, false);
+        const bubble = log.lastElementChild.querySelector('.chat-bubble');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chat-again';
+        btn.disabled = true;
+        bubble.appendChild(btn);
+
+        let left = Math.max(1, Number(seconds) || 20);
+        const tick = function () {
+            if (left <= 0) {
+                btn.disabled = false;
+                btn.textContent = @json(__('giya.chat.ask_again'));
+                return;
+            }
+            btn.textContent = @json(__('giya.chat.ask_again_in')).replace(':s', left);
+            left--;
+            setTimeout(tick, 1000);
+        };
+        tick();
+
+        btn.addEventListener('click', function () {
+            const row = btn.closest('.chat-row'); if (row) row.remove();
+            ask(question, true);
+        });
+    }
+
+    function ask(text, again) {
+        if (!again) addUser(text);
         input.value = '';
         input.disabled = send.disabled = true;
         addTyping();
@@ -519,7 +549,9 @@
             body: JSON.stringify({ message: text }),
         })
             .then(r => r.json())
-            .then(d => addBot(d.reply || @json(__('giya.chat.error')), d.ok))
+            .then(d => d.reason === 'busy'
+                ? addBusy(d.reply, d.retry_after, text)
+                : addBot(d.reply || @json(__('giya.chat.error')), d.ok))
             .catch(() => addBot(@json(__('giya.chat.unreachable')), false))
             .finally(() => {
                 input.disabled = send.disabled = false;

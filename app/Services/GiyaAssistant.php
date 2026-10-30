@@ -139,6 +139,20 @@ class GiyaAssistant
             return ['ok' => true, 'reply' => Text::withoutLongDashes($result['reply'])];
         }
 
+        /* Busy is not broken: the free allowance refills within a minute.
+           Rather than an offline answer, say so kindly and let the chat offer
+           "Ask again" once the wait is over. */
+        if (in_array($result['reason'], ['rate_limited', 'too_large'], true)) {
+            $wait = max(10, min(60, (int) ($result['retry_after'] ?? 0) ?: 20));
+
+            return [
+                'ok'          => false,
+                'reason'      => 'busy',
+                'retry_after' => $wait,
+                'reply'       => Text::withoutLongDashes(__('giya.chat.busy', ['seconds' => $wait])),
+            ];
+        }
+
         return [
             'ok'     => false,
             'reason' => $result['reason'],
@@ -189,8 +203,10 @@ class GiyaAssistant
                 }
 
                 return [
-                    'ok'     => false,
-                    'reason' => match (true) {
+                    'ok'          => false,
+                    // How long Groq says to wait before the allowance refills.
+                    'retry_after' => (int) ceil((float) ($response->header('retry-after') ?: 0)),
+                    'reason'      => match (true) {
                         $response->status() === 401 => 'bad_key',
                         $response->status() === 413 => 'too_large',
                         $response->status() === 429 => 'rate_limited',

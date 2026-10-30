@@ -194,8 +194,38 @@
         scroll();
     }
 
-    function ask(text) {
-        addUser(text);
+    /* "Giya is catching its breath": the message, and a button that counts
+       down the wait Groq asked for and then asks the same question again. */
+    function addBusy(text, seconds, question) {
+        addBot(text, false);
+        var bubble = log.lastElementChild.querySelector('.chat-bubble');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chat-again';
+        btn.disabled = true;
+        bubble.appendChild(btn);
+
+        var left = Math.max(1, Number(seconds) || 20);
+        (function tick() {
+            if (left <= 0) {
+                btn.disabled = false;
+                btn.textContent = fab.dataset.askAgain || 'Ask again';
+                return;
+            }
+            btn.textContent = (fab.dataset.askAgainIn || 'Ask again in :s s').replace(':s', left);
+            left--;
+            setTimeout(tick, 1000);
+        })();
+
+        btn.addEventListener('click', function () {
+            var row = btn.closest('.chat-row');
+            if (row) row.remove();
+            ask(question, true);
+        });
+    }
+
+    function ask(text, again) {
+        if (!again) addUser(text);
         input.value = '';
         input.disabled = send.disabled = true;
         addTyping();
@@ -210,7 +240,10 @@
             body: JSON.stringify({ message: text })
         })
             .then(function (r) { return r.json(); })
-            .then(function (d) { addBot(d.reply || 'Something went wrong. Try again.', d.ok); })
+            .then(function (d) {
+                if (d.reason === 'busy') addBusy(d.reply, d.retry_after, text);
+                else addBot(d.reply || 'Something went wrong. Try again.', d.ok);
+            })
             .catch(function () { addBot('I could not reach the server. Try again in a moment.', false); })
             .finally(function () {
                 input.disabled = send.disabled = false;

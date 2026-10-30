@@ -81,6 +81,20 @@ class ChatbotController extends Controller
 
         $result = $this->assistant->ask($data['message'], $history);
 
+        /* "Giya is catching its breath" is not an answer. Neither it nor the
+           question is kept, so "Ask again" does not leave the question twice
+           in the conversation (or in what the model sees next time). */
+        if (($result['reason'] ?? null) === 'busy') {
+            $question->delete();
+
+            return response()->json([
+                'ok'          => false,
+                'reason'      => 'busy',
+                'retry_after' => $result['retry_after'],
+                'reply'       => $result['reply'],
+            ]);
+        }
+
         $answer = ChatMessage::create([
             'session_id'  => $session->id,
             'sender_type' => 'assistant',

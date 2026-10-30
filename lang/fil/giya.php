@@ -494,6 +494,9 @@ return [
     ],
 
     'chat' => [
+        'busy'           => 'Nagpapahinga sandali si Giya: maraming tanong ang sabay-sabay na dumating. Pakitanong muli pagkalipas ng mga :seconds segundo.',
+        'ask_again'      => 'Itanong muli',
+        'ask_again_in'   => 'Itanong muli sa :s s',
         'title'          => 'Giya AI Assistant',
         'subtitle'       => 'Gabay sa peregrinasyon para sa Metro Cebu',
         'offline'        => 'Offline - sumasagot mula sa mga tala',

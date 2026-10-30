@@ -504,6 +504,9 @@ return [
     ],
 
     'chat' => [
+        'busy'           => 'Giya is catching its breath: a lot of questions came in at once. Please ask again in about :seconds seconds.',
+        'ask_again'      => 'Ask again',
+        'ask_again_in'   => 'Ask again in :s s',
         'title'          => 'Giya AI Assistant',
         'subtitle'       => 'Pilgrimage guide for Metro Cebu',
         'offline'        => 'Offline - answering from records',
