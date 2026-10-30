@@ -368,15 +368,8 @@
 
     <div class="mobile-menu" id="navMobileMenu">
         <div class="mobile-nav-links">
-            <form role="search" action="{{ route('map') }}" method="GET"
-                  style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16)">
-                <i class="bi bi-search" style="color:var(--gold);font-size:.8125rem"></i>
-                <input type="search" name="q"
-                       value="{{ request()->routeIs('map') ? request('q') : '' }}"
-                       placeholder="{{ __('giya.nav.search') }}" autocomplete="off"
-                       aria-label="{{ __('giya.misc.search_ch_aria') }}"
-                       style="flex:1;min-width:0;background:none;border:0;outline:none;color:#fff;font-size:.8125rem">
-            </form>
+            {{-- No search box here: on a phone the map has its own search bar
+                 (Map in this menu opens it). Computers keep the navbar search. --}}
 
             @foreach ($links as $link)
                 <a href="{{ $link['url'] }}"
