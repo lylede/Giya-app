@@ -628,7 +628,7 @@
                 </div>
 
                 <div class="field">
-                    <label class="form-label-sm" for="review-comment">Comment (optional)</label>
+                    <label class="form-label-sm" for="review-comment">{{ __('giya.plan.rate_comment') }}</label>
                     <textarea id="review-comment" name="comment" class="giya-input" rows="3"
                               placeholder="{{ __('giya.profile.comment_ph') }}"></textarea>
                 </div>

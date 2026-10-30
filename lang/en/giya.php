@@ -261,6 +261,17 @@ return [
     ],
 
     'plan' => [
+        'rate_stars' => ':n star(s)',
+        'rate_note_title' => 'How was your :trip?',
+        'rate_note_body' => 'Rate the churches you visited.',
+        'rate_title' => 'Pilgrimage complete',
+        'rate_ask' => 'How was each church?',
+        'rate_comment' => 'Comment (optional)',
+        'rate_later' => 'Later',
+        'rate_send' => 'Send ratings',
+        'rate_thanks' => 'Thank you! Your ratings help other pilgrims.',
+        'rate_need_one' => 'Give at least one church a star rating.',
+        'rate_progress' => ':done of :total churches visited',
         'arrive_note_title' => 'You have arrived at :church',
         'arrive_note_next'  => 'Marked as visited. Next: :next',
         'arrive_note_last'  => 'Marked as visited. That was the last stop of :trip.',

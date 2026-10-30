@@ -14,12 +14,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * Three former columns are now derived, so existing Blade keeps working:
  *   $church->category      -> the category NAME (relation is churchCategory)
  *   $church->image_url     -> the primary ChurchImages row
- *   $church->rating        -> average of approved Feedback
+ *   $church->rating        -> average star rating (Pending and Approved; not Flagged)
  *   $church->daily_visits  -> VisitHistory count over the last 30 days
  *   $church->mass_schedule -> recurring rows from Schedules
  */
 class Church extends Model
 {
+    /* Stars count as soon as they are given; a written comment waits for an
+       admin before it is shown (Feedback::approved). Flagged never counts. */
+    public const RATED = ['Approved', 'Pending'];
+
     protected $table = 'churches';
 
     public $timestamps = false;
@@ -135,7 +139,7 @@ class Church extends Model
     public function scopeOrderByRating(Builder $query, string $direction = 'desc'): Builder
     {
         return $query
-            ->withAvg(['feedback as avg_rating' => fn ($q) => $q->where('status', 'Approved')], 'rating')
+            ->withAvg(['feedback as avg_rating' => fn ($q) => $q->whereIn('status', self::RATED)], 'rating')
             ->orderByRaw('avg_rating '.($direction === 'asc' ? 'asc NULLS FIRST' : 'desc NULLS LAST'));
     }
 
@@ -173,7 +177,7 @@ class Church extends Model
     public function getRatingAttribute(): float
     {
         return round((float) $this->feedback()
-            ->where('status', 'Approved')
+            ->whereIn('status', self::RATED)
             ->whereNotNull('rating')
             ->avg('rating'), 2);
     }

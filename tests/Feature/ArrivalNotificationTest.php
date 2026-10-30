@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Church;
 use App\Models\ChurchCategory;
+use App\Models\Feedback;
 use App\Models\Itinerary;
 use App\Models\ItineraryStop;
 use App\Models\ItineraryType;
@@ -87,5 +88,68 @@ class ArrivalNotificationTest extends TestCase
         $this->actingAs($this->user)->postJson(route('plan.stop.visited'), ['stop_id' => $this->stops[0]->id, 'undo' => true])->assertOk();
 
         $this->assertSame(0, Notification::count());
+    }
+
+    /* ── Rate your pilgrimage ─────────────────────────────────────────── */
+
+    private function finishTrip(): void
+    {
+        foreach ($this->stops as $stop) {
+            $this->actingAs($this->user)->postJson(route('plan.stop.visited'), ['stop_id' => $stop->id]);
+        }
+    }
+
+    public function test_finishing_a_trip_leaves_a_rate_reminder_in_the_bell(): void
+    {
+        $this->finishTrip();
+
+        $note = Notification::where('dedupe_key', 'rate:'.$this->stops[0]->itinerary_id)->sole();
+        $this->assertSame(__('giya.plan.rate_note_title', ['trip' => 'Liloan Pilgrimage']), $note->title);
+        $this->assertStringContainsString('rate=1', $note->url);
+
+        // The link opens the trip with the rating sheet ready.
+        $html = $this->actingAs($this->user)->get($note->url)->assertOk()->getContent();
+        $this->assertStringContainsString('id="rateModal"', $html);
+        $this->assertStringContainsString('if (true) setTimeout(openRate', $html);
+    }
+
+    public function test_ratings_are_saved_stars_count_at_once_and_comments_wait(): void
+    {
+        $this->finishTrip();
+        $trip = $this->stops[0]->itinerary_id;
+
+        $this->actingAs($this->user)->postJson(route('plan.ratings', $trip), ['ratings' => [
+            $this->stops[0]->id => ['rating' => 5, 'comment' => ''],
+            $this->stops[1]->id => ['rating' => 3, 'comment' => 'Crowded but beautiful.'],
+        ]])->assertOk()->assertJsonPath('saved', 2);
+
+        $this->assertSame('Approved', Feedback::where('church_id', $this->stops[0]->church_id)->value('status'), 'Stars only: shown at once.');
+        $this->assertSame('Pending', Feedback::where('church_id', $this->stops[1]->church_id)->value('status'), 'A comment waits for an admin.');
+
+        // The stars already count on the church.
+        $this->assertSame(3.0, (float) $this->stops[1]->church->fresh()->rating);
+
+        // And the reminder has gone from the bell.
+        $this->assertSame(0, Notification::where('dedupe_key', 'rate:'.$trip)->count());
+
+        // Rating again updates rather than duplicates.
+        $this->actingAs($this->user)->postJson(route('plan.ratings', $trip), ['ratings' => [
+            $this->stops[0]->id => ['rating' => 4],
+        ]])->assertOk();
+        $this->assertSame(2, Feedback::count());
+        $this->assertSame(4, Feedback::where('church_id', $this->stops[0]->church_id)->value('rating'));
+    }
+
+    public function test_someone_else_cannot_rate_your_trip(): void
+    {
+        $this->finishTrip();
+        $other = User::create([
+            'name' => 'Other', 'email' => 'other@example.com', 'password_hash' => bcrypt('secret'),
+            'role' => 'devotee', 'status' => 'Active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->actingAs($other)->postJson(route('plan.ratings', $this->stops[0]->itinerary_id), ['ratings' => [
+            $this->stops[0]->id => ['rating' => 1],
+        ]])->assertForbidden();
     }
 }

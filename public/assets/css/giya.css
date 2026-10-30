@@ -6647,3 +6647,22 @@ body.has-plan-modal { overflow: hidden; }
 /* While "You have arrived" is showing, the Giya AI button steps aside so it
    never covers "Not yet" (the undo). */
 body:has(#arriveToast.is-open) .giya-fab { opacity: 0; pointer-events: none; }
+
+/* ══ Rate your pilgrimage ══ */
+.rate-box { width: min(480px, 100%); }
+.rate-done-icon { color: #3E8E5A; }
+.rate-ask { font-weight: 700; font-size: .875rem; margin: 0 0 8px; color: var(--text); }
+.rate-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+.rate-item { padding: 10px 12px; border: 1px solid var(--border); border-radius: 14px; }
+.rate-name { font-weight: 700; font-size: .875rem; margin: 0 0 4px; color: var(--text); }
+.rate-stars { display: flex; gap: 4px; margin-bottom: 6px; }
+.rate-star {
+  border: 0; background: none; padding: 0 2px; cursor: pointer;
+  font-size: 1.75rem; line-height: 1; color: #D9CFC4;
+}
+.rate-star.is-on { color: #D7A94A; }
+.rate-comment { width: 100%; font-size: 16px; min-height: 40px; resize: vertical; }
+.rate-error { color: var(--danger, #B42318); font-size: .8125rem; margin: 0 0 8px; }
+.rate-thanks { text-align: center; padding: 8px 0 0; }
+.rate-thanks .rate-done-icon { font-size: 2.5rem; }
+.rate-thanks p { margin: 8px 0 16px; color: var(--text); }

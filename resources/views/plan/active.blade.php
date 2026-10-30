@@ -205,6 +205,33 @@
              from the sidebar. Both are where the devotee is already looking. --}}
     </div>
 </div>
+
+{{-- "Rate your pilgrimage": opens after the last stop, or from the bell's
+     reminder (?rate=1). Stars for each church visited, an optional comment,
+     all sent together. "Later" keeps the reminder in the bell. --}}
+<div class="plan-modal" id="rateModal" hidden role="dialog" aria-modal="true" aria-labelledby="rateTitle">
+    <div class="plan-modal-box rate-box">
+        <div id="rateForm">
+            <h2 class="plan-modal-title" id="rateTitle"><i class="bi bi-check-circle-fill rate-done-icon"></i> {{ __('giya.plan.rate_title') }}</h2>
+            <p class="plan-modal-sub">{{ $itinerary->name }} &middot; <span id="rateProgress"></span></p>
+            <p class="rate-ask">{{ __('giya.plan.rate_ask') }}</p>
+            <div id="rateList" class="rate-list"></div>
+            <p class="rate-error" id="rateError" hidden>{{ __('giya.plan.rate_need_one') }}</p>
+            <div class="plan-modal-actions">
+                <button type="button" class="btn btn-ghost" data-rate-later>{{ __('giya.plan.rate_later') }}</button>
+                <button type="button" class="btn btn-primary" id="rateSend"><i class="bi bi-star-fill"></i> {{ __('giya.plan.rate_send') }}</button>
+            </div>
+        </div>
+        <div id="rateThanks" class="rate-thanks" hidden>
+            <i class="bi bi-check-circle-fill rate-done-icon"></i>
+            <p>{{ __('giya.plan.rate_thanks') }}</p>
+            <div class="plan-modal-actions">
+                <button type="button" class="btn btn-ghost" data-rate-later>{{ __('giya.plan.stay_here') }}</button>
+                <a class="btn btn-primary" href="{{ route('plan.index') }}">{{ __('giya.plan.view_itin') }}</a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -737,15 +764,10 @@ const GiyaActive = (function () {
             // The bell shows the "You have arrived" note straight away.
             if (auto && window.GiyaNotifications) window.GiyaNotifications.refresh();
             if (data.all_done) {
-                setTimeout(function () {
-                    GiyaConfirm.ask({
-                        title: @json(__('giya.plan.done_title')),
-                        message: @json(__('giya.plan.done_body')),
-                        ok: @json(__('giya.plan.view_itin')),
-                        cancel: @json(__('giya.plan.stay_here')),
-                        tone: 'primary'
-                    }).then(function (go) { if (go) window.location = doneUrl; });
-                }, 350);
+                // The last stop: ask how each church was, instead of only
+                // offering the list of itineraries.
+                setTimeout(openRate, 350);
+                if (window.GiyaNotifications) window.GiyaNotifications.refresh();
             }
         })
         .catch(function () {
@@ -759,6 +781,117 @@ const GiyaActive = (function () {
         });
     }
 
+    /* ---- "Rate your pilgrimage" ---- */
+    const rateModal = document.getElementById('rateModal');
+    const rateUrl   = @js(route('plan.ratings', $itinerary));
+    const GIVEN     = @json($stops->mapWithKeys(fn ($s) => [$s->id => ($given[$s->church_id] ?? null) ? ['rating' => $given[$s->church_id]->rating, 'comment' => $given[$s->church_id]->comment] : null]));
+    const STAR_LABEL = @json(__('giya.plan.rate_stars'));
+    const COMMENT_PH = @json(__('giya.plan.rate_comment'));
+    const PROGRESS   = @json(__('giya.plan.rate_progress', ['done' => ':done', 'total' => ':total']));
+    const picked = {};
+
+    function escapeHtml(v) {
+        return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function starsHtml(id, value) {
+        let out = '<div class="rate-stars" role="radiogroup" data-stars="' + id + '">';
+        for (let n = 1; n <= 5; n++) {
+            out += '<button type="button" class="rate-star' + (n <= value ? ' is-on' : '') + '" role="radio"' +
+                   ' aria-checked="' + (n === value) + '" data-star="' + n + '"' +
+                   ' aria-label="' + escapeHtml(STAR_LABEL.replace(':n', n)) + '">★</button>';
+        }
+        return out + '</div>';
+    }
+
+    function openRate() {
+        if (!rateModal) return;
+        const done = stops.filter(function (s) { return visited.has(s.id); });
+
+        document.getElementById('rateProgress').textContent =
+            PROGRESS.replace(':done', done.length).replace(':total', stops.length);
+
+        document.getElementById('rateList').innerHTML = done.map(function (s) {
+            const g = GIVEN[s.id] || {};
+            if (g.rating && !picked[s.id]) picked[s.id] = g.rating;
+            return '<div class="rate-item">' +
+                '<p class="rate-name">' + escapeHtml(s.name) + '</p>' +
+                starsHtml(s.id, picked[s.id] || 0) +
+                '<textarea class="giya-input rate-comment" rows="1" maxlength="2000" data-comment="' + s.id + '"' +
+                ' placeholder="' + escapeHtml(COMMENT_PH) + '">' + escapeHtml(g.comment || '') + '</textarea>' +
+            '</div>';
+        }).join('');
+
+        document.getElementById('rateForm').hidden = false;
+        document.getElementById('rateThanks').hidden = true;
+        document.getElementById('rateError').hidden = true;
+        rateModal.hidden = false;
+        document.body.classList.add('has-plan-modal');
+    }
+
+    function closeRate() {
+        rateModal.hidden = true;
+        document.body.classList.remove('has-plan-modal');
+    }
+
+    if (rateModal) {
+        rateModal.addEventListener('click', function (e) {
+            if (e.target.closest('[data-rate-later]') || e.target === rateModal) { closeRate(); return; }
+
+            const star = e.target.closest('[data-star]');
+            if (star) {
+                const group = star.closest('[data-stars]');
+                const id = Number(group.dataset.stars), n = Number(star.dataset.star);
+                picked[id] = n;
+                group.querySelectorAll('[data-star]').forEach(function (b) {
+                    const k = Number(b.dataset.star);
+                    b.classList.toggle('is-on', k <= n);
+                    b.setAttribute('aria-checked', String(k === n));
+                });
+                document.getElementById('rateError').hidden = true;
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !rateModal.hidden) closeRate();
+        });
+
+        document.getElementById('rateSend').addEventListener('click', function () {
+            const ratings = {};
+            Object.keys(picked).forEach(function (id) {
+                const box = rateModal.querySelector('[data-comment="' + id + '"]');
+                ratings[id] = { rating: picked[id], comment: box ? box.value : '' };
+            });
+
+            if (!Object.keys(ratings).length) {
+                document.getElementById('rateError').hidden = false;
+                return;
+            }
+
+            const btn = this;
+            btn.disabled = true;
+
+            fetch(rateUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
+                body: JSON.stringify({ ratings: ratings }),
+            })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
+            .then(function () {
+                Object.keys(ratings).forEach(function (id) { GIVEN[id] = ratings[id]; });
+                document.getElementById('rateForm').hidden = true;
+                document.getElementById('rateThanks').hidden = false;
+                if (window.GiyaNotifications) window.GiyaNotifications.refresh();
+            })
+            .catch(function () { document.getElementById('rateError').hidden = false; })
+            .finally(function () { btn.disabled = false; });
+        });
+
+        // Arriving from the bell's "Rate the churches".
+        if (@json($rateNow)) setTimeout(openRate, 300);
+    }
+
     render();
 
     return {
@@ -769,6 +902,8 @@ const GiyaActive = (function () {
             if (cur) mark(cur.id);
         },
     };
+
+
 })();
 </script>
 @endpush

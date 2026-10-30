@@ -251,6 +251,17 @@ return [
     ],
 
     'plan' => [
+        'rate_stars' => ':n bituin',
+        'rate_note_title' => 'Kumusta ang iyong :trip?',
+        'rate_note_body' => 'I-rate ang mga simbahang binisita mo.',
+        'rate_title' => 'Tapos na ang peregrinasyon',
+        'rate_ask' => 'Kumusta ang bawat simbahan?',
+        'rate_comment' => 'Komento (opsyonal)',
+        'rate_later' => 'Mamaya',
+        'rate_send' => 'Ipadala ang rating',
+        'rate_thanks' => 'Salamat! Nakatutulong ang iyong rating sa ibang peregrino.',
+        'rate_need_one' => 'Bigyan ng star rating ang kahit isang simbahan.',
+        'rate_progress' => ':done sa :total simbahan ang nabisita',
         'arrive_note_title' => 'Nakarating ka na sa :church',
         'arrive_note_next'  => 'Naitala bilang nabisita. Susunod: :next',
         'arrive_note_last'  => 'Naitala bilang nabisita. Iyan ang huling hinto ng :trip.',
