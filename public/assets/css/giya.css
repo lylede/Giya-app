@@ -2631,6 +2631,23 @@ html[data-theme="dark"] .giya-cluster span { border-color: #2E241E; }
 .leaflet-popup-content-wrap { border-radius: 14px; }
 .leaflet-popup-content { margin: 12px 13px; }
 
+/* Compact popup for a short (phone) map: about 120px tall instead of 280px,
+   so it opens inside the map. Photo beside the name, actions in one row. */
+.giya-popup-compact .leaflet-popup-content { margin: 9px 10px; width: 236px !important; }
+.giya-popup-compact .giya-popup {
+  display: grid; grid-template-columns: 52px 1fr; column-gap: 9px; align-items: start;
+}
+.giya-popup-compact .giya-popup img {
+  grid-row: 1 / span 2; width: 52px; height: 52px; margin: 0; border-radius: 9px;
+}
+.giya-popup-compact .giya-popup strong { font-size: .8125rem; line-height: 1.25; align-self: end; }
+.giya-popup-compact .giya-popup > span:nth-of-type(n+2) { display: none; }  /* hours: on the details page */
+.giya-popup-compact .giya-popup .giya-popup-row {
+  grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 8px;
+}
+.giya-popup-compact .giya-popup .giya-popup-btn { margin-top: 0; padding: 8px 2px; font-size: .65rem; }
+.giya-popup-compact .giya-popup .giya-popup-row .giya-popup-btn { width: 100%; }
+
 /* Map shells */
 .giya-map-canvas {
   height: 520px; border-radius: var(--radius-xl);
