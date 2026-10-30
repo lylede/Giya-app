@@ -336,6 +336,11 @@ window.GiyaLeaflet = (function () {
         return L.markerClusterGroup({
             maxClusterRadius: 45,          // px; raise to group more, lower to group less
             showCoverageOnHover: false,
+            /* Keep pins that slide off screen. The default drops them, and
+               dropping the pin closes its popup - on a phone the popup pans
+               the map to fit, its own pin slides off the bottom edge, and
+               the details vanished the moment they opened. */
+            removeOutsideVisibleBounds: false,
             spiderfyOnMaxZoom: true,       // fans out churches that share a spot
             disableClusteringAtZoom: 16,   // street level: every church on its own
             iconCreateFunction: function (cluster) {
@@ -413,7 +418,11 @@ window.GiyaLeaflet = (function () {
 
         churches.forEach(function (c) {
             var m = L.marker([c.lat, c.lng], { icon: churchDot(c), title: c.name })
-                .bindPopup(popupHtml(c))
+                .bindPopup(popupHtml(c), {
+                    autoPanPadding: [10, 10],
+                    maxWidth: 260,
+                    className: compactPopups() ? 'giya-popup-compact' : ''
+                })
                 .addTo(group);
 
             m.on('click', function () { if (cfg.onSelect) cfg.onSelect(c.id); });
@@ -427,12 +436,20 @@ window.GiyaLeaflet = (function () {
             })).pad(0.18));
         }
 
+        /* A short map (a phone) gets the compact popup: photo beside the
+           name and the actions in one row, so the whole popup fits inside
+           the map instead of being taller than it. */
+        function compactPopups() {
+            return map.getContainer().clientHeight < 420;
+        }
+
         function popupHtml(c) {
             return '<div class="giya-popup">' +
                 (c.image ? '<img src="' + escapeHtml(c.image) + '" alt="">' : '') +
                 '<strong>' + escapeHtml(c.name) + '</strong>' +
                 '<span>' + escapeHtml(c.category || '') + ' &middot; ' + escapeHtml(c.location || '') + '</span>' +
                 (c.hours ? '<span>' + escapeHtml(c.hours) + '</span>' : '') +
+                '<div class="giya-popup-row">' +
                 (c.details
                     ? '<a class="giya-popup-btn is-secondary" href="' + escapeHtml(c.details) + '"' +
                           ' data-details="' + escapeHtml(c.details) + '"' +
@@ -442,6 +459,7 @@ window.GiyaLeaflet = (function () {
                         ' onclick="GiyaLeaflet.directionsTo(' + c.id + ')">' + escapeHtml(say(cfg, 'directions')) + '</button>' +
                 '<button type="button" class="giya-popup-btn is-secondary"' +
                         ' onclick="GiyaLeaflet.addStop(' + c.id + ')">' + escapeHtml(say(cfg, 'addToRoute')) + '</button>' +
+                '</div>' +
                 '</div>';
         }
 
