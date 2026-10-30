@@ -1803,7 +1803,10 @@ img.gs-img.is-loaded { background: none; animation: none; }
      --ap-sheet lives on the document element, not on the layout, because the
      chat button is not inside it - and the fallback is the closed height, so
      both of these are right before a single line of script has run. */
-  .active-layout .ap-summary { bottom: calc(var(--ap-sheet, 196px) + 12px); }
+  /* The map already ends at the sheet's top (see .map-wrap above), so the
+     pill sits just above the map's own bottom edge. Adding the sheet's
+     height again floated it into the middle of the route. */
+  .active-layout .ap-summary { bottom: 30px; }   /* clear of the map credits */
   body:has(.active-layout) .giya-fab { bottom: calc(var(--ap-sheet, 196px) + 14px); }
 
   /* The legend goes to one line here - three stacked labels were taking a
@@ -6619,3 +6622,24 @@ body.has-plan-modal { overflow: hidden; }
   .plan-modal { align-items: flex-end; padding: 0; }
   .plan-modal-box { width: 100%; border-radius: 20px 20px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 }
+
+/* ══ Active pilgrimage: distance pill fades; notes in a bar along the top ══ */
+.ap-summary { transition: opacity .4s ease; }
+.ap-summary:empty { display: none; }
+.ap-summary.is-quiet { opacity: 0; pointer-events: none; }
+
+.ap-notice {
+  position: absolute; z-index: 650; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px 8px 12px;
+  background: #FFF4E5; color: #6B3A10;
+  border-bottom: 1px solid #F1D7B3;
+  font-size: .75rem; line-height: 1.35;
+  box-shadow: 0 2px 6px rgba(36,28,24,.12);
+}
+.ap-notice[hidden] { display: none !important; }
+.ap-notice span { flex: 1; min-width: 0; }
+.ap-notice-close { border: 0; background: none; color: inherit; font-size: 1.1rem; line-height: 1; padding: 2px 4px; }
+/* The legend and the map buttons move down below the bar while it shows. */
+.active-layout.has-notice .ap-legend,
+.active-layout.has-notice .map-tools { top: calc(var(--ap-notice-h, 48px) + 8px); }
