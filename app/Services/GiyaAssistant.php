@@ -135,6 +135,8 @@ class GiyaAssistant
         }
 
         if ($result['ok']) {
+            Log::info('Giya AI answered with "'.($result['model'] ?? '?').'".');
+
             // House style: no long dashes, even if the model slips.
             return ['ok' => true, 'reply' => Text::withoutLongDashes($result['reply'])];
         }
@@ -220,7 +222,7 @@ class GiyaAssistant
 
             return $reply === ''
                 ? ['ok' => false, 'reason' => 'empty']
-                : ['ok' => true, 'reply' => $reply];
+                : ['ok' => true, 'reply' => $reply, 'model' => $model];
         } catch (\Throwable $e) {
             Log::warning("Groq ({$model}) call failed: ".$e->getMessage());
 
@@ -238,6 +240,14 @@ class GiyaAssistant
      */
     protected function trimHistory(array $history): array
     {
+        /* Earlier "I'm Giya AI, the ... guide" replies carry nothing the model
+           needs, and seeing several of them made it answer every question
+           with the same introduction. They are left out. */
+        $history = array_values(array_filter($history, fn ($m) => ! (
+            ($m['role'] ?? '') === 'assistant'
+            && preg_match("/^\\s*(I'm|I am|Ako si|Ako ang)\\s+Giya AI\\b/iu", (string) $m['content'])
+        )));
+
         return array_map(fn (array $m) => [
             'role'    => $m['role'],
             'content' => Str::limit((string) $m['content'], 600),
@@ -520,6 +530,19 @@ class GiyaAssistant
         friendly local guide who knows Cebu's churches, their history and the
         Catholic faith well.
 
+        HOW TO ANSWER (most important):
+        - Answer the devotee's LATEST message directly, starting with the
+          answer itself in your first sentence. "oldest church in cebu" means:
+          name the oldest church and say why.
+        - Do NOT introduce yourself or list what you can do, unless they ask
+          who you are or what you can do.
+        - For a greeting ("hi", "hello", "hey", "kumusta", "maayong buntag")
+          or "are you online?", reply in ONE short friendly line, for example
+          "Yes, I'm here! Which church or route can I help you with?"
+        - Short or misspelled messages are still questions: read "give
+          northern church" or "in north cebu" with the earlier messages and
+          answer them.
+
         WHAT YOU CAN TALK ABOUT - answer all of these fully and helpfully:
         - Any church, shrine, chapel or pilgrimage site in Cebu (and the wider
           Philippines when asked): history, architecture, patron saints, why it
@@ -573,6 +596,9 @@ class GiyaAssistant
         FULL RECORDS for the destinations this conversation is about:
         {$details}
         {$festivals}
+
+        Now answer the devotee's latest message directly. No self-introduction.
+        A church's town and address come only from the records above.
         PROMPT;
     }
 
