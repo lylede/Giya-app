@@ -261,6 +261,9 @@ return [
     ],
 
     'plan' => [
+        'arrive_note_title' => 'You have arrived at :church',
+        'arrive_note_next'  => 'Marked as visited. Next: :next',
+        'arrive_note_last'  => 'Marked as visited. That was the last stop of :trip.',
         'name_trip'      => 'Name your pilgrimage',
         'save_start'     => 'Save & start',
         'default_name'   => ':town Pilgrimage',

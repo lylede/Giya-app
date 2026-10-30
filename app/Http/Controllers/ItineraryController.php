@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Church;
 use App\Models\Itinerary;
 use App\Models\ItineraryStop;
+use App\Models\Notification;
 use App\Models\ItineraryType;
 use App\Models\User;
 use App\Models\VisitHistory;
@@ -216,6 +217,7 @@ class ItineraryController extends Controller
         $data = $request->validate([
             'stop_id' => ['required', 'integer', 'exists:itinerary_stops,id'],
             'undo'    => ['nullable', 'boolean'],
+            'auto'    => ['nullable', 'boolean'],
         ]);
 
         $stop = ItineraryStop::with('itinerary')->findOrFail($data['stop_id']);
@@ -237,6 +239,11 @@ class ItineraryController extends Controller
                     ->where('church_id', $stop->church_id)
                     ->latest('visited_at')
                     ->limit(1)
+                    ->delete();
+
+                // And the "You've arrived" note it left in the bell.
+                Notification::where('user_id', Auth::id())
+                    ->where('dedupe_key', 'arrive:'.$stop->id)
                     ->delete();
             });
 
@@ -275,7 +282,42 @@ class ItineraryController extends Controller
             return true;
         });
 
+        /* An automatic check-in (the devotee walked up to the church while
+           the pilgrimage screen was open) also leaves a note in the bell, so
+           someone who was praying with the phone in a pocket can see later
+           that it was recorded - and what is next. */
+        if ($request->boolean('auto')) {
+            $this->notifyArrival($stop, $allDone);
+        }
+
         return response()->json(['ok' => true, 'all_done' => $allDone]);
+    }
+
+    private function notifyArrival(ItineraryStop $stop, bool $allDone): void
+    {
+        $stop->loadMissing('itinerary', 'church');
+        $church = $stop->church?->name ?? __('giya.map.this_church');
+
+        $next = $allDone ? null : ItineraryStop::with('church')
+            ->where('itinerary_id', $stop->itinerary_id)
+            ->where('is_visited', false)
+            ->orderBy('stop_order')
+            ->first();
+
+        Notification::where('user_id', Auth::id())->where('dedupe_key', 'arrive:'.$stop->id)->delete();
+
+        Notification::create([
+            'user_id'    => Auth::id(),
+            'type'       => 'itinerary',
+            'title'      => __('giya.plan.arrive_note_title', ['church' => $church]),
+            'message'    => $allDone
+                ? __('giya.plan.arrive_note_last', ['trip' => $stop->itinerary->name])
+                : __('giya.plan.arrive_note_next', ['next' => $next?->church?->name ?? '']),
+            'url'        => route('plan.show', $stop->itinerary_id),
+            'dedupe_key' => 'arrive:'.$stop->id,
+            'is_read'    => false,
+            'created_at' => now(),
+        ]);
     }
 
     public function destroy(Itinerary $itinerary): RedirectResponse

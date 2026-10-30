@@ -246,7 +246,7 @@ const GiyaActive = (function () {
         box.classList.add('is-open');
         box.dataset.stop = stop.id;
 
-        mark(stop.id);          // record it; the toast offers an undo
+        mark(stop.id, true);    // record it (and leave a note in the bell); the toast offers an undo
 
         clearTimeout(announceArrival._t);
         announceArrival._t = setTimeout(function () {
@@ -284,10 +284,13 @@ const GiyaActive = (function () {
         layoutEl && layoutEl.style.setProperty('--ap-notice-h', noticeEl.offsetHeight + 'px');
     }
 
-    document.getElementById('apNoticeClose').addEventListener('click', function () {
+    function hideNotice() {
+        if (!noticeEl || noticeEl.hidden) return;
         noticeEl.hidden = true;
         layoutEl && layoutEl.classList.remove('has-notice');
-    });
+    }
+
+    document.getElementById('apNoticeClose').addEventListener('click', hideNotice);
 
     const liveMap = GiyaLeaflet.pilgrimage({
         element: 'activeMap',
@@ -309,6 +312,7 @@ const GiyaActive = (function () {
             if (kind === 'error') showNotice(message);
         },
         onLocated: function (here, next, distanceKm) {
+            hideNotice();   // a fresh fix: "could not follow your location" is no longer true
             showSummary(@json(__('giya.plan.km_to', ['km' => ':km', 'name' => ':name']))
                 .replace(':km', distanceKm.toFixed(1)).replace(':name', next.name));
         },
@@ -703,6 +707,9 @@ const GiyaActive = (function () {
                 'Accept': 'application/json',
             },
             body: JSON.stringify({ stop_id: stopId, undo: true }),
+        }).then(function () {
+            // The arrival note leaves the bell with the undo.
+            if (window.GiyaNotifications) window.GiyaNotifications.refresh();
         }).catch(function () {
             // Put it back if the server did not accept the undo.
             visited.add(stopId);
@@ -710,7 +717,7 @@ const GiyaActive = (function () {
         });
     }
 
-    function mark(stopId) {
+    function mark(stopId, auto) {
         if (visited.has(stopId)) return;
 
         fetch(markUrl, {
@@ -720,12 +727,15 @@ const GiyaActive = (function () {
                 'X-CSRF-TOKEN': csrf,
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ stop_id: stopId }),
+            body: JSON.stringify(auto ? { stop_id: stopId, auto: true } : { stop_id: stopId }),
         })
         .then(response => response.ok ? response.json() : Promise.reject(response))
         .then(function (data) {
             visited.add(stopId);
             render();
+
+            // The bell shows the "You have arrived" note straight away.
+            if (auto && window.GiyaNotifications) window.GiyaNotifications.refresh();
             if (data.all_done) {
                 setTimeout(function () {
                     GiyaConfirm.ask({

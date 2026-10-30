@@ -251,6 +251,9 @@ return [
     ],
 
     'plan' => [
+        'arrive_note_title' => 'Nakarating ka na sa :church',
+        'arrive_note_next'  => 'Naitala bilang nabisita. Susunod: :next',
+        'arrive_note_last'  => 'Naitala bilang nabisita. Iyan ang huling hinto ng :trip.',
         'name_trip'      => 'Pangalanan ang iyong peregrinasyon',
         'save_start'     => 'I-save at simulan',
         'default_name'   => 'Peregrinasyon sa :town',
