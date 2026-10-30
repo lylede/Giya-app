@@ -53,6 +53,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/home',    [HomeController::class, 'index'])->name('home');
 Route::get('/search/churches', [HomeController::class, 'search'])->name('search.churches');
     Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot');
+    Route::get('/chatbot/history', [ChatbotController::class, 'history'])->name('chatbot.history');
     Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->name('chatbot.send');
     Route::post('/chatbot/reset', [ChatbotController::class, 'reset'])->name('chatbot.reset');
 

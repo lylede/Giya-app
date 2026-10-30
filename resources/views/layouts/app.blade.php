@@ -33,6 +33,7 @@
         <button type="button" class="giya-fab" id="giyaFab"
                 aria-label="{{ __('giya.home.card_ask') }}" aria-expanded="false" aria-controls="giyaPanel"
                 data-send-url="{{ route('chatbot.send') }}"
+                data-history-url="{{ route('chatbot.history') }}"
                 data-ask-again="{{ __('giya.chat.ask_again') }}"
                 data-ask-again-in="{{ __('giya.chat.ask_again_in', ['s' => ':s']) }}">
             {{-- The assistant's own head, reused exactly: same classes, same
