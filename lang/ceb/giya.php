@@ -251,6 +251,9 @@ return [
     ],
 
     'plan' => [
+        'arrive_note_title' => 'Nakaabot ka na sa :church',
+        'arrive_note_next'  => 'Namarkahan nga nabisitahan. Sunod: :next',
+        'arrive_note_last'  => 'Namarkahan nga nabisitahan. Mao na ang katapusang hunong sa :trip.',
         'name_trip'      => 'Hatagi og ngalan ang imong panaw',
         'save_start'     => 'I-save ug sugdi',
         'default_name'   => 'Panaw sa :town',

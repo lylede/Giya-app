@@ -141,6 +141,10 @@
 
     load(true).then(startPolling);
 
+    /* For pages that just created a notification (an automatic check-in on
+       the pilgrimage screen), so the bell does not wait for the next poll. */
+    window.GiyaNotifications = { refresh: function () { return load(true); } };
+
     bell.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();

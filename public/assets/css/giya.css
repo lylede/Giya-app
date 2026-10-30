@@ -6643,3 +6643,7 @@ body.has-plan-modal { overflow: hidden; }
 /* The legend and the map buttons move down below the bar while it shows. */
 .active-layout.has-notice .ap-legend,
 .active-layout.has-notice .map-tools { top: calc(var(--ap-notice-h, 48px) + 8px); }
+
+/* While "You have arrived" is showing, the Giya AI button steps aside so it
+   never covers "Not yet" (the undo). */
+body:has(#arriveToast.is-open) .giya-fab { opacity: 0; pointer-events: none; }
