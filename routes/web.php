@@ -84,6 +84,7 @@ Route::get('/search/churches', [HomeController::class, 'search'])->name('search.
         Route::post('/',               'store')->name('store');
         Route::post('/stop/visited',   'markVisited')->name('stop.visited');
         Route::get('/{itinerary}',     'show')->name('show');
+        Route::post('/{itinerary}/ratings', 'storeRatings')->name('ratings');
         Route::delete('/{itinerary}',  'destroy')->name('destroy');
     });
 });

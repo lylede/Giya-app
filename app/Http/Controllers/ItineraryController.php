@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Church;
+use App\Models\Feedback;
 use App\Models\Itinerary;
 use App\Models\ItineraryStop;
 use App\Models\Notification;
@@ -206,10 +207,78 @@ class ItineraryController extends Controller
             $itinerary->update(['status' => 'Active', 'updated_at' => now()]);
         }
 
+        $stops = $itinerary->stops()->with('church')->get();
+
+        // Ratings already given on this trip, so the sheet opens filled in.
+        $given = Feedback::where('user_id', Auth::id())
+            ->whereIn('visit_history_id', VisitHistory::where('user_id', Auth::id())
+                ->where('itinerary_id', $itinerary->id)->pluck('id'))
+            ->get()
+            ->keyBy('church_id');
+
         return view('plan.active', [
             'itinerary' => $itinerary,
-            'stops'     => $itinerary->stops()->with('church')->get(),
+            'stops'     => $stops,
+            'given'     => $given,
+            // From the bell's "Rate the churches", once every stop is visited.
+            'rateNow'   => request()->boolean('rate') && $stops->isNotEmpty() && $stops->every->is_visited,
         ]);
+    }
+
+    /**
+     * The ratings from "Rate your pilgrimage": stars for each church visited
+     * on this trip, with an optional comment. Stars count at once; a comment
+     * waits for an admin before it is shown on the church page.
+     */
+    public function storeRatings(Request $request, Itinerary $itinerary): JsonResponse
+    {
+        Gate::authorize('update', $itinerary);
+
+        $data = $request->validate([
+            'ratings'           => ['required', 'array'],
+            'ratings.*.rating'  => ['nullable', 'integer', 'between:1,5'],
+            'ratings.*.comment' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $saved = 0;
+
+        foreach ($itinerary->stops()->where('is_visited', true)->get() as $stop) {
+            $row = $data['ratings'][$stop->id] ?? null;
+            if (! $row || empty($row['rating'])) {
+                continue;
+            }
+
+            $visit = VisitHistory::where('user_id', Auth::id())
+                ->where('itinerary_id', $itinerary->id)
+                ->where('church_id', $stop->church_id)
+                ->latest('visited_at')
+                ->first();
+
+            if (! $visit) {
+                continue;
+            }
+
+            $comment = trim((string) ($row['comment'] ?? '')) ?: null;
+
+            Feedback::updateOrCreate(
+                ['user_id' => Auth::id(), 'visit_history_id' => $visit->id],
+                [
+                    'church_id'  => $stop->church_id,
+                    'rating'     => (int) $row['rating'],
+                    'comment'    => $comment,
+                    'status'     => $comment ? 'Pending' : 'Approved',
+                    'created_at' => now(),
+                ]
+            );
+            $saved++;
+        }
+
+        // The reminder in the bell has done its job.
+        if ($saved) {
+            Notification::where('user_id', Auth::id())->where('dedupe_key', 'rate:'.$itinerary->id)->delete();
+        }
+
+        return response()->json(['ok' => true, 'saved' => $saved]);
     }
 
     public function markVisited(Request $request): JsonResponse
@@ -288,6 +357,22 @@ class ItineraryController extends Controller
            that it was recorded - and what is next. */
         if ($request->boolean('auto')) {
             $this->notifyArrival($stop, $allDone);
+        }
+
+        /* The last stop: a reminder in the bell to rate the churches, for
+           whoever presses "Later" on the rating sheet or closes the app. */
+        if ($allDone) {
+            Notification::updateOrCreate(
+                ['user_id' => Auth::id(), 'dedupe_key' => 'rate:'.$stop->itinerary_id],
+                [
+                    'type'       => 'feedback',
+                    'title'      => __('giya.plan.rate_note_title', ['trip' => $stop->itinerary->name]),
+                    'message'    => __('giya.plan.rate_note_body'),
+                    'url'        => route('plan.show', ['itinerary' => $stop->itinerary_id, 'rate' => 1]),
+                    'is_read'    => false,
+                    'created_at' => now(),
+                ]
+            );
         }
 
         return response()->json(['ok' => true, 'all_done' => $allDone]);

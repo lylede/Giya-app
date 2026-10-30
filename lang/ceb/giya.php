@@ -251,6 +251,17 @@ return [
     ],
 
     'plan' => [
+        'rate_stars' => ':n ka bituon',
+        'rate_note_title' => 'Kumusta ang imong :trip?',
+        'rate_note_body' => 'I-rate ang mga simbahan nga imong gibisitahan.',
+        'rate_title' => 'Nahuman na ang panaw',
+        'rate_ask' => 'Kumusta ang matag simbahan?',
+        'rate_comment' => 'Komento (opsyonal)',
+        'rate_later' => 'Unya na lang',
+        'rate_send' => 'Ipadala ang rating',
+        'rate_thanks' => 'Salamat! Makatabang ang imong rating sa ubang peregrino.',
+        'rate_need_one' => 'Hatagi og star rating bisan usa ka simbahan.',
+        'rate_progress' => ':done sa :total ka simbahan ang nabisitahan',
         'arrive_note_title' => 'Nakaabot ka na sa :church',
         'arrive_note_next'  => 'Namarkahan nga nabisitahan. Sunod: :next',
         'arrive_note_last'  => 'Namarkahan nga nabisitahan. Mao na ang katapusang hunong sa :trip.',
