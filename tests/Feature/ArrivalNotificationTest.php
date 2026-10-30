@@ -176,7 +176,7 @@ class ArrivalNotificationTest extends TestCase
 
         $this->assertStringContainsString(__('giya.plan.my_title'), $html);
         $this->assertStringContainsString(e(__('giya.hub.you_rated', ['stars' => '4.5'])), $html);
-        $this->assertStringContainsString('id="trip-'.$trip.'" class="card is-highlight"', $html, 'The trip just rated is outlined.');
+        $this->assertStringContainsString('id="trip-'.$trip.'" class="card saved-card is-highlight"', $html, 'The trip just rated is outlined.');
     }
 
     public function test_after_rating_the_button_opens_saved_itineraries(): void

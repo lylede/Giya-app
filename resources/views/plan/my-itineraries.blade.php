@@ -75,9 +75,9 @@
         <h2 class="saved-heading">{{ $heading }} <span>{{ $group->count() }}</span></h2>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" class="itin-grid mb-4">
             @foreach ($group as $itinerary)
-                <article id="trip-{{ $itinerary->id }}" @class(['card', 'is-highlight' => $highlight === $itinerary->id]) style="overflow:hidden">
+                <article id="trip-{{ $itinerary->id }}" @class(['card', 'saved-card', 'is-highlight' => $highlight === $itinerary->id]) style="overflow:hidden">
                     <div style="height:6px;background:{{ $itinerary->type === 'Visita Iglesia' ? 'var(--gold)' : 'var(--primary)' }}"></div>
-                    <div style="padding:20px">
+                    <div class="saved-card-body">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <span class="badge badge-brown">
                                 <i class="bi bi-{{ $itinerary->type === 'Visita Iglesia' ? 'giya-seven' : 'giya-route' }}"></i>
@@ -134,7 +134,9 @@
                             </div>
                         @endif
 
-                        <div class="d-flex gap-2" style="padding-top:14px;border-top:1px solid var(--border-light)">
+                        {{-- Pinned to the bottom, so the buttons line up across a row
+                             whatever each card holds above them. --}}
+                        <div class="d-flex gap-2 saved-card-actions">
                             <a href="{{ route('plan.show', $itinerary) }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">
                                 {{ $itinerary->status === 'Completed' ? __('giya.plan.act_view') : ($itinerary->status === 'Active' ? __('giya.plan.act_continue') : __('giya.plan.act_start')) }}
                             </a>
