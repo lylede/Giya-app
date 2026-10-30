@@ -337,4 +337,19 @@ class MapFiltersTest extends TestCase
         $this->assertTrue(Church::major()->whereKey($church->id)->exists());
         $this->assertFalse(Church::featured()->whereKey($church->id)->exists());
     }
+
+    /** A church an admin published is in the list even before it has a pin; a Draft is not. */
+    public function test_published_churches_without_a_pin_are_still_listed(): void
+    {
+        $this->church('Pinless Parish', 'Church', 'Liloan', ['latitude' => null, 'longitude' => null]);
+        $this->church('Draft Parish', 'Church', 'Liloan', ['is_active' => false]);
+
+        $html = $this->actingAs($this->devotee())->get(route('map'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('Pinless Parish', $html);
+        $this->assertMatchesRegularExpression('/"name":"Pinless Parish".*?"lat":null/s', $html);
+        $this->assertStringNotContainsString('Draft Parish', $html, 'A Draft stays hidden until it is published.');
+        $this->assertStringContainsString('data-show-all', $html, 'Major offers the rest of the churches.');
+        $this->assertStringContainsString("if (query && (category === 'Major' || category === 'Near'))", $html, 'A search looks through every church.');
+    }
 }

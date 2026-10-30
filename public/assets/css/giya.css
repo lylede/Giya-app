@@ -6434,3 +6434,8 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
 }
 /* Schedules: "Yearly - 3rd Sunday of January (Jan 17, 2027)" needs room. */
 .sm-table td:nth-child(5) { min-width: 170px; }
+
+/* Map list: a published church with no pin yet, and the "show all" line under Major. */
+.mx-tag.is-nopin { background: #F3E3D3; color: #8E3B2F; }
+.mx-more { margin: 10px 4px 4px; font-size: .85rem; color: var(--text-muted, #6b5b50); text-align: center; }
+.mx-more-btn { background: none; border: 0; padding: 0; color: var(--primary, #8E3B2F); font-weight: 700; text-decoration: underline; cursor: pointer; }
