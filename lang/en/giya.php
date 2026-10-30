@@ -224,6 +224,16 @@ return [
     ],
 
     'hub' => [
+        'in_progress' => 'In progress',
+        'progress' => ':done of :total churches visited',
+        'next' => 'Next: :name',
+        'continue' => 'Continue',
+        'your_trips' => 'Your trips',
+        'manage' => 'Manage trips',
+        'rate' => 'Rate',
+        'st_upcoming' => 'Upcoming',
+        'st_completed' => 'Completed',
+        'stops' => ':count stops',
         'c1_title'     => 'Create Custom Itinerary',
         'c1_badge'     => 'Flexible',
         'c1_desc'      => 'Build a personalised route. Pick destinations, set the date, and order your stops.',

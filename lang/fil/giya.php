@@ -214,6 +214,16 @@ return [
     ],
 
     'hub' => [
+        'in_progress' => 'Kasalukuyan',
+        'progress' => ':done sa :total simbahan ang nabisita',
+        'next' => 'Susunod: :name',
+        'continue' => 'Ituloy',
+        'your_trips' => 'Iyong mga biyahe',
+        'manage' => 'Ayusin ang mga biyahe',
+        'rate' => 'I-rate',
+        'st_upcoming' => 'Paparating',
+        'st_completed' => 'Tapos na',
+        'stops' => ':count hinto',
         'c1_title'     => 'Gumawa ng Sariling Itinerary',
         'c1_badge'     => 'Nababagay',
         'c1_desc'      => 'Gumawa ng sariling ruta. Pumili ng mga destinasyon, itakda ang petsa, at ayusin ang iyong mga hinto.',

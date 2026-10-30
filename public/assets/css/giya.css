@@ -6666,3 +6666,38 @@ body:has(#arriveToast.is-open) .giya-fab { opacity: 0; pointer-events: none; }
 .rate-thanks { text-align: center; padding: 8px 0 0; }
 .rate-thanks .rate-done-icon { font-size: 2.5rem; }
 .rate-thanks p { margin: 8px 0 16px; color: var(--text); }
+
+/* ══ Plan: the trip being walked, two ways to plan, one list of trips ══ */
+.hub-active {
+  display: flex; align-items: center; gap: 14px;
+  margin: 0 0 22px; padding: 16px 18px;
+  border-radius: 18px; text-decoration: none; color: #fff;
+  background: linear-gradient(135deg, var(--primary, #8E3B2F), var(--primary-dark, #6B2416));
+  box-shadow: 0 10px 26px rgba(142,59,47,.28);
+}
+.hub-active:hover { color: #fff; }
+.hub-active-icon {
+  width: 46px; height: 46px; flex: 0 0 46px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.16); font-size: 1.35rem; color: var(--gold, #D7A94A);
+}
+.hub-active-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.hub-active-eyebrow { font-size: .6875rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gold, #D7A94A); }
+.hub-active-name { font-family: var(--font-display); font-size: 1.15rem; line-height: 1.25; }
+.hub-active-meta { font-size: .8125rem; opacity: .88; }
+.hub-active-cta { background: var(--gold, #D7A94A) !important; border-color: var(--gold, #D7A94A) !important; color: #241C18 !important; white-space: nowrap; }
+@media (max-width: 560px) {
+  .hub-active { flex-wrap: wrap; }
+  .hub-active-cta { width: 100%; justify-content: center; }
+}
+.plan-grid.is-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 640px) { .plan-grid.is-two { grid-template-columns: 1fr; } }
+.history-row { position: relative; }
+.history-row .history-item { margin-bottom: 0; }
+.history-row { margin-bottom: 10px; }
+.history-rate {
+  display: inline-flex; align-items: center; gap: 5px; margin: 6px 0 0 62px;
+  font-size: .75rem; font-weight: 700; color: var(--primary, #8E3B2F); text-decoration: none;
+}
+.history-rate i { color: var(--gold, #D7A94A); }
+.hub-manage { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: .8125rem; font-weight: 700; color: var(--primary, #8E3B2F); text-decoration: none; }
