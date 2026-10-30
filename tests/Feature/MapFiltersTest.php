@@ -352,4 +352,16 @@ class MapFiltersTest extends TestCase
         $this->assertStringContainsString('data-show-all', $html, 'Major offers the rest of the churches.');
         $this->assertStringContainsString("if (query && (category === 'Major' || category === 'Near'))", $html, 'A search looks through every church.');
     }
+
+    /** Tapping a pin on a phone must not carry the page down to the list. */
+    public function test_tapping_a_pin_does_not_scroll_the_page(): void
+    {
+        $html = $this->actingAs($this->devotee())->get(route('map'))->assertOk()->getContent();
+
+        $start = strpos($html, 'onSelect: function (id)');
+        $body = substr($html, $start, strpos($html, 'onRoute:', $start) - $start);
+
+        $this->assertStringNotContainsString('scrollIntoView', $body, 'scrollIntoView moves the whole page on a phone.');
+        $this->assertStringContainsString('listBox.scrollTo', $body, 'Only the list scrolls, inside itself.');
+    }
 }

@@ -6439,3 +6439,6 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
 .mx-tag.is-nopin { background: #F3E3D3; color: #8E3B2F; }
 .mx-more { margin: 10px 4px 4px; font-size: .85rem; color: var(--text-muted, #6b5b50); text-align: center; }
 .mx-more-btn { background: none; border: 0; padding: 0; color: var(--primary, #8E3B2F); font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+/* The church the devotee tapped on the map, marked in the list. */
+.mx-row.is-focus { box-shadow: 0 0 0 2px var(--gold, #D7A94A); }

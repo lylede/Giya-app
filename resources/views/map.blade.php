@@ -487,8 +487,24 @@ onLocated: function (me) {
                 : trans('none_within', { km: NEAR_KM }), 'info');
         },
         onSelect: function (id) {
-            const row = document.querySelector('[data-church="' + id + '"]');
-            if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const row = listBox.querySelector('article[data-church="' + id + '"]');
+            if (!row) return;
+
+            /* Mark the church in the list, but never move the page. On a
+               phone the list sits under the map, so scrolling to it carried
+               the devotee away from the popup they had just opened. Only a
+               list that scrolls on its own (beside the map on a computer)
+               is scrolled, inside itself. */
+            listBox.querySelectorAll('.mx-row.is-focus').forEach(function (r) { r.classList.remove('is-focus'); });
+            row.classList.add('is-focus');
+
+            if (listBox.scrollHeight > listBox.clientHeight + 4) {
+                listBox.scrollTo({
+                    top: listBox.scrollTop + row.getBoundingClientRect().top - listBox.getBoundingClientRect().top
+                         - (listBox.clientHeight - row.offsetHeight) / 2,
+                    behavior: 'smooth'
+                });
+            }
         },
         onRoute: function (stops, totalKm, meta) {
             const wrap = document.getElementById('routeStops');
