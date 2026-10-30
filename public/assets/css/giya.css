@@ -6543,18 +6543,36 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
   body[data-page="map"] .mx-list-head { touch-action: none; padding-top: 2px; }
   body[data-page="map"] .mx-list { flex: 1 1 auto; min-height: 0; max-height: none; overscroll-behavior: contain; }
 
-  /* Planning on a phone: the trip's name, date and notes ride in the sheet. */
+  /* The page heading only rides in the sheet when it carries the way back
+     to the Visita Iglesia planner; otherwise the map speaks for itself. */
   body[data-page="map"] .map-sidebar .mx-head { display: none; padding: 0 14px; margin: 0; }
-  body[data-page="map"] .map-sidebar:has(#planForm:not([hidden])) .mx-head { display: block; }
-  body[data-page="map"] .map-sidebar .mx-head p,
-  body[data-page="map"] .map-sidebar .mx-head .eyebrow { display: none; }
-  body[data-page="map"] .map-sidebar .mx-head h1 { font-size: 1.05rem; margin: 0 0 6px; }
-  body[data-page="map"] .map-sidebar .plan-bar { margin: 0 12px 8px; padding: 10px; box-shadow: none; }
+  body[data-page="map"] .map-sidebar .mx-head:has(#planBack) { display: block; }
+  body[data-page="map"] .map-sidebar .mx-head :is(h1, p, .eyebrow) { display: none; }
+
+  /* The tray as a cart: one line at the top of the sheet - count, distance,
+     Start. Tap the line to see (and drop) the stops. */
+  body[data-page="map"] .map-sidebar .mx-tray {
+    order: 0; margin: 0 12px 8px; padding: 9px 10px 9px 14px;
+    border: 1px solid var(--border); border-radius: 14px;
+    display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 10px;
+  }
+  body[data-page="map"] .mx-tray .mx-tray-head {
+    margin: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; cursor: pointer;
+  }
+  body[data-page="map"] .mx-tray .mx-tray-head::after {
+    content: "\25BE"; font-size: .7rem; color: var(--text-muted);
+  }
+  body[data-page="map"] .mx-tray.is-open .mx-tray-head::after { content: "\25B4"; }
+  body[data-page="map"] .mx-tray .mx-tray-list,
+  body[data-page="map"] .mx-tray .route-mode { display: none; grid-column: 1 / -1; }
+  body[data-page="map"] .mx-tray.is-open .mx-tray-list { display: block; margin-top: 8px; }
+  body[data-page="map"] .mx-tray.is-open .route-mode { display: block; }
+  body[data-page="map"] .mx-tray .mx-tray-actions { grid-row: 1; grid-column: 2; gap: 6px; }
+  body[data-page="map"] .mx-tray .mx-plan { padding: 9px 14px; font-size: .8125rem; white-space: nowrap; }
 
   /* The church card, in place of the list. */
   body[data-page="map"] .map-sidebar.is-card .mx-list-head,
-  body[data-page="map"] .map-sidebar.is-card .mx-list,
-  body[data-page="map"] .map-sidebar.is-card .mx-tray { display: none !important; }
+  body[data-page="map"] .map-sidebar.is-card .mx-list { display: none !important; }
   body[data-page="map"] .mx-card { position: relative; padding: 2px 16px 14px; touch-action: none; }
   .mx-card-close {
     position: absolute; top: 0; right: 12px; width: 34px; height: 34px;
@@ -6575,3 +6593,29 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
   .mx-card-actions .btn.is-on { background: var(--gold-bg, #F6EBD7); }
 }
 html[data-theme="dark"] .mx-card-name { color: #F3ECE4; }
+
+/* ══ Trip details pop-up: asked when the devotee presses Start pilgrimage ══ */
+.plan-modal {
+  position: fixed; inset: 0; z-index: 2100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(36,28,24,.45);
+}
+.plan-modal-box {
+  width: min(440px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto;
+  background: var(--surface, #fff); border-radius: 18px; padding: 20px 18px 16px;
+  box-shadow: 0 18px 50px rgba(36,28,24,.35);
+}
+.plan-modal-title { font-family: var(--font-display); font-size: 1.25rem; margin: 0 0 2px; color: var(--text); }
+.plan-modal-sub { font-size: .8125rem; color: var(--text-muted); margin: 0 0 14px; }
+.plan-modal-form { display: flex; flex-direction: column; gap: 12px; }
+.plan-modal-form .plan-field { display: flex; flex-direction: column; gap: 5px; }
+.plan-modal-form .giya-input { font-size: 16px; }      /* no iPhone zoom on focus */
+.plan-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+.plan-modal-actions .btn-primary { flex: 1; justify-content: center; }
+.plan-modal-limit { font-size: .75rem; color: var(--danger, #B42318); margin: 0; }
+body.has-plan-modal { overflow: hidden; }
+@media (max-width: 768px) {
+  /* A sheet from the bottom on phones, above the keyboard's reach. */
+  .plan-modal { align-items: flex-end; padding: 0; }
+  .plan-modal-box { width: 100%; border-radius: 20px 20px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+}

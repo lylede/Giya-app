@@ -105,17 +105,17 @@ class MapPlannerTest extends TestCase
 
         $this->assertStringContainsString('id="planForm"', $html);
         $this->assertMatchesRegularExpression(
-            '/<form[^>]*id="planForm"[^>]*\shidden/',
+            '/<div[^>]*id="planModal"[^>]*\shidden/',
             $html,
-            'The details bar should start hidden on the ordinary map.'
+            'The trip details pop-up should start closed on the ordinary map.'
         );
 
         // The heading and the button are the map's until it is opened.
         $this->assertStringContainsString(__('giya.map.title'), $html);
-        $this->assertStringContainsString(__('giya.map.plan_route'), $html);
+        $this->assertStringContainsString(__('giya.plan.start'), $html, 'The tray checks out like a cart: Start Pilgrimage.');
     }
 
-    public function test_planning_mode_starts_with_the_bar_open(): void
+    public function test_planning_mode_asks_for_details_at_start(): void
     {
         $this->seedChurches();
 
@@ -123,10 +123,12 @@ class MapPlannerTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertDoesNotMatchRegularExpression(
-            '/<form[^>]*id="planForm"[^>]*\shidden/',
+        /* Churches first, like a cart: the details are asked when Start
+           pilgrimage is pressed, not before anything is picked. */
+        $this->assertMatchesRegularExpression(
+            '/<div[^>]*id="planModal"[^>]*\shidden/',
             $html,
-            'Arriving with ?plan=1 should show the details bar.'
+            'Planning mode opens the details only when Start is pressed.'
         );
         $this->assertStringContainsString(__('giya.plan.start'), $html);
     }
@@ -137,7 +139,7 @@ class MapPlannerTest extends TestCase
      * The errors live inside it, so leaving it closed would hide the reason
      * the save did not happen.
      */
-    public function test_a_rejected_save_reopens_the_bar_on_the_plain_map(): void
+    public function test_a_rejected_save_reopens_the_details_popup(): void
     {
         $churches = $this->seedChurches();
         $user     = $this->devotee();
@@ -155,9 +157,9 @@ class MapPlannerTest extends TestCase
         $html = $this->actingAs($user)->get(route('map'))->assertOk()->getContent();
 
         $this->assertDoesNotMatchRegularExpression(
-            '/<form[^>]*id="planForm"[^>]*\shidden/',
+            '/<div[^>]*id="planModal"[^>]*\shidden/',
             $html,
-            'A rejected save should reopen the details bar so its error is visible.'
+            'A rejected save should reopen the details pop-up so its error is visible.'
         );
     }
 
@@ -201,7 +203,7 @@ class MapPlannerTest extends TestCase
     }
 
     /** Arriving with a route is arriving mid-plan, whoever sent it. */
-    public function test_arriving_with_stops_opens_the_bar(): void
+    public function test_arriving_with_stops_is_ready_to_start(): void
     {
         $churches = $this->seedChurches();
 
@@ -210,11 +212,9 @@ class MapPlannerTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertDoesNotMatchRegularExpression(
-            '/<form[^>]*id="planForm"[^>]*\shidden/',
-            $html,
-            'A route handed to the map should arrive with its details open.'
-        );
+        // Arrives in planning mode with the churches in the tray, ready for Start.
+        $this->assertStringContainsString(__('giya.plan.start'), $html);
+        $this->assertMatchesRegularExpression('/<div[^>]*id="planModal"[^>]*\shidden/', $html);
     }
 
     /**
@@ -517,5 +517,18 @@ class MapPlannerTest extends TestCase
         $this->actingAs($this->devotee())
             ->get(route('plan.create'))
             ->assertRedirect(route('map', ['plan' => 1]));
+    }
+
+    /** Start pilgrimage opens the pop-up with a name filled in; Save writes the stops and submits. */
+    public function test_the_details_popup_has_a_prefilled_name_and_save(): void
+    {
+        $this->seedChurches();
+
+        $html = $this->actingAs($this->devotee())->get(route('map'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('id="planSave"', $html);
+        $this->assertStringContainsString('data-plan-cancel', $html);
+        $this->assertStringContainsString("trans('default_name')", $html, 'The name is filled in from the first church\'s town.');
+        $this->assertStringContainsString(e(__('giya.plan.save_start')), $html);
     }
 }

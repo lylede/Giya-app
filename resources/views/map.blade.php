@@ -81,6 +81,14 @@
        already open never opens again; in both cases these would put wording on
        the page that nothing can ever show, including a Custom heading on a
        Visita Iglesia trip. */
+    // The name the trip details pop-up suggests, from the first church's town.
+    if ($canPlan) {
+        $mapStrings += [
+            'default_name'       => __('giya.plan.default_name', ['town' => ':town']),
+            'default_name_plain' => __('giya.plan.default_name_plain'),
+        ];
+    }
+
     if ($canPlan && ! $openPlan) {
         $mapStrings += [
             'custom_title'     => __('giya.plan.custom_title'),
@@ -127,49 +135,58 @@
     </header>
 
     @if ($canPlan)
-        {{--
-            The trip's own details, above the map that fills them.
-
-            This used to be its own screen with a list of churches beside it.
-            Choosing a destination is a question about where things are, so it
-            belongs on the map; the name and the date are the only part that is
-            not, and they fit in a bar. One screen instead of two.
-
-            It is a real <form>: the fields post themselves, and the stops are
-            written into it as hidden inputs the moment Start Pilgrimage is
-            pressed, so a rejected save comes back with everything intact.
-        --}}
-        <form method="POST" action="{{ route('plan.store') }}" id="planForm" class="card card-body plan-bar"
-              @unless ($openPlan) hidden @endunless>
+        {{-- The trip's details, asked last. Churches go in the tray like a
+             cart; Start pilgrimage opens this to name the trip and save it.
+             Asking for a name before there is anything to name was the wrong
+             order, and on a phone the form filled the whole sheet. Opens by
+             itself only when a save came back with an error to show. --}}
+        <div class="plan-modal" id="planModal" @unless ($errors->any()) hidden @endunless
+             role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
+        <div class="plan-modal-box">
+        <h2 class="plan-modal-title" id="planModalTitle">{{ __('giya.plan.name_trip') }}</h2>
+        <p class="plan-modal-sub" id="planModalSub"></p>
+        <form method="POST" action="{{ route('plan.store') }}" id="planForm" class="plan-modal-form">
             @csrf
             <input type="hidden" name="type" value="{{ $planType }}">
             <div id="planStops"></div>
 
             @if ($errors->any())
-                <div class="alert alert-danger" style="grid-column:1/-1">
+                <div class="alert alert-danger">
                     <i class="bi bi-exclamation-circle-fill"></i>
                     <span>{{ $errors->first() }}</span>
                 </div>
             @endif
 
-            <label class="plan-field" style="flex:2 1 240px">
+            <label class="plan-field">
                 <span class="form-label-sm">{{ __('giya.plan.itinerary_name') }}</span>
                 <input type="text" name="name" class="giya-input" required maxlength="200"
                        value="{{ old('name') }}" placeholder="{{ __('giya.plan.name_ph') }}">
             </label>
 
-            <label class="plan-field" style="flex:1 1 150px">
+            <label class="plan-field">
                 <span class="form-label-sm">{{ __('giya.plan.date') }}</span>
                 <input type="date" name="scheduled_date" class="giya-input"
                        value="{{ old('scheduled_date') }}" min="{{ now()->toDateString() }}">
             </label>
 
-            <label class="plan-field" style="flex:2 1 220px">
+            <label class="plan-field">
                 <span class="form-label-sm">{{ __('giya.plan.notes') }}</span>
                 <input type="text" name="notes" class="giya-input" maxlength="2000"
                        value="{{ old('notes') }}" placeholder="{{ __('giya.plan.notes_ph') }}">
             </label>
+            <div class="plan-modal-actions">
+                <button type="button" class="btn btn-ghost" data-plan-cancel>{{ __('giya.common.cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="planSave"
+                        @if ($atLimit) disabled title="{{ __('giya.plan.limit_title') }}" @endif>
+                    <i class="bi bi-person-walking"></i> {{ __('giya.plan.save_start') }}
+                </button>
+            </div>
+            @if ($atLimit)
+                <p class="plan-modal-limit">{{ __('giya.plan.limit_title') }}</p>
+            @endif
         </form>
+        </div>
+        </div>
     @endif
 
     <div id="mapNote" class="map-note" style="display:none">
@@ -246,7 +263,7 @@
             </div>
 
             {{-- Selection tray: rises from the bottom once churches are picked --}}
-            <section id="routeBox" class="mx-tray" style="display:none" aria-label="{{ __('giya.map.selected_aria') }}">
+            <section id="routeBox" class="mx-tray" hidden aria-label="{{ __('giya.map.selected_aria') }}">
                 <div class="mx-tray-head">
                     <span id="traySummary">{{ __('giya.map.selected_none') }}</span>
                     <span id="routeDistance" class="mx-tray-distance"></span>
@@ -262,11 +279,8 @@
                          worth doing with what is in it. --}}
                     <button type="button" id="btnDirections" class="btn btn-primary mx-plan"
                             @if ($openPlan && $atLimit) disabled title="{{ __('giya.plan.limit_title') }}" @endif>
-                        @if ($openPlan)
-                            <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
-                        @else
-                            <i class="bi bi-signpost-fill"></i> {{ __('giya.map.plan_route') }}
-                        @endif
+                        {{-- Like checking out a cart: the trip's name is asked next. --}}
+                        <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
                     </button>
                     <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm">{{ __('giya.common.clear') }}</button>
                 </div>
@@ -457,6 +471,14 @@
        filters float on it, and the churches live in a bottom sheet. */
     const phone = window.matchMedia('(max-width: 768px)');
 
+    /* The sheet grows and shrinks with the tray (the "cart"). onRoute can
+       fire before the sheet is set up - a route handed over in the URL -
+       hence the flag. */
+    var sheetReady = false;
+    function refitSheet() {
+        if (sheetReady && phone.matches) setSheet(sheetState);
+    }
+
     const map = GiyaLeaflet.browse({
         element: 'giyaMap',
         sheet: function () { return phone.matches; },
@@ -538,13 +560,15 @@ onLocated: function (me) {
             // Redraw the list BEFORE returning, or the last tick stays filled
             // even though nothing is selected any more.
             if (!stops.length) {
-                routeBox.style.display = 'none';
+                routeBox.hidden = true;
                 rememberRoute([]);
                 renderList();
+                refitSheet();
                 return;
             }
 
-            routeBox.style.display = 'block';
+            routeBox.hidden = false;
+            setTimeout(refitSheet, 0);   // after the tray has its new rows
 
             /* The way back keeps the route. A devotee who drops a church here
                and then returns to the planner they came from should find the
@@ -864,20 +888,13 @@ onLocated: function (me) {
         link.href = ids.length ? BACK_BASE + '?stops=' + ids.join(',') : BACK_BASE;
     }
 
+    /* Puts the page into planning mode: the heading and the tray's button
+       say so. The details themselves are asked in the pop-up below. */
     function openPlanBar() {
-        const form = document.getElementById('planForm');
-        if (!form) { return false; }
+        if (!document.getElementById('planForm')) { return false; }
 
-        form.hidden = false;
-
-        /* The link back to the hub stays hidden. Opening the details here is
-           not arriving from the hub, and a back link pointing somewhere the
-           devotee has not been is worse than none at all.
-
-           Written without quoting the link's own wording, because the
-           translation-coverage test reads the whole page - comments included -
-           and cannot tell copy in a comment from copy on screen. It is right
-           not to: a phrase worth writing twice is a phrase worth a key. */
+        /* The link back to the hub stays hidden: opening the planner here is
+           not arriving from the hub. */
         document.getElementById('mapEyebrow').hidden = true;
         document.getElementById('mapTitle').textContent = trans('custom_title');
         document.getElementById('mapLead').textContent  = trans('plan_lead');
@@ -886,29 +903,83 @@ onLocated: function (me) {
         btn.innerHTML = '<i class="bi bi-person-walking"></i> ';
         btn.appendChild(document.createTextNode(trans('start_pilgrimage')));
 
-        // The allowance is only in the way once there is something to save.
-        if (AT_LIMIT) {
-            btn.disabled = true;
-            btn.title = trans('limit_title');
-        }
-
         planOpen = true;
-
-        /* The button that opened this is at the bottom of the sidebar, and the
-           bar is at the top of the page - without this the devotee presses
-           Plan Route and, as far as they can see, nothing happens. */
-        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(function () { form.querySelector('input[name=name]').focus(); }, 350);
-
         return true;
     }
 
-    document.getElementById('btnDirections').addEventListener('click', function () {
+    /* ---- the trip's details: a pop-up opened from the tray, like checking out a cart ---- */
+    const planModal = document.getElementById('planModal');
+
+    function openPlanModal(ids) {
+        if (!planModal) { return; }
+
+        /* A name is filled in so a devotee can just press Save: the first
+           church's town ("Danao City Pilgrimage"). It stays editable, and a
+           name they already typed is never replaced. */
+        const name = planModal.querySelector('input[name=name]');
+        if (!name.value.trim()) {
+            const first = churches.filter(function (c) { return c.id === ids[0]; })[0];
+            // The town, else the last part of the address ("Osmena Blvd, Cebu City" -> "Cebu City").
+            const town  = first ? (String(first.town || '').trim() || String(first.location || '').split(',').pop().trim()) : '';
+            name.value  = town ? trans('default_name').split(':town').join(town) : trans('default_name_plain');
+        }
+
+        const km = document.getElementById('routeDistance').textContent.trim();
+        document.getElementById('planModalSub').textContent =
+            trans(ids.length === 1 ? 'selected_one' : 'selected', { count: ids.length }) + (km ? ' \u00b7 ' + km : '');
+
+        planModal.hidden = false;
+        document.body.classList.add('has-plan-modal');
+
+        // On a computer the name is ready to retype; on a phone the keyboard waits for a tap.
+        if (!phone.matches) { setTimeout(function () { name.focus(); name.select(); }, 60); }
+    }
+
+    function closePlanModal() {
+        if (!planModal) { return; }
+        planModal.hidden = true;
+        document.body.classList.remove('has-plan-modal');
+    }
+
+    function currentStopIds() {
         const ordered = (map.orderedStops ? map.orderedStops() : [])
             .map(function (s) { return s.id; })
             .filter(Boolean);
+        return ordered.length ? ordered : map.selected();
+    }
 
-        const ids = ordered.length ? ordered : map.selected();
+    if (planModal) {
+        planModal.addEventListener('click', function (e) {
+            // The cancel button, or the dimmed page around the box.
+            if (e.target.closest('[data-plan-cancel]') || e.target === planModal) closePlanModal();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !planModal.hidden) closePlanModal();
+        });
+
+        document.getElementById('planSave').addEventListener('click', function () {
+            const ids  = currentStopIds();
+            const form = document.getElementById('planForm');
+
+            if (!ids.length) { closePlanModal(); showNote(trans('pick_first'), 'error'); return; }
+
+            /* The stops are written in at the moment of saving rather than kept
+               in sync as they change - one moment matters, and syncing on
+               every tick is a second source of truth. */
+            document.getElementById('planStops').innerHTML =
+                ids.map(function (id) {
+                    const c = churches.filter(function (x) { return x.id === id; })[0];
+                    return '<input type="hidden" name="stops[]" value="' + escapeAttr(c ? c.name : '') + '">';
+                }).join('') +
+                '<input type="hidden" name="stop_ids" value="' + ids.join(',') + '">';
+
+            // requestSubmit, not submit: it runs the browser's own checks first.
+            form.requestSubmit();
+        });
+    }
+
+    document.getElementById('btnDirections').addEventListener('click', function () {
+        const ids = currentStopIds();
 
         if (!ids.length) {
             showNote(trans('pick_first'), 'error');
@@ -922,28 +993,8 @@ onLocated: function (me) {
 
         if (GUEST) { askToSignIn(trans('act_plan'), planner); return; }
 
-        // First press opens the details. Nothing is saved yet - there is no
-        // name yet, and asking for one after saving is the wrong order.
-        if (!planOpen) { openPlanBar(); return; }
-
-        /* Second press saves. The stops are written into the details form as
-           hidden inputs at the moment of submitting rather than kept in sync
-           as they change - there is only one moment that matters, and syncing
-           on every tick is a second source of truth waiting to disagree with
-           the tray. */
-        const form = document.getElementById('planForm');
-
-        document.getElementById('planStops').innerHTML =
-            ids.map(function (id) {
-                const c = churches.filter(function (x) { return x.id === id; })[0];
-                return '<input type="hidden" name="stops[]" value="' + escapeAttr(c ? c.name : '') + '">';
-            }).join('') +
-            '<input type="hidden" name="stop_ids" value="' + ids.join(',') + '">';
-
-        // requestSubmit, not submit: submit() skips validation, so an empty
-        // name would post and come back as a server error instead of the
-        // browser saying so on the spot.
-        form.requestSubmit();
+        if (!planOpen) openPlanBar();
+        openPlanModal(ids);
     });
 
     document.getElementById('mapSearch').addEventListener('input', function () {
@@ -1101,6 +1152,7 @@ onLocated: function (me) {
     floatBar.className = 'mx-float';
 
     const PEEK = 148;
+    sheetReady = true;
     let sheetState = 'peek';
     let cardId = null;
 
@@ -1110,12 +1162,17 @@ onLocated: function (me) {
         [document.querySelector('.mx-controls'), floatBar],
         [document.getElementById('mapNote'),     floatBar],
         [document.querySelector('.mx-head'),     sheetEl, card],
-        [document.getElementById('planForm'),    sheetEl, card],
+        [document.getElementById('routeBox'),    sheetEl, card],
     ].filter(function (m) { return m[0]; }).map(function (m) {
         const mark = document.createComment('map-home');
         m[0].parentNode.insertBefore(mark, m[0]);
         return { el: m[0], to: m[1], before: m[2] || null, mark: mark };
     });
+
+    function trayHeight() {
+        const t = document.getElementById('routeBox');
+        return t && !t.hidden ? t.offsetHeight + 8 : 0;
+    }
 
     function heights() {
         const total = grid.clientHeight;
@@ -1124,13 +1181,15 @@ onLocated: function (me) {
             peek: PEEK,
             half: Math.round(total * 0.5),
             full: Math.max(PEEK, total - top),
-            card: Math.min(Math.max(PEEK, total - top), card.scrollHeight + 34)
+            card: Math.min(Math.max(PEEK, total - top), card.scrollHeight + 34 + trayHeight()),
+            peekTray: PEEK + trayHeight()
         };
     }
 
     function setSheet(state) {
         sheetState = state;
-        sheetEl.style.height = heights()[state] + 'px';
+        const h = heights();
+        sheetEl.style.height = (state === 'peek' ? h.peekTray : h[state]) + 'px';
         sheetEl.dataset.state = state;
     }
 
@@ -1270,6 +1329,14 @@ onLocated: function (me) {
         window.addEventListener('pointerup', up);
         window.addEventListener('pointercancel', up);
     })();
+
+    /* On a phone the tray is one line - "3 churches selected \u00b7 12.4 km" and
+       Start. Tapping that line shows the stops, to reorder or drop one. */
+    document.querySelector('#routeBox .mx-tray-head').addEventListener('click', function () {
+        if (!phone.matches) return;
+        document.getElementById('routeBox').classList.toggle('is-open');
+        refitSheet();
+    });
 
     /* Searching or picking a filter shows the results, not just the peek. */
     document.getElementById('mapSearch').addEventListener('focus', function () {

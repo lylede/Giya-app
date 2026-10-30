@@ -251,6 +251,10 @@ return [
     ],
 
     'plan' => [
+        'name_trip'      => 'Hatagi og ngalan ang imong panaw',
+        'save_start'     => 'I-save ug sugdi',
+        'default_name'   => 'Panaw sa :town',
+        'default_name_plain' => 'Panaw',
         'hub'               => 'Sentro sa Plano sa Peregrinasyon',
         'plan_journey'      => 'Planoha ang Imong Panaw',
         'recent'            => 'Bag-ong mga Itineraryo',
