@@ -316,4 +316,49 @@ class GiyaAssistantKnowledgeTest extends TestCase
 
         $this->assertSame('The Redemptorists arrived in Cebu in 1906.', $church->fresh()->history);
     }
+
+    /**
+     * Groq's free tier allows 8,000 tokens a minute. With every parish of the
+     * archdiocese imported the old prompt was ~12,500 and every question
+     * failed with 413. The prompt is now built to a budget.
+     */
+    public function test_the_prompt_stays_within_the_free_allowance_with_many_churches(): void
+    {
+        for ($i = 1; $i <= 200; $i++) {
+            $this->church("Parish of Saint Example Number {$i}", 'Church', [
+                'location' => 'Town '.($i % 25), 'municipality' => 'Town '.($i % 25),
+                'description' => 'A Catholic parish of the Archdiocese of Cebu, in the Vicariate of Example (District 3). Feast day: May 15. Source: The Roman Catholic Archdiocese of Cebu.',
+            ]);
+        }
+        GiyaAssistant::forget();
+
+        $prompt = $this->promptFor('Tell me the history of the Basilica del Santo Niño');
+
+        $this->assertLessThanOrEqual(4500, (int) ceil(mb_strlen($prompt) / 3.6), 'The system prompt must leave room for history and the answer.');
+        $this->assertStringContainsString('Parish of Saint Example Number 200', $prompt, 'Every church is still listed, briefly.');
+        $this->assertStringContainsString('Founded on April 28, 1565', $prompt, 'The church asked about keeps its record.');
+    }
+
+    /** "Request too large" (413) is retried once with a smaller prompt instead of failing. */
+    public function test_a_too_large_request_is_retried_smaller(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.model' => 'openai/gpt-oss-120b', 'services.groq.fallback_model' => null]);
+
+        Http::fakeSequence('api.groq.com/*')
+            ->push(['error' => ['message' => 'Request too large for model', 'type' => 'tokens']], 413)
+            ->push(['choices' => [['message' => ['content' => 'Here is a smaller answer.']]]]);
+
+        $result = app(GiyaAssistant::class)->ask('What churches are in Cebu City?');
+
+        $this->assertTrue($result['ok']);
+        $this->assertSame('Here is a smaller answer.', $result['reply']);
+
+        $sizes = [];
+        Http::assertSent(function (Request $request) use (&$sizes) {
+            $sizes[] = mb_strlen($request->data()['messages'][0]['content']);
+            return true;
+        });
+        $this->assertCount(2, $sizes);
+        $this->assertLessThanOrEqual($sizes[0], $sizes[1], 'The retry is not larger than the first try.');
+    }
 }

@@ -37,13 +37,26 @@ class GiyaAssistant
     protected string $endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
     /** Cache key for the per-church entries. Cleared whenever a church or schedule changes. */
-    public const CACHE_KEY = 'giya:assistant:knowledge:v2';
+    public const CACHE_KEY = 'giya:assistant:knowledge:v3';
 
     /** How much of a history the short entry carries. */
     protected const HISTORY_PREVIEW = 220;
 
     /** At most this many churches get a full entry in one request. */
     protected const MAX_FULL = 4;
+
+    /*
+     * How big the system prompt may be, in (estimated) tokens.
+     *
+     * Groq's free tier allows 8,000 tokens a minute per model, and it counts
+     * the prompt plus max_tokens (900) against that in one go. With ~170
+     * churches the old one-summary-per-church list alone was ~10,000 tokens,
+     * so every question failed with 413 "Request too large". The prompt is
+     * built to this budget and shrinks step by step until it fits; a 413 is
+     * retried once at the smaller budget.
+     */
+    protected const PROMPT_BUDGET = 4500;
+    protected const PROMPT_BUDGET_SMALL = 2800;
 
     /** Words too common in church names to say which church someone means. */
     protected const COMMON_WORDS = [
@@ -80,11 +93,13 @@ class GiyaAssistant
 
         $history = $this->trimHistory($history);
 
-        $messages = array_merge(
-            [['role' => 'system', 'content' => $this->systemPrompt($question, $history)]],
-            $history,
+        $build = fn (int $budget, array $past) => array_merge(
+            [['role' => 'system', 'content' => $this->systemPrompt($question, $past, $budget)]],
+            $past,
             [['role' => 'user', 'content' => $question]]
         );
+
+        $messages = $build(self::PROMPT_BUDGET, $history);
 
         /* Groq's free plan allows about 8,000 tokens a minute PER MODEL, and
            one question here is 2,000-4,000 with the church records. Two or
@@ -100,6 +115,13 @@ class GiyaAssistant
 
         foreach ($models as $i => $model) {
             $result = $this->call($model, $messages);
+
+            // Too large for the free allowance: once more, smaller.
+            if (! $result['ok'] && $result['reason'] === 'too_large') {
+                Log::info("Groq said the request was too large for \"{$model}\"; retrying with a smaller prompt.");
+                $messages = $build(self::PROMPT_BUDGET_SMALL, array_slice($history, -2));
+                $result = $this->call($model, $messages);
+            }
 
             // Only "busy" and "ran out of room" are worth a second model.
             // A bad key or a network failure would fail there just the same.
@@ -170,6 +192,7 @@ class GiyaAssistant
                     'ok'     => false,
                     'reason' => match (true) {
                         $response->status() === 401 => 'bad_key',
+                        $response->status() === 413 => 'too_large',
                         $response->status() === 429 => 'rate_limited',
                         in_array($code, ['model_not_found', 'model_decommissioned'], true) => 'bad_model',
                         default => 'upstream',
@@ -223,6 +246,11 @@ class GiyaAssistant
                     'id'       => $c->id,
                     'name'     => $c->name,
                     'category' => Str::lower((string) $c->category),
+                    'town'     => (string) ($c->municipality ?: $c->location ?: ''),
+                    'major'    => (bool) $c->is_major || in_array(Str::lower((string) $c->category), ['basilica', 'cathedral'], true)
+                                  || str_contains(Str::lower((string) $c->category), 'shrine'),
+                    // One short line: enough to know the church exists and where.
+                    'index'    => '- '.$c->name.' ('.$c->category.', '.($c->municipality ?: $c->location ?: 'Cebu').')',
                     'keywords' => $this->keywordsFor($c),
                     'short'    => $this->shortEntry($c),
                     'full'     => $this->fullEntry($c),
@@ -261,13 +289,9 @@ class GiyaAssistant
             $bits[] = 'masses: '.$masses;
         }
 
-        if ($c->description) {
-            $bits[] = 'about: '.Str::limit($c->description, 160);
+        if ($c->history) {
+            $bits[] = 'history (start): '.Str::limit(str_replace("\n", ' ', $c->history), self::HISTORY_PREVIEW);
         }
-
-        $bits[] = $c->history
-            ? 'history (start): '.Str::limit(str_replace("\n", ' ', $c->history), self::HISTORY_PREVIEW)
-            : 'history: not recorded in GIYA';
 
         return '- '.implode(' | ', $bits);
     }
@@ -414,18 +438,65 @@ class GiyaAssistant
     /**
      * @param  array<int, array{role: string, content: string}>  $history
      */
-    protected function systemPrompt(string $question, array $history = []): string
+    protected function systemPrompt(string $question, array $history = [], int $budget = self::PROMPT_BUDGET): string
     {
-        $entries = $this->entries();
-        $focus   = $this->relevant($question, $history);
+        $entries   = $this->entries();
+        $focus     = $this->relevant($question, $history);
+        $festivals = $this->festivals($question, $history);
 
-        $list = $entries->isEmpty()
+        /* From most to least helpful, each step smaller than the last; the
+           first that fits the budget is used. */
+        $towns = $focus->pluck('town')->filter()->unique()->all();
+
+        /* The index, one line per town: "- Talisay City: Sto. Nino Parish;
+           San Isidro Labrador Parish; Archdiocesan Shrine of Sta. Teresa de
+           Avila (Shrine)". Saying the town once per town instead of once per
+           church is what lets ~200 churches fit. */
+        $index = fn (Collection $rows) => $rows
+            ->groupBy(fn ($e) => $e['town'] !== '' ? $e['town'] : 'Cebu')
+            ->sortKeys()
+            ->map(fn ($group, $town) => '- '.$town.': '.$group
+                ->map(fn ($e) => $e['name'].($e['category'] === 'church' || $e['category'] === 'parish' ? '' : ' ('.Str::title($e['category']).')'))
+                ->implode('; '))
+            ->values();
+
+        $steps = [
+            // Churches with a recorded history keep a line about it; the rest are an index.
+            fn () => [$entries->filter(fn ($e) => $e['history'] !== '')->pluck('short')
+                          ->merge($index($entries->filter(fn ($e) => $e['history'] === ''))), $focus, 6000],
+            fn () => [$index($entries), $focus, 4000],
+            fn () => [$index($entries), $focus->take(2), 2500],
+            // Only the main churches and the towns this conversation is about.
+            fn () => [$index($entries->filter(fn ($e) => $e['major'] || in_array($e['town'], $towns, true))), $focus->take(2), 1500],
+            fn () => [$index($entries->filter(fn ($e) => $e['major'] || in_array($e['town'], $towns, true))), $focus->take(1), 800],
+        ];
+
+        foreach ($steps as $step) {
+            [$lines, $chosen, $historyChars] = $step();
+            $prompt = $this->composePrompt($lines, $chosen, $historyChars, $festivals);
+            if ($this->estimateTokens($prompt) <= $budget) {
+                return $prompt;
+            }
+        }
+
+        return $prompt;   // the smallest; better than nothing
+    }
+
+    /** About four characters a token for English; Cebuano runs a little denser. */
+    protected function estimateTokens(string $text): int
+    {
+        return (int) ceil(mb_strlen($text) / 3.6);
+    }
+
+    protected function composePrompt(Collection $lines, Collection $focus, int $historyChars, string $festivals): string
+    {
+        $list = $lines->isEmpty()
             ? '- (no destinations recorded yet)'
-            : $entries->pluck('short')->implode("\n");
+            : $lines->implode("\n");
 
         $details = $focus->isEmpty()
             ? '(The devotee has not named a specific destination. Use the list above.)'
-            : $focus->pluck('full')->implode("\n\n");
+            : $focus->map(fn ($e) => $this->limitHistory($e['full'], $historyChars))->implode("\n\n");
 
         return <<<PROMPT
         You are Giya AI, a warm and knowledgeable pilgrimage guide for GIYA, a
@@ -480,13 +551,21 @@ class GiyaAssistant
         - You cannot book, pay, or change anything. Point the devotee to the Map
           or Plan Hub for those.
 
-        ALL DESTINATIONS (short):
+        ALL DESTINATIONS (by town; category shown when not a parish church):
         {$list}
 
         FULL RECORDS for the destinations this conversation is about:
         {$details}
-        {$this->festivals($question, $history)}
+        {$festivals}
         PROMPT;
+    }
+
+    /** A full record with its history cut to $chars characters (the rest of the record kept). */
+    protected function limitHistory(string $full, int $chars): string
+    {
+        return preg_replace_callback('/History: \n(.*?)(\nSchedules:)/s', function ($m) use ($chars) {
+            return 'History: '."\n".Str::limit($m[1], $chars).$m[2];
+        }, $full) ?? $full;
     }
 
     /**
