@@ -6701,3 +6701,29 @@ body:has(#arriveToast.is-open) .giya-fab { opacity: 0; pointer-events: none; }
 }
 .history-rate i { color: var(--gold, #D7A94A); }
 .hub-manage { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: .8125rem; font-weight: 700; color: var(--primary, #8E3B2F); text-decoration: none; }
+
+/* ══ Plan: one button to Saved Itineraries; Saved Itineraries in three groups ══ */
+.hub-saved {
+  display: flex; align-items: center; gap: 14px; margin: 24px 0 8px; padding: 16px 18px;
+  border-radius: 18px; background: #fff; border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm); text-decoration: none; color: var(--text);
+}
+.hub-saved:hover { border-color: var(--gold, #D7A94A); color: var(--text); }
+.hub-saved-icon {
+  width: 44px; height: 44px; flex: 0 0 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gold-bg, #F6EBD7); color: var(--primary, #8E3B2F); font-size: 1.2rem;
+}
+.hub-saved-body { flex: 1; display: flex; flex-direction: column; }
+.hub-saved-title { font-weight: 700; font-size: .9375rem; }
+.hub-saved-meta { font-size: .8125rem; color: var(--text-muted); }
+.hub-bottom.is-tips { grid-template-columns: 1fr; }
+.hub-bottom.is-tips > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+.hub-bottom.is-tips > div > h2 { grid-column: 1 / -1; }
+@media (max-width: 640px) { .hub-bottom.is-tips > div { grid-template-columns: 1fr; } }
+
+.saved-heading { font-family: var(--font-display); font-size: 1.15rem; margin: 6px 0 12px; display: flex; align-items: center; gap: 8px; }
+.saved-heading span { font-family: var(--font-body); font-size: .75rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--gold-bg, #F6EBD7); color: var(--primary, #8E3B2F); }
+.saved-stars { margin: 0 0 12px; font-size: .8125rem; font-weight: 700; color: var(--text); }
+.saved-stars i { color: var(--gold, #D7A94A); }
+article.card.is-highlight { box-shadow: 0 0 0 3px var(--gold, #D7A94A), var(--shadow-sm); }

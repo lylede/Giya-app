@@ -102,55 +102,17 @@
         @endforeach
     </div>
 
-    <div class="hub-bottom">
-        <div>
-            <h2 class="section-title hub-section-title">{{ __('giya.hub.your_trips') }}</h2>
+    {{-- Every trip - in progress, planned and finished - is on one page. --}}
+    <a href="{{ route('plan.index') }}" class="hub-saved">
+        <span class="hub-saved-icon"><i class="bi bi-giya-saved"></i></span>
+        <span class="hub-saved-body">
+            <span class="hub-saved-title">{{ __('giya.hub.saved') }}</span>
+            <span class="hub-saved-meta">{{ __('giya.hub.saved_count', ['count' => $savedCount]) }}</span>
+        </span>
+        <i class="bi bi-chevron-right"></i>
+    </a>
 
-            @forelse ($itineraries as $itinerary)
-                @php
-                    $label = match ($itinerary->status) {
-                        'Active'    => __('giya.hub.in_progress'),
-                        'Completed' => __('giya.hub.st_completed'),
-                        default     => __('giya.hub.st_upcoming'),
-                    };
-                @endphp
-                <div class="history-row">
-                    <a href="{{ route('plan.show', $itinerary) }}" class="history-item">
-                        <span class="history-icon">
-                            <i class="bi bi-{{ $itinerary->type === 'Visita Iglesia' ? 'giya-seven' : 'giya-route' }}"></i>
-                        </span>
-                        <span class="history-body">
-                            <span class="history-name">{{ $itinerary->name }}</span>
-                            <span class="history-meta">
-                                @if ($itinerary->status === 'Upcoming')
-                                    {{ __('giya.hub.stops', ['count' => $itinerary->total_stops]) }}
-                                @else
-                                    {{ __('giya.hub.progress', ['done' => $itinerary->visited_count, 'total' => $itinerary->total_stops]) }}
-                                @endif
-                                @if ($itinerary->scheduled_date) &middot; {{ $itinerary->scheduled_date->format('M j, Y') }} @endif
-                            </span>
-                        </span>
-                        <span class="badge status-{{ $itinerary->status }}">{{ $label }}</span>
-                        <i class="bi bi-chevron-right history-chevron"></i>
-                    </a>
-                    @if ($itinerary->status === 'Completed')
-                        <a href="{{ route('plan.show', ['itinerary' => $itinerary, 'rate' => 1]) }}" class="history-rate">
-                            <i class="bi bi-star-fill"></i> {{ __('giya.hub.rate') }}
-                        </a>
-                    @endif
-                </div>
-            @empty
-                <x-empty-state icon="giya-route" :title="__('giya.plan.no_itineraries')"
-                               :desc="__('giya.plan.no_itin_desc')">
-                    <a href="{{ route('map', ['plan' => 1]) }}" class="btn btn-primary btn-sm mt-3">{{ __('giya.plan.create_first') }}</a>
-                </x-empty-state>
-            @endforelse
-
-            @if ($itineraries->isNotEmpty())
-                <a href="{{ route('plan.index') }}" class="hub-manage">{{ __('giya.hub.manage') }} <i class="bi bi-chevron-right"></i></a>
-            @endif
-        </div>
-
+    <div class="hub-bottom is-tips">
         <div>
             <h2 class="section-title hub-section-title">{{ __('giya.plan.tips') }}</h2>
             @foreach ([

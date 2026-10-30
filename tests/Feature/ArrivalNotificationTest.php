@@ -152,4 +152,38 @@ class ArrivalNotificationTest extends TestCase
             $this->stops[0]->id => ['rating' => 1],
         ]])->assertForbidden();
     }
+
+    /* ── Saved Itineraries ────────────────────────────────────────────── */
+
+    public function test_plan_links_to_saved_itineraries_instead_of_listing_trips(): void
+    {
+        $html = $this->actingAs($this->user)->get(route('plan.hub'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('class="hub-saved"', $html);
+        $this->assertStringContainsString(__('giya.hub.saved_count', ['count' => 1]), $html);
+        $this->assertStringNotContainsString(__('giya.hub.your_trips'), $html, 'The list lives on Saved Itineraries now.');
+    }
+
+    public function test_saved_itineraries_groups_trips_and_shows_your_stars(): void
+    {
+        $this->finishTrip();
+        $trip = $this->stops[0]->itinerary_id;
+        $this->actingAs($this->user)->postJson(route('plan.ratings', $trip), ['ratings' => [
+            $this->stops[0]->id => ['rating' => 5], $this->stops[1]->id => ['rating' => 4],
+        ]]);
+
+        $html = $this->actingAs($this->user)->get(route('plan.index', ['trip' => $trip]))->assertOk()->getContent();
+
+        $this->assertStringContainsString(__('giya.plan.my_title'), $html);
+        $this->assertStringContainsString(e(__('giya.hub.you_rated', ['stars' => '4.5'])), $html);
+        $this->assertStringContainsString('id="trip-'.$trip.'" class="card is-highlight"', $html, 'The trip just rated is outlined.');
+    }
+
+    public function test_after_rating_the_button_opens_saved_itineraries(): void
+    {
+        $html = $this->actingAs($this->user)->get(route('plan.show', $this->stops[0]->itinerary_id))->getContent();
+
+        $this->assertStringContainsString(e(route('plan.index', ['trip' => $this->stops[0]->itinerary_id])), $html);
+        $this->assertStringContainsString(__('giya.hub.view_saved'), $html);
+    }
 }

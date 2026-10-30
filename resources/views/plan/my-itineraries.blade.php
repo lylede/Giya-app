@@ -66,9 +66,16 @@
             </x-empty-state>
         </div>
     @else
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" class="itin-grid">
-            @foreach ($itineraries as $itinerary)
-                <article class="card" style="overflow:hidden">
+        @php
+            // The "unlock more" tile goes after the last group that has trips.
+            $lastGroup = collect($groups)->filter(fn ($g) => $g[2]->isNotEmpty())->keys()->last();
+        @endphp
+        @foreach ($groups as $gi => [$key, $heading, $group])
+        @continue($group->isEmpty())
+        <h2 class="saved-heading">{{ $heading }} <span>{{ $group->count() }}</span></h2>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px" class="itin-grid mb-4">
+            @foreach ($group as $itinerary)
+                <article id="trip-{{ $itinerary->id }}" @class(['card', 'is-highlight' => $highlight === $itinerary->id]) style="overflow:hidden">
                     <div style="height:6px;background:{{ $itinerary->type === 'Visita Iglesia' ? 'var(--gold)' : 'var(--primary)' }}"></div>
                     <div style="padding:20px">
                         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -76,7 +83,7 @@
                                 <i class="bi bi-{{ $itinerary->type === 'Visita Iglesia' ? 'giya-seven' : 'giya-route' }}"></i>
                                 {{ $itinerary->type }}
                             </span>
-                            <span class="badge status-{{ $itinerary->status }}">{{ $itinerary->status }}</span>
+                            <span class="badge status-{{ $itinerary->status }}">{{ match ($itinerary->status) { 'Active' => __('giya.hub.in_progress'), 'Completed' => __('giya.hub.st_completed'), default => __('giya.hub.st_upcoming') } }}</span>
                         </div>
 
                         <h3 style="font-size: 1rem;font-weight:700;color:var(--text);margin:0 0 8px">{{ $itinerary->name }}</h3>
@@ -114,6 +121,19 @@
                             </div>
                         @endif
 
+                        @if ($itinerary->status === 'Completed')
+                            {{-- The stars this devotee gave, or a way to give them. --}}
+                            <div class="saved-stars">
+                                @if (isset($myStars[$itinerary->id]))
+                                    <span><i class="bi bi-star-fill"></i> {{ __('giya.hub.you_rated', ['stars' => rtrim(rtrim(number_format((float) $myStars[$itinerary->id], 1), '0'), '.')]) }}</span>
+                                @else
+                                    <a href="{{ route('plan.show', ['itinerary' => $itinerary, 'rate' => 1]) }}" class="btn btn-outline-gold btn-sm">
+                                        <i class="bi bi-star-fill"></i> {{ __('giya.hub.rate_btn') }}
+                                    </a>
+                                @endif
+                            </div>
+                        @endif
+
                         <div class="d-flex gap-2" style="padding-top:14px;border-top:1px solid var(--border-light)">
                             <a href="{{ route('plan.show', $itinerary) }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">
                                 {{ $itinerary->status === 'Completed' ? __('giya.plan.act_view') : ($itinerary->status === 'Active' ? __('giya.plan.act_continue') : __('giya.plan.act_start')) }}
@@ -127,7 +147,7 @@
                 </article>
             @endforeach
 
-            @if ($atLimit)
+            @if ($atLimit && $gi === $lastGroup)
                 <div style="border-radius:var(--radius-xl);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px;border:2px dashed rgba(142,59,47,.2);background:rgba(142,59,47,.02);min-height:240px;text-align:center">
                     <span style="width:56px;height:56px;border-radius:16px;background:var(--gold-bg);display:flex;align-items:center;justify-content:center">
                         <i class="bi bi-lock-fill" style="font-size: 1.375rem;color:var(--primary)"></i>
@@ -141,6 +161,7 @@
                 </div>
             @endif
         </div>
+        @endforeach
     @endif
 </div>
 

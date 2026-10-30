@@ -27,24 +27,21 @@ class ItineraryController extends Controller
     {
         $userId = Auth::id();
 
-        /* One list of trips, with how far each one got, and - only while a
-           trip is being walked - the banner to continue it. "In progress"
-           means a church on it has been visited; opening a trip to look at
-           it does not start it. */
-        $trips = Itinerary::where('user_id', $userId)
+        /* Plan is for what is next: the trip being walked (a church on it
+           visited - opening it does not start it) and the two ways to plan.
+           Every trip is listed on Saved Itineraries. */
+        $active = Itinerary::where('user_id', $userId)
+            ->where('status', 'Active')
             ->withCount(['stops as visited_count' => fn ($q) => $q->where('is_visited', true)])
-            ->orderByRaw("CASE status WHEN 'Active' THEN 0 WHEN 'Upcoming' THEN 1 ELSE 2 END")
-            ->orderByDesc('updated_at')
-            ->take(20)
-            ->get();
+            ->latest('updated_at')
+            ->first();
 
-        $active = $trips->firstWhere('status', 'Active');
         $next = $active?->stops()->with('church')->where('is_visited', false)->orderBy('stop_order')->first();
 
         return view('plan.hub', [
-            'itineraries'     => $trips,
             'activeItinerary' => $active,
             'activeNext'      => $next,
+            'savedCount'      => Itinerary::where('user_id', $userId)->count(),
         ]);
     }
 
@@ -102,10 +99,30 @@ class ItineraryController extends Controller
     {
         $itineraries = Itinerary::with('stops')
             ->where('user_id', Auth::id())
-            ->orderByDesc('created_at')
+            ->orderByDesc('updated_at')
             ->get();
 
+        /* The stars this devotee gave on each finished trip (the average of
+           their ratings for its churches), so the card says "You rated 4.5"
+           instead of offering Rate again. */
+        $myStars = Feedback::query()
+            ->join('visit_history', 'visit_history.id', '=', 'feedback.visit_history_id')
+            ->where('feedback.user_id', Auth::id())
+            ->whereNotNull('feedback.rating')
+            ->groupBy('visit_history.itinerary_id')
+            ->selectRaw('visit_history.itinerary_id as trip, avg(feedback.rating) as stars')
+            ->pluck('stars', 'trip');
+
         return view('plan.my-itineraries', [
+            // In progress first, then planned, then finished.
+            'groups'      => [
+                ['progress',  __('giya.hub.in_progress'),  $itineraries->where('status', 'Active')->values()],
+                ['upcoming',  __('giya.hub.st_upcoming'),  $itineraries->whereNotIn('status', ['Active', 'Completed'])->values()],
+                ['completed', __('giya.hub.st_completed'), $itineraries->where('status', 'Completed')->values()],
+            ],
+            'myStars'     => $myStars,
+            // Arriving from "View Saved Itineraries" after rating: that trip is outlined.
+            'highlight'   => (int) request('trip'),
             'itineraries' => $itineraries,
             // Deleted ones are not in the list above but still spend a slot,
             // so the meter is counted separately rather than from the list.
