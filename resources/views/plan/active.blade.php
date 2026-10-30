@@ -227,7 +227,7 @@
             <p>{{ __('giya.plan.rate_thanks') }}</p>
             <div class="plan-modal-actions">
                 <button type="button" class="btn btn-ghost" data-rate-later>{{ __('giya.plan.stay_here') }}</button>
-                <a class="btn btn-primary" href="{{ route('plan.index') }}">{{ __('giya.plan.view_itin') }}</a>
+                <a class="btn btn-primary" href="{{ route('plan.index', ['trip' => $itinerary->id]) }}#trip-{{ $itinerary->id }}">{{ __('giya.hub.view_saved') }}</a>
             </div>
         </div>
     </div>
