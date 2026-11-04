@@ -610,9 +610,12 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
             field('f-lng').value = lng.toFixed(8);
         }
 
-        // Delete only applies to something that already exists.
+        // Delete only applies to something that already exists. The button
+        // starts with the hidden attribute, and [hidden] is display:none
+        // !important in giya.css - so it must be the attribute that changes,
+        // not style.display (which left the button hidden even when editing).
         const del = field('btnDelete');
-        del.style.display = churchId ? '' : 'none';
+        del.hidden = !churchId;
         del.dataset.church = churchId || '';
         del.dataset.name = churchId ? (field('f-name').value || 'this destination') : '';
 
