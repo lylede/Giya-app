@@ -10,6 +10,15 @@ FROM dunglas/frankenphp:1-php8.3
 # Laravel set. install-php-extensions ships with the FrankenPHP image.
 RUN install-php-extensions pdo_pgsql pgsql gd intl zip bcmath opcache
 
+# The FrankenPHP image gives its binary a special "bind low ports" file
+# capability. Render runs containers with no-new-privileges, which refuses to
+# start a binary like that ("exec: frankenphp: Operation not permitted").
+# The container already runs as root, so the extra capability is not needed.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libcap2-bin \
+ && (setcap -r /usr/local/bin/frankenphp || true) \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
