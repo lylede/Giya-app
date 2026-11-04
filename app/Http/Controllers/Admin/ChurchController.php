@@ -197,7 +197,7 @@ class ChurchController extends Controller
             try {
                 $this->replacePhoto($church, $request->file('photo'), $data['caption'] ?? null);
             } catch (\RuntimeException $e) {
-                return back()->with('error', $message.' But the photo could not be uploaded - please try again.');
+                return back()->with('error', $message.' But the photo could not be uploaded: '.$e->getMessage());
             }
         }
 
@@ -308,7 +308,7 @@ class ChurchController extends Controller
         try {
             $this->replacePhoto($church, $request->file('photo'), $request->caption);
         } catch (\RuntimeException $e) {
-            return back()->with('error', 'The photo could not be uploaded - please try again.');
+            return back()->with('error', $e->getMessage());
         }
 
         return back()->with('success', 'Photo updated for '.$church->name.'.');
@@ -477,6 +477,8 @@ class ChurchController extends Controller
            restart, so the photo goes to Supabase Storage instead. Uploaded
            first and the old one removed only after, so a failed upload never
            leaves a church with no photo. */
+        Uploads::ensureStorable();
+
         if (Uploads::cloud()) {
             $url = Uploads::put($file, 'churches/'.Uploads::freshName(static::photoBasename($church), $file));
 

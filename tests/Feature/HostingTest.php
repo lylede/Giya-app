@@ -67,6 +67,39 @@ class HostingTest extends TestCase
         return new UploadedFile($path, $name, 'image/png', null, true);
     }
 
+    /** Render/Vercel without the key: refuse, never save to a disk that is wiped. */
+    public function test_on_a_host_without_supabase_a_photo_is_refused_and_the_old_one_kept(): void
+    {
+        config(['services.supabase.url' => self::SUPABASE, 'services.supabase.key' => '', 'services.supabase.required' => true]);
+        $church = $this->church();
+        $old = self::SUPABASE.'/storage/v1/object/public/giya-uploads/churches/simala-shrine-20260101000000.png';
+        ChurchImage::create([
+            'church_id' => $church->id, 'image_url' => $old, 'is_primary' => true,
+            'uploaded_at' => now(), 'created_at' => now(),
+        ]);
+
+        $this->actingAs($this->user('admin'))
+            ->post(route('admin.destinations.photo', $church), ['photo' => $this->png()])
+            ->assertSessionHas('error', fn ($m) => str_contains($m, 'SUPABASE_SERVICE_KEY'));
+
+        $this->assertSame($old, ChurchImage::where('church_id', $church->id)->value('image_url'));
+        $this->assertFileDoesNotExist(public_path('images/churches/simala-shrine.png'));
+        // And the photo already in Supabase still shows, even with the key missing.
+        $this->assertSame($old, $church->fresh()->imagePath());
+    }
+
+    public function test_on_a_host_without_supabase_a_profile_picture_is_refused(): void
+    {
+        config(['services.supabase.url' => null, 'services.supabase.key' => null, 'services.supabase.required' => true]);
+        $user = $this->user();
+
+        $this->actingAs($user)->from(route('profile'))
+            ->patch(route('profile.update'), ['name' => 'Test', 'email' => $user->email, 'avatar' => $this->png()])
+            ->assertSessionHasErrors('avatar');
+
+        $this->assertNull($user->fresh()->avatar_url);
+    }
+
     public function test_without_supabase_settings_uploads_stay_local(): void
     {
         config(['services.supabase.url' => null, 'services.supabase.key' => null]);

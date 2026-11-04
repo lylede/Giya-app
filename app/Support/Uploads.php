@@ -33,6 +33,23 @@ final class Uploads
     }
 
     /**
+     * Stop when this server cannot keep an uploaded file: a hosted app
+     * (Render/Vercel) wipes its disk on restart, so without the Supabase
+     * settings a "saved" photo would show the old cached picture and then
+     * vanish. Better a clear error for the admin.
+     *
+     * @throws RuntimeException
+     */
+    public static function ensureStorable(): void
+    {
+        if (! self::cloud() && config('services.supabase.required')) {
+            Log::error('Photo upload refused: SUPABASE_URL or SUPABASE_SERVICE_KEY is not set on this host.');
+
+            throw new RuntimeException('Photo storage is not set up on this server (check SUPABASE_URL and SUPABASE_SERVICE_KEY).');
+        }
+    }
+
+    /**
      * Upload a file and return its public URL.
      *
      * @throws RuntimeException when Supabase refuses the upload
@@ -90,7 +107,7 @@ final class Uploads
     /** Remove a file this app uploaded. Anything else (seeded photos, other sites) is left alone. */
     public static function delete(?string $url): void
     {
-        if (! self::owns($url)) {
+        if (! self::cloud() || ! self::owns($url)) {
             return;
         }
 
@@ -112,7 +129,10 @@ final class Uploads
     /** Is this URL one of our Supabase uploads? */
     public static function owns(?string $url): bool
     {
-        return self::cloud() && is_string($url) && $url !== '' && str_starts_with($url, self::publicBase());
+        // Only the project address is needed to recognise our photos: a missing
+        // or replaced key must not hide the photos that are already uploaded.
+        return filled(config('services.supabase.url'))
+            && is_string($url) && $url !== '' && str_starts_with($url, self::publicBase());
     }
 
     public static function publicUrl(string $path): string

@@ -73,6 +73,12 @@ class ProfileController extends Controller
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
 
+            try {
+                Uploads::ensureStorable();
+            } catch (\RuntimeException $e) {
+                return back()->withInput()->withErrors(['avatar' => 'Photo uploads are not available right now - please tell the admin.']);
+            }
+
             if (Uploads::cloud()) {
                 // Hosted app: the local disk is wiped on restart, so Supabase.
                 try {

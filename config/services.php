@@ -113,6 +113,9 @@ return [
         // break in the middle from a key that wrapped when it was copied.
         'key'    => preg_replace('/\s+/', '', (string) env('SUPABASE_SERVICE_KEY')),
         'bucket' => trim((string) env('SUPABASE_BUCKET', 'giya-uploads')),
+        // Render sets RENDER=true and Vercel sets VERCEL=1. Their disk is wiped
+        // on restart, so there a photo must go to Supabase or not be saved.
+        'required' => filled(env('RENDER')) || filled(env('VERCEL')),
     ],
 
     'slack' => [
