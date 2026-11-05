@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/** The pin is set inside the destination form, and a save keeps the map on that church. */
+/** One map for pins: Move pin zooms it onto the church, and a save keeps the map there. */
 class AdminPinInFormTest extends TestCase
 {
     use RefreshDatabase;
@@ -21,13 +21,14 @@ class AdminPinInFormTest extends TestCase
         ]);
     }
 
-    public function test_the_form_has_its_own_pin_map_and_paste_box(): void
+    public function test_one_map_move_pin_and_a_paste_box(): void
     {
         $html = $this->actingAs($this->admin())->get(route('admin.destinations'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('id="dmMiniMap"', $html);
+        // One map only: the form has no map of its own; Move pin uses the big one.
+        $this->assertStringNotContainsString('id="dmMiniMap"', $html);
+        $this->assertStringContainsString('id="dmRepin"', $html);
         $this->assertStringContainsString('id="f-pinpaste"', $html);
-        $this->assertStringNotContainsString('id="dmRepin"', $html);
 
         // The page script must still parse once Blade has filled it in.
         preg_match_all('#<script>(.*?)</script>#s', $html, $m);

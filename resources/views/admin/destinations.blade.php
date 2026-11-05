@@ -399,25 +399,9 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                            placeholder="242 Dionisio Jakosalem St, Cebu City">
                 </div>
 
-                {{-- The pin is moved right here, without leaving the form: drag it,
-                     click the spot, or paste a Google Maps link / coordinates. --}}
-                <div class="field is-full dm-pin-field">
-                    <label class="dm-label" for="f-pinpaste">Location on the map</label>
-                    <div class="dm-mini-map" id="dmMiniMap" aria-label="Drag the pin or click the map to set the location"></div>
-                    <p class="dm-pin-help">Drag the pin or click the exact spot. Zoom in for accuracy.</p>
-                    <div class="dm-pin-paste">
-                        <input id="f-pinpaste" type="text" class="giya-input" autocomplete="off"
-                               placeholder="Or paste a Google Maps link or &quot;10.2945, 123.9022&quot;">
-                        <button type="button" class="btn btn-outline btn-sm" id="dmPinPaste">
-                            <i class="bi bi-geo-alt-fill"></i> Use
-                        </button>
-                    </div>
-                    <span class="field-error" id="dmPinPasteError" hidden>
-                        Couldn't find coordinates in that. In Google Maps, right-click the church and click the numbers to copy them.
-                    </span>
-                </div>
-
-                {{-- Filled by the pin; can still be typed or corrected. --}}
+                {{-- One map only: the big map above. "Move pin" zooms it onto this
+                     church so the admin drags or clicks the exact spot there.
+                     Coordinates can also be pasted from Google Maps. --}}
                 <div class="dm-row dm-coords">
                     <div class="field is-narrow">
                         <label class="dm-label" for="f-lat">Latitude</label>
@@ -431,6 +415,19 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                                class="giya-input" value="{{ old('longitude') }}">
                         @error('longitude')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
+                    <div class="field is-bottom is-auto">
+                        <button type="button" class="btn btn-outline btn-sm" id="dmRepin">
+                            <i class="bi bi-geo-alt-fill"></i> Move pin
+                        </button>
+                    </div>
+                </div>
+                <div class="field is-full">
+                    <label class="dm-label" for="f-pinpaste">Or paste from Google Maps</label>
+                    <input id="f-pinpaste" type="text" class="giya-input" autocomplete="off"
+                           placeholder="A Google Maps link, or coordinates like 10.2945, 123.9022">
+                    <span class="field-error" id="dmPinPasteError" hidden>
+                        No coordinates found. In Google Maps, right-click the church and click the numbers to copy them.
+                    </span>
                 </div>
 
                 <div class="dm-row">
@@ -540,8 +537,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 
             if (moving) {
                 GiyaUI.Modal.open('destModal');
-                syncMini();
-                flashCoords();
+                        flashCoords();
             } else {
                 openModal(null, lat, lng);
             }
@@ -634,7 +630,6 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         del.dataset.name = churchId ? (field('f-name').value || 'this destination') : '';
 
         GiyaUI.Modal.open('destModal');
-        syncMini();
         setTimeout(function () { field('f-name').focus(); }, 120);
     }
 
@@ -651,59 +646,42 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         GiyaUI.Modal.open('importModal');
     });
 
-    /* ---------------------------------------------- pin inside the form ----
-       The pin is set in a small map inside the modal: drag it, click the
-       spot, or paste coordinates. The admin never leaves the form, and the
-       big map no longer has to be zoomed in by hand to find the church. */
-    let mini = null;
-
-    function miniMap() {
-        if (mini) return mini;
-        mini = GiyaLeaflet.picker({
-            element: 'dmMiniMap',
-            churches: [],
-            zoom: 12,
-            latInput: '#f-lat',
-            lngInput: '#f-lng',
-            onPin: function () { flashCoords(); }
-        });
-        return mini;
-    }
-
-    /* Show the form's coordinates on the small map: close in when there is a
-       pin, the whole city when there is none yet. */
-    function syncMini() {
-        const m = miniMap();
+    /* Move pin: close the form and zoom the big map onto this church, its
+       pin ready to drag. A click on the exact spot (or letting go of the
+       dragged pin) puts the coordinates in the form and reopens it.
+       Before, the map stayed zoomed out on Cebu City, so finding the church
+       again was most of the work. */
+    document.getElementById('dmRepin').addEventListener('click', function () {
         const lat = parseFloat(field('f-lat').value), lng = parseFloat(field('f-lng').value);
+        const has = isFinite(lat) && isFinite(lng);
+
+        GiyaUI.Modal.close('destModal');
+        picking = true;
+        hint.textContent = has
+            ? 'Drag the pin, or click the exact spot of the church'
+            : 'Click the exact spot of the church';
+        hint.classList.add('is-active');
+        if (!expanded) expand();
 
         setTimeout(function () {
-            m.map.invalidateSize();
-            if (isFinite(lat) && isFinite(lng)) {
-                m.place(lat, lng, true);
-                m.map.setView([lat, lng], 17);
+            picker.map.invalidateSize();
+            if (has) {
+                picker.place(lat, lng, true);
+                picker.map.setView([lat, lng], 18);
             } else {
-                m.clear();
-                m.map.setView(picker.map.getCenter(), Math.max(picker.map.getZoom(), 13));
+                picker.map.setZoom(Math.max(picker.map.getZoom(), 15));
             }
-        }, 180);
-    }
-
-    /* Typed coordinates move the pin too. */
-    ['f-lat', 'f-lng'].forEach(function (id) {
-        field(id).addEventListener('change', function () {
-            const lat = parseFloat(field('f-lat').value), lng = parseFloat(field('f-lng').value);
-            if (isFinite(lat) && isFinite(lng)) { miniMap().place(lat, lng, true); miniMap().map.setView([lat, lng], 17); }
-        });
+        }, 160);
     });
 
-    /* "10.2945, 123.9022", a Google Maps link (…/@10.29,123.90,17z or
-       …!3d10.29!4d123.90 or ?q=10.29,123.90) - anything with the two numbers. */
+    /* "10.2945, 123.9022" or a Google Maps link (…/@10.29,123.90,17z,
+       …!3d10.29!4d123.90, ?q=10.29,123.90): the coordinates are taken out
+       of it, so the admin can copy the spot straight from Google Maps. */
     function coordsIn(text) {
         const t = String(text || '');
-        const pin = t.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
-        const at  = t.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
-        const two = t.match(/(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
-        const m = pin || at || two;
+        const m = t.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
+               || t.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
+               || t.match(/(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
         if (!m) return null;
         const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
         return (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) ? [lat, lng] : null;
@@ -716,14 +694,14 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         if (!c) return;
         field('f-lat').value = c[0].toFixed(8);
         field('f-lng').value = c[1].toFixed(8);
-        miniMap().place(c[0], c[1], true);
-        miniMap().map.setView(c, 17);
+        picker.place(c[0], c[1], true);
+        picker.map.setView(c, 17);
         flashCoords();
         box.value = '';
     }
 
-    field('dmPinPaste').addEventListener('click', usePasted);
     field('f-pinpaste').addEventListener('paste', function () { setTimeout(usePasted, 0); });
+    field('f-pinpaste').addEventListener('change', usePasted);
     field('f-pinpaste').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') { e.preventDefault(); usePasted(); }
     });
@@ -827,7 +805,6 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
        leaving the admin looking at a map wondering what happened. */
     @if ($errors->any())
         GiyaUI.Modal.open('destModal');
-        syncMini();
     @endif
 
     /* After a save the page reloads. Open the map on the church just saved,

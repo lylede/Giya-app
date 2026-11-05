@@ -4999,17 +4999,6 @@ html[data-theme="dark"] .arrive-toast { background: var(--surface); }
   -moz-appearance: textfield;
   appearance: textfield;
 }
-/* Pin map inside the destination form. */
-.dm-mini-map {
-  height: 240px; width: 100%;
-  border: 1px solid #EEDCD1; border-radius: var(--radius-md);
-  overflow: hidden; background: #E8DFD1;
-}
-.dm-pin-help { margin: 6px 0 8px; font-size: 12.5px; color: var(--text-muted, #7A6A60); }
-.dm-pin-paste { display: flex; gap: 8px; }
-.dm-pin-paste .giya-input { flex: 1; min-width: 0; }
-@media (max-width: 600px) { .dm-mini-map { height: 200px; } }
-
 /* The modal must clear an expanded map. */
 #destModal { z-index: 2100; }
 
