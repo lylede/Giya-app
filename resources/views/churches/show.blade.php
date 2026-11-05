@@ -16,6 +16,11 @@
     {{-- Warm brown tinted transparent gradient overlay matching the brand design --}}
     <div class="church-hero-overlay"></div>
 
+    {{-- Free-licensed photos must name their author and licence. --}}
+    @if ($credit = $church->photoCredit())
+        <a href="{{ $credit['url'] }}" class="church-hero-credit" target="_blank" rel="noopener">{{ $credit['text'] }}</a>
+    @endif
+
     <div class="church-hero-top">
         @php
             [$backUrl, $backLabel] = \App\Support\BackLink::previous(request(), route('map'), __('giya.back.map'));

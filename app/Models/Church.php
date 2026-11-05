@@ -283,6 +283,11 @@ class Church extends Model
             return $url;
         }
 
+        // A free-licensed Wikimedia Commons photo, shown with its credit.
+        if (ChurchImage::isCommons($url)) {
+            return $url;
+        }
+
         if ($url && ! str_starts_with($url, 'http')) {
             return asset($url);
         }
@@ -301,6 +306,16 @@ class Church extends Model
         }
 
         return asset('images/churches/placeholder.svg');
+    }
+
+    /** "Photo: Author, CC BY-SA 4.0" and its link, for a Commons photo; null otherwise. */
+    public function photoCredit(): ?array
+    {
+        $image = $this->primaryImage ?? $this->images->first();
+
+        return $image && $image->credit && ChurchImage::isCommons($image->image_url)
+            ? ['text' => $image->credit, 'url' => $image->credit_url]
+            : null;
     }
 
     /** Has the signed-in devotee saved this destination? */

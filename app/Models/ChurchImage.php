@@ -13,7 +13,7 @@ class ChurchImage extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'church_id', 'image_url', 'caption', 'is_primary', 'uploaded_at', 'created_at',
+        'church_id', 'image_url', 'caption', 'credit', 'credit_url', 'is_primary', 'uploaded_at', 'created_at',
     ];
 
     protected function casts(): array
@@ -23,6 +23,13 @@ class ChurchImage extends Model
             'uploaded_at' => 'datetime',
             'created_at'  => 'datetime',
         ];
+    }
+
+    /** A free-licensed photo from Wikimedia Commons (shown with its credit). */
+    public static function isCommons(?string $url): bool
+    {
+        return is_string($url) && (str_starts_with($url, 'https://upload.wikimedia.org/wikipedia/commons/')
+            || str_starts_with($url, 'https://thumb.wikimedia.org/wikipedia/commons/'));
     }
 
     public function church(): BelongsTo

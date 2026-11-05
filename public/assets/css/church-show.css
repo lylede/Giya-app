@@ -643,3 +643,17 @@
     .church-next-mass { margin:0 0 18px; }
     .church-next-mass-link { margin-left:0; width:100%; }
 }
+
+/* Photo credit for Wikimedia Commons photos (required by their licence). */
+.church-hero-credit {
+    position:absolute;
+    right:12px;
+    bottom:8px;
+    z-index:2;
+    max-width:70%;
+    font-size:0.6875rem;
+    color:rgba(255,255,255,0.75);
+    text-decoration:none;
+    text-align:right;
+}
+.church-hero-credit:hover { color:#fff; text-decoration:underline; }
