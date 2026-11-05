@@ -197,11 +197,13 @@ class ChurchController extends Controller
             try {
                 $this->replacePhoto($church, $request->file('photo'), $data['caption'] ?? null);
             } catch (\RuntimeException $e) {
-                return back()->with('error', $message.' But the photo could not be uploaded: '.$e->getMessage());
+                return back()->with('error', $message.' But the photo could not be uploaded: '.$e->getMessage())
+                    ->with('focus_church', $church->id);
             }
         }
 
-        return back()->with('success', $message);
+        // The map opens on this church again instead of zooming out to Cebu City.
+        return back()->with('success', $message)->with('focus_church', $church->id);
     }
 
     public function import(Request $request): RedirectResponse
@@ -311,7 +313,7 @@ class ChurchController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Photo updated for '.$church->name.'.');
+        return back()->with('success', 'Photo updated for '.$church->name.'.')->with('focus_church', $church->id);
     }
 
     public function toggle(Church $church): RedirectResponse

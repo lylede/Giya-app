@@ -399,7 +399,25 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                            placeholder="242 Dionisio Jakosalem St, Cebu City">
                 </div>
 
-                {{-- Coordinates come from the map click; shown so they can be corrected. --}}
+                {{-- The pin is moved right here, without leaving the form: drag it,
+                     click the spot, or paste a Google Maps link / coordinates. --}}
+                <div class="field is-full dm-pin-field">
+                    <label class="dm-label" for="f-pinpaste">Location on the map</label>
+                    <div class="dm-mini-map" id="dmMiniMap" aria-label="Drag the pin or click the map to set the location"></div>
+                    <p class="dm-pin-help">Drag the pin or click the exact spot. Zoom in for accuracy.</p>
+                    <div class="dm-pin-paste">
+                        <input id="f-pinpaste" type="text" class="giya-input" autocomplete="off"
+                               placeholder="Or paste a Google Maps link or &quot;10.2945, 123.9022&quot;">
+                        <button type="button" class="btn btn-outline btn-sm" id="dmPinPaste">
+                            <i class="bi bi-geo-alt-fill"></i> Use
+                        </button>
+                    </div>
+                    <span class="field-error" id="dmPinPasteError" hidden>
+                        Couldn't find coordinates in that. In Google Maps, right-click the church and click the numbers to copy them.
+                    </span>
+                </div>
+
+                {{-- Filled by the pin; can still be typed or corrected. --}}
                 <div class="dm-row dm-coords">
                     <div class="field is-narrow">
                         <label class="dm-label" for="f-lat">Latitude</label>
@@ -412,11 +430,6 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                         <input id="f-lng" type="number" step="0.00000001" name="longitude"
                                class="giya-input" value="{{ old('longitude') }}">
                         @error('longitude')<span class="field-error">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="field is-bottom is-auto">
-                        <button type="button" class="btn btn-outline btn-sm" id="dmRepin">
-                            <i class="bi bi-geo-alt-fill"></i> Move pin
-                        </button>
                     </div>
                 </div>
 
@@ -527,6 +540,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 
             if (moving) {
                 GiyaUI.Modal.open('destModal');
+                syncMini();
                 flashCoords();
             } else {
                 openModal(null, lat, lng);
@@ -620,6 +634,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         del.dataset.name = churchId ? (field('f-name').value || 'this destination') : '';
 
         GiyaUI.Modal.open('destModal');
+        syncMini();
         setTimeout(function () { field('f-name').focus(); }, 120);
     }
 
@@ -636,13 +651,81 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         GiyaUI.Modal.open('importModal');
     });
 
-    /* Move pin: close the modal, take the next map click, reopen. */
-    document.getElementById('dmRepin').addEventListener('click', function () {
-        GiyaUI.Modal.close('destModal');
-        picking = true;
-        hint.textContent = 'Click the new position for this destination';
-        hint.classList.add('is-active');
-        if (!expanded) expand();
+    /* ---------------------------------------------- pin inside the form ----
+       The pin is set in a small map inside the modal: drag it, click the
+       spot, or paste coordinates. The admin never leaves the form, and the
+       big map no longer has to be zoomed in by hand to find the church. */
+    let mini = null;
+
+    function miniMap() {
+        if (mini) return mini;
+        mini = GiyaLeaflet.picker({
+            element: 'dmMiniMap',
+            churches: [],
+            zoom: 12,
+            latInput: '#f-lat',
+            lngInput: '#f-lng',
+            onPin: function () { flashCoords(); }
+        });
+        return mini;
+    }
+
+    /* Show the form's coordinates on the small map: close in when there is a
+       pin, the whole city when there is none yet. */
+    function syncMini() {
+        const m = miniMap();
+        const lat = parseFloat(field('f-lat').value), lng = parseFloat(field('f-lng').value);
+
+        setTimeout(function () {
+            m.map.invalidateSize();
+            if (isFinite(lat) && isFinite(lng)) {
+                m.place(lat, lng, true);
+                m.map.setView([lat, lng], 17);
+            } else {
+                m.clear();
+                m.map.setView(picker.map.getCenter(), Math.max(picker.map.getZoom(), 13));
+            }
+        }, 180);
+    }
+
+    /* Typed coordinates move the pin too. */
+    ['f-lat', 'f-lng'].forEach(function (id) {
+        field(id).addEventListener('change', function () {
+            const lat = parseFloat(field('f-lat').value), lng = parseFloat(field('f-lng').value);
+            if (isFinite(lat) && isFinite(lng)) { miniMap().place(lat, lng, true); miniMap().map.setView([lat, lng], 17); }
+        });
+    });
+
+    /* "10.2945, 123.9022", a Google Maps link (…/@10.29,123.90,17z or
+       …!3d10.29!4d123.90 or ?q=10.29,123.90) - anything with the two numbers. */
+    function coordsIn(text) {
+        const t = String(text || '');
+        const pin = t.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+        const at  = t.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+        const two = t.match(/(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
+        const m = pin || at || two;
+        if (!m) return null;
+        const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+        return (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) ? [lat, lng] : null;
+    }
+
+    function usePasted() {
+        const box = field('f-pinpaste'), err = field('dmPinPasteError');
+        const c = coordsIn(box.value);
+        err.hidden = !!c || box.value.trim() === '';
+        if (!c) return;
+        field('f-lat').value = c[0].toFixed(8);
+        field('f-lng').value = c[1].toFixed(8);
+        miniMap().place(c[0], c[1], true);
+        miniMap().map.setView(c, 17);
+        flashCoords();
+        box.value = '';
+    }
+
+    field('dmPinPaste').addEventListener('click', usePasted);
+    field('f-pinpaste').addEventListener('paste', function () { setTimeout(usePasted, 0); });
+    field('f-pinpaste').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); usePasted(); }
     });
 
     /* ------------------------------------------------------ fullscreen ---- */
@@ -744,7 +827,31 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
        leaving the admin looking at a map wondering what happened. */
     @if ($errors->any())
         GiyaUI.Modal.open('destModal');
+        syncMini();
     @endif
+
+    /* After a save the page reloads. Open the map on the church just saved,
+       instead of zooming all the way out to Cebu City; otherwise on the view
+       the admin last had. */
+    (function keepView() {
+        const KEY = 'giya.admin.mapView';
+        const focusId = @json(session('focus_church'));
+        const saved = focusId ? rows.filter(function (r) { return r.id === focusId; })[0] : null;
+
+        if (saved && saved.lat && saved.lng) {
+            picker.map.setView([saved.lat, saved.lng], 16);
+        } else {
+            try {
+                const v = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+                if (v && isFinite(v.lat) && isFinite(v.lng) && isFinite(v.zoom)) picker.map.setView([v.lat, v.lng], v.zoom);
+            } catch (e) { /* no storage: start on Cebu City */ }
+        }
+
+        picker.map.on('moveend', function () {
+            const c = picker.map.getCenter();
+            try { sessionStorage.setItem(KEY, JSON.stringify({lat: c.lat, lng: c.lng, zoom: picker.map.getZoom()})); } catch (e) {}
+        });
+    })();
 })();
 </script>
 @endpush
