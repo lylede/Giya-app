@@ -245,6 +245,62 @@ class Church extends Model
             : ($now >= $open && $now <= $close);
     }
 
+    /**
+     * Mass times by day for the Schedule tab, Sunday first, with days that
+     * share the same times merged: ['Sunday' => ['5:30 AM', ...],
+     * 'Monday to Thursday' => [...], 'Friday' => [...], 'Saturday' => [...]].
+     * Dated one-off Masses keep their own date as the label.
+     */
+    public function massTimetable(): array
+    {
+        $names = [0 => 'Sunday', 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
+        $perDay = array_fill(0, 7, []);
+        $other = [];
+
+        foreach ($this->schedules as $s) {
+            if (strcasecmp((string) $s->event_type, 'Mass') !== 0 || ! $s->start_time) {
+                continue;
+            }
+            $days = $s->weekdays();
+            if ($days === null) {
+                $other[$s->day_label][] = substr($s->start_time, 0, 5);
+                continue;
+            }
+            foreach ($days as $d) {
+                $perDay[$d][] = substr($s->start_time, 0, 5);
+            }
+        }
+
+        $fmt = function (array $times) {
+            $times = array_values(array_unique($times));
+            sort($times);
+
+            return array_map(fn ($t) => date('g:i A', strtotime($t)), $times);
+        };
+
+        $out = [];
+        if ($perDay[0]) {
+            $out['Sunday'] = $fmt($perDay[0]);
+        }
+        for ($d = 1; $d <= 6; $d++) {
+            if (! $perDay[$d]) {
+                continue;
+            }
+            $end = $d;
+            while ($end < 6 && $fmt($perDay[$end + 1]) === $fmt($perDay[$d])) {
+                $end++;
+            }
+            $label = $end === $d ? $names[$d] : $names[$d].' to '.$names[$end];
+            $out[$label] = $fmt($perDay[$d]);
+            $d = $end;
+        }
+        foreach ($other as $label => $times) {
+            $out[$label] = $fmt($times);
+        }
+
+        return $out;
+    }
+
     /** The next Mass from now, for the church page: ['at' => Carbon, 'schedule' => Schedule] or null. */
     public function nextMass(): ?array
     {

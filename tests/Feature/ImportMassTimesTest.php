@@ -40,8 +40,11 @@ class ImportMassTimesTest extends TestCase
         ])])->assertSuccessful();
 
         $this->assertSame(0, $a->schedules()->count());
-        $this->assertSame(4, $b->schedules()->where('event_type', 'Mass')->count());
-        $this->assertSame(['06:00:00', '08:00:00'], $b->schedules()->where('event_name', 'Sunday Mass')->orderBy('start_time')->pluck('start_time')->map(fn ($t) => strlen($t) === 5 ? $t.':00' : $t)->all());
+        // 6:00 AM is said Sunday and on weekdays, so it is one schedule.
+        $this->assertSame(3, $b->schedules()->where('event_type', 'Mass')->count());
+        $six = $b->schedules()->where('start_time', 'like', '06:00%')->first();
+        $this->assertSame([0, 1, 2, 3, 4, 5], $six->recurrence_rule['days']);
+        $this->assertSame([0], $b->schedules()->where('start_time', 'like', '08:00%')->first()->recurrence_rule['days']);
         $this->assertNotNull($b->fresh()->nextMass());
     }
 
@@ -56,5 +59,29 @@ class ImportMassTimesTest extends TestCase
 
         $this->artisan('giya:import-mass-times', ['file' => $this->csv([['Sto. Nino Parish', 'Poro', '6:00 AM, 9:00 AM', '', '', 'Parish office', 'Clint']]), '--replace' => true]);
         $this->assertSame(2, $c->schedules()->count());
+    }
+
+    public function test_a_day_column_overrides_weekdays_for_that_day(): void
+    {
+        $c = $this->church('Basilica Zz', 'Cebu City');
+        $this->artisan('giya:import-mass-times', ['file' => $this->csvWith(
+            ['Church', 'Town', 'Sunday', 'Saturday', 'Weekdays', 'Friday', 'Source', 'Checked by'],
+            [['Basilica Zz', 'Cebu City', '', '', '6:00 AM, 5:30 PM', '5:00 AM, 3:00 PM', 'Parish Facebook cover', 'Lyle']]
+        )])->assertSuccessful();
+
+        $this->assertSame([1, 2, 3, 4], $c->schedules()->where('start_time', 'like', '06:00%')->first()->recurrence_rule['days']);
+        $this->assertSame([5], $c->schedules()->where('start_time', 'like', '15:00%')->first()->recurrence_rule['days']);
+        $this->assertSame('Weekly (Monday, Tuesday, Wednesday, Thursday)', $c->schedules()->where('start_time', 'like', '06:00%')->first()->recurrence);
+    }
+
+    private function csvWith(array $head, array $rows): string
+    {
+        $f = tempnam(sys_get_temp_dir(), 'm').'.csv';
+        $h = fopen($f, 'w');
+        fputcsv($h, $head);
+        foreach ($rows as $r) fputcsv($h, $r);
+        fclose($h);
+
+        return $f;
     }
 }

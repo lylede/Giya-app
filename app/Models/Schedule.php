@@ -118,7 +118,7 @@ class Schedule extends Model
     }
 
     /** Weekdays (0 = Sunday) a repeating schedule falls on, or null when it doesn't repeat by weekday. */
-    private function weekdays(): ?array
+    public function weekdays(): ?array
     {
         $rule = $this->recurrence_rule;
         if (($rule['type'] ?? null) === 'daily') {

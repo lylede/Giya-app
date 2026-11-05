@@ -38,7 +38,7 @@ class TypicalMassTimesTest extends TestCase
         $this->actingAs($user)->get(route('churches.show', $empty))
             ->assertSee('not yet confirmed by this parish')
             ->assertSee('Usual Mass time')
-            ->assertSee('Weekdays (Monday to Friday)');
+            ->assertSee('Monday to Friday');
     }
 
     public function test_real_times_replace_the_usual_ones_without_replace_flag(): void

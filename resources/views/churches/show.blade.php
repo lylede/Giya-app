@@ -221,12 +221,6 @@
         <section>
             <h2 class="section-title church-section-title">{{ __('giya.church.mass_schedule') }}</h2>
 
-            @php
-                $massSchedules = $church->schedules
-                    ->filter(fn ($schedule) => strcasecmp($schedule->event_type, 'Mass') === 0)
-                    ->groupBy('day_label');
-            @endphp
-
             <div class="card church-schedule-card">
                 @if ($church->schedules->where('event_type', 'Mass')->contains('is_estimate', true))
                     <p class="church-schedule-estimate">
@@ -234,14 +228,12 @@
                         {{ __('giya.church.usual_times') }}
                     </p>
                 @endif
-                @forelse ($massSchedules as $dayLabel => $schedulesForDay)
+                @forelse ($church->massTimetable() as $dayLabel => $times)
                     <div class="church-schedule-day">
                         <div class="church-schedule-day-label">{{ $dayLabel }}</div>
                         <div>
-                            @foreach ($schedulesForDay as $schedule)
-                                <span class="church-schedule-time">
-                                    {{ $schedule->timeLabel($schedule->start_time) }}
-                                </span>
+                            @foreach ($times as $time)
+                                <span class="church-schedule-time">{{ $time }}</span>
                             @endforeach
                         </div>
                     </div>
