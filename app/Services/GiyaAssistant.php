@@ -332,6 +332,11 @@ class GiyaAssistant
             'Town / city: '.($c->municipality ?: $c->location ?: 'Metro Cebu'),
             'Address: '.($c->address ?: $c->location ?: 'not recorded'),
             'Hours: '.($c->opening_time && $c->closing_time ? $c->hours_label : 'not recorded'),
+            'Parish office: '.(implode(' | ', array_filter([
+                $c->contact_phone ? 'phone '.$c->contact_phone : null,
+                $c->contact_email ? 'email '.$c->contact_email : null,
+                $c->facebook_url ? 'Facebook '.$c->facebook_url : null,
+            ])) ?: 'not recorded'),
         ];
 
         if ($c->rating > 0) {

@@ -29,7 +29,8 @@ class Church extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'category_id', 'name', 'location', 'municipality', 'address', 'description', 'history',
+        'category_id', 'name', 'location', 'municipality', 'address', 'contact_phone', 'contact_email', 'facebook_url',
+        'description', 'history',
         'latitude', 'longitude', 'opening_time', 'closing_time',
         'is_featured', 'is_major', 'is_active', 'created_at', 'updated_at',
     ];
@@ -260,6 +261,30 @@ class Church extends Model
         }
 
         return $best;
+    }
+
+    /**
+     * The parish office's phone numbers as [shown, dialable] pairs:
+     * "(032) 255-8823, 0956 992 4224" -> [["(032) 255-8823", "+63322558823"], ...].
+     */
+    public function phoneNumbers(): array
+    {
+        $out = [];
+        foreach (preg_split('/\s*[,;\/]\s*/', (string) $this->contact_phone) as $shown) {
+            $digits = preg_replace('/\D/', '', $shown);
+            if (strlen($digits) < 7) {
+                continue;
+            }
+            $dial = match (true) {
+                str_starts_with($digits, '63')                       => '+'.$digits,
+                str_starts_with($digits, '0')                        => '+63'.substr($digits, 1),
+                strlen($digits) === 7 || strlen($digits) === 8       => '+6332'.substr($digits, -7),   // a Cebu landline without its area code
+                default                                              => '+63'.$digits,
+            };
+            $out[] = [trim($shown), $dial];
+        }
+
+        return $out;
     }
 
     public function color(): string

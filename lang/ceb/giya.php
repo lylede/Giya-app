@@ -148,6 +148,8 @@ return [
         'usual_times'   => 'Kini ang naandang oras sa Misa sa mga parokya sa Sugbo, wala pa makumpirma niini nga parokya. Palihug pangutana sa parokya sa dili pa ka moadto.',
         'usual_mass'    => 'Naandang oras sa Misa',
         'please_confirm'=> '(palihug kumpirmaha sa parokya)',
+        'contact'       => 'Kontaka ang parokya',
+        'facebook'      => 'Facebook sa parokya',
         'next_mass'     => 'Sunod nga Misa',
         'see_schedule'  => 'Tan-awa ang iskedyul',
         'today'         => 'Karon',

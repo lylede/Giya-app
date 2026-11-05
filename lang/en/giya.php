@@ -158,6 +158,8 @@ return [
         'usual_times'   => 'These are the usual Mass times for Cebu parishes, not yet confirmed by this parish. Please check with the parish before you go.',
         'usual_mass'    => 'Usual Mass time',
         'please_confirm'=> '(please confirm with the parish)',
+        'contact'       => 'Contact the parish',
+        'facebook'      => 'Facebook page',
         'next_mass'     => 'Next Mass',
         'see_schedule'  => 'See schedule',
         'today'         => 'Today',

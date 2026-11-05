@@ -186,6 +186,33 @@
             <i class="bi bi-clock" aria-hidden="true"></i>
             {{ $church->hours_label ?? 'Time not available' }}
         </p>
+
+        {{-- The parish office, from the Archdiocese of Cebu directory. --}}
+        @if ($church->contact_phone || $church->contact_email || $church->facebook_url)
+            <h3 class="church-history-title">{{ __('giya.church.contact') }}</h3>
+            <ul class="church-contact">
+                @foreach ($church->phoneNumbers() as [$shown, $dial])
+                    <li>
+                        <i class="bi bi-telephone" aria-hidden="true"></i>
+                        <a href="tel:{{ $dial }}">{{ $shown }}</a>
+                    </li>
+                @endforeach
+                @if ($church->contact_email)
+                    @foreach (array_filter(array_map('trim', explode(',', $church->contact_email))) as $email)
+                        <li>
+                            <i class="bi bi-envelope" aria-hidden="true"></i>
+                            <a href="mailto:{{ $email }}">{{ $email }}</a>
+                        </li>
+                    @endforeach
+                @endif
+                @if ($church->facebook_url)
+                    <li>
+                        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                        <a href="{{ $church->facebook_url }}" target="_blank" rel="noopener">{{ __('giya.church.facebook') }}</a>
+                    </li>
+                @endif
+            </ul>
+        @endif
     </section>
 
     {{-- ──────────────────── Schedule + Upcoming events ─────────────────── --}}

@@ -399,6 +399,27 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                            placeholder="242 Dionisio Jakosalem St, Cebu City">
                 </div>
 
+                {{-- The parish office, shown on the church page under Contact. --}}
+                <div class="dm-row">
+                    <div class="field">
+                        <label class="dm-label" for="f-phone">Phone (Optional)</label>
+                        <input id="f-phone" type="text" name="contact_phone" class="giya-input" maxlength="150"
+                               value="{{ old('contact_phone') }}" placeholder="(032) 255-8823, 0956 992 4224">
+                    </div>
+                    <div class="field">
+                        <label class="dm-label" for="f-email">Email (Optional)</label>
+                        <input id="f-email" type="email" name="contact_email" class="giya-input" maxlength="150"
+                               value="{{ old('contact_email') }}" placeholder="parish@example.com">
+                        @error('contact_email')<span class="field-error">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="dm-label" for="f-facebook">Facebook page (Optional)</label>
+                    <input id="f-facebook" type="url" name="facebook_url" class="giya-input" maxlength="300"
+                           value="{{ old('facebook_url') }}" placeholder="https://www.facebook.com/yourparish">
+                    @error('facebook_url')<span class="field-error">{{ $message }}</span>@enderror
+                </div>
+
                 {{-- One map only: the big map above. "Move pin" zooms it onto this
                      church so the admin drags or clicks the exact spot there.
                      Coordinates can also be pasted from Google Maps. --}}
@@ -601,6 +622,9 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
             field('f-municipality').value = c.municipality || '';
             field('f-major').checked   = !!c.major;
             field('f-address').value   = c.address || '';
+            field('f-phone').value     = c.phone || '';
+            field('f-email').value     = c.email || '';
+            field('f-facebook').value  = c.facebook || '';
             field('f-lat').value       = c.lat || '';
             field('f-lng').value       = c.lng || '';
             field('f-open').value      = c.open || '';

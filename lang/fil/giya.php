@@ -148,6 +148,8 @@ return [
         'usual_times'   => 'Ito ang karaniwang oras ng Misa sa mga parokya sa Cebu, hindi pa kumpirmado ng parokyang ito. Pakitanong muna sa parokya bago pumunta.',
         'usual_mass'    => 'Karaniwang oras ng Misa',
         'please_confirm'=> '(pakikumpirma sa parokya)',
+        'contact'       => 'Makipag-ugnayan sa parokya',
+        'facebook'      => 'Facebook ng parokya',
         'next_mass'     => 'Susunod na Misa',
         'see_schedule'  => 'Tingnan ang iskedyul',
         'today'         => 'Ngayon',
