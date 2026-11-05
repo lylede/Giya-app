@@ -509,7 +509,7 @@ window.GiyaLeaflet = (function () {
                         .bindPopup(say(cfg, 'youAreHere'))
                         .addTo(map);
 
-                    map.setView([me.lat, me.lng], 14);
+                    if (!keepView) map.setView([me.lat, me.lng], 14);
 
                     if (cfg.onLocated) cfg.onLocated(me, nearest(me));
                     if (cfg.onStatus) cfg.onStatus('', 'clear');
@@ -674,6 +674,10 @@ window.GiyaLeaflet = (function () {
          * every pin left on screen, searching "san" narrows the list to three
          * while the map still shows nine - so the map contradicts the list.
          */
+        /* While true the map stays where it was put (a church opened from
+           its own page): filtering and a location fix no longer reframe it. */
+        var keepView = false;
+
         function showOnly(ids) {
             var shown = [];
 
@@ -691,7 +695,7 @@ window.GiyaLeaflet = (function () {
                 }
             });
 
-            if (!shown.length) return;
+            if (!shown.length || keepView) return;
 
             // One match reads better centred than filling the screen.
             if (shown.length === 1) {
@@ -794,6 +798,7 @@ window.GiyaLeaflet = (function () {
 
         return {
             map: map, locate: locate, focus: focus, frameAll: frameAll,
+            keepView: function (on) { keepView = !!on; },
             showOnly: showOnly,
             addStop: addStop, toggleStop: toggleStop,
             removeStop: removeStop, clearRoute: clearRoute,

@@ -155,6 +155,9 @@ return [
         'no_reviews_d'  => 'Approved reviews for this church will appear here.',
         'no_guide_d'    => 'Visit guidelines for this church will appear here when available.',
         'view_on_map'   => 'View on map',
+        'usual_times'   => 'These are the usual Mass times for Cebu parishes, not yet confirmed by this parish. Please check with the parish before you go.',
+        'usual_mass'    => 'Usual Mass time',
+        'please_confirm'=> '(please confirm with the parish)',
         'next_mass'     => 'Next Mass',
         'see_schedule'  => 'See schedule',
         'today'         => 'Today',
@@ -172,6 +175,7 @@ return [
     ],
 
     'map' => [
+        'town_focus'     => 'Showing churches in :town. Tap a filter to see all of Cebu.',
         'eyebrow'        => 'EXPLORE',
         'title'          => 'Map of Metro Cebu',
         'lead'           => 'Find churches near you, then build a route through the ones you want to visit.',

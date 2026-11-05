@@ -145,6 +145,9 @@ return [
         'no_reviews_d'  => 'Ang mga naaprubahang review para sa simbahang ito ay makikita rito.',
         'no_guide_d'    => 'Ang mga alituntunin sa pagbisita sa simbahang ito ay makikita rito kapag mayroon na.',
         'view_on_map'   => 'Tingnan sa mapa',
+        'usual_times'   => 'Ito ang karaniwang oras ng Misa sa mga parokya sa Cebu, hindi pa kumpirmado ng parokyang ito. Pakitanong muna sa parokya bago pumunta.',
+        'usual_mass'    => 'Karaniwang oras ng Misa',
+        'please_confirm'=> '(pakikumpirma sa parokya)',
         'next_mass'     => 'Susunod na Misa',
         'see_schedule'  => 'Tingnan ang iskedyul',
         'today'         => 'Ngayon',
@@ -162,6 +165,7 @@ return [
     ],
 
     'map' => [
+        'town_focus'     => 'Ipinapakita ang mga simbahan sa :town. Pindutin ang isang filter para makita ang buong Cebu.',
         'eyebrow'        => 'TUKLASIN',
         'title'          => 'Mapa ng Metro Cebu',
         'lead'           => 'Maghanap ng mga simbahan malapit sa iyo, at bumuo ng ruta papunta sa gusto mong puntahan.',

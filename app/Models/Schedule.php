@@ -18,7 +18,7 @@ class Schedule extends Model
     protected $fillable = [
         'church_id', 'event_name', 'event_type', 'time_frame_label', 'schedule_date',
         'start_time', 'end_time', 'is_whole_day', 'location', 'status',
-        'is_recurring', 'recurrence', 'recurrence_rule', 'notes', 'created_at', 'updated_at',
+        'is_recurring', 'recurrence', 'recurrence_rule', 'is_estimate', 'notes', 'created_at', 'updated_at',
     ];
 
     protected function casts(): array
@@ -28,6 +28,7 @@ class Schedule extends Model
             'is_recurring'  => 'boolean',
             'recurrence_rule' => 'array',
             'is_whole_day'  => 'boolean',
+            'is_estimate'   => 'boolean',
             'created_at'    => 'datetime',
         ];
     }

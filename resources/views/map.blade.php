@@ -54,6 +54,7 @@
         'following'      => __('giya.map.following'),
         'add_another'    => __('giya.map.add_another'),
         'no_match'       => __('giya.map.no_match'),
+        'town_focus'     => __('giya.map.town_focus', ['town' => ':town']),
         'major_only'     => __('giya.map.major_only'),
         'show_all'       => __('giya.map.show_all', ['count' => ':count']),
         'no_pin'         => __('giya.map.no_pin'),
@@ -420,6 +421,20 @@
        not bury the map. Without any major church, Near as before. */
     const HAS_MAJORS = @json($hasMajors);
     let category = HAS_MAJORS ? 'Major' : 'Near';
+
+    /* ?church=<id> (View Map on a church's page) opens on that church's
+       town instead of the whole of Cebu. Any chip or search goes back to
+       the normal map. */
+    const focusId = Number(new URLSearchParams(window.location.search).get('church')) || null;
+    const focusChurch = focusId ? churches.filter(function (c) { return c.id === focusId; })[0] : null;
+    let focusTown = focusChurch ? (focusChurch.town || null) : null;
+
+    function leaveTownFocus() {
+        if (!focusTown) return;
+        focusTown = null;
+        map.keepView(false);
+        showNote('', 'clear');
+    }
     // A search from the home page arrives as ?q= - start from it.
     let query = new URLSearchParams(window.location.search).get('q') || '';
     query = query.trim().toLowerCase();
@@ -660,6 +675,16 @@ onLocated: function (me) {
 
     function filtered() {
         const normalizedCategory = normalizeCategory(category);
+
+        /* Opened from a church's page: only that church's town, the church
+           first, so the map shows where it is among its neighbours. */
+        if (focusTown) {
+            return churches
+                .filter(function (c) { return (c.town || '') === focusTown && matchesQuery(c); })
+                .sort(function (a, b) {
+                    return (b.id === focusId) - (a.id === focusId) || a.name.localeCompare(b.name);
+                });
+        }
 
         let list = churches.filter(function (c) {
             const normalizedChurchCategory = normalizeCategory(c.category);
@@ -998,6 +1023,7 @@ onLocated: function (me) {
     });
 
     document.getElementById('mapSearch').addEventListener('input', function () {
+        leaveTownFocus();
         query = this.value.trim().toLowerCase();
         renderList();
     });
@@ -1012,6 +1038,7 @@ onLocated: function (me) {
             });
             this.classList.add('is-active');
             category = this.dataset.cat;
+            leaveTownFocus();
 
             if (category === 'Near') {
                 map.locate();
@@ -1032,8 +1059,10 @@ onLocated: function (me) {
     document.querySelector('[data-cat="' + category + '"]').classList.add('is-active');
 
     /* Locate quietly on Major too: the distances still sort Near and the
-       list as soon as the devotee switches over. */
-    map.locate();
+       list as soon as the devotee switches over. Not when the map was
+       opened on one church: its town note would be replaced by the location
+       prompt's messages. */
+    if (!focusTown) map.locate();
 
     document.addEventListener('click', function (e) {
         // The tick toggles: a second press deselects, no Clear needed.
@@ -1137,7 +1166,11 @@ onLocated: function (me) {
        over plain http on a phone, and the deep link did nothing at all. */
     const initialChurchId = Number(new URLSearchParams(window.location.search).get('church'));
     if (initialChurchId) {
-        setTimeout(function () { map.focus(initialChurchId); }, 0);
+        setTimeout(function () {
+            map.focus(initialChurchId);
+            map.keepView(true);
+            if (focusTown) showNote(trans('town_focus', { town: focusTown }), 'info');
+        }, 0);
     }
 
 

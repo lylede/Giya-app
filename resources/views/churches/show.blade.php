@@ -145,8 +145,11 @@
         @endphp
         <a href="#church-schedule" class="church-next-mass" data-open-tab="church-schedule-tab">
             <i class="bi bi-bell-fill" aria-hidden="true"></i>
-            <span class="church-next-mass-label">{{ __('giya.church.next_mass') }}</span>
+            <span class="church-next-mass-label">{{ $nextMass['schedule']->is_estimate ? __('giya.church.usual_mass') : __('giya.church.next_mass') }}</span>
             <strong>{{ $day }}, {{ $at->format('g:i A') }}</strong>
+            @if ($nextMass['schedule']->is_estimate)
+                <span class="church-next-mass-confirm">{{ __('giya.church.please_confirm') }}</span>
+            @endif
             <span class="church-next-mass-link">{{ __('giya.church.see_schedule') }} <i class="bi bi-chevron-right" aria-hidden="true"></i></span>
         </a>
     @endif
@@ -198,6 +201,12 @@
             @endphp
 
             <div class="card church-schedule-card">
+                @if ($church->schedules->where('event_type', 'Mass')->contains('is_estimate', true))
+                    <p class="church-schedule-estimate">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i>
+                        {{ __('giya.church.usual_times') }}
+                    </p>
+                @endif
                 @forelse ($massSchedules as $dayLabel => $schedulesForDay)
                     <div class="church-schedule-day">
                         <div class="church-schedule-day-label">{{ $dayLabel }}</div>

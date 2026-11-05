@@ -312,7 +312,8 @@ class GiyaAssistant
             ->implode('; ');
 
         if ($masses) {
-            $bits[] = 'masses: '.$masses;
+            $usual = $c->schedules->where('event_type', 'Mass')->contains('is_estimate', true);
+            $bits[] = 'masses'.($usual ? ' (usual Cebu times, NOT confirmed by the parish - say so)' : '').': '.$masses;
         }
 
         if ($c->history) {

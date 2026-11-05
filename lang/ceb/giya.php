@@ -145,6 +145,9 @@ return [
         'no_reviews_d'  => 'Ang giaprubahan nga mga review niini nga simbahan makita dinhi.',
         'no_guide_d'    => 'Ang mga giya sa pagbisita niini nga simbahan makita dinhi kon aduna nay magamit.',
         'view_on_map'   => 'Tan-awa sa mapa',
+        'usual_times'   => 'Kini ang naandang oras sa Misa sa mga parokya sa Sugbo, wala pa makumpirma niini nga parokya. Palihug pangutana sa parokya sa dili pa ka moadto.',
+        'usual_mass'    => 'Naandang oras sa Misa',
+        'please_confirm'=> '(palihug kumpirmaha sa parokya)',
         'next_mass'     => 'Sunod nga Misa',
         'see_schedule'  => 'Tan-awa ang iskedyul',
         'today'         => 'Karon',
@@ -162,6 +165,7 @@ return [
     ],
 
     'map' => [
+        'town_focus'     => 'Gipakita ang mga simbahan sa :town. Pislita ang usa ka filter aron makita ang tibuok Sugbo.',
         'eyebrow'        => 'SUHIRA',
         'title'          => 'Mapa sa Metro Cebu',
         'lead'           => 'Pangitaa ang mga simbahan duol nimo, dayon paghimo og ruta paingon sa gusto nimong bisitahan.',

@@ -20,7 +20,8 @@ use Illuminate\Console\Command;
  * or "06:00, 17:30". Rows with no times are skipped.
  *
  * Only rows with a Source are imported, so no unchecked time reaches a
- * pilgrim. A church that already has Mass times is left alone unless
+ * pilgrim. Usual times added by giya:add-typical-mass-times are always
+ * replaced. A church with confirmed Mass times is left alone unless
  * --replace is given (then its old Mass times are swapped for the sheet's).
  */
 class ImportMassTimes extends Command
@@ -74,7 +75,8 @@ class ImportMassTimes extends Command
                 continue;
             }
 
-            $existing = $church->schedules()->where('event_type', 'Mass');
+            // Usual times GIYA filled in are always swapped for real ones.
+            $existing = $church->schedules()->where('event_type', 'Mass')->where('is_estimate', false);
             if ($existing->exists() && ! $this->option('replace')) {
                 $report[] = [$name, $col($row, 'town'), 'already has Mass times (use --replace)'];
                 continue;
@@ -82,6 +84,7 @@ class ImportMassTimes extends Command
 
             $count = array_sum(array_map('count', $times));
             if (! $dry) {
+                $church->schedules()->where('event_type', 'Mass')->where('is_estimate', true)->delete();
                 $this->option('replace') && $existing->delete();
                 foreach ($times as $key => $list) {
                     [$title, $days] = self::COLUMNS[$key];
@@ -90,7 +93,7 @@ class ImportMassTimes extends Command
                         Schedule::create([
                             'church_id' => $church->id, 'event_name' => $title, 'event_type' => 'Mass',
                             'start_time' => $t, 'is_recurring' => true,
-                            'recurrence' => Recurrence::label($rule), 'recurrence_rule' => $rule,
+                            'recurrence' => $days === [1, 2, 3, 4, 5] ? 'Weekdays (Monday to Friday)' : Recurrence::label($rule), 'recurrence_rule' => $rule,
                             'notes' => 'Source: '.$col($row, 'source'), 'created_at' => now(),
                         ]);
                     }

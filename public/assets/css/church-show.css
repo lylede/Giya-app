@@ -657,3 +657,17 @@
     text-align:right;
 }
 .church-hero-credit:hover { color:#fff; text-decoration:underline; }
+
+/* Usual Mass times that the parish has not confirmed yet. */
+.church-schedule-estimate {
+    display:flex; gap:8px; align-items:flex-start;
+    margin:0 0 16px;
+    padding:10px 12px;
+    border-radius:10px;
+    background:var(--gold-bg);
+    color:var(--text);
+    font-size:0.8125rem;
+    line-height:1.5;
+}
+.church-schedule-estimate .bi { margin-top:3px; color:var(--primary); }
+.church-next-mass-confirm { font-size:0.75rem; color:var(--text-muted); }
