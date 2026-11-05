@@ -145,6 +145,20 @@ return [
         'no_reviews_d'  => 'Ang mga naaprubahang review para sa simbahang ito ay makikita rito.',
         'no_guide_d'    => 'Ang mga alituntunin sa pagbisita sa simbahang ito ay makikita rito kapag mayroon na.',
         'view_on_map'   => 'Tingnan sa mapa',
+        'next_mass'     => 'Susunod na Misa',
+        'see_schedule'  => 'Tingnan ang iskedyul',
+        'today'         => 'Ngayon',
+        'tomorrow'      => 'Bukas',
+        'guide_intro'   => 'Ang simbahan ay tahanan ng panalangin. Pakitandaan ang mga ito sa iyong pagbisita.',
+        'guide_list'    => [
+            ['bi-giya-veil', 'Magdamit nang disente', 'Takpan ang balikat at tuhod. Iwasan ang sando, maiikling shorts at tsinelas.'],
+            ['bi-people', 'Manahimik', 'Magsalita nang mahina at i-silent ang telepono, lalo na sa oras ng Misa.'],
+            ['bi-camera-fill', 'Mag-ingat sa pagkuha ng litrato', 'Walang flash, at walang litrato sa Misa, kasal o lamay maliban kung pinapayagan.'],
+            ['bi-clock', 'Dumating sa oras', 'Dumating ilang minuto bago ang Misa. Kung huli, maghintay sa likod hanggang may pagitan.'],
+            ['bi-giya-bottle', 'Walang pagkain o inumin', 'Kumain at uminom sa labas ng simbahan.'],
+            ['bi-giya-pilgrim', 'Igalang ang mga nagdarasal', 'Huwag dumaan sa harap ng nagdarasal, at panatilihing malapit ang mga bata.'],
+            ['bi-giya-candle', 'Alay at kandila', 'Magsindi ng kandila sa itinakdang lugar lamang. Ibigay ang alay sa kahon o opisina ng simbahan, hindi sa mga tao sa labas.'],
+        ],
     ],
 
     'map' => [

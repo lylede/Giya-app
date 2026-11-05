@@ -145,6 +145,20 @@ return [
         'no_reviews_d'  => 'Ang giaprubahan nga mga review niini nga simbahan makita dinhi.',
         'no_guide_d'    => 'Ang mga giya sa pagbisita niini nga simbahan makita dinhi kon aduna nay magamit.',
         'view_on_map'   => 'Tan-awa sa mapa',
+        'next_mass'     => 'Sunod nga Misa',
+        'see_schedule'  => 'Tan-awa ang iskedyul',
+        'today'         => 'Karon',
+        'tomorrow'      => 'Ugma',
+        'guide_intro'   => 'Ang simbahan usa ka balay sa pag-ampo. Palihug hinumdomi kini sa imong pagbisita.',
+        'guide_list'    => [
+            ['bi-giya-veil', 'Pagsul-ob og desente', 'Taboni ang abaga ug tuhod. Likayi ang sando, mubo kaayo nga shorts ug tsinelas.'],
+            ['bi-people', 'Hilom lang', 'Hinay nga pagsulti ug i-silent ang telepono, ilabina panahon sa Misa.'],
+            ['bi-camera-fill', 'Pag-amping sa litrato', 'Walay flash, ug walay litrato panahon sa Misa, kasal o lubong gawas kon gitugotan.'],
+            ['bi-clock', 'Pag-abot sa oras', 'Abot pipila ka minuto sa dili pa ang Misa. Kon ulahi, paghulat sa luyo hangtod sa hunong.'],
+            ['bi-giya-bottle', 'Walay pagkaon o ilimnon', 'Kaon ug inom sa gawas sa simbahan.'],
+            ['bi-giya-pilgrim', 'Respetoha ang nag-ampo', 'Ayaw agi sa atubangan sa nag-ampo, ug pabiliha ang mga bata duol nimo.'],
+            ['bi-giya-candle', 'Halad ug kandila', 'Pagdagkot og kandila sa gitagana lang nga lugar. Ihatag ang halad sa kahon o opisina sa simbahan, dili sa tawo sa gawas.'],
+        ],
     ],
 
     'map' => [

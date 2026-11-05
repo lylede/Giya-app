@@ -83,6 +83,68 @@ class Schedule extends Model
         return $this->schedule_date?->format('M j, Y') ?? '-';
     }
 
+    /**
+     * When this schedule next happens after $now, or null when it can't
+     * be worked out (no start time, or a one-off date that has passed).
+     * Used for "Next Mass" on the church page.
+     */
+    public function nextAt(?\Illuminate\Support\Carbon $now = null): ?\Illuminate\Support\Carbon
+    {
+        $now ??= now();
+        if (! $this->start_time) {
+            return null;
+        }
+        [$h, $m] = array_map('intval', explode(':', $this->start_time) + [1 => 0]);
+        $at = fn ($day) => $day->copy()->setTime($h, $m);
+
+        $days = $this->weekdays();
+
+        if ($days === null) {
+            // A one-off date, or a monthly/yearly date the app keeps up to date.
+            $when = $this->schedule_date ? $at($this->schedule_date) : null;
+
+            return $when && $when->gt($now) ? $when : null;
+        }
+
+        for ($i = 0; $i <= 7; $i++) {
+            $day = $now->copy()->startOfDay()->addDays($i);
+            if (in_array($day->dayOfWeek, $days, true) && $at($day)->gt($now)) {
+                return $at($day);
+            }
+        }
+
+        return null;
+    }
+
+    /** Weekdays (0 = Sunday) a repeating schedule falls on, or null when it doesn't repeat by weekday. */
+    private function weekdays(): ?array
+    {
+        $rule = $this->recurrence_rule;
+        if (($rule['type'] ?? null) === 'daily') {
+            return range(0, 6);
+        }
+        if (($rule['type'] ?? null) === 'weekly') {
+            return array_map('intval', $rule['days'] ?? []);
+        }
+        if ($rule || ! $this->is_recurring) {
+            return null;
+        }
+
+        // Older rows only have a label: "Daily", "Weekly (Sunday)", "Weekly (Mon, Wed)".
+        $label = strtolower((string) $this->recurrence);
+        if (str_contains($label, 'daily')) {
+            return range(0, 6);
+        }
+        $found = [];
+        foreach (Recurrence::WEEKDAYS as $n => $name) {
+            if (preg_match('/\b'.strtolower(substr($name, 0, 3)).'/', $label)) {
+                $found[] = $n;
+            }
+        }
+
+        return $found ?: null;
+    }
+
     public function timeLabel(?string $value): string
     {
         return $value ? date('g:i A', strtotime($value)) : '-';

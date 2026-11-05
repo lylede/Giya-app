@@ -244,6 +244,24 @@ class Church extends Model
             : ($now >= $open && $now <= $close);
     }
 
+    /** The next Mass from now, for the church page: ['at' => Carbon, 'schedule' => Schedule] or null. */
+    public function nextMass(): ?array
+    {
+        $best = null;
+
+        foreach ($this->schedules as $s) {
+            if (strcasecmp((string) $s->event_type, 'Mass') !== 0) {
+                continue;
+            }
+            $at = $s->nextAt();
+            if ($at && (! $best || $at->lt($best['at']))) {
+                $best = ['at' => $at, 'schedule' => $s];
+            }
+        }
+
+        return $best;
+    }
+
     public function color(): string
     {
         return self::CATEGORY_COLORS[$this->category] ?? '#8E3B2F';

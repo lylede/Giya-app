@@ -124,17 +124,27 @@
             </div>
         @endif
 
-        <div class="church-stat-item">
-            <div class="church-stat-value is-inline">
-                <i class="bi bi-check-circle-fill" style="color:#4E9C6B" aria-hidden="true"></i>
-                {{ $church->access ?? 'Yes' }}
-            </div>
-            <div class="church-stat-label">{{ __('giya.church.access') }}</div>
-        </div>
     </div>
 </div>
 
 <div class="church-detail-page page-wrap">
+
+    {{-- The first thing most visitors want: when is the next Mass. --}}
+    @php $nextMass = $church->nextMass(); @endphp
+    @if ($nextMass)
+        @php
+            $at = $nextMass['at'];
+            $day = $at->isToday() ? __('giya.church.today')
+                : ($at->isTomorrow() ? __('giya.church.tomorrow')
+                : ($at->diffInDays(now()->startOfDay(), true) < 7 ? $at->format('l') : $at->format('M j')));
+        @endphp
+        <a href="#church-schedule" class="church-next-mass" data-open-tab="church-schedule-tab">
+            <i class="bi bi-bell-fill" aria-hidden="true"></i>
+            <span class="church-next-mass-label">{{ __('giya.church.next_mass') }}</span>
+            <strong>{{ $day }}, {{ $at->format('g:i A') }}</strong>
+            <span class="church-next-mass-link">{{ __('giya.church.see_schedule') }} <i class="bi bi-chevron-right" aria-hidden="true"></i></span>
+        </a>
+    @endif
 
     {{-- ───────────────────────────── Tabs ─────────────────────────────── --}}
     <div class="church-tabs" role="tablist" aria-label="{{ __('giya.church.details_aria') }}">
@@ -313,8 +323,19 @@
     </section>
 
     <section id="church-guidelines" role="tabpanel" aria-labelledby="church-guidelines-tab" data-church-panel hidden class="church-detail-section">
-        <x-empty-state icon="info-circle" :title="__('giya.church.no_guidelines')"
-                       :desc="__('giya.church.no_guide_d')" />
+        <h2 class="section-title church-section-title">{{ __('giya.church.guidelines') }}</h2>
+        <p class="church-guide-intro">{{ __('giya.church.guide_intro') }}</p>
+        <ul class="church-guide-list">
+            @foreach (__('giya.church.guide_list') as [$icon, $title, $text])
+                <li class="church-guide-item">
+                    <span class="church-guide-icon"><i class="bi {{ $icon }}" aria-hidden="true"></i></span>
+                    <div>
+                        <strong>{{ $title }}</strong>
+                        <p>{{ $text }}</p>
+                    </div>
+                </li>
+            @endforeach
+        </ul>
     </section>
 </div>
 
@@ -338,6 +359,17 @@
             document.querySelectorAll('[data-church-panel]').forEach((panel) => {
                 panel.hidden = panel.id !== tab.getAttribute('aria-controls');
             });
+        });
+    });
+
+    // "Next Mass" opens the Schedule tab and scrolls to it.
+    document.querySelectorAll('[data-open-tab]').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+            const tab = document.getElementById(link.dataset.openTab);
+            if (!tab) return;
+            tab.click();
+            tab.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
     });
 </script>

@@ -155,6 +155,20 @@ return [
         'no_reviews_d'  => 'Approved reviews for this church will appear here.',
         'no_guide_d'    => 'Visit guidelines for this church will appear here when available.',
         'view_on_map'   => 'View on map',
+        'next_mass'     => 'Next Mass',
+        'see_schedule'  => 'See schedule',
+        'today'         => 'Today',
+        'tomorrow'      => 'Tomorrow',
+        'guide_intro'   => 'A church is a place of prayer. Please keep these in mind during your visit.',
+        'guide_list'    => [
+            ['bi-giya-veil', 'Dress modestly', 'Cover shoulders and knees. Avoid sleeveless tops, short shorts and slippers.'],
+            ['bi-people', 'Keep quiet', 'Speak softly and put your phone on silent, especially during Mass.'],
+            ['bi-camera-fill', 'Photos with care', 'No flash, and no photos during Mass, weddings or funerals unless allowed.'],
+            ['bi-clock', 'Come on time', 'Arrive a few minutes before Mass. If you are late, wait at the back until a pause.'],
+            ['bi-giya-bottle', 'No food or drinks', 'Eat and drink outside the church.'],
+            ['bi-giya-pilgrim', 'Respect those praying', 'Do not walk in front of people praying, and keep children close.'],
+            ['bi-giya-candle', 'Offerings and candles', 'Light candles only where marked. Give offerings at the church boxes or office, not to people outside.'],
+        ],
     ],
 
     'map' => [
