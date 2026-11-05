@@ -210,27 +210,32 @@
                     ->filter(fn ($schedule) => $schedule->is_recurring
                         || ! $schedule->schedule_date
                         || $schedule->schedule_date->isToday()
-                        || $schedule->schedule_date->isFuture());
+                        || $schedule->schedule_date->isFuture())
+                    // Soonest first; events without a date last.
+                    ->sortBy(fn ($schedule) => $schedule->schedule_date?->format('Y-m-d') ?? '9999-12-31')
+                    ->values();
             @endphp
 
             @forelse ($upcomingEvents as $event)
-                <div class="church-event-row d-flex align-items-center gap-3 card">
+                {{-- Name first, then when and where on their own lines. The date
+                     used to sit in a third column; a long one ("Yearly - 3rd Sunday
+                     of January (Jan 17, 2027)") squeezed the name down to one
+                     letter per line. --}}
+                <div class="church-event-row card">
                     <span class="church-event-badge">
-                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill" aria-hidden="true"></i>
                         <span>{{ $event->event_type }}</span>
                     </span>
                     <div class="church-event-details">
-                        <div>{{ $event->event_name }}</div>
-                        <div>
+                        <div class="church-event-name">{{ $event->event_name }}</div>
+                        <div class="church-event-when">
+                            <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                            {{ $event->day_label }}@if ($event->start_time) &middot; {{ $event->timeLabel($event->start_time) }}@endif
+                        </div>
+                        <div class="church-event-where">
                             <i class="bi bi-geo-alt" aria-hidden="true"></i>
                             {{ $event->location ?? $church->name }}
                         </div>
-                    </div>
-                    <div class="church-event-meta">
-                        <div>{{ $event->day_label }}</div>
-                        @if ($event->start_time)
-                            <div>{{ $event->timeLabel($event->start_time) }}</div>
-                        @endif
                     </div>
                 </div>
             @empty

@@ -211,6 +211,9 @@
 }
 
 .church-event-row {
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
     padding:14px;
     margin-bottom:10px;
     box-shadow:var(--shadow-sm);
@@ -248,28 +251,28 @@
     min-width:0;
 }
 
-.church-event-details > div:first-child {
-    font-size:0.875rem;
+.church-event-name {
+    font-size:0.9375rem;
     font-weight:700;
+    line-height:1.3;
     color:var(--text);
+    margin-bottom:4px;
 }
 
-.church-event-details > div:last-child {
-    font-size:0.75rem;
+.church-event-when,
+.church-event-where {
+    font-size:0.8125rem;
+    line-height:1.4;
     color:var(--text-muted);
+}
+
+.church-event-when {
+    font-weight:600;
+    color:var(--text);
 }
 
 .church-event-details i {
     font-size:0.6875rem;
-}
-
-.church-event-meta {
-    font-size:0.75rem;
-    font-weight:700;
-    color:var(--text-muted);
-    white-space:nowrap;
-    margin-left:auto;
-    text-align:right;
 }
 
 .church-reviews-layout {
@@ -381,7 +384,7 @@
 
 .church-event-details,
 .church-event-details > div {
-    overflow-wrap:anywhere;
+    overflow-wrap:break-word;
 }
 
 .church-detail-grid {
@@ -535,19 +538,12 @@
     }
 
     .church-event-row {
-        align-items:flex-start !important;
-        gap:10px !important;
+        gap:10px;
     }
 
     .church-event-badge {
         width:46px !important;
         height:46px !important;
-    }
-
-    .church-event-meta {
-        white-space:normal !important;
-        flex:0 0 auto;
-        max-width:76px;
     }
 
     .church-review-card-header {
