@@ -165,6 +165,8 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/',          [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/insights',  [\App\Http\Controllers\Admin\InsightsController::class, 'insights'])->name('insights');
+    Route::get('/email-check',  [\App\Http\Controllers\Admin\MailCheckController::class, 'index'])->name('mail');
+    Route::post('/email-check', [\App\Http\Controllers\Admin\MailCheckController::class, 'send'])->middleware('throttle:5,1')->name('mail.send');
     Route::get('/users',     [AdminUserController::class, 'index'])->name('users');
     Route::get('/users/export',      [AdminUserController::class, 'export'])->name('users.export');
     Route::patch('/users/{user}',    [AdminUserController::class, 'update'])->name('users.update');

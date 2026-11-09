@@ -7028,3 +7028,9 @@ html[data-theme="dark"] .btn-danger:hover, html[data-theme="dark"] .icon-btn.is-
 .verify-steps { text-align: left; margin: 0 auto 18px; padding-left: 20px; max-width: 320px; color: var(--text); font-size: .9rem; line-height: 1.7; }
 .auth-verify-hint { text-align: center; margin: 12px 0 0; font-size: .875rem; }
 .auth-verify-hint a { font-weight: 700; color: var(--primary); }
+
+/* Admin > Email check */
+.mail-hint { margin: 12px 0 0; font-size: .875rem; color: var(--text-muted); }
+.mail-error { margin: 0 0 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(192,40,63,.35); background: rgba(192,40,63,.06); color: #8E1226; font-size: .875rem; }
+.mail-error code { display: block; margin-top: 6px; white-space: pre-wrap; word-break: break-word; color: inherit; font-size: .8125rem; }
+html[data-theme="dark"] .mail-error { color: #F7B8C2; background: rgba(240,138,155,.08); }
