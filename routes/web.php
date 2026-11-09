@@ -51,10 +51,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/home',    [HomeController::class, 'index'])->name('home');
-Route::get('/search/churches', [HomeController::class, 'search'])->name('search.churches');
+Route::get('/search/churches', [HomeController::class, 'search'])->middleware('throttle:giya-actions')->name('search.churches');
     Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot');
     Route::get('/chatbot/history', [ChatbotController::class, 'history'])->name('chatbot.history');
-    Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->name('chatbot.send');
+    Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->middleware('throttle:giya-chat')->name('chatbot.send');
     Route::post('/chatbot/reset', [ChatbotController::class, 'reset'])->name('chatbot.reset');
 
     /* Profile */
@@ -63,9 +63,9 @@ Route::get('/search/churches', [HomeController::class, 'search'])->name('search.
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::patch('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
     Route::patch('/profile/preference',  [ProfileController::class, 'updatePreference'])->name('profile.preference');
-    Route::post('/favorites/toggle',     [ProfileController::class, 'toggleFavorite'])->name('favorites.toggle');
+    Route::post('/favorites/toggle',     [ProfileController::class, 'toggleFavorite'])->middleware('throttle:giya-actions')->name('favorites.toggle');
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
-    Route::post('/profile/review', [ProfileController::class, 'storeReview'])->name('profile.review');
+    Route::post('/profile/review', [ProfileController::class, 'storeReview'])->middleware('throttle:giya-actions')->name('profile.review');
 
     /* Plan / Itineraries - static segments registered before {itinerary} */
     Route::prefix('plan')->name('plan.')->controller(ItineraryController::class)->group(function () {
@@ -93,7 +93,7 @@ Route::get('/search/churches', [HomeController::class, 'search'])->name('search.
 /* ------------------------------------------------------- Premium / Maya */
 Route::middleware('auth')->group(function () {
     Route::get('/upgrade',                 [PaymentController::class, 'upgrade'])->name('upgrade');
-    Route::post('/upgrade/{plan}/checkout',[PaymentController::class, 'checkout'])->name('upgrade.checkout');
+    Route::post('/upgrade/{plan}/checkout',[PaymentController::class, 'checkout'])->middleware('throttle:10,1')->name('upgrade.checkout');
 
     // Where Maya sends the devotee back to. They are behind auth because the
     // devotee is signed in throughout - Maya opens in the same browser.
@@ -104,7 +104,7 @@ Route::middleware('auth')->group(function () {
 
 // Maya's server posts here. No session, no CSRF token, no auth - see the
 // exemption in bootstrap/app.php and the reasoning in PaymentController.
-Route::post('/maya/webhook', [PaymentController::class, 'webhook'])->name('maya.webhook');
+Route::post('/maya/webhook', [PaymentController::class, 'webhook'])->middleware('throttle:60,1')->name('maya.webhook');
 
 /*
    The map itself is open to everyone - a guest can browse Metro Cebu, search,
@@ -115,7 +115,7 @@ Route::get('/map', [MapController::class, 'index'])->name('map');
 
 Route::middleware('auth')->group(function () {
     Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
-    Route::post('/churches/{church}/notify', [MapController::class, 'toggleNotify'])->name('churches.notify');
+    Route::post('/churches/{church}/notify', [MapController::class, 'toggleNotify'])->middleware('throttle:giya-actions')->name('churches.notify');
 });
 
 /* --------------------------------------------------------------- Admin */

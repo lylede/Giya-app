@@ -1,0 +1,15 @@
+# Security checklist: keep dependencies updated. GitHub checks each week and
+# opens a pull request when a Composer (PHP), or npm package
+# has a newer or patched version. Security fixes open right away.
+version: 2
+updates:
+  - package-ecosystem: composer
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

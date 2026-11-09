@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // from config('app.trusted_proxies'), so they survive config:cache.
 
         $middleware->web(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\EnsureAccountIsActive::class,
             \App\Http\Middleware\DeliverDueReminders::class,
         ]);
