@@ -23,7 +23,7 @@
                 <h1 style="font-family:var(--font-display);color:#fff;font-size: 1.625rem;line-height:1.2;margin:0">{{ $user->name }}</h1>
                 <p style="color:rgba(255,255,255,0.7);font-size: 0.8125rem;margin:3px 0 0">{{ $user->email }}</p>
                 <p class="d-flex align-items-center gap-1" style="color:rgba(255,255,255,0.55);font-size: 0.75rem;margin:5px 0 0">
-                    <i class="bi bi-geo-alt-fill" style="color:var(--gold);font-size: 0.6875rem"></i>
+                    <i class="bi bi-geo-alt-fill" style="color:var(--gold);font-size: .75rem"></i>
                     Cebu City, Philippines · Member since
                     {{ ($user->member_since ?? $user->created_at)?->format('F Y') }}
                 </p>
@@ -187,7 +187,7 @@
                     ] as [$icon, $name, $earned])
                         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12px 6px;border-radius:12px;text-align:center;border:1.5px solid var(--border);{{ $earned ? 'background:rgba(215,169,74,0.09);border-color:rgba(215,169,74,0.35)' : 'background:var(--bg);opacity:.45' }}">
                             <i class="bi bi-{{ $icon }}" style="font-size: 1.25rem;color:{{ $earned ? 'var(--gold)' : 'var(--text-muted)' }}"></i>
-                            <span style="font-size: 0.625rem;font-weight:700;color:var(--text);line-height:1.25">{{ $name }}</span>
+                            <span style="font-size: .75rem;font-weight:700;color:var(--text);line-height:1.25">{{ $name }}</span>
                             @unless ($earned)<i class="bi bi-lock-fill" style="font-size: 0.5625rem;color:var(--text-muted)"></i>@endunless
                         </div>
                     @endforeach
@@ -259,7 +259,7 @@
                         <button type="button" class="btn btn-ghost btn-sm"
                                 style="color:var(--primary);font-weight:700"
                                 onclick="GiyaProfile.review({{ $visit->id }}, @js($visit->church_name))">
-                            {{ __('giya.profile.review') }} <i class="bi bi-chevron-right" style="font-size: 0.625rem"></i>
+                            {{ __('giya.profile.review') }} <i class="bi bi-chevron-right" style="font-size: .75rem"></i>
                         </button>
                     </span>
                 @endif
@@ -323,10 +323,10 @@
                 <div class="history-body">
                     <div class="history-name">{{ $favorite->church->name }}</div>
                     <div style="font-size: 0.75rem;color:var(--text-muted);margin-top:2px">
-                        <i class="bi bi-geo-alt-fill" style="font-size: 0.625rem;color:var(--gold)"></i>
+                        <i class="bi bi-geo-alt-fill" style="font-size: .75rem;color:var(--gold)"></i>
                         {{ $favorite->church->location }}
                         @if ($favorite->church->rating > 0)
-                            · <i class="bi bi-star-fill" style="font-size: 0.625rem;color:var(--gold)"></i>
+                            · <i class="bi bi-star-fill" style="font-size: .75rem;color:var(--gold)"></i>
                             {{ number_format($favorite->church->rating, 1) }}
                         @endif
                     </div>

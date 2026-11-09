@@ -168,7 +168,7 @@ return [
 
     'map' => [
         'town_focus'     => 'Gipakita ang mga simbahan sa :town. Pislita ang usa ka filter aron makita ang tibuok Sugbo.',
-        'eyebrow'        => 'SUHIRA',
+        'eyebrow'        => 'Suhira',
         'title'          => 'Mapa sa Metro Cebu',
         'lead'           => 'Pangitaa ang mga simbahan duol nimo, dayon paghimo og ruta paingon sa gusto nimong bisitahan.',
         'explore'        => 'Suhira ang mga Simbahan',

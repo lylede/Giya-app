@@ -61,8 +61,8 @@
                 --}}
                 <div @class(['plan-badge-row', 'is-empty' => ! $featured]) style="height:24px;margin-bottom:12px;display:flex;align-items:center">
                     @if ($featured)
-                        <span style="font-size:.6875rem;font-weight:700;letter-spacing:.06em;
-                                     text-transform:uppercase;color:#7a5c00;background:rgba(215,169,74,.18);
+                        <span style="font-size:.75rem;font-weight:700;letter-spacing: .01em;
+                                     text-transform: none;color:#7a5c00;background:rgba(215,169,74,.18);
                                      padding:4px 10px;border-radius:999px">{{ __('giya.upgrade.best_value') }}</span>
                     @endif
                 </div>

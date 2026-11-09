@@ -98,8 +98,8 @@
                         @if ($itinerary->stops->isNotEmpty())
                             <div style="margin-bottom:14px">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <span style="font-size: 0.6875rem;color:var(--text-muted)">{{ __('giya.common.progress') }}</span>
-                                    <span style="font-size: 0.6875rem;font-weight:700;color:var(--primary)">{{ $itinerary->progressPercent() }}%</span>
+                                    <span style="font-size: .75rem;color:var(--text-muted)">{{ __('giya.common.progress') }}</span>
+                                    <span style="font-size: .75rem;font-weight:700;color:var(--primary)">{{ $itinerary->progressPercent() }}%</span>
                                 </div>
                                 <div style="height:6px;border-radius:999px;background:#F5E8D0;overflow:hidden">
                                     <div style="height:100%;background:var(--gold);width:{{ $itinerary->progressPercent() }}%"></div>
@@ -110,11 +110,11 @@
                                 @foreach ($itinerary->stops->take(3) as $stop)
                                     <div class="d-flex align-items-center gap-2">
                                         <span style="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:{{ $stop->is_visited ? 'var(--primary)' : 'var(--gold)' }}"></span>
-                                        <span style="font-size: 0.6875rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $stop->church_name }}</span>
+                                        <span style="font-size: .75rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ $stop->church_name }}</span>
                                     </div>
                                 @endforeach
                                 @if ($itinerary->stops->count() > 3)
-                                    <span style="font-size: 0.6875rem;color:var(--text-muted);padding-left:14px">
+                                    <span style="font-size: .75rem;color:var(--text-muted);padding-left:14px">
                                         +{{ $itinerary->stops->count() - 3 }} more
                                     </span>
                                 @endif

@@ -178,7 +178,7 @@ return [
 
     'map' => [
         'town_focus'     => 'Showing churches in :town. Tap a filter to see all of Cebu.',
-        'eyebrow'        => 'EXPLORE',
+        'eyebrow'        => 'Explore',
         'title'          => 'Map of Metro Cebu',
         'lead'           => 'Find churches near you, then build a route through the ones you want to visit.',
         'explore'        => 'Explore Churches',

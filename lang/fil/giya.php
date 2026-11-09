@@ -168,7 +168,7 @@ return [
 
     'map' => [
         'town_focus'     => 'Ipinapakita ang mga simbahan sa :town. Pindutin ang isang filter para makita ang buong Cebu.',
-        'eyebrow'        => 'TUKLASIN',
+        'eyebrow'        => 'Tuklasin',
         'title'          => 'Mapa ng Metro Cebu',
         'lead'           => 'Maghanap ng mga simbahan malapit sa iyo, at bumuo ng ruta papunta sa gusto mong puntahan.',
         'explore'        => 'Tuklasin ang mga Simbahan',

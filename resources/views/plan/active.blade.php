@@ -87,9 +87,9 @@
         </button>
 
         <div class="ap-banner" id="currentBanner">
-            <div style="font-size: 0.625rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">{{ __('giya.plan.current_stop') }}</div>
+            <div style="font-size: .75rem;font-weight:700;color:var(--primary);text-transform: none;letter-spacing: .01em;margin-bottom:3px">{{ __('giya.plan.current_stop') }}</div>
             <div id="currentName" style="font-size: 0.875rem;font-weight:700;color:var(--text)"></div>
-            <div id="currentNext" style="font-size: 0.6875rem;color:var(--primary);margin-top:4px"></div>
+            <div id="currentNext" style="font-size: .75rem;color:var(--primary);margin-top:4px"></div>
         </div>
 
         <div class="ap-banner d-none" id="doneBanner" style="text-align:center">
@@ -695,7 +695,7 @@ const GiyaActive = (function () {
             const dotBg  = isDone ? 'var(--primary)' : (isCur ? 'var(--gold-bg)' : '#F5E8D0');
             const inner  = isDone
                 ? '<i class="bi bi-check-lg" style="color:var(--gold);font-size: 0.9375rem"></i>'
-                : '<span style="font-size: 0.6875rem;font-weight:700;color:' +
+                : '<span style="font-size: .75rem;font-weight:700;color:' +
                   (isCur ? 'var(--primary)' : 'var(--text-muted)') + '">' + s.order + '</span>';
 
             return '<div class="stop-item' + (isCur ? ' is-current' : '') + '">' +
@@ -705,10 +705,10 @@ const GiyaActive = (function () {
                   '<span style="display:block;font-size: 0.8125rem;color:' + (isDone ? 'var(--text-muted)' : 'var(--text)') +
                   ';font-weight:' + (isCur ? '700' : '500') + (isDone ? ';text-decoration:line-through' : '') + '">' +
                   window.giyaEsc(s.name) + '</span>' +
-                  '<span style="display:block;font-size: 0.6875rem;color:var(--text-muted)">' + window.giyaEsc(s.location) + '</span>' +
+                  '<span style="display:block;font-size: .75rem;color:var(--text-muted)">' + window.giyaEsc(s.location) + '</span>' +
                 '</span>' +
                 (isCur ? '<button type="button" onclick="GiyaActive.mark(' + s.id + ')" ' +
-                         'style="padding:5px 11px;border-radius:8px;font-size: 0.6875rem;font-weight:700;border:none;' +
+                         'style="padding:5px 11px;border-radius:8px;font-size: .75rem;font-weight:700;border:none;' +
                          'cursor:pointer;background:var(--primary);color:#fff;font-family:var(--font-body);' +
                          'flex-shrink:0">' + @json(__('giya.plan.mark_short')) + '</button>' : '') +
                 '</div>';

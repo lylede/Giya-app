@@ -72,7 +72,7 @@
                                 style="width:40px;height:40px;border-radius:12px;border:none;cursor:pointer;font-size: 1.25rem;font-weight:700;background:var(--gold-bg);color:var(--primary)">−</button>
                         <div class="text-center">
                             <div id="countValue" style="font-family:var(--font-display);font-size: 1.875rem;font-weight:700;color:var(--primary);line-height:1">7</div>
-                            <div style="font-size: 0.6875rem;color:var(--text-muted)">{{ __('giya.plan.churches_word') }}</div>
+                            <div style="font-size: .75rem;color:var(--text-muted)">{{ __('giya.plan.churches_word') }}</div>
                         </div>
                         <button type="button" onclick="GiyaVisita.step(1)"
                                 style="width:40px;height:40px;border-radius:12px;border:none;cursor:pointer;font-size: 1.25rem;font-weight:700;background:var(--primary);color:#fff">+</button>
@@ -209,7 +209,7 @@ const GiyaVisita = (function () {
                 '<span style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(142,59,47,.15);background:' + badgeBg + '">' + inner + '</span>' +
                 '<span class="vi-info" style="flex:1;min-width:0">' +
                   '<span style="display:block;font-size: 0.875rem;font-weight:600;color:var(--text)' + (c.visited ? ';text-decoration:line-through;opacity:.65' : '') + '">' + esc(c.name) + '</span>' +
-                  '<span style="display:block;font-size: 0.6875rem;color:var(--text-muted);margin-top:2px">' + esc(c.location) + '</span>' +
+                  '<span style="display:block;font-size: .75rem;color:var(--text-muted);margin-top:2px">' + esc(c.location) + '</span>' +
                   (isCurrent ? '<span class="badge badge-primary" style="margin-top:4px">Next stop</span>' : '') +
                 '</span>' +
                 '<span class="vi-actions" style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
@@ -231,7 +231,7 @@ const GiyaVisita = (function () {
                 '<button type="button" onclick="GiyaVisita.pick(' + c.id + ')" style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;background:var(--bg);border:1px solid var(--border);cursor:pointer;text-align:left;width:100%">' +
                 '<i class="bi bi-building" style="color:' + esc(c.color) + '"></i>' +
                 '<span><span style="display:block;font-size: 0.75rem;font-weight:600;color:var(--text)">' + esc(c.name) + '</span>' +
-                '<span style="display:block;font-size: 0.625rem;color:var(--text-muted)">' + esc(c.location) + '</span></span></button>').join('')
+                '<span style="display:block;font-size: .75rem;color:var(--text-muted)">' + esc(c.location) + '</span></span></button>').join('')
             : '<p style="font-size: 0.75rem;color:var(--text-muted);padding:8px;margin:0">Every destination is already in your route.</p>';
     }
 

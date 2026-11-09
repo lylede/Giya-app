@@ -47,7 +47,7 @@
                     <i class="bi bi-map-fill"></i> {{ __('giya.home.explore_map') }}
                 </a>
                 <a href="{{ auth()->check() ? route('plan.hub') : route('login') }}" class="btn btn-ghost btn-ghost-inverse">
-                    <i class="bi bi-journal-text"></i> {{ auth()->check() ? __('giya.home.plan_pilgrimage') : __('giya.home.sign_in_plan') }}
+                    <i class="bi bi-giya-route"></i> {{ auth()->check() ? __('giya.home.plan_pilgrimage') : __('giya.home.sign_in_plan') }}
                 </a>
             </div>
 
