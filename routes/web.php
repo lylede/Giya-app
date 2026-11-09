@@ -119,6 +119,16 @@ Route::post('/maya/webhook', [PaymentController::class, 'webhook'])->middleware(
 */
 Route::get('/map', [MapController::class, 'index'])->name('map');
 
+// Search engines: which public pages to list, and what to skip.
+Route::get('/sitemap.xml', function () {
+    $pages = ['root' => 'weekly', 'map' => 'weekly', 'register' => 'monthly', 'login' => 'monthly', 'privacy' => 'yearly', 'terms' => 'yearly'];
+
+    return response()->view('sitemap', ['pages' => $pages])->header('Content-Type', 'application/xml');
+})->name('sitemap');
+Route::get('/robots.txt', fn () => response(
+    "User-agent: *\nDisallow: /admin\nDisallow: /profile\nDisallow: /chatbot\nDisallow: /plan\n\nSitemap: ".route('sitemap')."\n"
+)->header('Content-Type', 'text/plain'))->name('robots');
+
 // Privacy Policy and Terms: open to everyone, linked from sign-up and the footer.
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 Route::view('/terms', 'legal.terms')->name('terms');

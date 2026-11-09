@@ -1,5 +1,7 @@
 @extends('layouts.app')
 @section('title', $church->name)
+@section('meta_description', $church->name.', '.($church->municipality ?: $church->location).'. '.\Illuminate\Support\Str::limit(strip_tags((string) $church->history), 140))
+@section('meta_image', \Illuminate\Support\Str::startsWith($church->imagePath(), 'http') && ! str_ends_with($church->imagePath(), '.svg') ? $church->imagePath() : asset('images/brand/giya-share.jpg'))
 
 @section('content')
 
