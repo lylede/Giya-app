@@ -50,5 +50,6 @@
 <script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-datepicker.js') }}?v={{ filemtime(public_path('assets/js/giya-datepicker.js')) }}"></script>
 @livewireScripts
+<script src="{{ asset('assets/js/giya-offline.js') }}?v={{ filemtime(public_path('assets/js/giya-offline.js')) }}" defer></script>
 </body>
 </html>

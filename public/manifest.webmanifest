@@ -1,0 +1,21 @@
+{
+  "name": "GIYA - Pilgrimage Companion",
+  "short_name": "GIYA",
+  "description": "Churches, Mass times and pilgrimage routes in Cebu, with Giya AI.",
+  "start_url": "/home?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8ED",
+  "theme_color": "#8E3B2F",
+  "lang": "en-PH",
+  "icons": [
+    { "src": "/images/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/images/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/images/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "My itineraries", "url": "/plan/my-itineraries", "icons": [{ "src": "/images/brand/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Map", "url": "/map", "icons": [{ "src": "/images/brand/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

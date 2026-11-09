@@ -138,6 +138,9 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:3,10')->name('verification.send');
 });
 
+// Shown by the offline worker (public/sw.js) when there is no signal.
+Route::view('/offline', 'offline')->name('offline');
+
 // Privacy Policy and Terms: open to everyone, linked from sign-up and the footer.
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 Route::view('/terms', 'legal.terms')->name('terms');

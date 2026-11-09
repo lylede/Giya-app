@@ -121,5 +121,6 @@
 <script src="{{ asset('assets/js/giya-datepicker.js') }}?v={{ filemtime(public_path('assets/js/giya-datepicker.js')) }}"></script>
 @stack('scripts')
 <script src="{{ asset('assets/js/giya-admin.js') }}?v={{ filemtime(public_path('assets/js/giya-admin.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-offline.js') }}?v={{ filemtime(public_path('assets/js/giya-offline.js')) }}" defer></script>
 </body>
 </html>

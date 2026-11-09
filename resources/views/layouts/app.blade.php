@@ -89,5 +89,6 @@
 <script src="{{ asset('assets/js/giya-page-loading.js') }}?v={{ filemtime(public_path('assets/js/giya-page-loading.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-navsearch.js') }}?v={{ filemtime(public_path('assets/js/giya-navsearch.js')) }}"></script>
 @stack('scripts')
+<script src="{{ asset('assets/js/giya-offline.js') }}?v={{ filemtime(public_path('assets/js/giya-offline.js')) }}" defer></script>
 </body>
 </html>
