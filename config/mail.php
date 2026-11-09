@@ -50,10 +50,11 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            /* Gmail from Render can take a while to connect: 8 seconds cut
-               off emails that would have arrived. 30 gives it room; sign-up
-               does not wait for it anyway (EmailVerification::sendLater). */
-            'timeout' => (int) env('MAIL_TIMEOUT', 30),
+            /* Give up after 10 seconds: well under PHP's own 30-second limit.
+               At 30 the two collided and Forgot password crashed with a 500
+               instead of saying the email could not be sent. On Render's
+               free plan SMTP never connects at all; use MAIL_MAILER=brevo. */
+            'timeout' => min((int) env('MAIL_TIMEOUT', 10), 20),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

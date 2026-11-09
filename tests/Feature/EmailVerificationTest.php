@@ -194,8 +194,10 @@ class EmailVerificationTest extends TestCase
         $this->assertNotNull($stuck->fresh()->email_verified_at);
     }
 
-    public function test_email_waits_long_enough_for_a_slow_gmail(): void
+    /** A mail wait as long as PHP's own limit turned 'could not send' into a 500 error page. */
+    public function test_email_gives_up_well_before_php_does(): void
     {
-        $this->assertGreaterThanOrEqual(30, config('mail.mailers.smtp.timeout'));
+        $this->assertLessThanOrEqual(20, config('mail.mailers.smtp.timeout'));
+        $this->assertGreaterThan(0, config('mail.mailers.smtp.timeout'));
     }
 }
