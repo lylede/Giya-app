@@ -1,0 +1,49 @@
+# Runs GIYA's automated tests on every push and pull request, so a change
+# that breaks something is caught on GitHub before Vercel or Render
+# deploys it. The tests use their own empty SQLite database: they never
+# touch Neon, Supabase, Groq or Maya, and need no secrets.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, sqlite3, intl, curl, gd, zip
+          coverage: none
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install PHP packages
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare the app
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan package:discover
+
+      - name: Run the tests
+        run: php artisan test
+
+      - name: Check for known security issues in packages
+        run: composer audit --no-interaction
+        continue-on-error: true
