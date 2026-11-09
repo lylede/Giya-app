@@ -28,6 +28,12 @@ return [
     'verify_email' => (bool) env('GIYA_VERIFY_EMAIL', false),
 
     /*
+    | Content-Security-Policy (App\Http\Middleware\SecurityHeaders):
+    | enforce (default), report (console warnings only) or off.
+    */
+    'csp' => env('GIYA_CSP', 'enforce'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

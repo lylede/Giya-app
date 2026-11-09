@@ -111,4 +111,30 @@ class SecurityChecklistTest extends TestCase
     {
         $this->actingAs($this->devotee())->get('/admin/destinations')->assertStatus(403);
     }
+
+    public function test_pages_send_a_content_security_policy(): void
+    {
+        $csp = $this->get('/login')->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString("script-src 'self' 'unsafe-inline'", $csp);
+        $this->assertStringNotContainsString('unsafe-eval', $csp);
+        $this->assertStringContainsString("object-src 'none'", $csp);
+        $this->assertStringContainsString("form-action 'self' https://*.paymaya.com", $csp);
+    }
+
+    public function test_the_content_security_policy_can_be_set_to_report_or_off(): void
+    {
+        config(['app.csp' => 'report']);
+        $this->get('/login')->assertHeader('Content-Security-Policy-Report-Only')->assertHeaderMissing('Content-Security-Policy');
+
+        config(['app.csp' => 'off']);
+        $this->get('/login')->assertHeaderMissing('Content-Security-Policy')->assertHeaderMissing('Content-Security-Policy-Report-Only');
+    }
+
+    /** Livewire (sign-in, sign-up) evaluates code unless its CSP-safe build is on: without it, signing in broke. */
+    public function test_livewire_runs_without_eval_under_the_policy(): void
+    {
+        $this->assertTrue(config('livewire.csp_safe'));
+        $this->assertStringNotContainsString('unsafe-eval', \App\Http\Middleware\SecurityHeaders::policy());
+    }
 }

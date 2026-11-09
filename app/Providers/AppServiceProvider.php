@@ -11,7 +11,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        /* Livewire's CSP-safe build: the sign-in, sign-up and password forms
+           work under the Content-Security-Policy without allowing eval. */
+        config(['livewire.csp_safe' => config('app.csp', 'enforce') !== 'off']);
     }
 
     /**
