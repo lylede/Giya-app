@@ -21,6 +21,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /* Livewire's script lives at one address whichever build it serves,
+           and browsers keep it for a year. Chrome that had visited GIYA
+           before the Content-Security-Policy kept running the old build,
+           which the policy blocks, so signing in spun forever. The CSP-safe
+           build gets its own file name, so every browser downloads it. */
+        if (config('livewire.csp_safe')) {
+            \Livewire\Livewire::setScriptRoute(function ($handle) {
+                $file = config('app.debug') ? 'livewire.csp.js' : 'livewire.csp.min.js';
+
+                return \Illuminate\Support\Facades\Route::get(\Livewire\Mechanisms\HandleRequests\EndpointResolver::prefix().'/'.$file, $handle);
+            });
+        }
+
         /* Hosting: see config/app.php. Set here rather than in bootstrap/app.php
            because env() there is not reliable once the config is cached. */
         if ($proxies = config('app.trusted_proxies')) {

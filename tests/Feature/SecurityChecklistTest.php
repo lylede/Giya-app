@@ -137,4 +137,10 @@ class SecurityChecklistTest extends TestCase
         $this->assertTrue(config('livewire.csp_safe'));
         $this->assertStringNotContainsString('unsafe-eval', \App\Http\Middleware\SecurityHeaders::policy());
     }
+
+    /** Browsers that had the old (eval) build saved at the shared address kept using it: sign-in spun in Chrome. */
+    public function test_the_csp_safe_livewire_script_has_its_own_address(): void
+    {
+        $this->get('/login')->assertOk()->assertSee('/livewire.csp.', false)->assertDontSee('/livewire.min.js', false);
+    }
 }
