@@ -140,6 +140,11 @@
                             <a href="{{ route('plan.show', $itinerary) }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">
                                 {{ $itinerary->status === 'Completed' ? __('giya.plan.act_view') : ($itinerary->status === 'Active' ? __('giya.plan.act_continue') : __('giya.plan.act_start')) }}
                             </a>
+                            <button type="button" class="btn btn-outline btn-sm"
+                                    aria-label="{{ __('giya.share.button') }} {{ $itinerary->name }}" title="{{ __('giya.share.button') }}"
+                                    onclick="GiyaShare.open({{ $itinerary->id }}, @js($itinerary->name), {{ $itinerary->share_token ? 'true' : 'false' }})">
+                                <i class="bi bi-people-fill"></i>
+                            </button>
                             <button type="button" class="btn btn-danger btn-sm"
                                     aria-label="{{ __('giya.common.delete') }} {{ $itinerary->name }}" title="{{ __('giya.common.delete') }}"
                                     onclick="GiyaDelete.open({{ $itinerary->id }}, @js($itinerary->name))">
@@ -208,4 +213,65 @@ const GiyaDelete = {
 };
 </script>
 @endpush
+
+{{-- Share with family or a parish group --}}
+<div class="modal" id="shareModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px">
+            <div class="modal-title"><i class="bi bi-people-fill" style="color:var(--primary)"></i> {{ __('giya.share.title') }}</div>
+            <p style="font-size:.875rem;color:var(--text-muted);margin:0 0 12px">{{ __('giya.share.help') }} <strong id="shareName"></strong></p>
+            <div class="share-link-row">
+                <input type="text" id="shareUrl" class="giya-input" readonly aria-label="{{ __('giya.share.link') }}">
+            </div>
+            <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" style="flex:1" id="shareSend">{{ __('giya.share.send') }}</button>
+                <button type="button" class="btn btn-outline" style="flex:1" id="shareCopy">{{ __('giya.share.copy_link') }}</button>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm share-stop" id="shareStop">{{ __('giya.share.stop') }}</button>
+        </div>
+    </div>
+</div>
+<script>
+const GiyaShare = (function () {
+    const csrf = document.querySelector('meta[name=csrf-token]').content;
+    const url = document.getElementById('shareUrl'), status = document.getElementById('shareStatus');
+    let current = null;
+    const say = (t) => { status.textContent = t; };
+
+    async function open(id, name, shared) {
+        current = id;
+        document.getElementById('shareName').textContent = name;
+        url.value = ''; say(@json(__('giya.share.making')));
+        GiyaUI.Modal.open('shareModal');
+        try {
+            const r = await fetch('/plan/' + id + '/share', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
+            const d = await r.json();
+            if (!d.ok) throw new Error();
+            url.value = d.url; say('');
+        } catch (e) { say(@json(__('giya.share.failed'))); }
+    }
+
+    document.getElementById('shareCopy').addEventListener('click', async function () {
+        if (!url.value) return;
+        try { await navigator.clipboard.writeText(url.value); } catch (e) { url.select(); document.execCommand('copy'); }
+        say(@json(__('giya.share.copied_link')));
+    });
+    document.getElementById('shareSend').addEventListener('click', async function () {
+        if (!url.value) return;
+        if (navigator.share) {
+            try { await navigator.share({ title: document.getElementById('shareName').textContent, url: url.value }); } catch (e) {}
+        } else {
+            document.getElementById('shareCopy').click();
+        }
+    });
+    document.getElementById('shareStop').addEventListener('click', async function () {
+        if (!current) return;
+        await fetch('/plan/' + current + '/share', { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' } });
+        url.value = ''; say(@json(__('giya.share.stopped')));
+    });
+
+    return { open };
+})();
+</script>
 @endsection

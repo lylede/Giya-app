@@ -93,6 +93,9 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
         Route::get('/{itinerary}',     'show')->name('show');
         Route::post('/{itinerary}/ratings', 'storeRatings')->middleware('confirmed.email')->name('ratings');
         Route::delete('/{itinerary}',  'destroy')->name('destroy');
+        // Share with family or a parish group (SharedItineraryController).
+        Route::post('/{itinerary}/share', [\App\Http\Controllers\SharedItineraryController::class, 'share'])->middleware('throttle:giya-actions')->name('share');
+        Route::delete('/{itinerary}/share', [\App\Http\Controllers\SharedItineraryController::class, 'unshare'])->name('unshare');
     });
 });
 
@@ -126,7 +129,7 @@ Route::get('/sitemap.xml', function () {
     return response()->view('sitemap', ['pages' => $pages])->header('Content-Type', 'application/xml');
 })->name('sitemap');
 Route::get('/robots.txt', fn () => response(
-    "User-agent: *\nDisallow: /admin\nDisallow: /profile\nDisallow: /chatbot\nDisallow: /plan\n\nSitemap: ".route('sitemap')."\n"
+    "User-agent: *\nDisallow: /admin\nDisallow: /profile\nDisallow: /chatbot\nDisallow: /plan\nDisallow: /p/\n\nSitemap: ".route('sitemap')."\n"
 )->header('Content-Type', 'text/plain'))->name('robots');
 
 // Confirm your email (only asked when GIYA_VERIFY_EMAIL=true).
@@ -137,6 +140,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/email/verification-notification', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resend'])
         ->middleware('throttle:3,10')->name('verification.send');
 });
+
+// A shared itinerary: anyone with the link can see it; signed in, save a copy.
+Route::get('/p/{token}', [\App\Http\Controllers\SharedItineraryController::class, 'show'])->middleware('throttle:giya-actions')->name('shared.show');
+Route::post('/p/{token}/copy', [\App\Http\Controllers\SharedItineraryController::class, 'copy'])
+    ->middleware(['auth', 'confirmed.email', 'throttle:10,1'])->name('shared.copy');
 
 // Shown by the offline worker (public/sw.js) when there is no signal.
 Route::view('/offline', 'offline')->name('offline');

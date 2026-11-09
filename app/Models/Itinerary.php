@@ -29,7 +29,7 @@ class Itinerary extends Model
 
     protected $fillable = [
         'user_id', 'itinerary_type_id', 'name', 'status',
-        'schedule_date', 'scheduled_date', 'notes', 'created_at', 'updated_at',
+        'schedule_date', 'scheduled_date', 'notes', 'share_token', 'created_at', 'updated_at',
     ];
 
     protected $appends = ['type', 'total_stops', 'scheduled_date'];

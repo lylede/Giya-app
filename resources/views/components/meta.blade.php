@@ -24,6 +24,6 @@
 <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="GIYA">
-@if (request()->is('admin', 'admin/*', 'profile', 'chatbot*', 'plan/*'))
+@if (request()->is('admin', 'admin/*', 'profile', 'chatbot*', 'plan/*', 'p/*'))
     <meta name="robots" content="noindex">
 @endif
