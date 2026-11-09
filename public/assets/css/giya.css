@@ -6890,3 +6890,27 @@ html[data-theme="dark"] .btn-primary:disabled span { color: inherit; }
 }
 .chat-plan-link:hover { background: rgba(215,169,74,.26); }
 html[data-theme="dark"] .chat-plan-link { color: var(--gold-light, #E9C77E); }
+
+/* ── Privacy Policy and Terms ─────────────────────────────── */
+.legal-page { max-width: 760px; margin: 0 auto; padding: 32px 20px 56px; color: var(--text); }
+.legal-title { font-family: var(--font-display, 'Playfair Display', serif); font-size: 2rem; margin: 0 0 6px; }
+.legal-updated, .legal-note { color: var(--text-muted); font-size: .875rem; margin: 0 0 4px; }
+.legal-toc { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; margin: 20px 0 8px; }
+.legal-toc-title { font-weight: 700; font-size: .8125rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin-bottom: 6px; }
+.legal-toc ol { margin: 0; padding-left: 0; list-style: none; columns: 2; column-gap: 24px; }
+.legal-toc li { font-size: .875rem; padding: 2px 0; break-inside: avoid; }
+.legal-body h2 { font-size: 1.125rem; margin: 28px 0 8px; scroll-margin-top: 80px; }
+.legal-body p, .legal-body li { font-size: .9375rem; line-height: 1.65; }
+.legal-body ul { padding-left: 20px; }
+.legal-page a { color: var(--primary); }
+html[data-theme="dark"] .legal-page a { color: var(--primary-ink, #E59C86); }
+@media (max-width: 600px) { .legal-toc ol { columns: 1; } .legal-title { font-size: 1.6rem; } }
+.footer-legal { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Consent box on sign-up */
+.auth-consent-label { display: flex; gap: 10px; align-items: flex-start; font-size: .8125rem; line-height: 1.45; color: var(--text-muted); cursor: pointer; }
+.auth-consent-label input { margin-top: 2px; width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; }
+.auth-consent-label a { color: var(--primary); font-weight: 600; }
+/* "Delete forever": a clear, solid red in both themes. */
+#deleteAccountModal .btn-danger { background: #C0283F; border-color: #C0283F; color: #fff; }
+#deleteAccountModal .btn-danger:hover { background: #A51F34; }

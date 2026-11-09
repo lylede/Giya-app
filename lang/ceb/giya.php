@@ -407,6 +407,19 @@ return [
     ],
 
     'profile' => [
+        'your_data' => 'Imong data',
+        'privacy_hint' => 'Unsa ang gitipigan sa GIYA ug ngano',
+        'delete_account' => 'Papasa akong account',
+        'delete_hint' => 'Tangtangon ang imong account ug tanan nga sulod niini',
+        'delete_warn' => 'Permanente nga mapapas ang imong GIYA account.',
+        'delete_what' => 'Mapapas ang imong profile, itinerary, pagbisita, review, chat sa Giya AI, notification ug rekord sa bayad.',
+        'delete_premium' => 'Mohunong dayon ang imong Premium ug dili ma-refund.',
+        'delete_final' => 'Dili na kini mabawi.',
+        'delete_confirm_pw' => 'I-type ang imong password aron makumpirma',
+        'delete_btn' => 'Papasa hangtod sa hangtod',
+        'delete_wrong_pw' => 'Sayop ang password.',
+        'delete_admin' => 'Dili mapapas dinhi ang admin nga account. Pangayo sa laing admin nga tangtangon kini sa User Management.',
+        'deleted' => 'Napapas na ang imong account ug data. Salamat sa paggamit sa GIYA.',
         'overview'      => 'Kinatibuk-an',
         'visit_history' => 'Kasaysayan sa Pagbisita',
         'itineraries'   => 'Mga Itineraryo',
@@ -559,6 +572,9 @@ return [
     ],
 
     'auth' => [
+        'agree_1' => 'Mouyon ko sa',
+        'agree_2' => 'ug sa',
+        'must_agree' => 'Palihog uyon sa Mga Termino sa Paggamit ug Palisiya sa Privacy aron makahimo og account.',
         'sign_in'        => 'Sulod',
         'sign_up'        => 'Magparehistro',
         'password'       => 'Password',
@@ -634,4 +650,11 @@ return [
         'open'          => 'Ablihi kini nga ruta sa planner',
     ],
 
+    'legal' => [
+        'privacy' => 'Palisiya sa Privacy',
+        'terms' => 'Mga Termino sa Paggamit',
+        'updated' => 'Katapusang gi-update: :date',
+        'english_note' => 'Kini nga palisiya anaa sa English aron klaro ang pagkasabot.',
+        'contents' => 'Niini nga panid',
+    ],
 ];

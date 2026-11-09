@@ -35,6 +35,7 @@ class User extends Authenticatable
         'status',
         'last_seen_at',
         'avatar_url',
+        'terms_accepted_at',
         'created_at',
         'updated_at',
     ];
@@ -56,6 +57,7 @@ class User extends Authenticatable
             'created_at'   => 'datetime',
             'updated_at'   => 'datetime',
             'last_seen_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
         ];
     }
 

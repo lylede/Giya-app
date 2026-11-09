@@ -471,6 +471,35 @@
                 </button>
             </form>
         </div>
+
+        {{-- Your data: the Privacy Policy, and deleting the account (RA 10173). --}}
+        <h2 class="section-title" style="font-size: 1.25rem;margin-top:28px">{{ __('giya.profile.your_data') }}</h2>
+        <div class="card card-body">
+            <a href="{{ route('privacy') }}" class="d-flex align-items-center gap-3 w-100 text-start text-decoration-none"
+               style="padding:12px;border-radius:12px">
+                <span style="width:38px;height:38px;border-radius:10px;background:var(--gold-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i class="bi bi-shield-fill" style="color:var(--primary)"></i>
+                </span>
+                <span style="flex:1">
+                    <span style="display:block;font-size: 0.875rem;font-weight:600;color:var(--text)">{{ __('giya.legal.privacy') }}</span>
+                    <span style="display:block;font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.profile.privacy_hint') }}</span>
+                </span>
+                <i class="bi bi-chevron-right" style="color:var(--text-muted)"></i>
+            </a>
+            @unless ($user->isAdmin())
+                <button type="button" class="d-flex align-items-center gap-3 w-100 text-start bg-transparent border-0"
+                        style="padding:12px;border-radius:12px" data-modal-open="deleteAccountModal">
+                    <span style="width:38px;height:38px;border-radius:10px;background:rgba(212,24,61,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                        <i class="bi bi-trash3" style="color:#D4183D"></i>
+                    </span>
+                    <span style="flex:1">
+                        <span style="display:block;font-size: 0.875rem;font-weight:600;color:#D4183D">{{ __('giya.profile.delete_account') }}</span>
+                        <span style="display:block;font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.profile.delete_hint') }}</span>
+                    </span>
+                    <i class="bi bi-chevron-right" style="color:var(--text-muted)"></i>
+                </button>
+            @endunless
+        </div>
     </section>
 
 </div>{{-- /panel wrapper --}}
@@ -602,6 +631,40 @@
         </div>
     </div>
 </div>
+@unless ($user->isAdmin())
+<div class="modal" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px">
+            <div class="modal-title"><i class="bi bi-trash3-fill" style="color:#D4183D"></i> {{ __('giya.profile.delete_account') }}</div>
+            <p style="font-size: 0.875rem;color:var(--text);margin:0 0 10px">{{ __('giya.profile.delete_warn') }}</p>
+            <ul style="font-size: 0.8125rem;color:var(--text-muted);margin:0 0 14px;padding-left:18px">
+                <li>{{ __('giya.profile.delete_what') }}</li>
+                @if ($user->is_premium)
+                    <li>{{ __('giya.profile.delete_premium') }}</li>
+                @endif
+                <li>{{ __('giya.profile.delete_final') }}</li>
+            </ul>
+            <form method="POST" action="{{ route('profile.destroy') }}">
+                @csrf @method('DELETE')
+                <div class="field">
+                    <label class="form-label-sm" for="da-password">{{ __('giya.profile.delete_confirm_pw') }}</label>
+                    <div class="input-wrap">
+                        <input id="da-password" type="password" name="password" class="giya-input" required autocomplete="current-password">
+                        <button type="button" class="input-suffix" onclick="giyaTogglePassword('da-password', this)" aria-label="{{ __('giya.common.show_pw') }}">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    @error('password', 'deleteAccount')<span class="field-error">{{ $message }}</span>@enderror
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-danger" style="flex:1">{{ __('giya.profile.delete_btn') }}</button>
+                    <button type="button" class="btn btn-outline" style="flex:1" data-modal-close>{{ __('giya.common.cancel') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endunless
 <div class="modal" id="reviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content" style="border:none;border-radius:var(--radius-2xl);padding:28px">
@@ -842,6 +905,9 @@ document.addEventListener('change', event => {
 @endif
 @if ($errors->hasAny(['rating', 'comment', 'visit_id']))
     GiyaUI.Modal.open('reviewModal');
+@endif
+@if ($errors->deleteAccount->any())
+    GiyaUI.Modal.open('deleteAccountModal');
 @endif
 </script>
 @endpush

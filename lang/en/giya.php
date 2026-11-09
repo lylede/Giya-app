@@ -417,6 +417,19 @@ return [
     ],
 
     'profile' => [
+        'your_data' => 'Your data',
+        'privacy_hint' => 'What GIYA keeps and why',
+        'delete_account' => 'Delete my account',
+        'delete_hint' => 'Remove your account and everything in it',
+        'delete_warn' => 'This permanently deletes your GIYA account.',
+        'delete_what' => 'Your profile, itineraries, visits, reviews, Giya AI chats, notifications and payment records are all deleted.',
+        'delete_premium' => 'Your Premium ends right away and is not refunded.',
+        'delete_final' => 'This cannot be undone.',
+        'delete_confirm_pw' => 'Enter your password to confirm',
+        'delete_btn' => 'Delete forever',
+        'delete_wrong_pw' => 'That password is not right.',
+        'delete_admin' => 'Admin accounts cannot be deleted here. Ask another admin to remove it in User Management.',
+        'deleted' => 'Your account and data have been deleted. Salamat for using GIYA.',
         'overview'      => 'Overview',
         'visit_history' => 'Visit History',
         'itineraries'   => 'Itineraries',
@@ -569,6 +582,9 @@ return [
     ],
 
     'auth' => [
+        'agree_1' => 'I agree to the',
+        'agree_2' => 'and the',
+        'must_agree' => 'Please agree to the Terms of Use and Privacy Policy to create an account.',
         'sign_in'        => 'Sign In',
         'sign_up'        => 'Sign Up',
         'password'       => 'Password',
@@ -644,4 +660,11 @@ return [
         'open'          => 'Open this route in the planner',
     ],
 
+    'legal' => [
+        'privacy' => 'Privacy Policy',
+        'terms' => 'Terms of Use',
+        'updated' => 'Last updated: :date',
+        'english_note' => '',
+        'contents' => 'On this page',
+    ],
 ];

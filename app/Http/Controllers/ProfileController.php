@@ -110,6 +110,43 @@ class ProfileController extends Controller
         return redirect()->route('profile')->with('success', 'Photo removed.');
     }
 
+    /**
+     * Delete my account (Data Privacy Act, RA 10173: the right to erasure).
+     * Asks for the password again. Everything linked to the account goes
+     * with it (itineraries, visits, reviews, chats, notifications,
+     * preferences, payments): the database deletes those rows in cascade.
+     * An admin cannot delete their own account here, so GIYA is never left
+     * without one; another admin removes it from User Management.
+     */
+    public function destroy(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            return redirect()->route('profile', ['tab' => 'preferences'])
+                ->with('error', __('giya.profile.delete_admin'));
+        }
+
+        $request->validateWithBag('deleteAccount', [
+            'password' => ['required', 'string'],
+        ]);
+
+        if (! Hash::check($request->input('password'), $user->password_hash)) {
+            return redirect()->route('profile', ['tab' => 'preferences'])
+                ->withErrors(['password' => __('giya.profile.delete_wrong_pw')], 'deleteAccount');
+        }
+
+        $this->deleteAvatarFile($user->avatar_url);
+
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        User::whereKey($user->id)->delete();
+
+        return redirect()->route('root')->with('success', __('giya.profile.deleted'));
+    }
+
     /** Remove an avatar this app stored, locally or in Supabase. */
     private function deleteAvatarFile(?string $url): void
     {

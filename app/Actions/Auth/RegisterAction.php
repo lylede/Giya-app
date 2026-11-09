@@ -35,6 +35,8 @@ class RegisterAction
             'password_hash' => Hash::make($data['password']),
             'role'          => 'user',
             'status'        => 'Active',
+            // The sign-up forms require the Terms and Privacy box (RA 10173 consent).
+            'terms_accepted_at' => now(),
             'created_at'    => now(),
             'updated_at'    => now(),
         ]);

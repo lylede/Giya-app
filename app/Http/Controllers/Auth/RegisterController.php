@@ -22,7 +22,9 @@ class RegisterController extends Controller
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', 'max:150', 'unique:devotees,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
+            'terms'    => ['accepted'],
         ], [
+            'terms.accepted'     => __('giya.auth.must_agree'),
             'name.required'      => 'Full name is required.',
             'email.unique'       => 'This email address is already registered.',
             'password.confirmed' => 'Passwords do not match.',

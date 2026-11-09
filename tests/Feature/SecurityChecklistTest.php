@@ -95,7 +95,7 @@ class SecurityChecklistTest extends TestCase
     {
         $this->post(route('register.store'), [
             'name' => 'New Pilgrim', 'email' => 'new@example.com',
-            'password' => 'Secret123!', 'password_confirmation' => 'Secret123!',
+            'password' => 'Secret123!', 'password_confirmation' => 'Secret123!', 'terms' => '1',
         ]);
 
         $user = User::where('email', 'new@example.com')->first();

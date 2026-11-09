@@ -10,6 +10,7 @@ new class extends Component
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public bool $terms = false;
 
     public function register(): void
     {
@@ -17,7 +18,9 @@ new class extends Component
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:150', 'unique:devotees,email'],
             'password' => ['required', 'confirmed', PasswordRule::min(8)],
+            'terms' => ['accepted'],
         ], [
+            'terms.accepted' => __('giya.auth.must_agree'),
             'name.required' => 'Full name is required.',
             'email.unique' => 'This email address is already registered.',
             'password.confirmed' => 'Passwords do not match.',
@@ -43,6 +46,14 @@ new class extends Component
         <div class="field"><label class="form-label" for="register-email">{{ __('giya.profile.email') }}</label><input id="register-email" type="email" wire:model="email" class="giya-input @error('email') is-invalid @enderror" placeholder="{{ __('giya.auth.email_ph') }}" required autocomplete="email">@error('email')<span class="field-error">{{ $message }}</span>@enderror</div>
         <div class="field"><label class="form-label" for="register-password">{{ __('giya.auth.password') }}</label><div class="input-wrap"><input id="register-password" type="password" wire:model="password" class="giya-input @error('password') is-invalid @enderror" placeholder="{{ __('giya.auth.pw_min') }}" required minlength="8" autocomplete="new-password"><button type="button" class="input-suffix" onclick="giyaTogglePassword('register-password', this)" aria-label="{{ __('giya.common.show_pw') }}"><i class="bi bi-eye"></i></button></div>@error('password')<span class="field-error">{{ $message }}</span>@enderror</div>
         <div class="field"><label class="form-label" for="register-password-confirmation">{{ __('giya.auth.confirm_pw') }}</label><div class="input-wrap"><input id="register-password-confirmation" type="password" wire:model="password_confirmation" class="giya-input" placeholder="{{ __('giya.auth.pw_again') }}" required minlength="8" autocomplete="new-password" oninput="this.setCustomValidity(this.value !== document.getElementById('register-password').value ? 'Passwords do not match.' : '')"><button type="button" class="input-suffix" onclick="giyaTogglePassword('register-password-confirmation', this)" aria-label="{{ __('giya.common.show_pw') }}"><i class="bi bi-eye"></i></button></div></div>
+        {{-- Consent under the Data Privacy Act (RA 10173): no account without it. --}}
+        <div class="field auth-consent">
+            <label class="auth-consent-label">
+                <input type="checkbox" wire:model="terms" required>
+                <span>{{ __('giya.auth.agree_1') }} <a href="{{ route('terms') }}" target="_blank" rel="noopener">{{ __('giya.legal.terms') }}</a> {{ __('giya.auth.agree_2') }} <a href="{{ route('privacy') }}" target="_blank" rel="noopener">{{ __('giya.legal.privacy') }}</a>.</span>
+            </label>
+            @error('terms')<span class="field-error">{{ $message }}</span>@enderror
+        </div>
         <button type="submit" class="btn btn-primary btn-w-full" wire:loading.attr="disabled" wire:target="register"><span wire:loading.remove wire:target="register">{{ __('giya.auth.create_account') }}</span><span wire:loading wire:target="register">{{ __('giya.auth.creating') }}</span></button>
     </form>
     <p class="auth-footer">{{ __('giya.auth.have_account') }} <a href="{{ route('login') }}" wire:navigate>{{ __('giya.nav.sign_in') }}</a></p>

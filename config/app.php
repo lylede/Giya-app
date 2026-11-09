@@ -16,6 +16,12 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | Where devotees reach the GIYA team about their data (Privacy Policy).
+    | Set GIYA_CONTACT_EMAIL in .env, Vercel and Render.
+    */
+    'contact_email' => env('GIYA_CONTACT_EMAIL'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

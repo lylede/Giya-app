@@ -60,6 +60,7 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
     /* Profile */
     Route::get('/profile',            [ProfileController::class, 'index'])->name('profile');
     Route::patch('/profile',          [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile',         [ProfileController::class, 'destroy'])->middleware('throttle:5,1')->name('profile.destroy');
     Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::patch('/profile/preferences', [ProfileController::class, 'updatePreferences'])->name('profile.preferences');
     Route::patch('/profile/preference',  [ProfileController::class, 'updatePreference'])->name('profile.preference');
@@ -112,6 +113,10 @@ Route::post('/maya/webhook', [PaymentController::class, 'webhook'])->middleware(
    reviews and visit history live, so that needs an account.
 */
 Route::get('/map', [MapController::class, 'index'])->name('map');
+
+// Privacy Policy and Terms: open to everyone, linked from sign-up and the footer.
+Route::view('/privacy', 'legal.privacy')->name('privacy');
+Route::view('/terms', 'legal.terms')->name('terms');
 
 Route::middleware('auth')->group(function () {
     Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
