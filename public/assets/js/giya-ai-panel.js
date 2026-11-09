@@ -166,7 +166,7 @@
     }
 
     // mood: the face Giya AI chose for this reply; the row's little face shows it.
-    function addBot(text, ok, mood) {
+    function addBot(text, ok, mood, planUrl) {
         var typing = document.getElementById('giyaPanelTyping');
         if (typing) typing.remove();
 
@@ -191,6 +191,11 @@
                     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
                     .replace(/(^|[\s(])_([^_\n]+?)_(?=[\s.,!?)]|$)/g, '$1<em>$2</em>')
                     .replace(/\n/g, '<br>') +
+                // A route Giya planned: one tap opens its stops on the planner map.
+                (planUrl && planUrl.indexOf('/') === 0 && planUrl.indexOf('//') !== 0
+                    ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi bi-map"></i> ' +
+                      esc(fab.dataset.openRoute || 'Open this route in the planner') + '</a>'
+                    : '') +
             '</div>';
         log.appendChild(row);
         scroll();
@@ -245,7 +250,7 @@
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (d.reason === 'busy') addBusy(d.reply, d.retry_after, text);
-                else addBot(d.reply || 'Something went wrong. Try again.', d.ok, d.mood);
+                else addBot(d.reply || 'Something went wrong. Try again.', d.ok, d.mood, d.plan_url);
             })
             .catch(function () { addBot('I could not reach the server. Try again in a moment.', false); })
             .finally(function () {

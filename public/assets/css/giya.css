@@ -6879,3 +6879,14 @@ html[data-theme="dark"] .btn-primary:disabled span { color: inherit; }
   100% { opacity: 0; transform: translate(6px, -10px); }
 }
 .chat-bar-guide.is-tired .guide-face::after { display: none; }
+
+/* "Open this route in the planner", under a route Giya AI planned. */
+.chat-plan-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 10px; padding: 7px 12px;
+  border-radius: 999px; border: 1px solid var(--gold);
+  font-size: .8125rem; font-weight: 700; text-decoration: none;
+  color: var(--primary-dark); background: rgba(215,169,74,.14);
+}
+.chat-plan-link:hover { background: rgba(215,169,74,.26); }
+html[data-theme="dark"] .chat-plan-link { color: var(--gold-light, #E9C77E); }

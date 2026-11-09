@@ -76,6 +76,9 @@ class GiyaAssistant
     /** How many questions the devotee has asked in a row, counting this one. */
     protected int $streak = 0;
 
+    /** The route GIYA worked out for this question, when it asks for one (see RoutePlanner). */
+    protected ?array $plan = null;
+
     public function configured(): bool
     {
         return filled(config('services.groq.key'));
@@ -105,13 +108,18 @@ class GiyaAssistant
             return ['ok' => true, 'reason' => 'out_of_scope', 'mood' => 'sorry', 'reply' => __('giya.chat.out_of_scope')];
         }
 
+        /* A route is planned by GIYA, from the map, never by the model: it
+           guessed travel times and once put Compostela (north) 20 minutes
+           from Dumanjug (south west). */
+        $this->plan = app(RoutePlanner::class)->plan($question, $history);
+
         if (! $this->configured()) {
-            return [
+            return $this->withPlan([
                 'ok'     => false,
                 'reason' => 'no_key',
                 'mood'   => 'sorry',
                 'reply'  => Text::withoutLongDashes($this->offlineAnswer($question)),
-            ];
+            ]);
         }
 
         $history = $this->trimHistory($history);
@@ -162,8 +170,13 @@ class GiyaAssistant
 
             [$mood, $reply] = self::mood($result['reply']);
 
+            if ($this->plan) {
+                // GIYA's timetable is the only one: drop any times the model wrote anyway.
+                $reply = self::withoutTimes($reply)."\n\n".RoutePlanner::text($this->plan);
+            }
+
             // House style: no long dashes, even if the model slips.
-            return ['ok' => true, 'mood' => $mood, 'reply' => Text::withoutLongDashes($reply)];
+            return $this->withPlan(['ok' => true, 'mood' => $mood, 'reply' => Text::withoutLongDashes($reply)]);
         }
 
         /* Busy is not broken: the free allowance refills within a minute.
@@ -182,12 +195,37 @@ class GiyaAssistant
             ];
         }
 
-        return [
+        return $this->withPlan([
             'ok'     => false,
             'reason' => $result['reason'],
             'mood'   => 'sorry',
             'reply'  => Text::withoutLongDashes($this->offlineAnswer($question, $result['reason'])),
-        ];
+        ]);
+    }
+
+    /** Adds the planner link when this answer carries a route. */
+    protected function withPlan(array $result): array
+    {
+        if ($this->plan) {
+            // Relative, so it stays on whichever site the devotee is using (Vercel or Render).
+            $result['plan_url'] = route('plan.create', ['stops' => implode(',', $this->plan['ids'])], false);
+        }
+
+        return $result;
+    }
+
+    /**
+     * The model's text without lines that give times, durations or
+     * distances: on a route those come only from GIYA's timetable.
+     */
+    public static function withoutTimes(string $reply): string
+    {
+        $lines = array_filter(explode("\n", $reply), fn ($line) => ! preg_match(
+            '/\b\d{1,2}:\d{2}\b|\b\d+\s*(?:-|to)?\s*\d*\s*(?:min|mins|minutes|minuto|hr|hrs|hour|hours|oras|km)\b/i',
+            $line
+        ));
+
+        return trim(preg_replace("/\n{3,}/", "\n\n", implode("\n", $lines)));
     }
 
     /**
@@ -632,6 +670,15 @@ class GiyaAssistant
               .'If you mention a famous church of that area that GIYA does not list, say it is not on GIYA\'s map yet.'
             : '';
 
+        $route = $this->plan
+            ? "\nROUTE: GIYA has worked out this route from the map and shows its timetable (times, drives, distances) "
+              .'right under your reply. The stops, in order: '
+              .collect($this->plan['stops'])->map(fn ($s) => $s['name'].' ('.$s['town'].')')->implode('; ')
+              .'. Write ONLY: one or two warm sentences introducing this route, one short line on what makes two or '
+              .'three of these stops special, and one practical tip. Do NOT write any times, durations, distances or '
+              .'a timetable, do NOT list the stops again, and do NOT name any church that is not in this route.'
+            : '';
+
         $tired = $this->streak >= self::TIRED_EVERY && $this->streak % self::TIRED_EVERY === 0
             ? "\nThe devotee has asked {$this->streak} questions in a row. Start with ONE short playful line that your "
               .'lantern is getting a little tired from all this walking (for example "Whew, my lantern needs a quick '
@@ -726,8 +773,11 @@ class GiyaAssistant
           pilgrimages, then ask what church or route they need.
         - Length: two to four sentences for simple questions; up to two short
           paragraphs or a short list for history, recommendations or plans.
-        - For a Visita Iglesia, propose seven churches from GIYA's list,
-          ordered so the route is sensible.
+        - Never estimate travel times or distances between places yourself,
+          and never call two churches "a short walk" apart: you cannot see the
+          roads. Routes and their times come from GIYA (see ROUTE below when
+          there is one). Without one, suggest asking for a route with the
+          number of hours, e.g. "plan a 5 hour route in south Cebu".
         - Reply in the language the devotee writes in: English, Cebuano or
           Filipino.
         - Plain text only. You may use **bold** for church names; no headings,
@@ -743,7 +793,7 @@ class GiyaAssistant
         FULL RECORDS for the destinations this conversation is about:
         {$details}
         {$festivals}
-        {$region}{$tired}
+        {$region}{$route}{$tired}
 
         Now answer the devotee's latest message directly, starting with the mood tag. No self-introduction.
         A church's town and address come only from the records above.
@@ -773,6 +823,10 @@ class GiyaAssistant
         $note = $busy
             ? '_Giya AI is answering a lot of questions right now, so this comes straight from the destination records. Ask again in a few seconds for a full answer._'
             : '_The AI assistant is offline, so this comes straight from the destination records._';
+
+        if ($this->plan) {
+            return RoutePlanner::text($this->plan)."\n\n".$note;
+        }
 
         $q = $this->normalize($question);
         $matches = $this->relevant($question, [])->take(3);

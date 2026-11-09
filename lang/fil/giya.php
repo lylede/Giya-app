@@ -622,4 +622,16 @@ return [
         'login'       => 'Bumalik sa Login',
         'start'       => 'Bumalik sa simula',
     ],
+    /* Giya AI routes: worked out by GIYA from the map (RoutePlanner). */
+    'route' => [
+        'title'         => 'Ang iyong :hours oras na ruta ng simbahan sa :area',
+        'title_visita'  => 'Ang iyong Visita Iglesia sa :area: 7 simbahan',
+        'drive'         => 'biyahe mga :time (:km)',
+        'walk'          => 'lakad mga :time (:km)',
+        'finish'        => 'Matatapos mga :time.',
+        'from_city'     => 'Mula sa Cebu City: mga :time sakay ng sasakyan.',
+        'note'          => 'Tantiya ng GIYA ang oras mula sa mapa. Maaaring magbago ito dahil sa trapiko, Misa at pista.',
+        'open'          => 'Buksan ang rutang ito sa planner',
+    ],
+
 ];

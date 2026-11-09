@@ -142,6 +142,8 @@ class ChatbotController extends Controller
             'ok'      => $result['ok'],
             'reason'  => $result['reason'] ?? null,
             'mood'    => $result['mood'] ?? 'happy',
+            // A route reply: opens its stops in the planner.
+            'plan_url' => $result['plan_url'] ?? null,
             'reply'   => $answer->message,
             'when'    => $answer->created_at->format('g:i A'),
         ]);

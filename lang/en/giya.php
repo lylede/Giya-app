@@ -632,4 +632,16 @@ return [
         'login'       => 'Back to Login',
         'start'       => 'Back to start page',
     ],
+    /* Giya AI routes: worked out by GIYA from the map (RoutePlanner). */
+    'route' => [
+        'title'         => 'Your :hours-hour :area church route',
+        'title_visita'  => 'Your Visita Iglesia in :area: 7 churches',
+        'drive'         => 'drive about :time (:km)',
+        'walk'          => 'walk about :time (:km)',
+        'finish'        => 'Finish at about :time.',
+        'from_city'     => 'Getting there from Cebu City: about :time by car.',
+        'note'          => 'Times are GIYA estimates from the map. Traffic, Masses and fiestas can change them.',
+        'open'          => 'Open this route in the planner',
+    ],
+
 ];

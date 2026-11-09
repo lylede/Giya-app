@@ -480,7 +480,7 @@
     /* mood: the face Giya AI chose for this reply (happy, excited,
        thinking, sorry, tired). The row carries it so its little face and
        the big guide above both show it. */
-    function addBot(text, ok, mood) {
+    function addBot(text, ok, mood, planUrl) {
         const typing = document.getElementById('chatTyping');
         if (typing) typing.remove();
 
@@ -502,6 +502,11 @@
             '</span>' +
             '<div class="chat-bubble chat-bubble-bot' + (ok ? '' : ' is-offline') + '">' +
                 fmt(text) +
+                // A route Giya planned: one tap opens its stops on the planner map.
+                (planUrl && planUrl.indexOf('/') === 0 && planUrl.indexOf('//') !== 0
+                    ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi bi-map"></i> ' +
+                      esc(@json(__('giya.route.open'))) + '</a>'
+                    : '') +
             '</div>';
         log.appendChild(row);
         scroll();
@@ -556,7 +561,7 @@
             .then(r => r.json())
             .then(d => d.reason === 'busy'
                 ? addBusy(d.reply, d.retry_after, text)
-                : addBot(d.reply || @json(__('giya.chat.error')), d.ok, d.mood))
+                : addBot(d.reply || @json(__('giya.chat.error')), d.ok, d.mood, d.plan_url))
             .catch(() => addBot(@json(__('giya.chat.unreachable')), false))
             .finally(() => {
                 input.disabled = send.disabled = false;

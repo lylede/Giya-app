@@ -589,4 +589,92 @@ class GiyaAssistantKnowledgeTest extends TestCase
         $this->assertStringContainsString('[mood:excited]', $prompt);
         $this->assertStringContainsString('want to rest', $prompt);
     }
+
+    private function southAndNorthChurches(): void
+    {
+        $this->church('Archdiocesan Shrine of St. Catherine of Alexandria', 'Shrine',
+            ['municipality' => 'City of Carcar', 'latitude' => 10.106019, 'longitude' => 123.640161]);
+        $this->church('Our Lady of Lourdes Parish', 'Parish',
+            ['municipality' => 'City of Carcar', 'latitude' => 10.064705, 'longitude' => 123.628137]);
+        $this->church('Our Lady of the Holy Rosary Parish', 'Parish',
+            ['municipality' => 'Dumanjug', 'latitude' => 10.040855, 'longitude' => 123.506557]);
+        $this->church('Archdiocesan Shrine of St. James the Apostle', 'Shrine',
+            ['municipality' => 'Compostela', 'latitude' => 10.453832, 'longitude' => 124.011032]);
+        $this->church('St. Francis Xavier Parish', 'Parish',
+            ['municipality' => 'Pilar', 'latitude' => 10.81, 'longitude' => 124.40]);
+        Church::where('name', 'Simala Shrine')->update(['latitude' => 10.0041, 'longitude' => 123.5760]);
+    }
+
+    /** The reported answer: a "5 hours" south route that drove to Compostela in 20 minutes. */
+    public function test_a_route_is_planned_by_giya_and_stays_in_the_part_of_cebu_asked_for(): void
+    {
+        $this->southAndNorthChurches();
+        config(['services.groq.key' => 'gsk-test']);
+        Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => ['content' =>
+            "[mood:excited] Here is a lovely southern route!\nDrive 20 min to Compostela.\nBring water."]]]])]);
+
+        $result = app(GiyaAssistant::class)->ask('can you plan me a 5 hours itinerary route', [
+            ['role' => 'user', 'content' => 'i want to explore the churches in south cebu'],
+            ['role' => 'assistant', 'content' => 'Sure!'],
+        ]);
+
+        // GIYA's timetable, in the south only.
+        $this->assertStringContainsString('Your 5-hour South Cebu church route', $result['reply']);
+        $this->assertStringContainsString('St. Catherine of Alexandria', $result['reply']);
+        $this->assertStringNotContainsString('St. James the Apostle', $result['reply']);
+        $this->assertStringNotContainsString('St. Francis Xavier', $result['reply']);
+
+        // The model's own times are dropped; its words stay.
+        $this->assertStringNotContainsString('20 min to Compostela', $result['reply']);
+        $this->assertStringContainsString('Bring water.', $result['reply']);
+
+        // One tap opens the stops in the planner, on this site.
+        $this->assertStringStartsWith('/plan/create?stops=', $result['plan_url']);
+
+        // The model was told the route and not to make up times.
+        $prompt = null;
+        Http::assertSent(function (Request $r) use (&$prompt) { $prompt = $r->data()['messages'][0]['content']; return true; });
+        $this->assertStringContainsString('ROUTE: GIYA has worked out this route', $prompt);
+        $this->assertStringContainsString('Do NOT write any times', $prompt);
+    }
+
+    public function test_the_route_timetable_follows_the_hours_asked_for(): void
+    {
+        $this->southAndNorthChurches();
+        $plan = app(\App\Services\RoutePlanner::class)->plan('plan a 1 hour route in south cebu');
+
+        $this->assertNotNull($plan);
+        $this->assertLessThanOrEqual(2, count($plan['stops']));
+        foreach ($plan['stops'] as $stop) {
+            $this->assertNotSame('Compostela', $stop['town']);
+        }
+    }
+
+    public function test_without_the_ai_the_route_still_comes_from_the_map(): void
+    {
+        $this->southAndNorthChurches();
+        config(['services.groq.key' => null]);
+
+        $result = app(GiyaAssistant::class)->ask('plan a 5 hour route in south cebu');
+
+        $this->assertStringContainsString('South Cebu church route', $result['reply']);
+        $this->assertArrayHasKey('plan_url', $result);
+    }
+
+    public function test_a_plain_question_gets_no_route(): void
+    {
+        $this->southAndNorthChurches();
+        config(['services.groq.key' => 'gsk-test']);
+        Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => ['content' => 'It is in Sibonga.']]]])]);
+
+        $result = app(GiyaAssistant::class)->ask('Where is Simala Shrine?');
+
+        $this->assertArrayNotHasKey('plan_url', $result);
+        $this->assertSame('It is in Sibonga.', $result['reply']);
+    }
+
+    public function test_the_prompt_forbids_the_model_from_guessing_travel_times(): void
+    {
+        $this->assertStringContainsString('Never estimate travel times', $this->promptFor('Hello'));
+    }
 }
