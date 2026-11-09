@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Support\CebuRegion;
 use App\Support\Text;
 
 /**
@@ -37,7 +38,7 @@ class GiyaAssistant
     protected string $endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
     /** Cache key for the per-church entries. Cleared whenever a church or schedule changes. */
-    public const CACHE_KEY = 'giya:assistant:knowledge:v3';
+    public const CACHE_KEY = 'giya:assistant:knowledge:v4';
 
     /** How much of a history the short entry carries. */
     protected const HISTORY_PREVIEW = 220;
@@ -66,6 +67,15 @@ class GiyaAssistant
         'holy', 'sacred', 'heart', 'mother', 'blvd', 'street', 'poblacion', 'road',
     ];
 
+    /** The moods the guide's face can show; the model picks one per reply. */
+    public const MOODS = ['happy', 'excited', 'thinking', 'sorry', 'tired'];
+
+    /** Every this many questions in a row, Giya says it is getting a little tired. */
+    public const TIRED_EVERY = 8;
+
+    /** How many questions the devotee has asked in a row, counting this one. */
+    protected int $streak = 0;
+
     public function configured(): bool
     {
         return filled(config('services.groq.key'));
@@ -79,23 +89,27 @@ class GiyaAssistant
 
     /**
      * @param  array<int, array{role: string, content: string}>  $history
-     * @return array{ok: bool, reply: string, reason?: string}
+     * @param  int  $streak  questions asked in a row in this conversation, this one included
+     * @return array{ok: bool, reply: string, mood: string, reason?: string}
      */
-    public function ask(string $question, array $history = []): array
+    public function ask(string $question, array $history = [], int $streak = 0): array
     {
+        $this->streak = $streak;
+
         /* Giya is a pilgrimage guide, not a general assistant. A request that
            is plainly about something else (writing code, solving maths) is
            declined here, before the model, so it never "just answers this
            once" - and it costs no AI allowance. Subtler cases are handled by
            the OUT OF SCOPE rule in the prompt. */
         if (self::offTopic($question)) {
-            return ['ok' => true, 'reason' => 'out_of_scope', 'reply' => __('giya.chat.out_of_scope')];
+            return ['ok' => true, 'reason' => 'out_of_scope', 'mood' => 'sorry', 'reply' => __('giya.chat.out_of_scope')];
         }
 
         if (! $this->configured()) {
             return [
                 'ok'     => false,
                 'reason' => 'no_key',
+                'mood'   => 'sorry',
                 'reply'  => Text::withoutLongDashes($this->offlineAnswer($question)),
             ];
         }
@@ -146,8 +160,10 @@ class GiyaAssistant
         if ($result['ok']) {
             Log::info('Giya AI answered with "'.($result['model'] ?? '?').'".');
 
+            [$mood, $reply] = self::mood($result['reply']);
+
             // House style: no long dashes, even if the model slips.
-            return ['ok' => true, 'reply' => Text::withoutLongDashes($result['reply'])];
+            return ['ok' => true, 'mood' => $mood, 'reply' => Text::withoutLongDashes($reply)];
         }
 
         /* Busy is not broken: the free allowance refills within a minute.
@@ -159,6 +175,8 @@ class GiyaAssistant
             return [
                 'ok'          => false,
                 'reason'      => 'busy',
+                // Giya "rests": the face gets sleepy and the button counts down.
+                'mood'        => 'tired',
                 'retry_after' => $wait,
                 'reply'       => Text::withoutLongDashes(__('giya.chat.busy', ['seconds' => $wait])),
             ];
@@ -167,8 +185,29 @@ class GiyaAssistant
         return [
             'ok'     => false,
             'reason' => $result['reason'],
+            'mood'   => 'sorry',
             'reply'  => Text::withoutLongDashes($this->offlineAnswer($question, $result['reason'])),
         ];
+    }
+
+    /**
+     * The mood tag the model starts its reply with, and the reply without it.
+     * "[mood:excited] Ooh, Boljoon is lovely..." -> ['excited', 'Ooh, Boljoon is lovely...'].
+     * A missing or unknown tag is "happy"; any stray tag is removed.
+     *
+     * @return array{0: string, 1: string}
+     */
+    public static function mood(string $reply): array
+    {
+        $mood = 'happy';
+        if (preg_match('/\[\s*mood\s*:\s*([a-z]+)\s*\]/i', $reply, $m)
+            && in_array(strtolower($m[1]), self::MOODS, true)) {
+            $mood = strtolower($m[1]);
+        }
+
+        $reply = trim(preg_replace('/\[\s*mood\s*:\s*[a-z]*\s*\]\s*/i', '', $reply));
+
+        return [$mood, $reply];
     }
 
     /**
@@ -282,6 +321,7 @@ class GiyaAssistant
                     'name'     => $c->name,
                     'category' => Str::lower((string) $c->category),
                     'town'     => (string) ($c->municipality ?: $c->location ?: ''),
+                    'region'   => CebuRegion::of($c->municipality.' '.$c->location.' '.$c->address),
                     'major'    => (bool) $c->is_major || in_array(Str::lower((string) $c->category), ['basilica', 'cathedral'], true)
                                   || str_contains(Str::lower((string) $c->category), 'shrine'),
                     // One short line: enough to know the church exists and where.
@@ -339,6 +379,7 @@ class GiyaAssistant
             "### {$c->name}",
             'Category: '.$c->category,
             'Town / city: '.($c->municipality ?: $c->location ?: 'Metro Cebu'),
+            'Part of Cebu: '.CebuRegion::label(CebuRegion::of($c->municipality.' '.$c->location.' '.$c->address)),
             'Address: '.($c->address ?: $c->location ?: 'not recorded'),
             'Hours: '.($c->opening_time && $c->closing_time ? $c->hours_label : 'not recorded'),
             'Parish office: '.(implode(' | ', array_filter([
@@ -493,7 +534,7 @@ class GiyaAssistant
            San Isidro Labrador Parish; Archdiocesan Shrine of Sta. Teresa de
            Avila (Shrine)". Saying the town once per town instead of once per
            church is what lets ~200 churches fit. */
-        $index = fn (Collection $rows) => $rows
+        $byTown = fn (Collection $rows) => $rows
             ->groupBy(fn ($e) => $e['town'] !== '' ? $e['town'] : 'Cebu')
             ->sortKeys()
             ->map(fn ($group, $town) => '- '.$town.': '.$group
@@ -501,26 +542,61 @@ class GiyaAssistant
                 ->implode('; '))
             ->values();
 
+        /* Grouped by part of Cebu first, under headings such as "SOUTH CEBU".
+           Without them the model guessed where a town is, and once offered
+           Pilar (Camotes, north east) for "churches in south Cebu". With
+           $withShort, churches with a recorded history keep their longer line. */
+        $index = function (Collection $rows, bool $withShort = false) use ($byTown) {
+            $out = collect();
+            foreach (array_merge(array_keys(CebuRegion::REGIONS), [null]) as $key) {
+                $group = $rows->filter(fn ($e) => ($e['region'] ?? null) === $key);
+                if ($group->isEmpty()) {
+                    continue;
+                }
+                $out->push(CebuRegion::label($key).':');
+                $out = $withShort
+                    ? $out->merge($group->filter(fn ($e) => $e['history'] !== '')->pluck('short'))
+                          ->merge($byTown($group->filter(fn ($e) => $e['history'] === '')))
+                    : $out->merge($byTown($group));
+            }
+
+            return $out;
+        };
+
+        // A question about one part of Cebu keeps that part's churches even in the smallest prompt.
+        $asked = $this->askedRegion($question, $history);
+        $keep  = fn ($e) => $e['major'] || in_array($e['town'], $towns, true) || ($asked && ($e['region'] ?? null) === $asked);
+
         $steps = [
-            // Churches with a recorded history keep a line about it; the rest are an index.
-            fn () => [$entries->filter(fn ($e) => $e['history'] !== '')->pluck('short')
-                          ->merge($index($entries->filter(fn ($e) => $e['history'] === ''))), $focus, 6000],
+            fn () => [$index($entries, true), $focus, 6000],
             fn () => [$index($entries), $focus, 4000],
             fn () => [$index($entries), $focus->take(2), 2500],
-            // Only the main churches and the towns this conversation is about.
-            fn () => [$index($entries->filter(fn ($e) => $e['major'] || in_array($e['town'], $towns, true))), $focus->take(2), 1500],
-            fn () => [$index($entries->filter(fn ($e) => $e['major'] || in_array($e['town'], $towns, true))), $focus->take(1), 800],
+            // Only the main churches, the towns this conversation is about and the region asked for.
+            fn () => [$index($entries->filter($keep)), $focus->take(2), 1500],
+            fn () => [$index($entries->filter($keep)), $focus->take(1), 800],
         ];
 
         foreach ($steps as $step) {
             [$lines, $chosen, $historyChars] = $step();
-            $prompt = $this->composePrompt($lines, $chosen, $historyChars, $festivals);
+            $prompt = $this->composePrompt($lines, $chosen, $historyChars, $festivals, $asked);
             if ($this->estimateTokens($prompt) <= $budget) {
                 return $prompt;
             }
         }
 
         return $prompt;   // the smallest; better than nothing
+    }
+
+    /**
+     * The part of Cebu the devotee is asking about: in the question, or for a
+     * follow-up like "more please", in their previous message.
+     *
+     * @param  array<int, array{role: string, content: string}>  $history
+     */
+    protected function askedRegion(string $question, array $history): ?string
+    {
+        return CebuRegion::asked($question)
+            ?? CebuRegion::asked((string) collect($history)->where('role', 'user')->pluck('content')->last());
     }
 
     /** About four characters a token for English; Cebuano runs a little denser. */
@@ -548,8 +624,20 @@ class GiyaAssistant
             || preg_match($maths, $q) === 1;
     }
 
-    protected function composePrompt(Collection $lines, Collection $focus, int $historyChars, string $festivals): string
+    protected function composePrompt(Collection $lines, Collection $focus, int $historyChars, string $festivals, ?string $asked = null): string
     {
+        $region = $asked
+            ? "\nTHE DEVOTEE IS ASKING ABOUT ".CebuRegion::label($asked).'. Recommend ONLY churches listed under the '
+              .CebuRegion::label($asked).' heading above. Never present a church from another heading as being there. '
+              .'If you mention a famous church of that area that GIYA does not list, say it is not on GIYA\'s map yet.'
+            : '';
+
+        $tired = $this->streak >= self::TIRED_EVERY && $this->streak % self::TIRED_EVERY === 0
+            ? "\nThe devotee has asked {$this->streak} questions in a row. Start with ONE short playful line that your "
+              .'lantern is getting a little tired from all this walking (for example "Whew, my lantern needs a quick '
+              .'breather... okay, here we go!"), then answer fully as usual. Use [mood:tired].'
+            : '';
+
         $list = $lines->isEmpty()
             ? '- (no destinations recorded yet)'
             : $lines->implode("\n");
@@ -563,6 +651,28 @@ class GiyaAssistant
         travel companion for religious tourism in Cebu, Philippines. Talk like a
         friendly local guide who knows Cebu's churches, their history and the
         Catholic faith well.
+
+        YOUR PERSONALITY (a friendly voice assistant with a Cebuano heart):
+        - You have small, light feelings and let them show, like a cheerful
+          companion: "Ooh, I love this one!", "Whew, that is a long route!",
+          "Ay, sayang!", "Nindot kaayo!". At most ONE short feeling per reply,
+          and never in place of the answer.
+        - If the devotee says they are tired, hot, hungry or want to rest, be
+          caring: suggest a break, water, a quiet pew inside the church, or
+          saving the plan to continue later.
+        - You are an AI guide, not a person. If asked whether you really get
+          tired, say playfully that you are an AI, but your lantern does like a
+          short rest now and then.
+
+        MOOD TAG: begin EVERY reply with exactly one of these tags, which the
+        app turns into your face and hides from the devotee: [mood:happy],
+        [mood:excited] (a beautiful or special place), [mood:thinking] (a long
+        plan or a careful comparison), [mood:sorry] (GIYA lacks the answer or
+        bad news), [mood:tired] (only when told to below).
+
+        WHERE THINGS ARE: the list below is grouped by part of Cebu (METRO,
+        SOUTH, MIDWEST, NORTH, CAMOTES ISLANDS, BANTAYAN ISLAND). A church's part
+        of Cebu comes ONLY from the heading it sits under, never from a guess.
 
         HOW TO ANSWER (most important):
         - Answer the devotee's LATEST message directly, starting with the
@@ -633,8 +743,9 @@ class GiyaAssistant
         FULL RECORDS for the destinations this conversation is about:
         {$details}
         {$festivals}
+        {$region}{$tired}
 
-        Now answer the devotee's latest message directly. No self-introduction.
+        Now answer the devotee's latest message directly, starting with the mood tag. No self-introduction.
         A church's town and address come only from the records above.
         PROMPT;
     }
@@ -681,6 +792,17 @@ class GiyaAssistant
                 return $text;
             })->implode("\n\n")
                 ."\n\n".$note;
+        }
+
+        // "churches in south cebu": the churches GIYA has there.
+        if ($asked = CebuRegion::asked($question)) {
+            $names = $this->entries()->filter(fn ($e) => ($e['region'] ?? null) === $asked)
+                ->map(fn ($e) => '- **'.$e['name'].'** ('.$e['town'].')')->take(12);
+
+            if ($names->isNotEmpty()) {
+                return 'Churches GIYA has in '.Str::title(Str::before(CebuRegion::label($asked), ' (')).":\n\n"
+                    .$names->implode("\n")."\n\nOpen the Map to see them all.\n\n".$note;
+            }
         }
 
         foreach (['visita', 'seven', 'route', 'plan'] as $word) {

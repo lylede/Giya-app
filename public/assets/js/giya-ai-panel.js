@@ -165,12 +165,14 @@
         scroll();
     }
 
-    function addBot(text, ok) {
+    // mood: the face Giya AI chose for this reply; the row's little face shows it.
+    function addBot(text, ok, mood) {
         var typing = document.getElementById('giyaPanelTyping');
         if (typing) typing.remove();
 
         var row = document.createElement('div');
         row.className = 'chat-row';
+        if (mood) row.dataset.mood = mood;
         row.innerHTML =
             '<span class="chat-bot-icon" aria-hidden="true">' +
                 '<span class="guide-face">' +
@@ -197,7 +199,7 @@
     /* "Giya is catching its breath": the message, and a button that counts
        down the wait Groq asked for and then asks the same question again. */
     function addBusy(text, seconds, question) {
-        addBot(text, false);
+        addBot(text, false, 'tired');
         var bubble = log.lastElementChild.querySelector('.chat-bubble');
         var btn = document.createElement('button');
         btn.type = 'button';
@@ -243,7 +245,7 @@
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (d.reason === 'busy') addBusy(d.reply, d.retry_after, text);
-                else addBot(d.reply || 'Something went wrong. Try again.', d.ok);
+                else addBot(d.reply || 'Something went wrong. Try again.', d.ok, d.mood);
             })
             .catch(function () { addBot('I could not reach the server. Try again in a moment.', false); })
             .finally(function () {

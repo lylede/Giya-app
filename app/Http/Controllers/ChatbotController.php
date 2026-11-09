@@ -102,7 +102,14 @@ class ChatbotController extends Controller
             ->values()
             ->all();
 
-        $result = $this->assistant->ask($data['message'], $history);
+        /* Questions in a row: this conversation's questions in the last half
+           hour. Every few, Giya says (playfully) that it needs a breather. */
+        $streak = $session->messages()
+            ->where('sender_type', 'user')
+            ->where('created_at', '>=', now()->subMinutes(30))
+            ->count();
+
+        $result = $this->assistant->ask($data['message'], $history, $streak);
 
         /* "Giya is catching its breath" is not an answer. Neither it nor the
            question is kept, so "Ask again" does not leave the question twice
@@ -113,6 +120,7 @@ class ChatbotController extends Controller
             return response()->json([
                 'ok'          => false,
                 'reason'      => 'busy',
+                'mood'        => $result['mood'] ?? 'tired',
                 'retry_after' => $result['retry_after'],
                 'reply'       => $result['reply'],
             ]);
@@ -133,6 +141,7 @@ class ChatbotController extends Controller
         return response()->json([
             'ok'      => $result['ok'],
             'reason'  => $result['reason'] ?? null,
+            'mood'    => $result['mood'] ?? 'happy',
             'reply'   => $answer->message,
             'when'    => $answer->created_at->format('g:i A'),
         ]);

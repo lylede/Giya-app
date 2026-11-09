@@ -525,7 +525,7 @@ return [
 
     'chat' => [
         'out_of_scope'   => 'Sorry, that is outside what I can help with. I am your guide for Cebu\'s churches, pilgrimages and faith questions. Which church or route can I help you with?',
-        'busy'           => 'Giya is catching its breath: a lot of questions came in at once. Please ask again in about :seconds seconds.',
+        'busy'           => 'Whew, wait lang! I have walked through a lot of churches, so my lantern needs a short rest. Give me about :seconds seconds, then tap Ask again.',
         'ask_again'      => 'Ask again',
         'ask_again_in'   => 'Ask again in :s s',
         'title'          => 'Giya AI Assistant',
@@ -553,6 +553,11 @@ return [
         'thinking'       => 'Let me look through the churches...',
         'from_records'   => 'I could not reach the AI, so that came from the records.',
         'here_you_go'    => 'Here you go.',
+        'mood_excited'   => 'Ooh, I love this one!',
+        'mood_tired'     => 'Whew... let me rest my lantern a bit.',
+        'mood_resting'   => 'Resting... I will be right back.',
+        'mood_sorry'     => 'Sorry, I did not have that one.',
+        'mood_thinking'  => 'That one took some thinking. Here you go!',
         'suggest_1'      => 'What churches can I visit in Cebu?',
         'suggest_2'      => 'Plan a Visita Iglesia for me',
         'suggest_3'      => 'How do I plan a pilgrimage day?',

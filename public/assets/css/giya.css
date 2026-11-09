@@ -6819,3 +6819,63 @@ html[data-theme="dark"] .btn-primary[disabled] { background: #4A3A30; color: #CD
 html[data-theme="dark"] .btn-primary:disabled span { color: inherit; }
 /* The chat page title is its h1 for screen readers; it keeps the bar's look. */
 .chat-bar-h1 { margin: 0; font: inherit; line-height: inherit; color: inherit; }
+
+/* ── Giya's moods: excited and tired ───────────────────────────
+   The model picks a mood per reply; the big guide and each reply's little
+   face (.chat-row[data-mood]) show it. Tired is also how Giya "rests"
+   while the AI allowance refills. */
+
+/* Excited: big bright eyes, open smile, hands up, lantern glowing. */
+.guide.is-excited .guide-face { transform: translateY(-5px); }
+.guide.is-excited .guide-eye,
+.chat-row[data-mood="excited"] .guide-eye { transform: scale(1.3); box-shadow: 0 0 0 2px rgba(245,233,217,.25); }
+.guide.is-excited .guide-mouth,
+.chat-row[data-mood="excited"] .guide-mouth {
+  width: 24px; height: 16px; margin-left: -12px;
+  border-radius: 4px 4px 24px 24px; bottom: 11px;
+}
+.guide.is-excited .guide-blush { opacity: .9; }
+.guide.is-excited .guide-hand-l { transform: translateY(-12px) rotate(-24deg); }
+.guide.is-excited .guide-hand-r { transform: translateY(-12px) rotate(24deg); }
+.guide.is-excited .guide-lamp { box-shadow: 0 0 0 3px var(--primary-dark), 0 0 28px 8px rgba(215,169,74,.95); }
+
+/* Tired: heavy eyelids, drooping head, small yawn, dim lantern, "z z Z". */
+.guide.is-tired .guide-face { transform: translateY(5px) rotate(-5deg); }
+.guide.is-tired .guide-eye,
+.chat-row[data-mood="tired"] .guide-eye {
+  height: 6px; border-radius: 0 0 15px 15px; transform: translateY(6px);
+}
+.guide.is-tired .guide-mouth,
+.chat-row[data-mood="tired"] .guide-mouth {
+  width: 9px; height: 9px; margin-left: -4.5px; border-radius: 50%; bottom: 12px;
+}
+.guide.is-tired .guide-lamp,
+.chat-row[data-mood="tired"] .guide-lamp {
+  background: #B8955A;
+  box-shadow: 0 0 0 3px var(--primary-dark), 0 0 6px 1px rgba(215,169,74,.3);
+}
+.guide.is-tired .guide-hand-l,
+.guide.is-tired .guide-hand-r { transform: translateY(4px); }
+.guide.is-tired .guide-face::after {
+  content: "z z Z";
+  position: absolute; top: -34px; right: -34px;
+  font: 700 15px/1 var(--font-body, sans-serif); letter-spacing: 2px;
+  color: var(--gold);
+}
+
+/* The little face on a sorry reply matches the big one. */
+.chat-row[data-mood="sorry"] .guide-mouth {
+  width: 20px; height: 9px; margin-left: -10px; border-radius: 20px 20px 0 0; bottom: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .guide.is-excited .guide-face { animation: guide-bounce .5s ease-in-out 2; }
+  .guide.is-tired .guide-face::after { animation: guide-zzz 2.4s ease-in-out infinite; }
+}
+@keyframes guide-bounce { 50% { transform: translateY(-11px); } }
+@keyframes guide-zzz {
+  0%   { opacity: 0; transform: translate(0, 6px); }
+  40%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(6px, -10px); }
+}
+.chat-bar-guide.is-tired .guide-face::after { display: none; }

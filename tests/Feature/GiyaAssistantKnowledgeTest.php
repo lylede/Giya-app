@@ -477,4 +477,116 @@ class GiyaAssistantKnowledgeTest extends TestCase
 
         $this->actingAs($other)->getJson(route('chatbot.history'))->assertOk()->assertJsonPath('messages', []);
     }
+
+    /** "explore the churches in south cebu" got Pilar, which is on Camotes (north east). */
+    public function test_a_south_cebu_question_gets_churches_grouped_by_region(): void
+    {
+        $this->church('Our Lady of the Pillar Parish', 'Parish', ['municipality' => 'Pilar']);
+        $this->church('Patrocinio de Maria Parish', 'Parish', ['municipality' => 'Boljoon']);
+        $this->church('Sto. Tomas de Villanueva Parish', 'Parish', ['municipality' => 'Daanbantayan']);
+
+        $prompt = $this->promptFor('i want to explore the churches in south cebu');
+
+        $this->assertStringContainsString('THE DEVOTEE IS ASKING ABOUT SOUTH CEBU', $prompt);
+
+        // Each church sits under its own heading, in the right part of Cebu.
+        $south   = strpos($prompt, "\nSOUTH CEBU");
+        $camotes = strpos($prompt, "\nCAMOTES ISLANDS");
+        $north   = strpos($prompt, "\nNORTH CEBU");
+        $this->assertNotFalse($south);
+        $this->assertNotFalse($camotes);
+        $this->assertNotFalse($north);
+
+        $section = fn (string $name) => collect(['south' => $south, 'north' => $north, 'camotes' => $camotes])
+            ->filter(fn ($at) => $at < strpos($prompt, $name))->sort()->keys()->last();
+
+        $this->assertSame('south', $section('Patrocinio de Maria Parish'));
+        $this->assertSame('camotes', $section('Our Lady of the Pillar Parish'));
+        $this->assertSame('north', $section('Sto. Tomas de Villanueva Parish'));
+        $this->assertSame('south', $section('Simala Shrine'));   // Lindogon, Sibonga
+    }
+
+    public function test_a_follow_up_keeps_the_region_from_the_previous_question(): void
+    {
+        $prompt = $this->promptFor('more please', [
+            ['role' => 'user', 'content' => 'churches in north cebu'],
+            ['role' => 'assistant', 'content' => 'Here are some.'],
+        ]);
+
+        $this->assertStringContainsString('THE DEVOTEE IS ASKING ABOUT NORTH CEBU', $prompt);
+    }
+
+    public function test_a_question_without_a_region_gets_no_region_rule(): void
+    {
+        $this->assertStringNotContainsString('THE DEVOTEE IS ASKING ABOUT', $this->promptFor('What is the oldest church?'));
+    }
+
+    public function test_the_mood_tag_becomes_the_mood_and_is_hidden_from_the_reply(): void
+    {
+        $this->assertSame(['excited', 'Ooh, Boljoon is lovely.'], GiyaAssistant::mood('[mood:excited] Ooh, Boljoon is lovely.'));
+        $this->assertSame(['tired', 'Whew!'], GiyaAssistant::mood('[Mood: Tired]Whew!'));
+        $this->assertSame(['happy', 'No tag here.'], GiyaAssistant::mood('No tag here.'));
+        $this->assertSame(['happy', 'Unknown.'], GiyaAssistant::mood('[mood:angry] Unknown.'));
+    }
+
+    public function test_the_chat_sends_the_mood_with_the_reply(): void
+    {
+        config(['services.groq.key' => 'gsk-test']);
+        Http::fake(['api.groq.com/*' => Http::response([
+            'choices' => [['message' => ['content' => '[mood:excited] Nindot kaayo ang Simala!']]],
+        ])]);
+
+        $user = User::create([
+            'name' => 'Lyle', 'email' => 'mood@example.com', 'password_hash' => bcrypt('secret'),
+            'role' => 'devotee', 'status' => 'Active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->actingAs($user)->postJson(route('chatbot.send'), ['message' => 'Tell me about Simala'])
+            ->assertOk()
+            ->assertJsonPath('mood', 'excited')
+            ->assertJsonPath('reply', 'Nindot kaayo ang Simala!');
+
+        // The saved answer has no tag either, so it never shows when the chat reloads.
+        $this->assertSame('Nindot kaayo ang Simala!', \App\Models\ChatMessage::where('sender_type', 'assistant')->value('message'));
+    }
+
+    public function test_a_busy_ai_rests_with_a_tired_face(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.fallback_model' => null]);
+        Http::fake(['api.groq.com/*' => Http::response(['error' => ['code' => 'rate_limit_exceeded']], 429)]);
+
+        $result = app(GiyaAssistant::class)->ask('What is the oldest church?');
+
+        $this->assertSame('busy', $result['reason']);
+        $this->assertSame('tired', $result['mood']);
+        $this->assertStringContainsString('rest', $result['reply']);
+    }
+
+    public function test_after_many_questions_in_a_row_giya_says_it_is_a_little_tired(): void
+    {
+        config(['services.groq.key' => 'gsk-test', 'services.groq.model' => 'openai/gpt-oss-120b']);
+        Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => ['content' => 'Ok.']]]])]);
+
+        app(GiyaAssistant::class)->ask('What is the oldest church?', [], GiyaAssistant::TIRED_EVERY);
+        app(GiyaAssistant::class)->ask('What is the oldest church?', [], 3);
+
+        $prompts = [];
+        Http::assertSent(function (Request $r) use (&$prompts) {
+            $prompts[] = $r->data()['messages'][0]['content'];
+
+            return true;
+        });
+
+        $this->assertStringContainsString('questions in a row', $prompts[0]);
+        $this->assertStringNotContainsString('questions in a row', $prompts[1]);
+    }
+
+    public function test_the_prompt_gives_giya_a_personality_and_a_mood_tag(): void
+    {
+        $prompt = $this->promptFor('Hello');
+
+        $this->assertStringContainsString('YOUR PERSONALITY', $prompt);
+        $this->assertStringContainsString('[mood:excited]', $prompt);
+        $this->assertStringContainsString('want to rest', $prompt);
+    }
 }

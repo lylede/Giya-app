@@ -515,7 +515,7 @@ return [
 
     'chat' => [
         'out_of_scope'   => 'Paumanhin, hindi ko iyan matutulungan. Ako ang iyong gabay sa mga simbahan, pilgrimage at mga tanong tungkol sa pananampalataya sa Cebu. Anong simbahan o ruta ang maitutulong ko?',
-        'busy'           => 'Nagpapahinga sandali si Giya: maraming tanong ang sabay-sabay na dumating. Pakitanong muli pagkalipas ng mga :seconds segundo.',
+        'busy'           => 'Whew, sandali lang! Ang dami ko nang simbahang nalakad, kaya magpapahinga muna ako. Maghintay ng mga :seconds segundo, saka i-tap ang Itanong muli.',
         'ask_again'      => 'Itanong muli',
         'ask_again_in'   => 'Itanong muli sa :s s',
         'title'          => 'Giya AI Assistant',
@@ -543,6 +543,11 @@ return [
         'thinking'       => 'Hayaan mong hanapin ko sa mga simbahan...',
         'from_records'   => 'Hindi ko naabot ang AI, kaya galing iyon sa mga tala.',
         'here_you_go'    => 'Heto na.',
+        'mood_excited'   => 'Uy, gustong-gusto ko ito!',
+        'mood_tired'     => 'Whew... pahinga muna ang ilaw ko.',
+        'mood_resting'   => 'Nagpapahinga... babalik ako agad.',
+        'mood_sorry'     => 'Pasensya, wala ako niyan.',
+        'mood_thinking'  => 'Pinag-isipan ko talaga iyan. Heto na!',
         'suggest_1'      => 'Anong mga simbahan ang puwede kong bisitahin sa Cebu?',
         'suggest_2'      => 'Magplano ng Visita Iglesia para sa akin',
         'suggest_3'      => 'Paano ako magplano ng araw ng peregrinasyon?',

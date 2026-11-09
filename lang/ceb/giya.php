@@ -515,7 +515,7 @@ return [
 
     'chat' => [
         'out_of_scope'   => 'Pasayloa, wala kana sa akong matabangan. Ako ang imong giya sa mga simbahan, panaw-pilgrimage ug pangutana bahin sa pagtuo sa Sugbo. Unsang simbahan o ruta ang akong matabangan?',
-        'busy'           => 'Nagpahulay kadiyot si Giya: daghang pangutana ang dungan nga niabot. Palihug pangutana pag-usab human sa mga :seconds segundos.',
+        'busy'           => 'Whew, kadiyot lang! Daghan na kog simbahan nga nalakwan, mopahulay sa ko kadiyot. Hulat og mga :seconds segundos, unya i-tap ang Pangutana pag-usab.',
         'ask_again'      => 'Pangutana pag-usab',
         'ask_again_in'   => 'Pangutana pag-usab sa :s s',
         'title'          => 'Giya AI Assistant',
@@ -543,6 +543,11 @@ return [
         'thinking'       => 'Tugoti ko nga mangita sa mga simbahan...',
         'from_records'   => 'Wala ko makaabot sa AI, busa gikan kana sa mga rekord.',
         'here_you_go'    => 'Ania na.',
+        'mood_excited'   => 'Uy, ganahan kaayo ko ani!',
+        'mood_tired'     => 'Whew... papahulayon sa nako akong suga.',
+        'mood_resting'   => 'Nagpahulay... mobalik ko dayon.',
+        'mood_sorry'     => 'Pasensya, wala ko ana.',
+        'mood_thinking'  => 'Gihunahuna gyud nako na. Ania na!',
         'suggest_1'      => 'Unsang mga simbahan ang mabisitahan nako sa Cebu?',
         'suggest_2'      => 'Planoha ang Visita Iglesia para nako',
         'suggest_3'      => 'Unsaon nako pagplano ug adlaw sa peregrinasyon?',

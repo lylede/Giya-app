@@ -477,12 +477,16 @@
         scroll();
     }
 
-    function addBot(text, ok) {
+    /* mood: the face Giya AI chose for this reply (happy, excited,
+       thinking, sorry, tired). The row carries it so its little face and
+       the big guide above both show it. */
+    function addBot(text, ok, mood) {
         const typing = document.getElementById('chatTyping');
         if (typing) typing.remove();
 
         const row = document.createElement('div');
         row.className = 'chat-row';
+        if (mood) row.dataset.mood = mood;
         row.innerHTML =
             '<span class="chat-bot-icon" aria-hidden="true">' +
                 '<span class="guide-face">' +
@@ -506,7 +510,8 @@
     /* "Giya is catching its breath": the message, and a button that counts
        down the wait Groq asked for and then asks the same question again. */
     function addBusy(text, seconds, question) {
-        addBot(text, false);
+        addBot(text, false, 'tired');
+        log.lastElementChild.dataset.rest = Math.max(1, Number(seconds) || 20);
         const bubble = log.lastElementChild.querySelector('.chat-bubble');
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -551,7 +556,7 @@
             .then(r => r.json())
             .then(d => d.reason === 'busy'
                 ? addBusy(d.reply, d.retry_after, text)
-                : addBot(d.reply || @json(__('giya.chat.error')), d.ok))
+                : addBot(d.reply || @json(__('giya.chat.error')), d.ok, d.mood))
             .catch(() => addBot(@json(__('giya.chat.unreachable')), false))
             .finally(() => {
                 input.disabled = send.disabled = false;
@@ -610,7 +615,16 @@
     const input  = document.getElementById('chatInput');
     const log    = document.getElementById('chatLog');
 
-    const STATES = ['is-idle', 'is-typing', 'is-secret', 'is-thinking', 'is-happy', 'is-sorry'];
+    const STATES = ['is-idle', 'is-typing', 'is-secret', 'is-thinking', 'is-happy', 'is-sorry', 'is-excited', 'is-tired'];
+
+    /* The mood Giya AI picked for a reply -> the guide's face and what it says. */
+    const MOODS = {
+        happy:    ['is-happy',    @json(__('giya.chat.here_you_go'))],
+        excited:  ['is-excited',  @json(__('giya.chat.mood_excited'))],
+        thinking: ['is-thinking', @json(__('giya.chat.mood_thinking'))],
+        sorry:    ['is-sorry',    @json(__('giya.chat.mood_sorry'))],
+        tired:    ['is-tired',    @json(__('giya.chat.mood_tired'))],
+    };
 
     let restTimer = null;
 
@@ -674,12 +688,22 @@
                     const bot = node.querySelector && node.querySelector('.chat-bubble-bot');
                     if (!bot) return;
 
+                    const mood = node.dataset && node.dataset.mood;
+
+                    // Resting: sleepy until the wait is over, then back to normal.
+                    if (node.dataset && node.dataset.rest) {
+                        setState('is-tired', @json(__('giya.chat.mood_resting')));
+                        rest(Number(node.dataset.rest) * 1000);
+                        return;
+                    }
+
                     if (bot.classList.contains('is-offline')) {
                         setState('is-sorry', @json(__('giya.chat.from_records')));
                     } else {
-                        setState('is-happy', @json(__('giya.chat.here_you_go')));
+                        const m = MOODS[mood] || MOODS.happy;
+                        setState(m[0], m[1]);
                     }
-                    rest(5000);
+                    rest(mood === 'tired' ? 7000 : 5000);
                 });
             });
         }).observe(log, { childList: true });
