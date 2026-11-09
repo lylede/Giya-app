@@ -369,7 +369,9 @@ class Church extends Model
             return $url;
         }
 
-        if ($url && ! str_starts_with($url, 'http')) {
+        // A local path is used only when the file is really there; seeded
+        // rows may name a file that was never shipped.
+        if ($url && ! str_starts_with($url, 'http') && file_exists(public_path(ltrim($url, '/')))) {
             return asset($url);
         }
 

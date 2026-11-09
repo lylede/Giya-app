@@ -167,7 +167,7 @@
                 </span>
             </span>
             <div class="chat-bar-title">
-                <strong>{{ __('giya.chat.title') }}</strong>
+                <h1 class="chat-bar-h1"><strong>{{ __('giya.chat.title') }}</strong></h1>
                 <span>
                     <span @class(['chat-dot', 'is-off' => ! $online])></span>
                     {{ $online ? __('giya.chat.subtitle') : __('giya.chat.offline') }}

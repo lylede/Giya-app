@@ -83,6 +83,15 @@ class GiyaAssistant
      */
     public function ask(string $question, array $history = []): array
     {
+        /* Giya is a pilgrimage guide, not a general assistant. A request that
+           is plainly about something else (writing code, solving maths) is
+           declined here, before the model, so it never "just answers this
+           once" - and it costs no AI allowance. Subtler cases are handled by
+           the OUT OF SCOPE rule in the prompt. */
+        if (self::offTopic($question)) {
+            return ['ok' => true, 'reason' => 'out_of_scope', 'reply' => __('giya.chat.out_of_scope')];
+        }
+
         if (! $this->configured()) {
             return [
                 'ok'     => false,
@@ -520,6 +529,25 @@ class GiyaAssistant
         return (int) ceil(mb_strlen($text) / 3.6);
     }
 
+    /**
+     * Plainly not about churches, faith or travel in Cebu: programming and
+     * maths requests. Kept narrow on purpose ("dress code" for a church is a
+     * fair question); everything else is left to the prompt.
+     */
+    public static function offTopic(string $question): bool
+    {
+        $q = mb_strtolower($question);
+        $q = preg_replace('/\b(dress|zip|postal|area|country) code\b|code of conduct/u', ' ', $q);
+
+        $languages = '/\b(python|javascript|typescript|java|c\+\+|c#|php|html|css|sql|kotlin|swift|ruby|golang|rust|laravel|react|node\.?js)\b/u';
+        $coding = '/\b(code|coding|program|programming|script|function|algorithm|debug|compile|syntax|hello,? world)\b/u';
+        $maths = '/\b(solve|equation|integral|derivative|algebra|calculus)\b|\d+\s*[-+*\/x^]\s*\d+\s*=?\s*\?/u';
+
+        return preg_match($languages, $q) === 1
+            || preg_match($coding, $q) === 1
+            || preg_match($maths, $q) === 1;
+    }
+
     protected function composePrompt(Collection $lines, Collection $focus, int $historyChars, string $festivals): string
     {
         $list = $lines->isEmpty()
@@ -580,9 +608,12 @@ class GiyaAssistant
           the devotee to confirm.
         - When you mention a church that is not in GIYA's list, say once,
           briefly, that it is not on GIYA's map yet.
-        - If a question has nothing to do with churches, faith, pilgrimage or
-          visiting Cebu, answer in one friendly sentence and steer back to how
-          you can help with their pilgrimage.
+        - OUT OF SCOPE: if a request has nothing to do with churches, faith,
+          pilgrimage or visiting Cebu (coding, maths, homework, essays on other
+          topics, celebrities, sports, shopping, news, other apps), do NOT
+          answer it or give any part of it, not even a short example. Say in
+          one friendly sentence that you can only help with Cebu's churches and
+          pilgrimages, then ask what church or route they need.
         - Length: two to four sentences for simple questions; up to two short
           paragraphs or a short list for history, recommendations or plans.
         - For a Visita Iglesia, propose seven churches from GIYA's list,

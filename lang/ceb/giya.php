@@ -514,6 +514,7 @@ return [
     ],
 
     'chat' => [
+        'out_of_scope'   => 'Pasayloa, wala kana sa akong matabangan. Ako ang imong giya sa mga simbahan, panaw-pilgrimage ug pangutana bahin sa pagtuo sa Sugbo. Unsang simbahan o ruta ang akong matabangan?',
         'busy'           => 'Nagpahulay kadiyot si Giya: daghang pangutana ang dungan nga niabot. Palihug pangutana pag-usab human sa mga :seconds segundos.',
         'ask_again'      => 'Pangutana pag-usab',
         'ask_again_in'   => 'Pangutana pag-usab sa :s s',

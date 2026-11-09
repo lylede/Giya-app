@@ -6746,3 +6746,76 @@ article.card.is-highlight { box-shadow: 0 0 0 3px var(--gold, #D7A94A), var(--sh
   cursor: pointer;
 }
 .chat-again:disabled { background: transparent; color: var(--text-muted, #7A6A5E); border-color: var(--border, #E5D9CC); cursor: default; }
+
+/* ══ Dark mode: surfaces added after the first dark pass ═════════
+   Found by scanning every page in dark mode for light backgrounds
+   (QA, Nov 2026). Each was a hardcoded light colour. */
+html[data-theme="dark"] .hub-saved { background: var(--surface); border-color: var(--border); }
+html[data-theme="dark"] .hub-saved:hover { border-color: var(--gold); }
+html[data-theme="dark"] .ap-notice { background: #3A2A1C; color: #F0D9B5; border-bottom-color: rgba(215,169,74,.25); }
+html[data-theme="dark"] .fab-say { background: var(--surface-2); color: var(--text); border-color: var(--gold); }
+html[data-theme="dark"] .mx-tag.is-open { background: rgba(74,180,110,.16); color: #8FD9A8; }
+html[data-theme="dark"] .map-note.is-error { background: rgba(212,24,61,.16); color: #F3A6B1; border-color: rgba(212,24,61,.35); }
+html[data-theme="dark"] .leaflet-control-attribution { background: rgba(23,17,14,.75) !important; color: var(--text-muted); }
+html[data-theme="dark"] .leaflet-control-attribution a { color: var(--gold); }
+@media (max-width: 767px) {
+  html[data-theme="dark"] body[data-page="map"] .mx-float .mx-search-field,
+  html[data-theme="dark"] body[data-page="map"] .mx-float .cat-chip:not(.is-active) { background: var(--surface); color: var(--text); }
+  html[data-theme="dark"] body[data-page="map"] .mx-float .map-note { background: var(--surface-2); color: var(--text); }
+}
+@media (max-width: 600px) {
+  html[data-theme="dark"] .vi-row .route-btn { background: var(--surface-2); color: var(--text); }
+}
+html[data-theme="dark"] .mx-card-name,
+html[data-theme="dark"] .mx-card-close { color: var(--text); }
+html[data-theme="dark"] .mx-card-photo { background: var(--surface-2); }
+html[data-theme="dark"] .mx-tag.is-nopin { background: var(--surface-2); color: var(--text-muted); }
+
+/* ══ Dark mode: brand-red text ═══════════════════════════════════
+   --primary (#8E3B2F) stays the brand colour for buttons and bars, but as
+   TEXT on the dark page it measured 1.8-2.5:1 contrast (QA, Nov 2026),
+   under the 4.5:1 people need to read it. Text that used it gets a
+   lighter brick tone in dark mode instead. */
+html[data-theme="dark"] { --primary-ink: #E59C86; }
+html[data-theme="dark"] .section-link,
+html[data-theme="dark"] .home-card-go,
+html[data-theme="dark"] .event-when,
+html[data-theme="dark"] .notif-readall,
+html[data-theme="dark"] .chat-starter,
+html[data-theme="dark"] .badge-brown,
+html[data-theme="dark"] .badge[class*="status-"],
+html[data-theme="dark"] .mx-tag.is-town,
+html[data-theme="dark"] .church-tab.is-active,
+html[data-theme="dark"] .church-next-mass-link,
+html[data-theme="dark"] .event-date:not(.is-soonest) .event-kind,
+html[data-theme="dark"] .giya-popup-btn.is-secondary,
+html[data-theme="dark"] .mx-more-btn,
+html[data-theme="dark"] .profile-tab.is-active,
+html[data-theme="dark"] .hub-manage,
+html[data-theme="dark"] .history-rate,
+html[data-theme="dark"] .ap-banner div,
+html[data-theme="dark"] [style*="color:var(--primary)"],
+html[data-theme="dark"] [style*="color: var(--primary)"] { color: var(--primary-ink) !important; }
+html[data-theme="dark"] .badge-brown,
+html[data-theme="dark"] .badge[class*="status-"] { background: rgba(229,156,134,.14); }
+html[data-theme="dark"] .church-tab.is-active { border-bottom-color: var(--primary-ink); }
+
+/* Gold buttons: dark ink, like the light theme, never light text on gold. */
+html[data-theme="dark"] .btn-gold { color: #241C18; }
+html[data-theme="dark"] .event-date.is-soonest .event-kind { color: #F5E9D9; }
+
+/* Map pop-ups follow the dark surface. */
+html[data-theme="dark"] .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); }
+html[data-theme="dark"] .giya-popup strong { color: var(--text); }
+html[data-theme="dark"] .giya-popup span   { color: var(--text-muted); }
+html[data-theme="dark"] .leaflet-popup-tip { background: var(--surface); }
+
+/* Stop numbers on the active trip, and the "Best value" ribbon. */
+html[data-theme="dark"] [style*="background:#F5E8D0"] { background: var(--surface-2) !important; }
+html[data-theme="dark"] [style*="color:#7a5c00"] { color: var(--gold-light) !important; }
+/* Disabled buttons in dark mode: muted, but still readable */
+html[data-theme="dark"] .btn-primary:disabled,
+html[data-theme="dark"] .btn-primary[disabled] { background: #4A3A30; color: #CDBBA8; opacity: 1; }
+html[data-theme="dark"] .btn-primary:disabled span { color: inherit; }
+/* The chat page title is its h1 for screen readers; it keeps the bar's look. */
+.chat-bar-h1 { margin: 0; font: inherit; line-height: inherit; color: inherit; }

@@ -524,6 +524,7 @@ return [
     ],
 
     'chat' => [
+        'out_of_scope'   => 'Sorry, that is outside what I can help with. I am your guide for Cebu\'s churches, pilgrimages and faith questions. Which church or route can I help you with?',
         'busy'           => 'Giya is catching its breath: a lot of questions came in at once. Please ask again in about :seconds seconds.',
         'ask_again'      => 'Ask again',
         'ask_again_in'   => 'Ask again in :s s',

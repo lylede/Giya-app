@@ -34,7 +34,8 @@
                 <span class="onb-icon">
                     <img src="{{ asset('assets/img/onboarding/'.$s['img'].'.png') }}" alt="" width="77" height="78">
                 </span>
-                <h1 class="onb-title">{{ $s['title'] }}</h1>
+                {{-- One h1 per page: the first slide titles the page, the others are sections. --}}
+                <{{ $loop->first ? 'h1' : 'h2' }} class="onb-title">{{ $s['title'] }}</{{ $loop->first ? 'h1' : 'h2' }}>
                 <p class="onb-text">{{ $s['text'] }}</p>
             </section>
         @endforeach

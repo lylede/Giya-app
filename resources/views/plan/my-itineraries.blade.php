@@ -141,6 +141,7 @@
                                 {{ $itinerary->status === 'Completed' ? __('giya.plan.act_view') : ($itinerary->status === 'Active' ? __('giya.plan.act_continue') : __('giya.plan.act_start')) }}
                             </a>
                             <button type="button" class="btn btn-danger btn-sm"
+                                    aria-label="{{ __('giya.common.delete') }} {{ $itinerary->name }}" title="{{ __('giya.common.delete') }}"
                                     onclick="GiyaDelete.open({{ $itinerary->id }}, @js($itinerary->name))">
                                 <i class="bi bi-trash3"></i>
                             </button>

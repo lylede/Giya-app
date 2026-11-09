@@ -201,6 +201,34 @@ class GiyaAssistantKnowledgeTest extends TestCase
         $this->assertSame(0, \App\Models\ChatMessage::count());
     }
 
+    /** "create a code using python for hello world" was answered with code. */
+    public function test_an_off_topic_request_is_declined_without_asking_the_model(): void
+    {
+        config(['services.groq.key' => 'gsk-test']);
+        Http::fake();
+
+        $user = User::create([
+            'name' => 'Lyle', 'email' => 'scope@example.com', 'password_hash' => bcrypt('secret'),
+            'role' => 'devotee', 'status' => 'Active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $reply = $this->actingAs($user)->postJson(route('chatbot.send'), ['message' => 'create a code using python for hello world'])
+            ->assertOk()->json('reply');
+
+        $this->assertSame(__('giya.chat.out_of_scope'), $reply);
+        $this->assertStringNotContainsString('print(', $reply);
+        Http::assertNothingSent();
+    }
+
+    public function test_the_prompt_forbids_answering_out_of_scope_requests(): void
+    {
+        $prompt = (new \ReflectionMethod(GiyaAssistant::class, 'composePrompt'))
+            ->invoke(app(GiyaAssistant::class), collect(), collect(), 500, '');
+
+        $this->assertStringContainsString('do NOT', $prompt);
+        $this->assertStringContainsString('not even a short example', $prompt);
+    }
+
     public function test_a_bad_key_is_not_retried_on_another_model(): void
     {
         config(['services.groq.key' => 'gsk-test', 'services.groq.fallback_model' => 'openai/gpt-oss-20b']);

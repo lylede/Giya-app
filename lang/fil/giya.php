@@ -514,6 +514,7 @@ return [
     ],
 
     'chat' => [
+        'out_of_scope'   => 'Paumanhin, hindi ko iyan matutulungan. Ako ang iyong gabay sa mga simbahan, pilgrimage at mga tanong tungkol sa pananampalataya sa Cebu. Anong simbahan o ruta ang maitutulong ko?',
         'busy'           => 'Nagpapahinga sandali si Giya: maraming tanong ang sabay-sabay na dumating. Pakitanong muli pagkalipas ng mga :seconds segundo.',
         'ask_again'      => 'Itanong muli',
         'ask_again_in'   => 'Itanong muli sa :s s',

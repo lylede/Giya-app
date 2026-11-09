@@ -684,3 +684,7 @@
 .church-contact .bi { color:var(--primary); flex-shrink:0; }
 .church-contact a { color:var(--text); text-decoration:none; overflow-wrap:anywhere; }
 .church-contact a:hover { color:var(--primary); text-decoration:underline; }
+
+/* Dark mode for the cards added after the first dark pass. */
+html[data-theme="dark"] .church-guide-item { background: var(--surface); border-color: var(--border); }
+html[data-theme="dark"] .church-hero-category { color: #241C18; }
