@@ -125,4 +125,13 @@ return [
         ],
     ],
 
+    /*
+    | Error alerts: see App\Support\ErrorAlert.
+    */
+    'error_alert' => [
+        'webhook'  => env('ERROR_ALERT_WEBHOOK'),
+        'email'    => env('ERROR_ALERT_EMAIL'),
+        'in_tests' => false,
+    ],
+
 ];

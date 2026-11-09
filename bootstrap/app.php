@@ -43,5 +43,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Tell the team (Discord/Slack webhook or email) when the live site breaks.
+        $exceptions->report(fn (\Throwable $e) => \App\Support\ErrorAlert::report($e));
     })->create();
