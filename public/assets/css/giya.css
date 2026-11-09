@@ -6946,16 +6946,7 @@ html[data-theme="dark"] .chat-history-item.is-current { background: rgba(215,169
   border: 1px solid var(--border); background: var(--surface); color: var(--text);
 }
 
-/* ── Admin: Content Gaps and Insights ─────────────────────── */
-.gap-tile { display: block; text-decoration: none; color: inherit; border-radius: var(--radius-xl, 16px); outline: 2px solid transparent; transition: outline-color .15s; }
-.gap-tile.is-active { outline-color: var(--gold); }
-.gap-count { display: inline-block; min-width: 26px; padding: 1px 8px; margin-left: 6px; border-radius: 999px; background: var(--gold-bg, rgba(215,169,74,.15)); font-size: .8rem; text-align: center; }
-.gap-help { font-size: .8125rem; font-weight: 400; color: var(--text-muted); max-width: 560px; }
-.gap-name { font-weight: 600; }
-.gap-region { font-size: .8rem; color: var(--text-muted); white-space: nowrap; }
-.gap-chip { display: inline-block; margin: 2px 4px 2px 0; padding: 2px 8px; border-radius: 999px; font-size: .72rem; text-decoration: none;
-  border: 1px solid var(--border); color: var(--text-muted); text-transform: lowercase; }
-.gap-chip:hover { border-color: var(--gold); color: var(--text); }
+/* ── Admin: Insights ──────────────────────────────────────── */
 .insights-note { color: var(--text-muted); font-size: .8125rem; margin-top: 12px; }
 
 /* ── Admin in dark mode ─────────────────────────────────────

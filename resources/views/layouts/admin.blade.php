@@ -55,9 +55,6 @@
             <a href="{{ route('admin.destinations') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.destinations')])>
                 <i class="bi bi-giya-spires"></i> <span class="admin-nav-label">Destinations</span>
             </a>
-            <a href="{{ route('admin.gaps') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.gaps')])>
-                <i class="bi bi-check-circle-fill"></i> <span class="admin-nav-label">Content Gaps</span>
-            </a>
             <a href="{{ route('admin.schedules') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.schedules')])>
                 <i class="bi bi-giya-candle"></i> <span class="admin-nav-label">Schedules</span>
             </a>

@@ -10,60 +10,16 @@ use App\Models\User;
 use App\Models\VisitHistory;
 use App\Services\RoutePlanner;
 use App\Support\CebuRegion;
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
- * Two admin pages that turn GIYA's own data into a to-do list and a
- * picture of how pilgrims use it. All counting is done in PHP, not SQL
+ * The Insights admin page: a picture of how pilgrims use GIYA. All counting is done in PHP, not SQL
  * date functions, so the pages work on Neon (Postgres) and SQLite alike.
  */
 class InsightsController extends Controller
 {
-    /** What each content gap means, in the order the tabs show them. */
-    public const GAPS = [
-        'mass'    => 'No confirmed Mass times',
-        'photo'   => 'No photo',
-        'history' => 'No history',
-        'contact' => 'No contact details',
-    ];
-
-    /** Published churches still missing something pilgrims need. */
-    public function gaps(Request $request): View
-    {
-        $gap = array_key_exists($request->query('gap'), self::GAPS) ? $request->query('gap') : 'mass';
-
-        $churches = Church::active()
-            ->with('images')
-            ->withCount(['schedules as confirmed_mass' => fn ($q) => $q->where('event_type', 'Mass')->where('is_estimate', false)])
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Church $c) => [
-                'church'  => $c,
-                'town'    => (string) ($c->municipality ?: $c->location),
-                'region'  => CebuRegion::label(CebuRegion::of($c->municipality.' '.$c->location.' '.$c->address)),
-                'missing' => array_keys(array_filter([
-                    'mass'    => $c->confirmed_mass === 0,
-                    'photo'   => $c->images->isEmpty() && str_ends_with($c->imagePath(), 'placeholder.svg'),
-                    'history' => blank($c->history),
-                    'contact' => blank($c->contact_phone) && blank($c->contact_email) && blank($c->facebook_url),
-                ])),
-            ]);
-
-        $counts = collect(self::GAPS)->map(fn ($label, $key) => $churches->filter(fn ($r) => in_array($key, $r['missing'], true))->count());
-
-        return view('admin.content-gaps', [
-            'gap'      => $gap,
-            'gaps'     => self::GAPS,
-            'counts'   => $counts,
-            'total'    => $churches->count(),
-            'complete' => $churches->filter(fn ($r) => ! $r['missing'])->count(),
-            'rows'     => $churches->filter(fn ($r) => in_array($gap, $r['missing'], true))->values(),
-        ]);
-    }
-
     /** How pilgrims use GIYA: Giya AI questions, busiest days, follows, sign-ups. */
     public function insights(): View
     {
