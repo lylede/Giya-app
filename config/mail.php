@@ -37,6 +37,11 @@ return [
 
     'mailers' => [
 
+        // Brevo's web API (App\Mail\BrevoTransport): works where SMTP is blocked, like Render's free plan.
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
