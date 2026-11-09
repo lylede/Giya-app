@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+@php($giyaPrefs = auth()->user()?->preferencesOrDefault())
+{{-- Admin pages follow the admin's own Theme and Text size, like the rest of GIYA. --}}
+<html lang="en"
+      data-theme="{{ strtolower($giyaPrefs->theme_style ?? 'light') }}"
+      data-font="{{ strtolower($giyaPrefs->font_size ?? 'medium') }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,6 +44,9 @@
             <a href="{{ route('admin.dashboard') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.dashboard')])>
                 <i class="bi bi-giya-magellan"></i> <span class="admin-nav-label">Dashboard</span>
             </a>
+            <a href="{{ route('admin.insights') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.insights')])>
+                <i class="bi bi-bar-chart"></i> <span class="admin-nav-label">Insights</span>
+            </a>
 
             <div class="admin-nav-section">Management</div>
             <a href="{{ route('admin.users') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.users')])>
@@ -47,6 +54,9 @@
             </a>
             <a href="{{ route('admin.destinations') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.destinations')])>
                 <i class="bi bi-giya-spires"></i> <span class="admin-nav-label">Destinations</span>
+            </a>
+            <a href="{{ route('admin.gaps') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.gaps')])>
+                <i class="bi bi-check-circle-fill"></i> <span class="admin-nav-label">Content Gaps</span>
             </a>
             <a href="{{ route('admin.schedules') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.schedules')])>
                 <i class="bi bi-giya-candle"></i> <span class="admin-nav-label">Schedules</span>

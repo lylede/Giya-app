@@ -4,7 +4,7 @@
     @param  array  $labels  category names (drawn to the left of each bar)
     @param  array  $data    numeric values, same length as $labels
 --}}
-@props(['labels' => [], 'data' => []])
+@props(['labels' => [], 'data' => [], 'aria' => 'Bar chart of most visited destinations'])
 
 @php
     $rows  = count($data);
@@ -17,7 +17,7 @@
 @endphp
 
 <svg class="chart-svg" viewBox="0 0 {{ $W }} {{ $H }}" role="img"
-     aria-label="Bar chart of most visited destinations">
+     aria-label="{{ $aria }}">
 
     @foreach ($data as $i => $value)
         @php
