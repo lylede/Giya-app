@@ -53,24 +53,6 @@ class EmailVerification
         }
     }
 
-    /**
-     * Sends the link right after the page has gone back to the browser, so
-     * sign-up shows "Check your email" at once instead of waiting for Gmail.
-     * (FrankenPHP and PHP-FPM finish the response first; elsewhere it simply
-     * sends before the page, as before.) A failure is reported to the team
-     * and the pilgrim can press "Send the link again".
-     */
-    public function sendLater(User $user): void
-    {
-        $id = $user->id;
-
-        dispatch(function () use ($id) {
-            if ($user = User::find($id)) {
-                app(EmailVerification::class)->send($user);
-            }
-        })->afterResponse();
-    }
-
     /** Marks the account confirmed if the link matches its current address. */
     public function verify(int $id, string $hash): bool
     {

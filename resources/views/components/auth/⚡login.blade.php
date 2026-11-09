@@ -78,9 +78,5 @@ new class extends Component
         </button>
     </form>
 
-    @if (session('verify_email') && $errors->has('email'))
-        {{-- Signed in with the right password but the email is not confirmed yet. --}}
-        <p class="auth-verify-hint"><a href="{{ route('verification.pending') }}">{{ __('giya.verify.resend_hint') }}</a></p>
-    @endif
     <p class="auth-footer">{{ __('giya.auth.no_account') }} <a href="{{ route('register') }}" wire:navigate>{{ __('giya.auth.create_one') }}</a></p>
 </div>

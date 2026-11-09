@@ -45,74 +45,6 @@ class EmailVerificationTest extends TestCase
         $this->assertNull(User::where('email', 'new@example.com')->value('email_verified_at'));
     }
 
-    public function test_sign_up_leads_to_check_your_email_when_it_is_on(): void
-    {
-        config(['app.verify_email' => true]);
-        Mail::fake();
-
-        Livewire::test('auth.register')
-            ->set('name', 'New Pilgrim')->set('email', 'new@example.com')
-            ->set('password', 'secret123')->set('password_confirmation', 'secret123')->set('terms', true)
-            ->call('register')
-            ->assertRedirect(route('verification.pending'));
-
-        $this->withSession(['verify_email' => 'new@example.com'])
-            ->get(route('verification.pending'))->assertOk()->assertSee('new@example.com')->assertSee('Check your email');
-    }
-
-    public function test_an_unconfirmed_account_cannot_sign_in_until_it_confirms(): void
-    {
-        config(['app.verify_email' => true]);
-        $user = $this->person();
-
-        $this->post(route('login.store'), ['email' => 'lyle@example.com', 'password' => 'secret123'])
-            ->assertSessionHasErrors('email')
-            ->assertSessionHas('verify_email', 'lyle@example.com');
-        $this->assertGuest();
-
-        $this->get(app(EmailVerification::class)->link($user));
-
-        $this->post(route('login.store'), ['email' => 'lyle@example.com', 'password' => 'secret123'])
-            ->assertRedirect(route('home'));
-        $this->assertAuthenticatedAs($user->fresh());
-    }
-
-    public function test_a_wrong_password_never_says_the_account_is_unconfirmed(): void
-    {
-        config(['app.verify_email' => true]);
-        $this->person();
-
-        $this->post(route('login.store'), ['email' => 'lyle@example.com', 'password' => 'wrong-one'])
-            ->assertSessionHasErrors(['email' => 'Incorrect email or password.'])
-            ->assertSessionMissing('verify_email');
-    }
-
-    public function test_the_link_can_be_sent_again_from_check_your_email(): void
-    {
-        config(['app.verify_email' => true]);
-        Mail::fake();
-        $this->person();
-
-        $this->withSession(['verify_email' => 'lyle@example.com'])
-            ->post(route('verification.resend-pending'))
-            ->assertRedirect(route('verification.pending'))
-            ->assertSessionHas('success');
-    }
-
-    public function test_brevo_sends_email_over_https(): void
-    {
-        config(['services.brevo.key' => 'xkeysib-test', 'mail.from.address' => 'giya.support@gmail.com', 'mail.from.name' => 'GIYA']);
-        \Illuminate\Support\Facades\Http::fake(['api.brevo.com/*' => \Illuminate\Support\Facades\Http::response(['messageId' => 'x'], 201)]);
-
-        Mail::mailer('brevo')->html('<p>Confirm</p>', fn ($m) => $m->to('pilgrim@example.com')->subject('GIYA - Confirm your email'));
-
-        \Illuminate\Support\Facades\Http::assertSent(fn ($r) => $r->url() === 'https://api.brevo.com/v3/smtp/email'
-            && $r->hasHeader('api-key', 'xkeysib-test')
-            && $r['to'][0]['email'] === 'pilgrim@example.com'
-            && $r['sender']['email'] === 'giya.support@gmail.com'
-            && $r['subject'] === 'GIYA - Confirm your email');
-    }
-
     public function test_an_unconfirmed_user_can_browse_but_not_use_giya_ai(): void
     {
         config(['app.verify_email' => true]);
@@ -164,40 +96,5 @@ class EmailVerificationTest extends TestCase
     {
         $migration = file_get_contents(database_path('migrations/2026_11_10_000003_add_email_verified_at_to_devotees.php'));
         $this->assertStringContainsString("update(['email_verified_at' => DB::raw('created_at')])", $migration);
-    }
-
-    /** Gmail from Render can be slow: sign-up must not wait for it. */
-    public function test_sign_up_sends_the_email_after_the_page_not_before(): void
-    {
-        config(['app.verify_email' => true]);
-        \Illuminate\Support\Facades\Bus::fake();
-
-        Livewire::test('auth.register')
-            ->set('name', 'New Pilgrim')->set('email', 'later@example.com')
-            ->set('password', 'secret123')->set('password_confirmation', 'secret123')->set('terms', true)
-            ->call('register')
-            ->assertRedirect(route('verification.pending'));
-
-        \Illuminate\Support\Facades\Bus::assertDispatchedAfterResponse(\Illuminate\Queue\CallQueuedClosure::class);
-    }
-
-    public function test_an_admin_can_confirm_an_email_by_hand(): void
-    {
-        config(['app.verify_email' => true]);
-        $stuck = $this->person();
-        $admin = User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password_hash' => Hash::make('secret123'),
-            'role' => 'admin', 'status' => 'Active', 'email_verified_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
-
-        $this->actingAs($admin)->get(route('admin.users'))->assertSee('Unconfirmed')->assertSee(route('admin.users.confirm', $stuck), false);
-        $this->actingAs($admin)->patch(route('admin.users.confirm', $stuck))->assertSessionHas('success');
-
-        $this->assertNotNull($stuck->fresh()->email_verified_at);
-    }
-
-    /** A mail wait as long as PHP's own limit turned 'could not send' into a 500 error page. */
-    public function test_email_gives_up_well_before_php_does(): void
-    {
-        $this->assertLessThanOrEqual(20, config('mail.mailers.smtp.timeout'));
-        $this->assertGreaterThan(0, config('mail.mailers.smtp.timeout'));
     }
 }

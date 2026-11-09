@@ -103,7 +103,7 @@ class ProfileController extends Controller
         User::where('id', $user->id)->update($changes);
 
         if ($newEmail && \App\Actions\Auth\EmailVerification::enabled()) {
-            app(\App\Actions\Auth\EmailVerification::class)->sendLater($user->fresh());
+            app(\App\Actions\Auth\EmailVerification::class)->send($user->fresh());
 
             return redirect()->route('verification.notice')->with('success', __('giya.verify.sent'));
         }

@@ -54,17 +54,6 @@ class LoginAction
             ]);
         }
 
-        // Email not confirmed yet (when verification is on): not signed in.
-        // Only said after the right password, so it never reveals accounts.
-        if (EmailVerification::pending($user)) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-            $request->session()->put('verify_email', $user->email);
-
-            throw ValidationException::withMessages(['email' => __('giya.verify.login_blocked')]);
-        }
-
         $user->forceFill(['last_seen_at' => now()])->saveQuietly();
         $request->session()->regenerate();
 

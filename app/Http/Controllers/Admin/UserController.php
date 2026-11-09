@@ -72,16 +72,6 @@ class UserController extends Controller
         return back()->with('success', $user->name.' updated.');
     }
 
-    /** Confirm a pilgrim's email by hand, e.g. when the email never arrived. */
-    public function confirmEmail(User $user): RedirectResponse
-    {
-        if ($user->email_verified_at === null) {
-            User::whereKey($user->id)->update(['email_verified_at' => now()]);
-        }
-
-        return back()->with('success', $user->name.' can now sign in (email confirmed).');
-    }
-
     public function destroy(User $user): RedirectResponse
     {
         if ($user->id === auth()->id()) {

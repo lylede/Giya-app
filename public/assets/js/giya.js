@@ -212,16 +212,3 @@
     window.GiyaProfile = Profile;
     window.giyaTogglePassword = togglePassword;   // used inline by the auth forms
 })(window, document);
-/* Forms that send an email (data-sending="Sending..."): show it and block a
-   second click while Gmail takes its time, so nobody sends the link twice. */
-document.addEventListener('submit', function (e) {
-    var form = e.target;
-    if (!form || !form.dataset || !form.dataset.sending) return;
-    var btn = form.querySelector('button[type=submit]');
-    if (btn) {
-        if (btn.dataset.busy) { e.preventDefault(); return; }
-        btn.dataset.busy = '1';
-        btn.textContent = form.dataset.sending;
-        btn.setAttribute('aria-busy', 'true');
-    }
-});

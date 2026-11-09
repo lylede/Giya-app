@@ -69,9 +69,6 @@
             </a>
             
             <div class="admin-nav-section">Site</div>
-            <a href="{{ route('admin.mail') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.mail')])>
-                <i class="bi bi-envelope"></i> <span class="admin-nav-label">Email check</span>
-            </a>
             <a href="{{ route('home') }}" class="admin-nav-item">
                 <i class="bi bi-box-arrow-up-right"></i> <span class="admin-nav-label">View Public Site</span>
             </a>

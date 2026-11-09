@@ -42,9 +42,8 @@ class RegisterAction
         ]);
 
         // Confirm-your-email link, when that is switched on.
-        // The confirmation email goes out just after the page: sign-up never waits on it.
         if (EmailVerification::enabled()) {
-            app(EmailVerification::class)->sendLater($user);
+            app(EmailVerification::class)->send($user);
         }
 
         return $user;

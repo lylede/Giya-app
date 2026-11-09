@@ -134,12 +134,4 @@ return [
         'in_tests' => false,
     ],
 
-    /*
-    | Brevo: sends GIYA's email over HTTPS (MAIL_MAILER=brevo). Free key:
-    | brevo.com > SMTP & API > API keys. Kept only in .env, Vercel, Render.
-    */
-    'brevo' => [
-        'key' => trim((string) env('BREVO_API_KEY')),
-    ],
-
 ];

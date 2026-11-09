@@ -37,11 +37,6 @@ return [
 
     'mailers' => [
 
-        // Brevo's web API (App\Mail\BrevoTransport): works where SMTP is blocked, like Render's free plan.
-        'brevo' => [
-            'transport' => 'brevo',
-        ],
-
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),
@@ -50,11 +45,7 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            /* Give up after 10 seconds: well under PHP's own 30-second limit.
-               At 30 the two collided and Forgot password crashed with a 500
-               instead of saying the email could not be sent. On Render's
-               free plan SMTP never connects at all; use MAIL_MAILER=brevo. */
-            'timeout' => min((int) env('MAIL_TIMEOUT', 10), 20),
+            'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

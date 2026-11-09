@@ -8,7 +8,7 @@
         <h1 class="verify-title">{{ __('giya.verify.title') }}</h1>
         <p>{{ __('giya.verify.lead', ['email' => $email]) }}</p>
         <p class="verify-muted">{{ __('giya.verify.why') }}</p>
-        <form method="POST" action="{{ route('verification.send') }}" data-sending="{{ __('giya.verify.sending') }}">
+        <form method="POST" action="{{ route('verification.send') }}">
             @csrf
             <button type="submit" class="btn btn-primary btn-w-full">{{ __('giya.verify.resend') }}</button>
         </form>
