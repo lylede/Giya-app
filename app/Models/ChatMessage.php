@@ -12,7 +12,15 @@ class ChatMessage extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['session_id', 'sender_type', 'message', 'created_at'];
+    protected $fillable = ['session_id', 'sender_type', 'message', 'mood', 'plan_url', 'created_at'];
+
+    /** The planner link, only when it is a link on this site (never another host). */
+    public function planLink(): ?string
+    {
+        $url = (string) $this->plan_url;
+
+        return str_starts_with($url, '/') && ! str_starts_with($url, '//') ? $url : null;
+    }
 
     protected function casts(): array
     {

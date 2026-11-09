@@ -276,7 +276,7 @@
             .then(function (d) {
                 var msgs = (d && d.messages) || [];
                 msgs.forEach(function (m) {
-                    if (m.from === 'user') addUser(m.text); else addBot(m.text, true);
+                    if (m.from === 'user') addUser(m.text); else addBot(m.text, true, m.mood, m.plan_url);
                 });
                 // A conversation under way does not need the starter questions.
                 var starters = document.getElementById('giyaPanelStarters');

@@ -93,7 +93,8 @@ class BigPhoneLayoutTest extends TestCase
         $css = file_get_contents(public_path('assets/css/giya.css'));
 
         // Arrival: guide, chips and text box only.
-        $this->assertStringContainsString('class="page-wrap chat-page is-intro"', $view);
+        // (A past chat from History opens straight on the conversation.)
+        $this->assertStringContainsString('class="page-wrap chat-page {{ $viewing ? \'is-chatting\' : \'is-intro\' }}"', $view);
         $this->assertStringContainsString(".chat-page.is-intro .chat-bar,\n.chat-page.is-intro .chat-log { display: none !important; }", $css);
         // Tapping the box or a chip opens the conversation.
         $this->assertStringContainsString("input.addEventListener('pointerdown', openChat);", $view);

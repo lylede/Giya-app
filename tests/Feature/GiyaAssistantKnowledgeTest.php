@@ -472,8 +472,8 @@ class GiyaAssistantKnowledgeTest extends TestCase
         \App\Models\ChatMessage::create(['session_id' => $session->id, 'sender_type' => 'assistant', 'message' => 'The Basilica del Santo Niño.', 'created_at' => now()]);
 
         $this->actingAs($me)->getJson(route('chatbot.history'))->assertOk()
-            ->assertJsonPath('messages.0', ['from' => 'user', 'text' => 'oldest church in cebu'])
-            ->assertJsonPath('messages.1', ['from' => 'bot', 'text' => 'The Basilica del Santo Niño.']);
+            ->assertJsonPath('messages.0', ['from' => 'user', 'text' => 'oldest church in cebu', 'mood' => null, 'plan_url' => null])
+            ->assertJsonPath('messages.1', ['from' => 'bot', 'text' => 'The Basilica del Santo Niño.', 'mood' => null, 'plan_url' => null]);
 
         $this->actingAs($other)->getJson(route('chatbot.history'))->assertOk()->assertJsonPath('messages', []);
     }

@@ -107,7 +107,13 @@
     opens - header with a small robot, the conversation, chips, text box -
     and the big guide steps aside. New chat starts again from the intro.
 --}}
-<div class="page-wrap chat-page is-intro" id="chatPage" style="max-width:900px">
+<div class="page-wrap chat-page {{ $viewing ? 'is-chatting' : 'is-intro' }}" id="chatPage" style="max-width:900px">
+    @if ($past->isNotEmpty())
+        {{-- On the welcome view the chat bar is hidden; History stays one tap away. --}}
+        <button type="button" class="chat-intro-history" data-modal-open="chatHistoryModal">
+            <i class="bi bi-clock-history"></i> {{ __('giya.chat.history') }}
+        </button>
+    @endif
 
     {{--
         The guide sits above the panel and reacts to what is happening: it looks
@@ -174,7 +180,13 @@
                 </span>
             </div>
 
-            @if ($messages->isNotEmpty())
+            @if ($past->isNotEmpty())
+                <button type="button" class="btn btn-ghost btn-sm chat-history-btn" data-modal-open="chatHistoryModal"
+                        aria-label="{{ __('giya.chat.history') }}">
+                    <i class="bi bi-clock-history"></i> <span class="chat-history-label">{{ __('giya.chat.history') }}</span>
+                </button>
+            @endif
+            @if ($messages->isNotEmpty() && ! $viewing)
                 <form method="POST" action="{{ route('chatbot.reset') }}"
                       data-confirm-title="{{ __('giya.chat.new_q') }}"
                       data-confirm="This conversation is closed and cleared from view."
@@ -218,7 +230,7 @@
                             <div class="chat-bubble chat-bubble-user">{{ $m->message }}</div>
                         </div>
                     @else
-                        <div class="chat-row">
+                        <div class="chat-row" @if ($m->mood) data-mood="{{ $m->mood }}" @endif>
                             <span class="chat-bot-icon" aria-hidden="true">
                                 <span class="guide-face">
                                     <span class="guide-ear guide-ear-l"></span>
@@ -231,20 +243,34 @@
                                     <span class="guide-lamp"></span>
                                 </span>
                             </span>
-                            <div class="chat-bubble chat-bubble-bot">{!! \App\Support\Text::chatHtml($m->message) !!}</div>
+                            <div class="chat-bubble chat-bubble-bot">{!! \App\Support\Text::chatHtml($m->message) !!}@if ($m->planLink())<a class="chat-plan-link" href="{{ $m->planLink() }}"><i class="bi bi-map"></i> {{ __('giya.route.open') }}</a>@endif</div>
                         </div>
                     @endif
                 @endforeach
             @endif
         </div>
 
-        <div class="chat-starters" id="chatStarters">
+        @if ($viewing)
+            {{-- A past chat: read it, continue it, or go back to the open one. --}}
+            <div class="chat-past-bar">
+                <span><i class="bi bi-clock-history"></i>
+                    {{ __('giya.chat.viewing_past', ['date' => $session->started_at?->format('M j, Y')]) }}</span>
+                <div class="chat-past-actions">
+                    <form method="POST" action="{{ route('chatbot.resume', $session->id) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary btn-sm">{{ __('giya.chat.continue') }}</button>
+                    </form>
+                    <a href="{{ route('chatbot') }}" class="btn btn-outline btn-sm">{{ __('giya.chat.back_current') }}</a>
+                </div>
+            </div>
+        @endif
+        <div class="chat-starters" id="chatStarters" @if ($viewing) hidden @endif>
             @foreach ($starters as $starter)
                 <button type="button" class="chat-starter" data-ask="{{ $starter }}">{{ $starter }}</button>
             @endforeach
         </div>
 
-        <form class="chat-composer" id="chatForm" autocomplete="off">
+        <form class="chat-composer" id="chatForm" autocomplete="off" @if ($viewing) hidden @endif>
             @csrf
             <input type="text" id="chatInput" name="message" maxlength="1000"
                    placeholder="{{ __('giya.chat.placeholder') }}"
@@ -253,6 +279,52 @@
                 <i class="bi bi-arrow-right"></i>
             </button>
         </form>
+    </div>
+
+    {{-- Chat history --}}
+    <div class="modal" id="chatHistoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content chat-history-modal">
+                <div class="modal-title"><i class="bi bi-clock-history" style="color:var(--primary)"></i> {{ __('giya.chat.history_title') }}</div>
+                <input type="search" class="giya-input chat-history-search" id="chatHistorySearch"
+                       placeholder="{{ __('giya.chat.history_search') }}" aria-label="{{ __('giya.chat.history_search') }}">
+                <ul class="chat-history-list" id="chatHistoryList">
+                    @foreach ($past as $chat)
+                        <li class="chat-history-item @if ($chat->id === $session->id) is-current @endif"
+                            data-title="{{ mb_strtolower($chat->title ?? '') }}">
+                            <a href="{{ $chat->status === 'Active' ? route('chatbot') : route('chatbot.show', $chat->id) }}" class="chat-history-link">
+                                <span class="chat-history-name">{{ $chat->title ?: __('giya.chat.untitled') }}</span>
+                                <span class="chat-history-meta">
+                                    {{ $chat->started_at?->format('M j, Y · g:i A') }}
+                                    · {{ trans_choice('giya.chat.messages_count', $chat->messages_count, ['n' => $chat->messages_count]) }}
+                                    @if ($chat->status === 'Active') · <strong>{{ __('giya.chat.open_now') }}</strong> @endif
+                                </span>
+                            </a>
+                            <form method="POST" action="{{ route('chatbot.destroy', $chat->id) }}"
+                                  data-confirm-title="{{ __('giya.chat.delete_q') }}"
+                                  data-confirm="{{ $chat->title }}"
+                                  data-confirm-ok="{{ __('giya.common.delete') }}">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="chat-history-del" aria-label="{{ __('giya.common.delete') }} {{ $chat->title }}" title="{{ __('giya.common.delete') }}">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </li>
+                    @endforeach
+                </ul>
+                <p class="chat-history-none" id="chatHistoryNone" hidden>{{ __('giya.chat.history_none') }}</p>
+                <div class="modal-actions">
+                    <form method="POST" action="{{ route('chatbot.clear') }}" style="flex:1"
+                          data-confirm-title="{{ __('giya.chat.clear_q') }}"
+                          data-confirm="{{ __('giya.chat.clear_note') }}"
+                          data-confirm-ok="{{ __('giya.chat.clear_all') }}">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-outline btn-w-full chat-history-clear">{{ __('giya.chat.clear_all') }}</button>
+                    </form>
+                    <button type="button" class="btn btn-primary" style="flex:1" data-modal-close>{{ __('giya.common.close') }}</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <p class="chat-note">
@@ -725,6 +797,25 @@
 
     setState('is-idle');
     bubble.classList.add('is-in');
+})();
+</script>
+<script>
+/* Chat history: filter the list as the devotee types. */
+(function () {
+    const search = document.getElementById('chatHistorySearch');
+    if (!search) return;
+    const items = Array.from(document.querySelectorAll('#chatHistoryList .chat-history-item'));
+    const none = document.getElementById('chatHistoryNone');
+    search.addEventListener('input', function () {
+        const q = search.value.trim().toLowerCase();
+        let shown = 0;
+        items.forEach(function (li) {
+            const hit = !q || li.dataset.title.indexOf(q) !== -1;
+            li.hidden = !hit;
+            if (hit) shown++;
+        });
+        none.hidden = shown !== 0;
+    });
 })();
 </script>
 @endpush

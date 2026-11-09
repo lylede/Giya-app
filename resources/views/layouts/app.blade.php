@@ -29,7 +29,7 @@
     <x-footer />
 @endif
 @auth
-    @unless (request()->routeIs('chatbot'))
+    @unless (request()->routeIs('chatbot', 'chatbot.show'))
         <button type="button" class="giya-fab" id="giyaFab"
                 aria-label="{{ __('giya.home.card_ask') }}" aria-expanded="false" aria-controls="giyaPanel"
                 data-send-url="{{ route('chatbot.send') }}"

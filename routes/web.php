@@ -56,6 +56,11 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
     Route::get('/chatbot/history', [ChatbotController::class, 'history'])->name('chatbot.history');
     Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->middleware('throttle:giya-chat')->name('chatbot.send');
     Route::post('/chatbot/reset', [ChatbotController::class, 'reset'])->name('chatbot.reset');
+    // Chat history: open a past chat, continue it, delete one or all.
+    Route::delete('/chatbot/history', [ChatbotController::class, 'clear'])->name('chatbot.clear');
+    Route::get('/chatbot/c/{chat}', [ChatbotController::class, 'show'])->whereNumber('chat')->name('chatbot.show');
+    Route::post('/chatbot/c/{chat}/continue', [ChatbotController::class, 'resume'])->whereNumber('chat')->name('chatbot.resume');
+    Route::delete('/chatbot/c/{chat}', [ChatbotController::class, 'destroy'])->whereNumber('chat')->name('chatbot.destroy');
 
     /* Profile */
     Route::get('/profile',            [ProfileController::class, 'index'])->name('profile');

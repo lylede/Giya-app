@@ -20,11 +20,64 @@ class ChatbotController extends Controller
 
     public function index(): View
     {
-        $session = $this->currentSession();
+        return $this->page($this->currentSession());
+    }
+
+    /** A past chat, read-only, with "Continue this chat". */
+    public function show(int $chat): View
+    {
+        return $this->page($this->owned($chat));
+    }
+
+    /** Make a past chat the open one again; the open one is kept in History. */
+    public function resume(int $chat): RedirectResponse
+    {
+        $past = $this->owned($chat);
+
+        ChatSession::where('user_id', Auth::id())->where('status', 'Active')->whereKeyNot($past->id)->get()
+            ->each(fn (ChatSession $s) => $s->messages()->exists() ? $s->end() : $s->delete());
+
+        $past->update(['status' => 'Active', 'ended_at' => null]);
+
+        return redirect()->route('chatbot');
+    }
+
+    public function destroy(int $chat): RedirectResponse
+    {
+        $this->owned($chat)->delete();   // its messages go with it (cascade)
+
+        return redirect()->route('chatbot')->with('success', __('giya.chat.deleted_chat'));
+    }
+
+    /** Clear chat history: every chat of this devotee. */
+    public function clear(): RedirectResponse
+    {
+        ChatSession::where('user_id', Auth::id())->delete();
+
+        return redirect()->route('chatbot')->with('success', __('giya.chat.cleared'));
+    }
+
+    /** One of the signed-in devotee's chats; anyone else's is "not found". */
+    protected function owned(int $id): ChatSession
+    {
+        return ChatSession::where('user_id', Auth::id())->findOrFail($id);
+    }
+
+    protected function page(ChatSession $session): View
+    {
+        // History: chats that have messages, newest first.
+        $past = ChatSession::where('user_id', Auth::id())
+            ->whereHas('messages')
+            ->withCount('messages')
+            ->orderByDesc('started_at')->orderByDesc('id')
+            ->take(100)
+            ->get();
 
         return view('chatbot', [
             'session'   => $session,
             'messages'  => $session->messages,
+            'viewing'   => $session->status !== 'Active',
+            'past'      => $past,
             'online'    => $this->assistant->configured(),
             // Translated here rather than in the view: the same four strings
             // are both the button label and the question that gets asked, so
@@ -53,8 +106,10 @@ class ChatbotController extends Controller
         $messages = $session
             ? $session->messages()->orderByDesc('id')->take(30)->get()->reverse()->values()
                 ->map(fn (ChatMessage $m) => [
-                    'from' => $m->sender_type === 'user' ? 'user' : 'bot',
-                    'text' => $m->message,
+                    'from'     => $m->sender_type === 'user' ? 'user' : 'bot',
+                    'text'     => $m->message,
+                    'mood'     => $m->mood,
+                    'plan_url' => $m->planLink(),
                 ])
             : collect();
 
@@ -130,6 +185,8 @@ class ChatbotController extends Controller
             'session_id'  => $session->id,
             'sender_type' => 'assistant',
             'message'     => $result['reply'],
+            'mood'        => $result['mood'] ?? null,
+            'plan_url'    => $result['plan_url'] ?? null,
             'created_at'  => now(),
         ]);
 

@@ -6914,3 +6914,34 @@ html[data-theme="dark"] .legal-page a { color: var(--primary-ink, #E59C86); }
 /* "Delete forever": a clear, solid red in both themes. */
 #deleteAccountModal .btn-danger { background: #C0283F; border-color: #C0283F; color: #fff; }
 #deleteAccountModal .btn-danger:hover { background: #A51F34; }
+
+/* ── Chat history ─────────────────────────────────────────── */
+.chat-starters[hidden], .chat-composer[hidden], .chat-history-item[hidden] { display: none !important; }
+.chat-history-btn { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 420px) { .chat-history-label { display: none; } }
+.chat-history-modal { border: none; border-radius: var(--radius-2xl); padding: 24px; }
+.chat-history-search { margin: 4px 0 12px; }
+.chat-history-list { list-style: none; margin: 0; padding: 0; max-height: 52vh; overflow-y: auto; }
+.chat-history-item { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+.chat-history-item:last-child { border-bottom: 0; }
+.chat-history-item.is-current { background: rgba(215,169,74,.10); border-radius: 10px; }
+.chat-history-link { flex: 1; min-width: 0; padding: 10px 8px; text-decoration: none; color: var(--text); }
+.chat-history-name { display: block; font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-history-meta { display: block; font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+.chat-history-del { background: none; border: 0; color: #D4183D; padding: 8px 10px; border-radius: 8px; }
+.chat-history-del:hover { background: rgba(212,24,61,.08); }
+.chat-history-none { color: var(--text-muted); font-size: .875rem; text-align: center; padding: 16px 0; }
+.chat-history-clear { color: #D4183D; border-color: rgba(212,24,61,.4); }
+.chat-past-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface-2, #F7EFE3); font-size: .875rem; color: var(--text); }
+.chat-past-actions { display: flex; gap: 8px; }
+.chat-past-actions form { margin: 0; }
+html[data-theme="dark"] .chat-history-item.is-current { background: rgba(215,169,74,.14); }
+.chat-page { position: relative; }
+.chat-intro-history { display: none; }
+.chat-page.is-intro .chat-intro-history {
+  display: inline-flex; align-items: center; gap: 6px;
+  position: absolute; top: 10px; right: 14px; z-index: 3;
+  padding: 7px 12px; border-radius: 999px; font-size: .8125rem; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
