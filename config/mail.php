@@ -50,10 +50,10 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            /* Give up after a few seconds. Without this a blocked connection
-               (Render's free plan blocks SMTP) held sign-up for about a
-               minute and "Creating account..." looked frozen. */
-            'timeout' => (int) env('MAIL_TIMEOUT', 8),
+            /* Gmail from Render can take a while to connect: 8 seconds cut
+               off emails that would have arrived. 30 gives it room; sign-up
+               does not wait for it anyway (EmailVerification::sendLater). */
+            'timeout' => (int) env('MAIL_TIMEOUT', 30),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

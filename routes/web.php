@@ -170,6 +170,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/users',     [AdminUserController::class, 'index'])->name('users');
     Route::get('/users/export',      [AdminUserController::class, 'export'])->name('users.export');
     Route::patch('/users/{user}',    [AdminUserController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/confirm-email', [AdminUserController::class, 'confirmEmail'])->name('users.confirm');
     Route::delete('/users/{user}',   [AdminUserController::class, 'destroy'])->name('users.destroy');
 
     Route::get('/destinations',                  [AdminChurchController::class, 'index'])->name('destinations');

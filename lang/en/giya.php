@@ -684,6 +684,7 @@ return [
         'contents' => 'On this page',
     ],
     'verify' => [
+        'sending' => 'Sending... this can take up to half a minute',
         'not_sent_signup' => 'Your account is ready, but the confirmation email could not be sent just now. Tap "Send the link again" in a minute.',
         'check_title' => 'Check your email',
         'step_1' => 'Open the email from GIYA (check Spam too).',

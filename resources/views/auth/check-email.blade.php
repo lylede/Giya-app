@@ -13,7 +13,7 @@
             <li>{{ __('giya.verify.step_3') }}</li>
         </ol>
         <a href="{{ route('login') }}" class="btn btn-primary btn-w-full">{{ __('giya.verify.go_sign_in') }}</a>
-        <form method="POST" action="{{ route('verification.resend-pending') }}" style="margin-top:10px">
+        <form method="POST" action="{{ route('verification.resend-pending') }}" class="verify-resend" data-sending="{{ __('giya.verify.sending') }}">
             @csrf
             <button type="submit" class="btn btn-outline btn-w-full">{{ __('giya.verify.resend') }}</button>
         </form>

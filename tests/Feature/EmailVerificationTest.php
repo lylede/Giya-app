@@ -165,4 +165,37 @@ class EmailVerificationTest extends TestCase
         $migration = file_get_contents(database_path('migrations/2026_11_10_000003_add_email_verified_at_to_devotees.php'));
         $this->assertStringContainsString("update(['email_verified_at' => DB::raw('created_at')])", $migration);
     }
+
+    /** Gmail from Render can be slow: sign-up must not wait for it. */
+    public function test_sign_up_sends_the_email_after_the_page_not_before(): void
+    {
+        config(['app.verify_email' => true]);
+        \Illuminate\Support\Facades\Bus::fake();
+
+        Livewire::test('auth.register')
+            ->set('name', 'New Pilgrim')->set('email', 'later@example.com')
+            ->set('password', 'secret123')->set('password_confirmation', 'secret123')->set('terms', true)
+            ->call('register')
+            ->assertRedirect(route('verification.pending'));
+
+        \Illuminate\Support\Facades\Bus::assertDispatchedAfterResponse(\Illuminate\Queue\CallQueuedClosure::class);
+    }
+
+    public function test_an_admin_can_confirm_an_email_by_hand(): void
+    {
+        config(['app.verify_email' => true]);
+        $stuck = $this->person();
+        $admin = User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password_hash' => Hash::make('secret123'),
+            'role' => 'admin', 'status' => 'Active', 'email_verified_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->actingAs($admin)->get(route('admin.users'))->assertSee('Unconfirmed')->assertSee(route('admin.users.confirm', $stuck), false);
+        $this->actingAs($admin)->patch(route('admin.users.confirm', $stuck))->assertSessionHas('success');
+
+        $this->assertNotNull($stuck->fresh()->email_verified_at);
+    }
+
+    public function test_email_waits_long_enough_for_a_slow_gmail(): void
+    {
+        $this->assertGreaterThanOrEqual(30, config('mail.mailers.smtp.timeout'));
+    }
 }

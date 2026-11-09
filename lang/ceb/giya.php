@@ -674,6 +674,7 @@ return [
         'contents' => 'Niini nga panid',
     ],
     'verify' => [
+        'sending' => 'Gipadala... mahimong moabot og tunga sa minuto',
         'not_sent_signup' => 'Andam na ang imong account, apan dili mapadala ang email karon. I-tap ang "Ipadala pag-usab ang link" paghuman sa usa ka minuto.',
         'check_title' => 'Tan-awa ang imong email',
         'step_1' => 'Ablihi ang email gikan sa GIYA (tan-awa usab ang Spam).',
