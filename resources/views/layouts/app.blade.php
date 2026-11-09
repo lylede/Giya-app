@@ -21,6 +21,15 @@
 
 @include('components.flash')
 
+@if (\App\Actions\Auth\EmailVerification::pending(auth()->user()) && ! request()->routeIs('verification.notice'))
+    {{-- Unconfirmed email: a gentle reminder, not a wall. Browsing still works. --}}
+    <div class="verify-banner" role="status">
+        <i class="bi bi-envelope"></i>
+        <span>{{ __('giya.verify.banner') }}</span>
+        <a href="{{ route('verification.notice') }}">{{ __('giya.verify.banner_link') }}</a>
+    </div>
+@endif
+
 <main>
     @yield('content')
 </main>

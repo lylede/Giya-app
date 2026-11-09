@@ -38,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'confirmed.email' => \App\Http\Middleware\EnsureEmailConfirmed::class,
         ]);
 
         $middleware->redirectGuestsTo(fn () => route('login'));

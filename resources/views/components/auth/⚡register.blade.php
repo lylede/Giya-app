@@ -30,7 +30,9 @@ new class extends Component
         // Same as RegisterController: the account is created, not signed in,
         // so send them to sign in rather than to /home (which would bounce
         // them to the login page anyway, under a "Welcome" banner).
-        session()->flash('success', "Account created. Sign in to begin, {$user->firstName()}.");
+        session()->flash('success', (\App\Actions\Auth\EmailVerification::enabled()
+            ? __('giya.verify.created', ['name' => $user->firstName(), 'email' => $user->email])
+            : "Account created. Sign in to begin, {$user->firstName()}."));
         $this->redirect(route('login'), navigate: true);
     }
 };

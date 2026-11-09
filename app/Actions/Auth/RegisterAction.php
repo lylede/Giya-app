@@ -29,7 +29,7 @@ class RegisterAction
 
         RateLimiter::hit($key, 3600);
 
-        return User::create([
+        $user = User::create([
             'name'          => $data['name'],
             'email'         => $data['email'],
             'password_hash' => Hash::make($data['password']),
@@ -40,5 +40,12 @@ class RegisterAction
             'created_at'    => now(),
             'updated_at'    => now(),
         ]);
+
+        // Confirm-your-email link, when that is switched on.
+        if (EmailVerification::enabled()) {
+            app(EmailVerification::class)->send($user);
+        }
+
+        return $user;
     }
 }

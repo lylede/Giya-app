@@ -54,7 +54,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/search/churches', [HomeController::class, 'search'])->middleware('throttle:giya-actions')->name('search.churches');
     Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot');
     Route::get('/chatbot/history', [ChatbotController::class, 'history'])->name('chatbot.history');
-    Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->middleware('throttle:giya-chat')->name('chatbot.send');
+    Route::post('/chatbot/send',  [ChatbotController::class, 'send'])->middleware(['throttle:giya-chat', 'confirmed.email'])->name('chatbot.send');
     Route::post('/chatbot/reset', [ChatbotController::class, 'reset'])->name('chatbot.reset');
     // Chat history: open a past chat, continue it, delete one or all.
     Route::delete('/chatbot/history', [ChatbotController::class, 'clear'])->name('chatbot.clear');
@@ -71,7 +71,7 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
     Route::patch('/profile/preference',  [ProfileController::class, 'updatePreference'])->name('profile.preference');
     Route::post('/favorites/toggle',     [ProfileController::class, 'toggleFavorite'])->middleware('throttle:giya-actions')->name('favorites.toggle');
     Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
-    Route::post('/profile/review', [ProfileController::class, 'storeReview'])->middleware('throttle:giya-actions')->name('profile.review');
+    Route::post('/profile/review', [ProfileController::class, 'storeReview'])->middleware(['throttle:giya-actions', 'confirmed.email'])->name('profile.review');
 
     /* Plan / Itineraries - static segments registered before {itinerary} */
     Route::prefix('plan')->name('plan.')->controller(ItineraryController::class)->group(function () {
@@ -88,10 +88,10 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
         })->name('create');
         Route::get('/visita-iglesia',  'visita')->name('visita');
         Route::get('/my-itineraries',  'index')->name('index');
-        Route::post('/',               'store')->name('store');
+        Route::post('/',               'store')->middleware('confirmed.email')->name('store');
         Route::post('/stop/visited',   'markVisited')->name('stop.visited');
         Route::get('/{itinerary}',     'show')->name('show');
-        Route::post('/{itinerary}/ratings', 'storeRatings')->name('ratings');
+        Route::post('/{itinerary}/ratings', 'storeRatings')->middleware('confirmed.email')->name('ratings');
         Route::delete('/{itinerary}',  'destroy')->name('destroy');
     });
 });
@@ -99,7 +99,7 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
 /* ------------------------------------------------------- Premium / Maya */
 Route::middleware('auth')->group(function () {
     Route::get('/upgrade',                 [PaymentController::class, 'upgrade'])->name('upgrade');
-    Route::post('/upgrade/{plan}/checkout',[PaymentController::class, 'checkout'])->middleware('throttle:10,1')->name('upgrade.checkout');
+    Route::post('/upgrade/{plan}/checkout',[PaymentController::class, 'checkout'])->middleware(['throttle:10,1', 'confirmed.email'])->name('upgrade.checkout');
 
     // Where Maya sends the devotee back to. They are behind auth because the
     // devotee is signed in throughout - Maya opens in the same browser.
@@ -128,6 +128,15 @@ Route::get('/sitemap.xml', function () {
 Route::get('/robots.txt', fn () => response(
     "User-agent: *\nDisallow: /admin\nDisallow: /profile\nDisallow: /chatbot\nDisallow: /plan\n\nSitemap: ".route('sitemap')."\n"
 )->header('Content-Type', 'text/plain'))->name('robots');
+
+// Confirm your email (only asked when GIYA_VERIFY_EMAIL=true).
+Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'verify'])
+    ->middleware(['signed', 'throttle:12,1'])->whereNumber('id')->name('verification.verify');
+Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::post('/email/verification-notification', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:3,10')->name('verification.send');
+});
 
 // Privacy Policy and Terms: open to everyone, linked from sign-up and the footer.
 Route::view('/privacy', 'legal.privacy')->name('privacy');

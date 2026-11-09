@@ -6975,3 +6975,16 @@ html[data-theme="dark"] .report-table td { border-bottom-color: var(--border); }
 html[data-theme="dark"] .report-blank-cell,
 html[data-theme="dark"] .report-blank-text { color: var(--text-muted); }
 html[data-theme="dark"] .report-download-disabled { background: #4A3A30; border-color: #4A3A30; color: #CDBBA8; opacity: 1; }
+
+/* ── Confirm your email ───────────────────────────────────── */
+.verify-banner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px;
+  padding: 9px 16px; background: #FBEFD6; color: #5A3B12; font-size: .8125rem; border-bottom: 1px solid rgba(215,169,74,.35); }
+.verify-banner a { font-weight: 700; color: var(--primary); }
+html[data-theme="dark"] .verify-banner { background: #3A2A1C; color: #F0D9B5; border-bottom-color: rgba(215,169,74,.25); }
+html[data-theme="dark"] .verify-banner a { color: var(--gold-light, #E9C77E); }
+.verify-page { max-width: 480px; margin: 40px auto; padding: 0 16px; }
+.verify-card { text-align: center; padding: 32px 24px; }
+.verify-icon { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--gold-bg, rgba(215,169,74,.15)); color: var(--primary); font-size: 1.6rem; }
+.verify-title { font-family: var(--font-display, serif); font-size: 1.5rem; margin: 0 0 10px; }
+.verify-muted { color: var(--text-muted); font-size: .875rem; }

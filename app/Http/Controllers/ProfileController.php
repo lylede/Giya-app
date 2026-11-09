@@ -94,7 +94,19 @@ class ProfileController extends Controller
             $this->deleteAvatarFile($user->avatar_url);
         }
 
+        // A new email address has to be confirmed again (when that is switched on).
+        $newEmail = strcasecmp($data['email'], $user->email) !== 0;
+        if ($newEmail && \App\Actions\Auth\EmailVerification::enabled()) {
+            $changes['email_verified_at'] = null;
+        }
+
         User::where('id', $user->id)->update($changes);
+
+        if ($newEmail && \App\Actions\Auth\EmailVerification::enabled()) {
+            app(\App\Actions\Auth\EmailVerification::class)->send($user->fresh());
+
+            return redirect()->route('verification.notice')->with('success', __('giya.verify.sent'));
+        }
 
         return redirect()->route('profile')->with('success', 'Profile updated successfully.');
     }

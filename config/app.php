@@ -22,6 +22,12 @@ return [
     'contact_email' => env('GIYA_CONTACT_EMAIL'),
 
     /*
+    | Confirm-your-email for new accounts (App\Actions\Auth\EmailVerification).
+    | Turn on only once the live site sends email (test Forgot password first).
+    */
+    'verify_email' => (bool) env('GIYA_VERIFY_EMAIL', false),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
