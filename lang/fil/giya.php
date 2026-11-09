@@ -674,6 +674,7 @@ return [
         'contents' => 'Sa pahinang ito',
     ],
     'verify' => [
+        'not_sent_signup' => 'Handa na ang iyong account, pero hindi maipadala ang email ngayon. I-tap ang "Ipadala muli ang link" pagkalipas ng isang minuto.',
         'check_title' => 'Tingnan ang iyong email',
         'step_1' => 'Buksan ang email mula sa GIYA (tingnan din ang Spam).',
         'step_2' => 'I-tap ang "Confirm my email".',

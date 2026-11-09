@@ -50,7 +50,10 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            /* Give up after a few seconds. Without this a blocked connection
+               (Render's free plan blocks SMTP) held sign-up for about a
+               minute and "Creating account..." looked frozen. */
+            'timeout' => (int) env('MAIL_TIMEOUT', 8),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
