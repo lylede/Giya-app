@@ -45,7 +45,10 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            /* Give up after 10 seconds, well under PHP's own 30-second limit,
+               so a send that cannot connect shows "could not send" instead
+               of a 500 error page. */
+            'timeout' => min((int) env('MAIL_TIMEOUT', 10), 20),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

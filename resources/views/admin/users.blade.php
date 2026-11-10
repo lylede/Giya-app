@@ -110,6 +110,9 @@
                                     @endif
                                 </span>
                                 <span class="cell-strong">{{ $u->name }}</span>
+                                @if ($u->email_verified_at === null)
+                                    <span class="badge badge-brown" title="Has not confirmed their email yet">Unconfirmed</span>
+                                @endif
                                 @if ($u->isAdmin())
                                     <span class="badge badge-primary">Admin</span>
                                 @endif
@@ -155,6 +158,18 @@
                                     ]) }}">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
+
+                                @if ($u->email_verified_at === null)
+                                    <form method="POST" action="{{ route('admin.users.confirm', $u) }}"
+                                          data-confirm-title="Confirm {{ $u->name }}'s email?"
+                                          data-confirm="They can sign in without clicking the email link. Only do this if you know {{ $u->email }} is theirs."
+                                          data-confirm-ok="Confirm email">
+                                        @csrf @method('PATCH')
+                                        <button type="submit" class="icon-btn" title="Confirm email">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </button>
+                                    </form>
+                                @endif
 
                                 @if ($u->id !== auth()->id())
                                     <form method="POST" action="{{ route('admin.users.destroy', $u) }}"

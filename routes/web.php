@@ -135,6 +135,9 @@ Route::get('/robots.txt', fn () => response(
 // Confirm your email (only asked when GIYA_VERIFY_EMAIL=true).
 Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'verify'])
     ->middleware(['signed', 'throttle:12,1'])->whereNumber('id')->name('verification.verify');
+Route::get('/email/check', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'pending'])->name('verification.pending');
+Route::post('/email/check/resend', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resendPending'])
+    ->middleware('throttle:3,10')->name('verification.resend-pending');
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::post('/email/verification-notification', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resend'])
@@ -165,6 +168,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/users',     [AdminUserController::class, 'index'])->name('users');
     Route::get('/users/export',      [AdminUserController::class, 'export'])->name('users.export');
     Route::patch('/users/{user}',    [AdminUserController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/confirm-email', [AdminUserController::class, 'confirmEmail'])->name('users.confirm');
     Route::delete('/users/{user}',   [AdminUserController::class, 'destroy'])->name('users.destroy');
 
     Route::get('/destinations',                  [AdminChurchController::class, 'index'])->name('destinations');

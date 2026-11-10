@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         /* Livewire's script lives at one address whichever build it serves,
            and browsers keep it for a year. Chrome that had visited GIYA
            before the Content-Security-Policy kept running the old build,

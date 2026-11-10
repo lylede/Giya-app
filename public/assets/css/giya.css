@@ -7025,3 +7025,7 @@ html[data-theme="dark"] .eyebrow-text:not(.is-gold) { color: var(--primary-ink, 
 html[data-theme="dark"] .btn-danger, html[data-theme="dark"] .icon-btn.is-danger { color: #F08A9B; border-color: rgba(240,138,155,.45); box-shadow: inset 0 0 0 1px rgba(240,138,155,.45); }
 html[data-theme="dark"] .btn-danger { box-shadow: none; }
 html[data-theme="dark"] .btn-danger:hover, html[data-theme="dark"] .icon-btn.is-danger:hover { background: #C0283F; color: #fff; }
+.verify-steps { text-align: left; margin: 0 auto 18px; padding-left: 20px; max-width: 320px; color: var(--text); font-size: .9rem; line-height: 1.7; }
+.auth-verify-hint { text-align: center; margin: 12px 0 0; font-size: .875rem; }
+.auth-verify-hint a { font-weight: 700; color: var(--primary); }
+

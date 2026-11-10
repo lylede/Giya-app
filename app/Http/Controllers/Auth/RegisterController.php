@@ -32,9 +32,13 @@ class RegisterController extends Controller
 
         $user = app(RegisterAction::class)->execute($data, $request);
 
+        if (\App\Actions\Auth\EmailVerification::enabled()) {
+            $request->session()->put('verify_email', $user->email);
+
+            return redirect()->route('verification.pending');
+        }
+
         return redirect()->route('login')
-            ->with('success', (\App\Actions\Auth\EmailVerification::enabled()
-            ? __('giya.verify.created', ['name' => $user->firstName(), 'email' => $user->email])
-            : "Account created. Sign in to begin, {$user->firstName()}."));
+            ->with('success', "Account created. Sign in to begin, {$user->firstName()}.");
     }
 }

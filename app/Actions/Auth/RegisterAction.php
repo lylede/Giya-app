@@ -42,8 +42,9 @@ class RegisterAction
         ]);
 
         // Confirm-your-email link, when that is switched on.
-        if (EmailVerification::enabled()) {
-            app(EmailVerification::class)->send($user);
+        // If it could not be sent, sign-up still finishes; "Check your email" says so.
+        if (EmailVerification::enabled() && ! app(EmailVerification::class)->send($user)) {
+            session()->flash('error', __('giya.verify.not_sent_signup'));
         }
 
         return $user;
