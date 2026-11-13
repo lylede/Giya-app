@@ -41,6 +41,13 @@ class RegisterAction
             'updated_at'    => now(),
         ]);
 
+        // Welcome notes in the bell. Never a reason for sign-up to fail.
+        try {
+            \App\Support\Notifier::welcome($user);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         // Confirm-your-email link, when that is switched on.
         // If it could not be sent, sign-up still finishes; "Check your email" says so.
         if (EmailVerification::enabled() && ! app(EmailVerification::class)->send($user)) {

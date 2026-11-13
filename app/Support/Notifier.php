@@ -230,6 +230,47 @@ class Notifier
     }
 
     /**
+     * A new account: three notes waiting in the bell, so the first thing a
+     * pilgrim finds there is where to start rather than "nothing yet".
+     *
+     * Written when the account is made. Safe to call twice: each note has a
+     * key, so nobody gets a second copy.
+     *
+     * @return int  how many notes were written
+     */
+    public static function welcome(User $user): int
+    {
+        $first = $user->firstName();
+        $now = now();
+
+        // Newest first in the bell, so the welcome sits on top.
+        $notes = [
+            ['welcome', 'system', "Welcome to GIYA, {$first}!",
+                'Find churches, shrines and basilicas across Cebu on the map. Tap here to start.', route('map')],
+            ['welcome-ai', 'general', 'Ask Giya AI anything',
+                'Mass times, church history, or a route for the day. Try "Plan a 5-hour church trip in South Cebu".', route('chatbot')],
+            ['welcome-plan', 'itinerary', 'Plan your Visita Iglesia',
+                'Pick seven churches and GIYA puts them in order. Follow a church to be told when its schedule changes.', route('plan.visita')],
+        ];
+
+        $rows = [];
+        foreach ($notes as $i => [$key, $type, $title, $message, $url]) {
+            $rows[] = [
+                'user_id'    => $user->id,
+                'type'       => $type,
+                'title'      => $title,
+                'message'    => $message,
+                'url'        => $url,
+                'is_read'    => false,
+                'dedupe_key' => $key,
+                'created_at' => $now->copy()->subSeconds($i),
+            ];
+        }
+
+        return Notification::insertOrIgnore($rows);
+    }
+
+    /**
      * @param  array<int>  $userIds
      * @param  array<string, mixed>  $row
      */
