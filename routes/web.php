@@ -195,6 +195,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/system', [\App\Http\Controllers\Admin\SystemController::class, 'index'])->name('system');
     Route::get('/system/preview', [\App\Http\Controllers\Admin\SystemController::class, 'preview'])->name('system.preview');
     Route::patch('/system/maintenance', [\App\Http\Controllers\Admin\SystemController::class, 'maintenance'])->name('system.maintenance');
+
+    // System: announcements to every pilgrim.
+    Route::get('/announcements', [\App\Http\Controllers\Admin\AnnouncementController::class, 'index'])->name('announcements');
+    Route::post('/announcements', [\App\Http\Controllers\Admin\AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::patch('/announcements/{announcement}/stop', [\App\Http\Controllers\Admin\AnnouncementController::class, 'stop'])->name('announcements.stop');
+    Route::delete('/announcements/{announcement}', [\App\Http\Controllers\Admin\AnnouncementController::class, 'destroy'])->name('announcements.destroy');
 });
 
 Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {

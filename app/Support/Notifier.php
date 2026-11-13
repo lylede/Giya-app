@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Announcement;
 use App\Models\Church;
 use App\Models\ChurchFollow;
 use App\Models\DevoteePreference;
@@ -10,6 +11,7 @@ use App\Models\Feedback;
 use App\Models\Notification;
 use App\Models\Schedule;
 use App\Models\Transaction;
+use App\Models\User;
 
 /**
  * Turning things that happen into notifications.
@@ -205,6 +207,26 @@ class Notifier
         $off = DevoteePreference::whereIn('user_id', $userIds)->where($column, false)->pluck('user_id')->all();
 
         return array_values(array_diff($userIds, $off));
+    }
+
+    /**
+     * An admin posted an announcement: one notification in every active
+     * account's bell. Suspended and inactive accounts are skipped.
+     *
+     * @return int  how many people were told
+     */
+    public static function announcement(Announcement $announcement): int
+    {
+        $everyone = User::where('status', 'Active')->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        return self::fanOut($everyone, [
+            'type'       => 'system',
+            'title'      => $announcement->title,
+            'message'    => $announcement->message,
+            'url'        => null,
+            // One per person per announcement, even if the form is sent twice.
+            'dedupe_key' => 'announcement:'.$announcement->id,
+        ]);
     }
 
     /**

@@ -21,6 +21,27 @@
 
 @include('components.flash')
 
+@if ($giyaAnnouncement = \App\Models\Announcement::current())
+    {{-- A message from the team. Closing it is remembered on this device. --}}
+    <div class="ann-banner" role="status" id="giyaAnnouncement" data-id="{{ $giyaAnnouncement->id }}">
+        <i class="bi bi-bell-fill" aria-hidden="true"></i>
+        <span class="ann-banner-text"><strong>{{ $giyaAnnouncement->title }}</strong> {{ $giyaAnnouncement->message }}</span>
+        <button type="button" class="ann-banner-close" aria-label="{{ __('giya.common.dismiss') }}"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+    </div>
+    <script>
+    (function () {
+        var bar = document.getElementById('giyaAnnouncement');
+        if (!bar) return;
+        var key = 'giya-announcement-' + bar.getAttribute('data-id');
+        try { if (localStorage.getItem(key)) { bar.remove(); return; } } catch (e) {}
+        bar.querySelector('.ann-banner-close').addEventListener('click', function () {
+            try { localStorage.setItem(key, '1'); } catch (e) {}
+            bar.remove();
+        });
+    })();
+    </script>
+@endif
+
 @if (auth()->user()?->isAdmin() && \App\Support\Maintenance::on())
     {{-- An admin browsing the site sees it as normal; pilgrims do not. --}}
     <div class="verify-banner" role="status">

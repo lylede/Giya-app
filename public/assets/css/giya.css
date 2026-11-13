@@ -7046,3 +7046,19 @@ html[data-theme="dark"] .btn-danger:hover, html[data-theme="dark"] .icon-btn.is-
 .admin-maint a { color: inherit; font-weight: 700; text-decoration: underline; }
 html[data-theme="dark"] .admin-maint { background: #4A1620; color: #FBD5DB; border-bottom-color: rgba(240,138,155,.35); }
 html[data-theme="dark"] .sys-list .bi { color: var(--gold-light, #E9C77E); }
+
+/* ── Announcements ──────────────────────────────────────────── */
+.ann-banner { display: flex; align-items: flex-start; justify-content: center; gap: 10px; padding: 10px 16px;
+  background: #F3E3C3; color: #3F2A0E; font-size: .875rem; line-height: 1.45; border-bottom: 1px solid rgba(215,169,74,.5); }
+.ann-banner > .bi { margin-top: 3px; flex-shrink: 0; color: var(--primary); }
+.ann-banner-text { max-width: 820px; overflow-wrap: anywhere; }
+.ann-banner-close { flex-shrink: 0; width: 28px; height: 28px; margin: -3px -6px -3px 0; border: 0; border-radius: 8px; background: transparent; color: inherit; cursor: pointer; }
+.ann-banner-close:hover, .ann-banner-close:focus-visible { background: rgba(0,0,0,.08); }
+html[data-theme="dark"] .ann-banner { background: #3A2A1C; color: #F0D9B5; border-bottom-color: rgba(215,169,74,.3); }
+html[data-theme="dark"] .ann-banner > .bi { color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .ann-banner-close:hover { background: rgba(255,255,255,.12); }
+.ann-check { display: flex; align-items: flex-start; gap: 10px; font-size: .875rem; margin: 4px 0 16px; cursor: pointer; }
+.ann-check input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--primary); flex-shrink: 0; }
+.ann-preview { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: #F3E3C3; color: #3F2A0E; font-size: .875rem; line-height: 1.45; margin-bottom: 10px; overflow-wrap: anywhere; }
+html[data-theme="dark"] .ann-preview { background: #3A2A1C; color: #F0D9B5; }
+.ann-list-title { margin: 26px 0 12px; }
