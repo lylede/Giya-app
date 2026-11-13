@@ -18,11 +18,12 @@
         .back { display: inline-block; padding: 8px 14px; border-radius: 999px; background: #FBEFD6; color: #5A3B12; font-weight: 700; font-size: .9rem; }
         button { margin-top: 8px; padding: 12px 22px; border: 0; border-radius: 999px; background: #8E3B2F; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; }
         .admin { margin-top: 36px; font-size: .8125rem; }
-        .admin a { color: #8E3B2F; }
+        .admin a, .link { color: #8E3B2F; }
+        .link { margin: 6px 0 0; padding: 0; border: 0; background: none; font: inherit; font-size: .8125rem; font-weight: 400; text-decoration: underline; cursor: pointer; }
         .preview { background: #241C18; color: #fff; padding: 8px 12px; font-size: .8125rem; text-align: center; }
         @media (prefers-color-scheme: dark) {
             body { background: #17110E; color: #F2E8DC; } p { color: #CDBBA8; }
-            .back { background: #3A2A1C; color: #F0D9B5; } .admin a { color: #E9C77E; }
+            .back { background: #3A2A1C; color: #F0D9B5; } .admin a, .link { color: #E9C77E; }
         }
     </style>
 </head>
@@ -39,7 +40,19 @@
     @endif
     @unless ($preview ?? false)
         <button type="button" onclick="location.reload()">Try again</button>
-        <p class="admin">Administrator? <a href="/login">Sign in</a></p>
+        @auth
+            {{-- Signed in, but not as an admin. The sign-in page would send a
+                 signed-in person straight back here, so offer sign-out instead. --}}
+            <p class="admin">
+                Signed in as {{ auth()->user()->name }}, which is not an admin account.
+            </p>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="link">Sign out and sign in as an admin</button>
+            </form>
+        @else
+            <p class="admin">Administrator? <a href="{{ route('login') }}">Sign in</a></p>
+        @endauth
     @endunless
 </div>
 </body>

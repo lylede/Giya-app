@@ -164,4 +164,22 @@ class MaintenanceModeTest extends TestCase
         $this->actingAs($admin)->get(route('admin.system'))->assertOk()->assertSee('php artisan migrate');
         $this->actingAs($admin)->patch(route('admin.system.maintenance'), ['state' => 'on'])->assertSessionHas('error');
     }
+
+    public function test_a_signed_in_pilgrim_can_sign_out_to_switch_to_an_admin(): void
+    {
+        $this->close();
+        $user = $this->person('user');
+
+        // The sign-in link would loop: /login sends a signed-in person to /home.
+        $this->actingAs($user)->get('/home')->assertStatus(503)
+            ->assertSee('which is not an admin account')
+            ->assertSee('Sign out and sign in as an admin')
+            ->assertDontSee('Administrator? <a', false);
+
+        $this->actingAs($user)->post(route('logout'))->assertRedirect();
+        $this->assertGuest();
+
+        $this->get('/login')->assertOk();
+        $this->get('/')->assertStatus(503)->assertSee('Administrator?');
+    }
 }
