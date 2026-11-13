@@ -42,7 +42,7 @@
        bubble and the same fade on a laptop and a phone. It stops for the
        rest of the visit once the chat has been opened, and skips its turn
        while the tab is in the background. */
-    var say = document.getElementById('fabSay');
+    var say = document.getElementById('fabSayText');
     var nudges = [];
     try { nudges = JSON.parse(fab.getAttribute('data-nudges') || '[]'); } catch (e) { nudges = []; }
     var nudgeTimer = null, hideTimer = null, nudgeIndex = 0;
