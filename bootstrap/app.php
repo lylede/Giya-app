@@ -14,6 +14,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Appended to the web group so the locale is set before any view
         // renders - a devotee's saved language has to be in effect for the
         // very first string on the page, not from the next request on.
+        // First of all: a visitor on an old link (the Render address) is sent
+        // to the official one before anything else is worked out for them.
+        $middleware->web(prepend: [
+            \App\Http\Middleware\RedirectToOfficialSite::class,
+        ]);
+
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);

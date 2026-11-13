@@ -138,6 +138,20 @@ return [
 
     'force_https' => (bool) env('FORCE_HTTPS', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Official address
+    |--------------------------------------------------------------------------
+    |
+    | The one link pilgrims should use, e.g. https://giya.example.com. Set it
+    | on a host (Render, Vercel) and anyone opening that host by another
+    | address is sent to the same page on this one. Leave it empty on a
+    | laptop, and on any host that should keep answering on its own link.
+    |
+    */
+
+    'official_url' => env('GIYA_OFFICIAL_URL'),
+
     'key' => env('APP_KEY'),
 
     'previous_keys' => [
