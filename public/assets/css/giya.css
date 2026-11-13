@@ -7072,3 +7072,116 @@ html[data-theme="dark"] .ann-preview { background: #3A2A1C; color: #F0D9B5; }
 .log-filters .field:first-child { flex: 2 1 220px; }
 .log-filters .log-filter-actions { flex: 0 0 auto; }
 .log-filters .giya-input, .log-filters .btn { height: 45px; box-sizing: border-box; }
+
+/* ── ADMIN: A QUIETER, TOOL-LIKE LOOK ───────────────────────────
+   The admin panel is a place to get work done, not a landing page. It used
+   the pilgrim site's styling wholesale: cream page, very round cards with
+   soft shadows, pill buttons, a display serif on every heading, and a row of
+   tall "icon in a tinted square over a big number" tiles on every screen.
+   Together that is the look of a generated dashboard.
+
+   Everything here is scoped to .admin-layout, so the pilgrim site is
+   untouched. One radius, hairline borders instead of shadows, one type
+   family, and figures shown as a compact strip. */
+.admin-layout {
+  --admin-rail: 236px;
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 8px; --radius-xl: 8px; --radius-2xl: 8px;
+  --shadow-sm: none; --shadow-md: none;
+  --font-display: var(--font-body);
+}
+html:not([data-theme="dark"]) .admin-layout {
+  --bg: #F6F5F2; --bg-input: #FFFFFF; --bg-secondary: #F0EEEA;
+  --border: #D9D5CD; --border-light: #E7E4DD;
+  --gold-bg: #F3F1EC;
+}
+.admin-layout .admin-main { background: var(--bg); }
+
+/* Sidebar: a list, not a stack of big buttons. */
+.admin-layout .admin-sidebar { background: #201A17; }
+.admin-layout .admin-nav-item {
+  gap: 11px; padding: 8px 12px; margin-bottom: 1px;
+  font-size: .875rem; border-radius: 6px; color: rgba(255,255,255,.72);
+}
+.admin-layout .admin-nav-item .bi { font-size: 1.0625rem; opacity: .85; }
+.admin-layout .admin-nav-item.active {
+  background: rgba(255,255,255,.10); color: #fff; font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+.admin-layout .admin-nav-item.active .bi { opacity: 1; color: var(--gold-light); }
+.admin-layout .admin-nav-section { padding: 10px 12px 4px; margin-top: 10px; font-size: .6875rem; font-weight: 600; color: rgba(255,255,255,.38); }
+.admin-layout .admin-brand-name { font-family: var(--font-body); font-weight: 700; letter-spacing: 0; }
+
+/* Top bar and headings: the body face, in a clear weight. */
+.admin-layout .admin-topbar { height: 56px; }
+.admin-layout .admin-page-title { font-size: 1.0625rem; font-weight: 700; letter-spacing: -.005em; }
+.admin-layout .card-title,
+.admin-layout .report-card-title,
+.admin-layout .report-section-title,
+.admin-layout .dm-panel-title { font-family: var(--font-body); font-size: .9375rem; font-weight: 700; letter-spacing: 0; }
+
+/* Surfaces: a hairline, no shadow, one radius. */
+.admin-layout .card,
+.admin-layout .report-card,
+.admin-layout .report-section-card {
+  border: 1px solid var(--border); border-radius: 8px; box-shadow: none;
+}
+.admin-layout .card-hover:hover { transform: none; box-shadow: none; border-color: var(--primary-light); }
+
+/* Figures: one strip of numbers under small labels. No icon tiles. */
+.admin-layout .stat-row {
+  gap: 0; overflow: hidden; margin-bottom: 20px;
+  border: 1px solid var(--border); border-radius: 8px; background: #fff;
+}
+html[data-theme="dark"] .admin-layout .stat-row { background: var(--surface-1, #1F1814); }
+.admin-layout .stat-tile,
+.admin-layout .stat-tile:hover {
+  display: flex; flex-direction: column; gap: 2px;
+  margin: -1px 0 0 -1px; padding: 14px 18px 13px;
+  border: 0; border-left: 1px solid var(--border-light); border-top: 1px solid var(--border-light);
+  border-radius: 0; box-shadow: none; transform: none; background: transparent;
+}
+.admin-layout .stat-tile-icon { display: none; }
+.admin-layout .stat-tile-label { order: -1; margin: 0; font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+.admin-layout .stat-tile-value { margin: 0; font-size: 1.5rem; line-height: 1.25; font-weight: 700; }
+.admin-layout .stat-tile-sub { margin: 0; font-size: .75rem; }
+
+/* Controls: square-ish, the same height, white fields. */
+.admin-layout .btn { border-radius: 6px; padding: 9px 14px; font-size: .8125rem; font-weight: 600; transition: background .15s, border-color .15s; }
+.admin-layout .btn:active { transform: none; }
+.admin-layout .btn-sm { padding: 6px 10px; }
+.admin-layout .btn-outline { border: 1px solid var(--border); background: transparent; color: var(--text); }
+.admin-layout .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: transparent; }
+html[data-theme="dark"] .admin-layout .btn-outline:hover { border-color: var(--gold-light); color: var(--gold-light); }
+.admin-layout .giya-input,
+.admin-layout .sm-search {
+  border-width: 1px; border-radius: 6px; background: var(--bg-input);
+}
+.admin-layout .giya-input { padding: 9px 12px; }
+.admin-layout .per-page-select { padding: 6px 8px; }
+.admin-layout .log-filters .giya-input, .admin-layout .log-filters .btn { height: 38px; }
+.admin-layout .dm-label { font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+.admin-layout .icon-btn { border-radius: 6px; }
+
+/* Labels on records: a quiet tag, not a pill. */
+.admin-layout .badge { border-radius: 4px; padding: 2px 7px; font-size: .6875rem; font-weight: 600; }
+
+/* Tables: plain header, tighter rows, a visible hover. */
+.admin-layout .giya-table th,
+.admin-layout .report-table th {
+  background: transparent; color: var(--text-muted);
+  font-size: .75rem; font-weight: 600; padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+}
+html[data-theme="dark"] .admin-layout .giya-table th { background: transparent; color: var(--text-muted); }
+.admin-layout .giya-table td { padding: 11px 16px; }
+.admin-layout .giya-table tbody tr:hover td { background: var(--bg-secondary); }
+
+.admin-layout .admin-content { padding: 20px 24px 32px; }
+
+/* Reports: no decorative icon tile beside the heading, tags like the rest,
+   and an empty state that reads as one centred note. */
+.admin-layout .report-header-icon { display: none; }
+.admin-layout .report-status { border-radius: 4px; padding: 2px 7px; font-size: .6875rem; font-weight: 600; }
+.admin-layout .report-placeholder { flex-direction: column; gap: 6px; text-align: center; min-height: 96px; }
+.admin-layout .report-placeholder .bi,
+.admin-layout .report-placeholder img { font-size: 1.25rem; color: var(--text-muted); opacity: .7; width: auto; height: auto; background: none; }
