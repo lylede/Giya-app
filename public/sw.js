@@ -14,7 +14,8 @@
  * - Signing out or in clears the saved pages, so the next person on a shared
  *   phone never sees someone else's itineraries.
  */
-const VERSION = 'giya-v1';
+// Change this whenever the caching rules change: the old saved copies are dropped.
+const VERSION = 'giya-v2';
 const SHELL = VERSION + '-shell';
 const PAGES = 'giya-pages';
 const TILES = 'giya-tiles';
@@ -72,14 +73,34 @@ async function page(request) {
   }
 }
 
+/*
+ * The stylesheet and scripts are linked as giya.css?v=<when it last changed>,
+ * so each deploy asks for a new address. The copy used to be looked up
+ * ignoring that ?v=, which handed back the first version ever saved after
+ * every deploy: style fixes went live and nobody saw them. Now the exact
+ * address must match. A different version is fetched fresh, and the old
+ * one is used only when there is no signal.
+ */
 async function asset(request) {
   const cache = await caches.open(SHELL);
-  const hit = await cache.match(request, { ignoreSearch: true });
+  const exact = await cache.match(request);
+
   const refresh = fetch(request).then((response) => {
     if (response.ok) cache.put(request, response.clone());
     return response;
-  }).catch(() => hit);
-  return hit || refresh;
+  });
+
+  if (exact) {
+    refresh.catch(() => {});
+    return exact;
+  }
+
+  try {
+    return await refresh;
+  } catch (e) {
+    // Offline and never saved at this version: any saved version beats nothing.
+    return (await cache.match(request, { ignoreSearch: true })) || Response.error();
+  }
 }
 
 async function tile(request) {
