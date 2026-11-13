@@ -75,6 +75,9 @@
             <a href="{{ route('admin.announcements') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.announcements*')])>
                 <i class="bi bi-bell-fill"></i> <span class="admin-nav-label">Announcements</span>
             </a>
+            <a href="{{ route('admin.activity') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.activity')])>
+                <i class="bi bi-clock-history"></i> <span class="admin-nav-label">Activity Log</span>
+            </a>
 
             <div class="admin-nav-section">Site</div>
             <a href="{{ route('home') }}" class="admin-nav-item">

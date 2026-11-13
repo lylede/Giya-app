@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'admin.log' => \App\Http\Middleware\LogAdminActivity::class,
             'confirmed.email' => \App\Http\Middleware\EnsureEmailConfirmed::class,
         ]);
 

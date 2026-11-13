@@ -162,7 +162,7 @@ Route::middleware('auth')->group(function () {
 });
 
 /* --------------------------------------------------------------- Admin */
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'admin', 'admin.log'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/',          [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/insights',  [\App\Http\Controllers\Admin\InsightsController::class, 'insights'])->name('insights');
     Route::get('/users',     [AdminUserController::class, 'index'])->name('users');
@@ -201,6 +201,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('/announcements', [\App\Http\Controllers\Admin\AnnouncementController::class, 'store'])->name('announcements.store');
     Route::patch('/announcements/{announcement}/stop', [\App\Http\Controllers\Admin\AnnouncementController::class, 'stop'])->name('announcements.stop');
     Route::delete('/announcements/{announcement}', [\App\Http\Controllers\Admin\AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+
+    // System: what each admin changed (written by the admin.log middleware above).
+    Route::get('/activity', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])->name('activity');
 });
 
 Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {

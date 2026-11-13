@@ -7062,3 +7062,13 @@ html[data-theme="dark"] .ann-banner-close:hover { background: rgba(255,255,255,.
 .ann-preview { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; background: #F3E3C3; color: #3F2A0E; font-size: .875rem; line-height: 1.45; margin-bottom: 10px; overflow-wrap: anywhere; }
 html[data-theme="dark"] .ann-preview { background: #3A2A1C; color: #F0D9B5; }
 .ann-list-title { margin: 26px 0 12px; }
+
+/* ── Admin: Activity log ────────────────────────────────────── */
+.log-when { white-space: nowrap; }
+.log-muted { color: var(--text-muted); font-size: .8125rem; }
+.log-filter-actions { display: flex; gap: 8px; align-items: flex-end; }
+.log-filters { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; }
+.log-filters .field { margin: 0; flex: 1 1 150px; min-width: 0; }
+.log-filters .field:first-child { flex: 2 1 220px; }
+.log-filters .log-filter-actions { flex: 0 0 auto; }
+.log-filters .giya-input, .log-filters .btn { height: 45px; box-sizing: border-box; }
