@@ -7206,3 +7206,7 @@ html[data-theme="dark"] .admin-layout .report-table thead { background: transpar
 html[data-theme="dark"] .admin-layout .report-table th { color: var(--text-muted); }
 html[data-theme="dark"] .report-rank-name,
 html[data-theme="dark"] .report-destination-item { color: var(--text); }
+/* The row under the pointer turned near-white, hiding its own text. */
+html[data-theme="dark"] .report-table tbody tr:hover { background: rgba(255,255,255,.05); }
+.admin-layout .report-table tbody tr:hover { background: var(--bg-secondary); }
+html[data-theme="dark"] .admin-layout .report-table tbody tr:hover { background: rgba(255,255,255,.05); }
