@@ -41,7 +41,7 @@ class AdminDesignSystemTest extends TestCase
     /** Every module, by the URL it lives at. */
     private const MODULES = [
         'dashboard', 'users', 'destinations', 'schedules',
-        'feedback', 'transactions', 'reports',
+        'feedback', 'transactions', 'reports', 'system',
     ];
 
     private function admin(): User

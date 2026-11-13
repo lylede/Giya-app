@@ -21,6 +21,15 @@
 
 @include('components.flash')
 
+@if (auth()->user()?->isAdmin() && \App\Support\Maintenance::on())
+    {{-- An admin browsing the site sees it as normal; pilgrims do not. --}}
+    <div class="verify-banner" role="status">
+        <i class="bi bi-cone-striped"></i>
+        <span>Maintenance mode is on. Only admins can see this page.</span>
+        <a href="{{ route('admin.system') }}">Manage</a>
+    </div>
+@endif
+
 @if (\App\Actions\Auth\EmailVerification::pending(auth()->user()) && ! request()->routeIs('verification.notice'))
     {{-- Unconfirmed email: a gentle reminder, not a wall. Browsing still works. --}}
     <div class="verify-banner" role="status">

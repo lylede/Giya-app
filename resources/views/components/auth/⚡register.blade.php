@@ -14,6 +14,13 @@ new class extends Component
 
     public function register(): void
     {
+        // The sign-up page is closed during maintenance; so is a form left open in a tab.
+        if (\App\Support\Maintenance::on()) {
+            $this->addError('email', 'GIYA is being updated. Please sign up a little later.');
+
+            return;
+        }
+
         $data = $this->validate([
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:150', 'unique:devotees,email'],

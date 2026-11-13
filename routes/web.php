@@ -190,6 +190,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     Route::get('/reports/download/{report}', [AdminReportController::class, 'download'])->name('reports.download');
+
+    // System: maintenance mode.
+    Route::get('/system', [\App\Http\Controllers\Admin\SystemController::class, 'index'])->name('system');
+    Route::get('/system/preview', [\App\Http\Controllers\Admin\SystemController::class, 'preview'])->name('system.preview');
+    Route::patch('/system/maintenance', [\App\Http\Controllers\Admin\SystemController::class, 'maintenance'])->name('system.maintenance');
 });
 
 Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {

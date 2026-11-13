@@ -67,7 +67,12 @@
             <a href="{{ route('admin.reports') }}" @class(['admin-nav-item', 'active' =>request()->routeIs('admin.reports*')])>
                 <i class="bi bi-giya-tally"></i> <span class="admin-nav-label">Reports</span>
             </a>
-            
+
+            <div class="admin-nav-section">System</div>
+            <a href="{{ route('admin.system') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.system*')])>
+                <i class="bi bi-cone-striped"></i> <span class="admin-nav-label">Maintenance</span>
+            </a>
+
             <div class="admin-nav-section">Site</div>
             <a href="{{ route('home') }}" class="admin-nav-item">
                 <i class="bi bi-box-arrow-up-right"></i> <span class="admin-nav-label">View Public Site</span>
@@ -106,6 +111,17 @@
                 <span class="admin-topbar-name">{{ auth()->user()->name }}</span>
             </div>
         </header>
+
+        @if (\App\Support\Maintenance::on())
+            {{-- So nobody forgets the site is closed. --}}
+            <div class="admin-maint" role="status">
+                <i class="bi bi-cone-striped"></i>
+                <span>Maintenance mode is on. Pilgrims see the closed page.</span>
+                @unless (request()->routeIs('admin.system'))
+                    <a href="{{ route('admin.system') }}">Manage</a>
+                @endunless
+            </div>
+        @endif
 
         <div class="admin-content">
             @include('components.flash')

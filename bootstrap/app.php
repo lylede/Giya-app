@@ -33,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\EnsureAccountIsActive::class,
+            // After the account check: a suspended admin is signed out first.
+            \App\Http\Middleware\MaintenanceMode::class,
             \App\Http\Middleware\DeliverDueReminders::class,
         ]);
 

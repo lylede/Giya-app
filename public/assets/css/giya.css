@@ -7029,3 +7029,20 @@ html[data-theme="dark"] .btn-danger:hover, html[data-theme="dark"] .icon-btn.is-
 .auth-verify-hint { text-align: center; margin: 12px 0 0; font-size: .875rem; }
 .auth-verify-hint a { font-weight: 700; color: var(--primary); }
 
+
+/* ── Admin: System maintenance ──────────────────────────────── */
+.sys-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .sys-grid { grid-template-columns: minmax(0, 1fr); } }
+.sys-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.sys-since { display: flex; align-items: center; gap: 6px; font-size: .8125rem; color: var(--text-muted); margin: 0 0 14px; }
+.sys-date { max-width: 260px; }
+.sys-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.sys-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; font-size: .875rem; line-height: 1.5; }
+.sys-list li { display: flex; gap: 10px; align-items: flex-start; }
+.sys-list .bi { color: var(--primary); margin-top: 3px; flex-shrink: 0; }
+.sys-gap { margin-top: 22px; }
+.admin-maint { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 9px 16px;
+  background: #FBE3E7; color: #7A1226; font-size: .8125rem; font-weight: 600; border-bottom: 1px solid rgba(192,40,63,.3); }
+.admin-maint a { color: inherit; font-weight: 700; text-decoration: underline; }
+html[data-theme="dark"] .admin-maint { background: #4A1620; color: #FBD5DB; border-bottom-color: rgba(240,138,155,.35); }
+html[data-theme="dark"] .sys-list .bi { color: var(--gold-light, #E9C77E); }
