@@ -37,38 +37,39 @@
     // focus throws the keyboard over half the sheet before anyone asked.
     var canAutoFocus = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-    /* Making the button noticeable: a label beside the face until the
-       pilgrim has opened Giya once, and a greeting on the very first visit.
-       Remembered in this browser only; if storage is blocked, the label just
-       stays and the greeting is skipped. */
-    var greet = document.getElementById('fabGreet');
+    /* On Home, the bubble above the face says a short line when the page
+       opens and again every 30 seconds, rotating through a few. The same
+       bubble and the same fade on a laptop and a phone. It stops for the
+       rest of the visit once the chat has been opened, and skips its turn
+       while the tab is in the background. */
+    var say = document.getElementById('fabSay');
+    var nudges = [];
+    try { nudges = JSON.parse(fab.getAttribute('data-nudges') || '[]'); } catch (e) { nudges = []; }
+    var nudgeTimer = null, hideTimer = null, nudgeIndex = 0;
 
-    function remembered(key) { try { return window.localStorage.getItem(key) === '1'; } catch (e) { return null; } }
-    function remember(key) { try { window.localStorage.setItem(key, '1'); } catch (e) {} }
-
-    if (remembered('giya-ai-used')) fab.classList.add('is-known');
-
-    function hideGreet() {
-        if (!greet || greet.hidden) return;
-        greet.classList.remove('is-in');
-        setTimeout(function () { greet.hidden = true; }, 200);
+    function nudge() {
+        if (!say || document.hidden || panel.classList.contains('is-open')) return;
+        say.textContent = nudges[nudgeIndex % nudges.length];
+        nudgeIndex++;
+        fab.classList.add('is-saying');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function () { fab.classList.remove('is-saying'); }, 4000);
     }
 
-    if (greet && remembered('giya-ai-used') === false && remembered('giya-ai-greeted') === false) {
-        setTimeout(function () {
-            if (panel.classList.contains('is-open')) return;
-            remember('giya-ai-greeted');
-            greet.hidden = false;
-            requestAnimationFrame(function () { greet.classList.add('is-in'); });
-        }, 1500);
-        document.getElementById('fabGreetClose').addEventListener('click', hideGreet);
-        document.getElementById('fabGreetOpen').addEventListener('click', function () { hideGreet(); open(); });
+    function stopNudging() {
+        clearTimeout(hideTimer);
+        clearInterval(nudgeTimer);
+        nudgeTimer = null;
+        fab.classList.remove('is-saying');
+    }
+
+    if (say && nudges.length) {
+        setTimeout(nudge, 1200);
+        nudgeTimer = setInterval(nudge, 30000);
     }
 
     function open() {
-        remember('giya-ai-used');
-        fab.classList.add('is-known');
-        hideGreet();
+        stopNudging();
         panel.hidden = false;
         scrim.hidden = false;
         // Next frame, so the transition has a starting state to animate from.

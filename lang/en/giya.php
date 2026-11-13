@@ -599,7 +599,7 @@ return [
         'open_full_t'    => 'Open full page',
         'ask_ph'         => 'Ask Giya AI…',
         'starter'        => "Hi, I'm Giya. Ask me anything.",
-        'fab_greet'      => 'Need Mass times or a route for the day? Ask me.',
+        'nudges'         => ['Ask me about Mass times', 'Need a church route for today?', 'Planning a Visita Iglesia?', 'Looking for a church nearby?'],
     ],
 
     'auth' => [

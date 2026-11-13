@@ -76,7 +76,12 @@
                 data-history-url="{{ route('chatbot.history') }}"
                 data-ask-again="{{ __('giya.chat.ask_again') }}"
                 data-ask-again-in="{{ __('giya.chat.ask_again_in', ['s' => ':s']) }}"
-                data-open-route="{{ __('giya.route.open') }}">
+                data-open-route="{{ __('giya.route.open') }}"
+                @if (request()->routeIs('home'))
+                    {{-- On Home the bubble speaks up now and then: a short line
+                         when the page opens, then every 30 seconds. --}}
+                    data-nudges="{{ json_encode(__('giya.chat.nudges')) }}"
+                @endif>
             {{-- The assistant's own head, reused exactly: same classes, same
                  CSS, just scaled down. Restyling the guide restyles this too. --}}
             <span class="fab-head-wrap" aria-hidden="true">
@@ -100,17 +105,7 @@
             <span class="fab-say" id="fabSay" aria-hidden="true">
                 {{ __('giya.chat.starter') }}
             </span>
-            {{-- Says what the face is for, until the pilgrim has opened it once. --}}
-            <span class="fab-label" aria-hidden="true">{{ __('giya.home.card_ask') }}</span>
         </button>
-
-        {{-- Shown once, on a pilgrim's first visit, then never again. --}}
-        <div class="fab-greet" id="fabGreet" hidden>
-            <button type="button" class="fab-greet-text" id="fabGreetOpen">{{ __('giya.chat.fab_greet') }}</button>
-            <button type="button" class="fab-greet-close" id="fabGreetClose" aria-label="{{ __('giya.common.close') }}">
-                <i class="bi bi-x-lg" aria-hidden="true"></i>
-            </button>
-        </div>
 
         <x-ai-panel />
     @endunless

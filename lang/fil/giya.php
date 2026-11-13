@@ -589,7 +589,7 @@ return [
         'open_full_t'    => 'Buksan ang buong pahina',
         'ask_ph'         => 'Magtanong kay Giya AI…',
         'starter'        => 'Kumusta, ako si Giya. Tanungin mo ako ng kahit ano.',
-        'fab_greet'      => 'Kailangan mo ng oras ng Misa o ruta para sa araw? Tanungin mo ako.',
+        'nudges'         => ['Tanungin mo ako tungkol sa oras ng Misa', 'Kailangan mo ba ng ruta ng simbahan ngayon?', 'Nagpaplano ka ba ng Visita Iglesia?', 'Naghahanap ka ba ng simbahan sa malapit?'],
     ],
 
     'auth' => [

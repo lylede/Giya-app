@@ -589,7 +589,7 @@ return [
         'open_full_t'    => 'Ablihi ang tibuok panid',
         'ask_ph'         => 'Pangutana sa Giya AI…',
         'starter'        => 'Kumusta, ako si Giya. Pangutan-a ko bisan unsa.',
-        'fab_greet'      => 'Nangita ka ug oras sa Misa o ruta karong adlawa? Pangutan-a ko.',
+        'nudges'         => ['Pangutana ko bahin sa oras sa Misa', 'Nanginahanglan ka ug ruta sa simbahan karon?', 'Nagplano ka ug Visita Iglesia?', 'Nangita ka ug simbahan nga duol?'],
     ],
 
     'auth' => [
