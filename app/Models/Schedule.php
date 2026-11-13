@@ -15,8 +15,11 @@ class Schedule extends Model
 
     public $timestamps = false;
 
+    /** Languages a Mass can be said in, as shown to pilgrims. */
+    public const LANGUAGES = ['Cebuano', 'English', 'Filipino'];
+
     protected $fillable = [
-        'church_id', 'event_name', 'event_type', 'time_frame_label', 'schedule_date',
+        'church_id', 'event_name', 'event_type', 'language', 'time_frame_label', 'schedule_date',
         'start_time', 'end_time', 'is_whole_day', 'location', 'status',
         'is_recurring', 'recurrence', 'recurrence_rule', 'is_estimate', 'notes', 'created_at', 'updated_at',
     ];

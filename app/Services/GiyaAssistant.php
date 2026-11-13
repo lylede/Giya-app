@@ -394,7 +394,7 @@ class GiyaAssistant
         $masses = $c->schedules
             ->where('event_type', 'Mass')
             ->take(4)
-            ->map(fn (Schedule $s) => $this->when($s))
+            ->map(fn (Schedule $s) => ($when = $this->when($s)) && $s->language ? $when.' ('.$s->language.')' : $when)
             ->filter()
             ->implode('; ');
 

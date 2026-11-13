@@ -119,6 +119,10 @@ return [
     ],
 
     'church' => [
+        'lang_cebuano' => 'Cebuano',
+        'lang_english' => 'English',
+        'lang_filipino' => 'Filipino',
+        'lang_unknown' => 'Language not confirmed',
         'notify_me'     => 'Notify me',
         'notifying'     => 'Notifying you',
         'notify_hint'   => 'Get feast days, events and schedule changes for this church, plus a reminder a week before each event.',
@@ -595,6 +599,7 @@ return [
         'open_full_t'    => 'Open full page',
         'ask_ph'         => 'Ask Giya AI…',
         'starter'        => "Hi, I'm Giya. Ask me anything.",
+        'fab_greet'      => 'Need Mass times or a route for the day? Ask me.',
     ],
 
     'auth' => [

@@ -230,12 +230,20 @@
                         {{ __('giya.church.usual_times') }}
                     </p>
                 @endif
-                @forelse ($church->massTimetable() as $dayLabel => $times)
+                @php
+                    $massTimes = $church->massTimetableWithLanguage();
+                    $languages = collect($massTimes)->flatten(1)->pluck('language')->filter()->unique()
+                        ->sortBy(fn ($l) => array_search($l, \App\Models\Schedule::LANGUAGES))->values();
+                    $someUnset = collect($massTimes)->flatten(1)->contains(fn ($m) => $m['language'] === null);
+                @endphp
+                @forelse ($massTimes as $dayLabel => $times)
                     <div class="church-schedule-day">
                         <div class="church-schedule-day-label">{{ $dayLabel }}</div>
                         <div>
-                            @foreach ($times as $time)
-                                <span class="church-schedule-time">{{ $time }}</span>
+                            @foreach ($times as $mass)
+                                {{-- The colour shows the language; the words are there for screen readers and on hover. --}}
+                                <span @class(['church-schedule-time', 'is-'.strtolower($mass['language'] ?? '') => $mass['language']])
+                                      @if ($mass['language']) title="{{ __('giya.church.lang_'.strtolower($mass['language'])) }}" @endif>{{ $mass['time'] }}@if ($mass['language'])<span class="visually-hidden">, {{ __('giya.church.lang_'.strtolower($mass['language'])) }}</span>@endif</span>
                             @endforeach
                         </div>
                     </div>
@@ -243,6 +251,17 @@
                     <x-empty-state icon="calendar-x" :title="__('giya.church.no_schedule')"
                                     :desc="__('giya.church.no_schedule_d')" />
                 @endforelse
+
+                @if ($languages->isNotEmpty())
+                    <div class="church-lang-key" aria-hidden="true">
+                        @foreach ($languages as $language)
+                            <span class="church-lang-item"><span class="church-lang-dot is-{{ strtolower($language) }}"></span>{{ __('giya.church.lang_'.strtolower($language)) }}</span>
+                        @endforeach
+                        @if ($someUnset)
+                            <span class="church-lang-item"><span class="church-lang-dot"></span>{{ __('giya.church.lang_unknown') }}</span>
+                        @endif
+                    </div>
+                @endif
             </div>
         </section>
 

@@ -109,6 +109,10 @@ return [
     ],
 
     'church' => [
+        'lang_cebuano' => 'Sebwano',
+        'lang_english' => 'Ingles',
+        'lang_filipino' => 'Wikang Filipino',
+        'lang_unknown' => 'Hindi pa kumpirmado ang wika',
         'notify_me'     => 'Abisuhan ako',
         'notifying'     => 'Inaabisuhan ka',
         'notify_hint'   => 'Makatanggap ng mga pista, kaganapan at pagbabago sa iskedyul ng simbahang ito, at paalala isang linggo bago ang bawat kaganapan.',
@@ -585,6 +589,7 @@ return [
         'open_full_t'    => 'Buksan ang buong pahina',
         'ask_ph'         => 'Magtanong kay Giya AI…',
         'starter'        => 'Kumusta, ako si Giya. Tanungin mo ako ng kahit ano.',
+        'fab_greet'      => 'Kailangan mo ng oras ng Misa o ruta para sa araw? Tanungin mo ako.',
     ],
 
     'auth' => [

@@ -37,7 +37,38 @@
     // focus throws the keyboard over half the sheet before anyone asked.
     var canAutoFocus = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
+    /* Making the button noticeable: a label beside the face until the
+       pilgrim has opened Giya once, and a greeting on the very first visit.
+       Remembered in this browser only; if storage is blocked, the label just
+       stays and the greeting is skipped. */
+    var greet = document.getElementById('fabGreet');
+
+    function remembered(key) { try { return window.localStorage.getItem(key) === '1'; } catch (e) { return null; } }
+    function remember(key) { try { window.localStorage.setItem(key, '1'); } catch (e) {} }
+
+    if (remembered('giya-ai-used')) fab.classList.add('is-known');
+
+    function hideGreet() {
+        if (!greet || greet.hidden) return;
+        greet.classList.remove('is-in');
+        setTimeout(function () { greet.hidden = true; }, 200);
+    }
+
+    if (greet && remembered('giya-ai-used') === false && remembered('giya-ai-greeted') === false) {
+        setTimeout(function () {
+            if (panel.classList.contains('is-open')) return;
+            remember('giya-ai-greeted');
+            greet.hidden = false;
+            requestAnimationFrame(function () { greet.classList.add('is-in'); });
+        }, 1500);
+        document.getElementById('fabGreetClose').addEventListener('click', hideGreet);
+        document.getElementById('fabGreetOpen').addEventListener('click', function () { hideGreet(); open(); });
+    }
+
     function open() {
+        remember('giya-ai-used');
+        fab.classList.add('is-known');
+        hideGreet();
         panel.hidden = false;
         scrim.hidden = false;
         // Next frame, so the transition has a starting state to animate from.

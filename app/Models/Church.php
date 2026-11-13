@@ -253,6 +253,18 @@ class Church extends Model
      */
     public function massTimetable(): array
     {
+        return array_map(fn (array $times) => array_column($times, 'time'), $this->massTimetableWithLanguage());
+    }
+
+    /**
+     * The same timetable, with the language of each Mass:
+     * ['Sunday' => [['time' => '6:00 AM', 'language' => 'Cebuano'], ...], ...].
+     * Language is null when no admin has set it.
+     *
+     * @return array<string, array<int, array{time: string, language: ?string}>>
+     */
+    public function massTimetableWithLanguage(): array
+    {
         $names = [0 => 'Sunday', 1 => 'Monday', 2 => 'Tuesday', 3 => 'Wednesday', 4 => 'Thursday', 5 => 'Friday', 6 => 'Saturday'];
         $perDay = array_fill(0, 7, []);
         $other = [];
@@ -261,21 +273,31 @@ class Church extends Model
             if (strcasecmp((string) $s->event_type, 'Mass') !== 0 || ! $s->start_time) {
                 continue;
             }
+            $entry = [substr($s->start_time, 0, 5), $s->language ?: null];
             $days = $s->weekdays();
             if ($days === null) {
-                $other[$s->day_label][] = substr($s->start_time, 0, 5);
+                $other[$s->day_label][] = $entry;
                 continue;
             }
             foreach ($days as $d) {
-                $perDay[$d][] = substr($s->start_time, 0, 5);
+                $perDay[$d][] = $entry;
             }
         }
 
-        $fmt = function (array $times) {
-            $times = array_values(array_unique($times));
-            sort($times);
+        // One entry per time, sorted; when two schedules share a time, the one with a language wins.
+        $fmt = function (array $entries) {
+            $byTime = [];
+            foreach ($entries as [$time, $language]) {
+                $byTime[$time] = ($byTime[$time] ?? null) ?: $language;
+            }
+            ksort($byTime);
 
-            return array_map(fn ($t) => date('g:i A', strtotime($t)), $times);
+            $out = [];
+            foreach ($byTime as $time => $language) {
+                $out[] = ['time' => date('g:i A', strtotime($time)), 'language' => $language];
+            }
+
+            return $out;
         };
 
         $out = [];
@@ -287,6 +309,7 @@ class Church extends Model
                 continue;
             }
             $end = $d;
+            // Days merge only when both the times and their languages match.
             while ($end < 6 && $fmt($perDay[$end + 1]) === $fmt($perDay[$d])) {
                 $end++;
             }
@@ -294,8 +317,8 @@ class Church extends Model
             $out[$label] = $fmt($perDay[$d]);
             $d = $end;
         }
-        foreach ($other as $label => $times) {
-            $out[$label] = $fmt($times);
+        foreach ($other as $label => $entries) {
+            $out[$label] = $fmt($entries);
         }
 
         return $out;

@@ -140,6 +140,7 @@ class ScheduleController extends Controller
             'church_id'        => ['nullable', 'required_without:location', 'exists:churches,id'],
             'event_name'       => ['required', 'string', 'max:200'],
             'event_type'       => ['required', 'in:'.implode(',', $this->types)],
+            'language'         => ['nullable', 'in:'.implode(',', \App\Models\Schedule::LANGUAGES)],
             'time_frame_label' => ['nullable', 'string', 'max:100'],
             'schedule_date'    => ['nullable', 'date'],
             'start_time'       => ['nullable', 'date_format:H:i'],

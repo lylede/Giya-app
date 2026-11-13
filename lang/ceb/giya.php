@@ -109,6 +109,10 @@ return [
     ],
 
     'church' => [
+        'lang_cebuano' => 'Binisaya',
+        'lang_english' => 'Iningles',
+        'lang_filipino' => 'Pilipino',
+        'lang_unknown' => 'Wala pa makumpirma ang pinulongan',
         'notify_me'     => 'Pahibaloa ko',
         'notifying'     => 'Gipahibalo ka',
         'notify_hint'   => 'Makadawat og mga piyesta, kalihokan ug kausaban sa iskedyul niining simbahana, ug pahinumdom usa ka semana una sa matag kalihokan.',
@@ -585,6 +589,7 @@ return [
         'open_full_t'    => 'Ablihi ang tibuok panid',
         'ask_ph'         => 'Pangutana sa Giya AI…',
         'starter'        => 'Kumusta, ako si Giya. Pangutan-a ko bisan unsa.',
+        'fab_greet'      => 'Nangita ka ug oras sa Misa o ruta karong adlawa? Pangutan-a ko.',
     ],
 
     'auth' => [

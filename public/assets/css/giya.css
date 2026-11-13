@@ -7210,3 +7210,58 @@ html[data-theme="dark"] .report-destination-item { color: var(--text); }
 html[data-theme="dark"] .report-table tbody tr:hover { background: rgba(255,255,255,.05); }
 .admin-layout .report-table tbody tr:hover { background: var(--bg-secondary); }
 html[data-theme="dark"] .admin-layout .report-table tbody tr:hover { background: rgba(255,255,255,.05); }
+
+/* Admin schedules: the Mass language beside its type. */
+.sched-lang { display: inline-block; margin-left: 6px; font-size: .75rem; color: var(--text-muted); }
+
+/* ── Giya AI: easier to notice ──────────────────────────────────
+   A label beside the face says what it is, until the pilgrim has opened it
+   once (.is-known). A greeting shows on the first visit only. */
+.fab-label {
+  position: absolute; right: calc(100% + 6px); top: 50%; transform: translateY(-50%);
+  white-space: nowrap; pointer-events: none;
+  padding: 7px 13px; border-radius: 999px;
+  background: var(--primary); color: #fff;
+  font-size: .8125rem; font-weight: 700; line-height: 1.2;
+  box-shadow: 0 4px 14px rgba(36,28,24,.28);
+}
+.giya-fab.is-known .fab-label { display: none; }
+.giya-fab:hover .fab-label { opacity: 0; }   /* the hover bubble says it instead */
+
+.fab-greet {
+  position: fixed; right: 18px; bottom: 88px; z-index: 1400;
+  display: flex; align-items: flex-start; gap: 2px;
+  max-width: 260px; padding: 4px 4px 4px 14px;
+  background: var(--surface, #fff); color: var(--text);
+  border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(36,28,24,.18);
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .2s ease, transform .25s ease;
+}
+html:not([data-theme="dark"]) .fab-greet { background: #fff; }
+.fab-greet.is-in { opacity: 1; transform: none; }
+.fab-greet::after {
+  content: ""; position: absolute; right: 26px; bottom: -7px;
+  width: 12px; height: 12px; transform: rotate(45deg);
+  background: inherit; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+}
+.fab-greet-text {
+  flex: 1; padding: 8px 0; border: 0; background: none; color: inherit; text-align: left;
+  font: inherit; font-size: .875rem; font-weight: 600; line-height: 1.4; cursor: pointer;
+}
+.fab-greet-close {
+  flex-shrink: 0; width: 30px; height: 30px; border: 0; border-radius: 8px;
+  background: none; color: var(--text-muted); cursor: pointer;
+}
+.fab-greet-close:hover, .fab-greet-close:focus-visible { background: var(--bg-secondary); color: var(--text); }
+body.ai-panel-locked .fab-greet,
+body[data-page="map"] .fab-greet,
+body:has(.active-layout) .fab-greet,
+body:has(#arriveToast.is-open) .fab-greet { display: none; }
+@media (max-width: 600px) {
+  .fab-greet { right: 12px; bottom: calc(66px + env(safe-area-inset-bottom)); max-width: min(260px, calc(100vw - 24px)); }
+  .fab-label { font-size: .75rem; padding: 6px 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fab-greet { transition: none; transform: none; }
+}

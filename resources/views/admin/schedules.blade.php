@@ -102,7 +102,10 @@
                             @endif
                         </td>
                         <td>{{ $s->event_name }}</td>
-                        <td><span class="badge badge-gold">{{ $s->event_type }}</span></td>
+                        <td>
+                            <span class="badge badge-gold">{{ $s->event_type }}</span>
+                            @if ($s->language)<span class="sched-lang">{{ $s->language }}</span>@endif
+                        </td>
                         <td>{{ $s->day_label }}</td>
                         <td>{{ $s->time_frame_label ?: '-' }}</td>
                         <td>{{ $s->timeLabel($s->start_time) }}</td>
@@ -210,6 +213,17 @@
                                 <option value="{{ $type }}">{{ $type }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div class="field">
+                        <label class="dm-label" for="s-language">Language</label>
+                        <select id="s-language" name="language" class="giya-input">
+                            <option value="">Not set</option>
+                            @foreach (\App\Models\Schedule::LANGUAGES as $language)
+                                <option value="{{ $language }}">{{ $language }}</option>
+                            @endforeach
+                        </select>
+                        <p class="dm-hint">Shown as a colour on the church page. Leave "Not set" unless the parish confirms it.</p>
                     </div>
                 </div>
 
@@ -377,6 +391,7 @@
         document.getElementById('s-status').value    = 'Published';
         document.getElementById('s-whole').checked   = false;
         document.getElementById('s-notes').value     = '';
+        document.getElementById('s-language').value  = '';
         document.getElementById('scheduleModalTitle').textContent = 'Add Schedule';
         document.getElementById('s-submit').textContent = 'Save Schedule';
     }
@@ -404,6 +419,7 @@
             document.getElementById('s-status').value     = s.status || 'Published';
             document.getElementById('s-whole').checked    = !!s.is_whole_day;
             document.getElementById('s-notes').value      = s.notes || '';
+            document.getElementById('s-language').value   = s.language || '';
 
             document.getElementById('scheduleModalTitle').textContent = 'Edit Schedule';
             document.getElementById('s-submit').textContent = 'Save Changes';

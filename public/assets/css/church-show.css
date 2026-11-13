@@ -688,3 +688,27 @@
 /* Dark mode for the cards added after the first dark pass. */
 html[data-theme="dark"] .church-guide-item { background: var(--surface); border-color: var(--border); }
 html[data-theme="dark"] .church-hero-category { color: #241C18; }
+
+/* ── Mass language ──────────────────────────────────────────────
+   Each Mass time is coloured by its language, with a key under the list.
+   A time with no colour has no confirmed language yet. The language is
+   also in the text for screen readers and on hover, so colour is never
+   the only way to tell. */
+.church-schedule-time.is-cebuano  { background: #F6E1D9; border-color: #D9A08F; color: #6B2D22; }
+.church-schedule-time.is-english  { background: #DCE8F7; border-color: #93B3DE; color: #1F4E8C; }
+.church-schedule-time.is-filipino { background: #DEF0E1; border-color: #94C69E; color: #24603A; }
+
+.church-lang-key { display: flex; flex-wrap: wrap; gap: 8px 16px; padding-top: 12px; margin-top: 2px;
+  border-top: 1px solid var(--border); font-size: .8125rem; color: var(--text-muted); }
+.church-lang-item { display: inline-flex; align-items: center; gap: 6px; }
+.church-lang-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--gold-bg); border: 1px solid var(--border); }
+.church-lang-dot.is-cebuano  { background: #F6E1D9; border-color: #D9A08F; }
+.church-lang-dot.is-english  { background: #DCE8F7; border-color: #93B3DE; }
+.church-lang-dot.is-filipino { background: #DEF0E1; border-color: #94C69E; }
+
+html[data-theme="dark"] .church-schedule-time.is-cebuano,
+html[data-theme="dark"] .church-lang-dot.is-cebuano  { background: #4A2620; border-color: #9C5A4A; color: #F4C7BA; }
+html[data-theme="dark"] .church-schedule-time.is-english,
+html[data-theme="dark"] .church-lang-dot.is-english  { background: #1D3350; border-color: #4F78AE; color: #BCD5F5; }
+html[data-theme="dark"] .church-schedule-time.is-filipino,
+html[data-theme="dark"] .church-lang-dot.is-filipino { background: #1F3D28; border-color: #4E8B5D; color: #B8E3C2; }

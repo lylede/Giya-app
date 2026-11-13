@@ -100,7 +100,17 @@
             <span class="fab-say" id="fabSay" aria-hidden="true">
                 {{ __('giya.chat.starter') }}
             </span>
+            {{-- Says what the face is for, until the pilgrim has opened it once. --}}
+            <span class="fab-label" aria-hidden="true">{{ __('giya.home.card_ask') }}</span>
         </button>
+
+        {{-- Shown once, on a pilgrim's first visit, then never again. --}}
+        <div class="fab-greet" id="fabGreet" hidden>
+            <button type="button" class="fab-greet-text" id="fabGreetOpen">{{ __('giya.chat.fab_greet') }}</button>
+            <button type="button" class="fab-greet-close" id="fabGreetClose" aria-label="{{ __('giya.common.close') }}">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
 
         <x-ai-panel />
     @endunless
