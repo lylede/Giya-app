@@ -24,10 +24,9 @@ new class extends Component
         $user = app(LoginAction::class)->execute($credentials, $this->remember, request());
 
         $message = 'Welcome back, '.$user->firstName().'!';
-        // Back to the page that asked them to sign in (a church, a shared route), like LoginController.
-        $fallback = $user->isAdmin() ? route('admin.dashboard') : route('home');
-        $intended = (string) session()->pull('url.intended', '');
-        $route = str_starts_with($intended, url('/').'/') ? $intended : $fallback;
+        // Back to the page that asked them to sign in (a church, a shared route);
+        // never to an admin page unless they are an admin.
+        $route = LoginAction::destination($user);
 
         $this->redirect($route, navigate: true);
         session()->flash('success', $message);

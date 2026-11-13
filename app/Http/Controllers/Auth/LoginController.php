@@ -36,18 +36,11 @@ class LoginController extends Controller
                 ->withErrors($exception->errors());
         }
 
-        return $user->isAdmin()
-            ? redirect()->intended(route('admin.dashboard'))->with(
-                'success',
-                'Welcome back, '.$user->firstName().'!'
-            )
-            // intended(), not a fixed route: a guest sent here from a church
-            // page should arrive back at that church, not at the home page
-            // wondering where the thing they clicked went.
-            : redirect()->intended(route('home'))->with(
-                'success',
-                'Welcome back, '.$user->firstName().'!'
-            );
+        // Back to the page that asked them to sign in (a church, a shared
+        // route), so they are not left wondering where the thing they clicked
+        // went; never to an admin page unless they are an admin.
+        return redirect()->to(LoginAction::destination($user))
+            ->with('success', 'Welcome back, '.$user->firstName().'!');
     }
 
     public function destroy(Request $request): RedirectResponse

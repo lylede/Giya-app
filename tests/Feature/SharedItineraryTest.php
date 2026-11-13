@@ -95,7 +95,11 @@ class SharedItineraryTest extends TestCase
         $this->get(route('shared.show', $trip->share_token))->assertOk()
             ->assertSessionHas('url.intended', route('shared.show', $trip->share_token));
 
-        // ...and the sign-in form sends them there (checked in the browser; see the login component).
-        $this->assertStringContainsString("session()->pull('url.intended'", file_get_contents(resource_path('views/components/auth/⚡login.blade.php')));
+        // ...and the sign-in form sends them there: it asks LoginAction, which reads the remembered page.
+        $this->assertStringContainsString('LoginAction::destination($user)', file_get_contents(resource_path('views/components/auth/⚡login.blade.php')));
+        $this->assertSame(
+            route('shared.show', $trip->share_token),
+            \App\Actions\Auth\LoginAction::destination($this->person('jose@example.com'))
+        );
     }
 }

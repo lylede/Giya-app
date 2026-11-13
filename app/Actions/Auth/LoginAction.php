@@ -71,6 +71,30 @@ class LoginAction
         return $user;
     }
 
+    /**
+     * Where to send someone who has just signed in: back to the page that
+     * asked them to sign in (a church, a shared route), or to their start
+     * page when there was none.
+     *
+     * An admin page is only a place to go back to for an admin. Otherwise a
+     * pilgrim signing in on a browser that had last tried to open /admin was
+     * sent there, and met "403 Administrator access only" with no way out.
+     */
+    public static function destination(User $user): string
+    {
+        $fallback = $user->isAdmin() ? route('admin.dashboard') : route('home');
+        $intended = (string) session()->pull('url.intended', '');
+
+        if (! str_starts_with($intended, url('/').'/')) {
+            return $fallback;
+        }
+
+        $path = '/'.ltrim((string) parse_url($intended, PHP_URL_PATH), '/');
+        $adminPage = $path === '/admin' || str_starts_with($path, '/admin/');
+
+        return $adminPage && ! $user->isAdmin() ? $fallback : $intended;
+    }
+
     private function throttleKey(string $email, Request $request): string
     {
         return 'login:'.Str::transliterate(Str::lower(trim($email))).'|'.$request->ip();
