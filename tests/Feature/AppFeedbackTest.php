@@ -53,6 +53,22 @@ class AppFeedbackTest extends TestCase
         $this->post(route('app-feedback.store'), ['rating' => 5, 'topic' => 'map'])->assertRedirect(route('login'));
     }
 
+    public function test_reviews_and_app_feedback_are_one_feedback_module_with_two_tabs(): void
+    {
+        $admin = $this->person('admin');
+        AppFeedback::create(['user_id' => $admin->id, 'rating' => 4, 'topic' => 'map', 'comment' => 'Good', 'created_at' => now()]);
+
+        foreach (['admin.feedback', 'admin.app-feedback'] as $page) {
+            $html = $this->actingAs($admin)->get(route($page))->assertOk()
+                ->assertSee('Church reviews')->assertSee('App feedback')->getContent();
+
+            // One sidebar item for both, and it is lit on both pages.
+            $this->assertSame(0, substr_count($html, '>App Feedback<'), "{$page} still has its own sidebar item");
+            $this->assertSame(1, preg_match_all('/admin-nav-item active[^>]*>\s*<i class="bi bi-giya-star"/', $html), "{$page} does not light Feedback");
+            $this->assertSame(1, substr_count($html, 'aria-current="page"'), "{$page} marks no tab or more than one");
+        }
+    }
+
     public function test_admins_see_the_average_by_topic_and_can_download(): void
     {
         $a = $this->person(); $b = $this->person();

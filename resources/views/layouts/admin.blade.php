@@ -58,11 +58,8 @@
             <a href="{{ route('admin.schedules') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.schedules')])>
                 <i class="bi bi-giya-candle"></i> <span class="admin-nav-label">Schedules</span>
             </a>
-            <a href="{{ route('admin.feedback') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.feedback')])>
+            <a href="{{ route('admin.feedback') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.feedback', 'admin.app-feedback*')])>
                 <i class="bi bi-giya-star"></i> <span class="admin-nav-label">Feedback</span>
-            </a>
-            <a href="{{ route('admin.app-feedback') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.app-feedback*')])>
-                <i class="bi bi-chat-dots"></i> <span class="admin-nav-label">App Feedback</span>
             </a>
             <a href="{{ route('admin.transactions') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.transactions')])>
                 <i class="bi bi-giya-payment"></i> <span class="admin-nav-label">Transactions</span>

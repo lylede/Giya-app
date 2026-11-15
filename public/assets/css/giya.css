@@ -7425,3 +7425,15 @@ html[data-theme="dark"] .app-fb-stars input:checked ~ label { color: var(--gold,
 /* End of trip: the GIYA question sits apart from the churches. */
 .rate-app { background: var(--gold-bg, #FBEFD6); border-color: rgba(215,169,74,.45); margin-bottom: 12px; }
 html[data-theme="dark"] .rate-app { background: rgba(215,169,74,.10); }
+
+/* Admin: tabs inside a module (Feedback: church reviews / app feedback). */
+.adm-tabs { display: flex; gap: 4px; margin: 0 0 18px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.adm-tab { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: -1px; white-space: nowrap;
+  font-size: .875rem; font-weight: 600; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; }
+.adm-tab:hover { color: var(--text); }
+.adm-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.adm-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: 6px 6px 0 0; }
+.adm-tab-count { min-width: 20px; padding: 1px 7px; border-radius: 999px; font-size: .75rem; line-height: 1.5; text-align: center;
+  background: var(--gold-bg, #FBEFD6); color: var(--primary); }
+html[data-theme="dark"] .adm-tab.active { color: var(--gold-light, #E9C77E); border-bottom-color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .adm-tab-count { background: rgba(215,169,74,.16); color: var(--gold-light, #E9C77E); }

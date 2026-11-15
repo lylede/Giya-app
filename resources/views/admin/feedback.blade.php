@@ -1,9 +1,11 @@
 @extends('layouts.admin')
 @section('title', 'Feedback')
-@section('page-title', 'Feedback Management')
-@section('page-subtitle', 'Reviews and ratings submitted by pilgrims')
+@section('page-title', 'Feedback')
+@section('page-subtitle', 'Church reviews and ratings from pilgrims')
 
 @section('content')
+
+@include('admin.partials.feedback-tabs')
 
 <div class="stat-row">
     @foreach ([

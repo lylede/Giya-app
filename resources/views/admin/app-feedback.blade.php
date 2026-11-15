@@ -1,9 +1,11 @@
 @extends('layouts.admin')
-@section('title', 'App Feedback')
-@section('page-title', 'App Feedback')
+@section('title', 'App feedback')
+@section('page-title', 'Feedback')
 @section('page-subtitle', 'What pilgrims say about GIYA itself')
 
 @section('content')
+
+@include('admin.partials.feedback-tabs')
 
 @unless ($ready)
     <div class="alert alert-warning mb-3">
