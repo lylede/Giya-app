@@ -140,6 +140,12 @@ Route::post('/email/check/resend', [\App\Http\Controllers\Auth\EmailVerification
     ->middleware('throttle:3,10')->name('verification.resend-pending');
 Route::post('/email/check/code', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'codePending'])
     ->middleware('throttle:10,10')->name('verification.code-pending');
+// Checking in at a church from the map (VisitController).
+Route::middleware('auth')->group(function () {
+    Route::post('/visits/arrive', [\App\Http\Controllers\VisitController::class, 'arrive'])->middleware('throttle:30,1')->name('visits.arrive');
+    Route::post('/visits/{visit}/undo', [\App\Http\Controllers\VisitController::class, 'undo'])->middleware('throttle:30,1')->name('visits.undo');
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::post('/email/verification-notification', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resend'])

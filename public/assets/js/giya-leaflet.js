@@ -1199,6 +1199,34 @@ window.GiyaLeaflet = (function () {
         var watchId = null;
         var announced = {};
 
+        /* Within ARRIVE_M for about a minute, not just for a moment: a stop
+           passed on the road (in a jeepney, on the way to the one before it)
+           is not a visit. Standing still sends no new positions, so a timer
+           counts the minute as well. */
+        var STAY_MS = 60 * 1000;
+        var nearSince = {};
+        var lastHere = null;
+        var arriveTicker = null;
+
+        function checkArrivals() {
+            if (!lastHere) return;
+            var now = Date.now();
+
+            stops.forEach(function (st) {
+                if (st.visited || announced[st.id]) return;
+
+                var metres = km(lastHere, { lat: st.lat, lng: st.lng }) * 1000;
+
+                if (metres > ARRIVE_M) { delete nearSince[st.id]; return; }
+                if (!nearSince[st.id]) nearSince[st.id] = now;
+
+                if (now - nearSince[st.id] >= STAY_MS) {
+                    announced[st.id] = true;      // announce once per session
+                    if (cfg.onArrive) cfg.onArrive(st, Math.round(metres));
+                }
+            });
+        }
+
         function track() {
             /* Same gate as locate(). Without it the watch is started on an
                insecure origin, fires its error callback once with code 1 and
@@ -1211,6 +1239,8 @@ window.GiyaLeaflet = (function () {
 
             if (!navigator.geolocation || watchId !== null) return;
 
+            arriveTicker = arriveTicker || setInterval(checkArrivals, 10000);
+
             watchId = navigator.geolocation.watchPosition(
                 function (pos) {
                     var here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -1222,16 +1252,8 @@ window.GiyaLeaflet = (function () {
                         cfg.onLocated(here, next, km(here, { lat: next.lat, lng: next.lng }));
                     }
 
-                    stops.forEach(function (st) {
-                        if (st.visited || announced[st.id]) return;
-
-                        var metres = km(here, { lat: st.lat, lng: st.lng }) * 1000;
-
-                        if (metres <= ARRIVE_M) {
-                            announced[st.id] = true;      // announce once per session
-                            if (cfg.onArrive) cfg.onArrive(st, Math.round(metres));
-                        }
-                    });
+                    lastHere = here;
+                    checkArrivals();
                 },
                 function (err) {
                     if (cfg.onStatus) {
@@ -1248,6 +1270,8 @@ window.GiyaLeaflet = (function () {
         function untrack() {
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
             watchId = null;
+            clearInterval(arriveTicker);
+            arriveTicker = null;
         }
 
         return {

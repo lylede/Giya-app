@@ -736,4 +736,10 @@ return [
         'copied' => 'Na-save sa imong itinerary. Bulahan nga pilgrimage!',
         'limit' => 'Naabot na nimo ang libre nga limit sa itinerary. Mag-upgrade o papasa ang usa aron ma-save kini nga ruta.',
     ],
+
+    'visit' => [
+        'note_message' => 'Namarkahan nga nabisitahan. Naa na sa imong kasaysayan sa pagbisita.',
+        'marked'       => 'Namarkahan nga nabisitahan',
+        'undo'         => 'I-undo',
+    ],
 ];

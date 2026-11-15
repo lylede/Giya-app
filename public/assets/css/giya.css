@@ -7290,3 +7290,22 @@ html { overflow-x: clip; }
     bottom: calc(var(--mx-sheet-h, 148px) + 12px) !important;
   }
 }
+/* Map: "You're at ...: marked as visited". Fixed under the top bar, so the
+   church list sheet on a phone never covers it. Shares the trip page's
+   arrival look (.arrive-icon, .arrive-body, .arrive-undo). */
+.visit-toast {
+  position: fixed; left: 50%; top: calc(var(--nav-height, 64px) + 12px);
+  transform: translate(-50%, -10px);
+  z-index: 1500;
+  display: flex; align-items: center; gap: 12px;
+  width: max-content; max-width: min(440px, calc(100vw - 24px));
+  padding: 12px 14px;
+  background: #fff; border: 1px solid var(--border); border-left: 3px solid #4E9C6B;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 14px 38px rgba(36,28,24,.28);
+  opacity: 0;
+  transition: opacity .28s ease, transform .28s cubic-bezier(.2,.8,.3,1);
+}
+.visit-toast.is-open { opacity: 1; transform: translate(-50%, 0); }
+html[data-theme="dark"] .visit-toast { background: var(--surface-2, #2A211C); }
+@media (prefers-reduced-motion: reduce) { .visit-toast { transition: none; } }

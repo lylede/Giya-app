@@ -321,15 +321,40 @@
         </div>
     </div>
 </div>
+
+@auth
+    {{-- "You're at ...: marked as visited", with Undo (giya-arrive.js). --}}
+    <div class="visit-toast" id="visitToast" hidden role="status" aria-live="polite">
+        <span class="arrive-icon"><i class="bi bi-check-lg" aria-hidden="true"></i></span>
+        <div class="arrive-body">
+            <strong>{{ __('giya.visit.marked') }}</strong>
+            <span id="visitToastName"></span>
+        </div>
+        <button type="button" class="arrive-undo" id="visitToastUndo">{{ __('giya.visit.undo') }}</button>
+    </div>
+@endauth
 @endsection
 
 @push('scripts')
 <script src="{{ asset('assets/js/leaflet.js') }}?v={{ filemtime(public_path('assets/js/leaflet.js')) }}"></script>
 <script src="{{ asset('assets/js/leaflet.markercluster.js') }}?v={{ filemtime(public_path('assets/js/leaflet.markercluster.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-leaflet.js') }}?v={{ filemtime(public_path('assets/js/giya-leaflet.js')) }}"></script>
+@auth
+<script src="{{ asset('assets/js/giya-arrive.js') }}?v={{ filemtime(public_path('assets/js/giya-arrive.js')) }}"></script>
+@endauth
 <script>
 (function () {
     const churches = @json($markers);
+
+    // Check in at any church the devotee stands at for a minute (signed in only).
+    if (window.GiyaArrive) {
+        window.GiyaArrive.init({
+            churches: churches,
+            visitedToday: @json($visitedToday),
+            url: @json(route('visits.arrive')),
+            csrf: document.querySelector('meta[name="csrf-token"]')?.content || ''
+        });
+    }
 
     /* Everyone may browse the map. Opening a church's own page - schedules,
        reviews, visit history - needs an account, so the list marks those links
@@ -522,6 +547,9 @@
             // can act on. The map works either way, so say nothing.
         },
 onLocated: function (me) {
+            // Location is allowed now, so start watching for church check-ins.
+            if (window.GiyaArrive) window.GiyaArrive.start();
+
             /* Distance to EVERY church, not just the handful the map returns
                as "nearest". Near is a radius, so it needs them all - otherwise
                a church 200 m away is excluded because it fell outside an

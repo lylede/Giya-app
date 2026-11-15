@@ -104,6 +104,12 @@ class MapController extends Controller
                rather than that no church has been marked yet. */
             'hasMajors'  => $churches->contains(fn (Church $c) => $c->is_major),
 
+            // Churches already checked in today, so the map does not check in again.
+            'visitedToday' => $request->user()
+                ? \App\Models\VisitHistory::where('user_id', $request->user()->id)
+                    ->where('visited_at', '>=', now()->startOfDay())->pluck('church_id')->unique()->values()
+                : [],
+
             // Plain array for Leaflet - no Eloquent objects cross into JS.
             /* Every published church, pinned or not. One without a pin is
                still listed (and searchable) - it just has no marker - so a

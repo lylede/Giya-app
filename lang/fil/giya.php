@@ -736,4 +736,10 @@ return [
         'copied' => 'Na-save sa iyong mga itinerary. Pagpalain ang iyong pilgrimage!',
         'limit' => 'Naabot mo na ang libreng limit ng itinerary. Mag-upgrade o magbura ng isa para ma-save ang rutang ito.',
     ],
+
+    'visit' => [
+        'note_message' => 'Minarkahang nabisita. Nasa iyong kasaysayan ng pagbisita na ito.',
+        'marked'       => 'Minarkahang nabisita',
+        'undo'         => 'I-undo',
+    ],
 ];

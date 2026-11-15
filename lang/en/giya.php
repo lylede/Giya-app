@@ -746,4 +746,10 @@ return [
         'copied' => 'Saved to your itineraries. Have a blessed pilgrimage!',
         'limit' => 'You have reached the free limit of itineraries. Upgrade or delete one to save this route.',
     ],
+
+    'visit' => [
+        'note_message' => 'Marked as visited. It is in your visit history.',
+        'marked'       => 'Marked as visited',
+        'undo'         => 'Undo',
+    ],
 ];
