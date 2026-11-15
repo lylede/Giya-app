@@ -295,6 +295,8 @@ return [
         'rate_note_title' => 'Kumusta ang imong :trip?',
         'rate_note_body' => 'I-rate ang mga simbahan nga imong gibisitahan.',
         'rate_title' => 'Nahuman na ang panaw',
+        'rate_app'          => 'Unsa ang GIYA niini nga biyahe?',
+        'rate_app_ph'       => 'Aduna kay isulti bahin sa GIYA? (dili kinahanglan)',
         'rate_ask' => 'Kumusta ang matag simbahan?',
         'rate_comment' => 'Komento (opsyonal)',
         'rate_later' => 'Unya na lang',
@@ -772,6 +774,7 @@ return [
     ],
 
     'app_feedback' => [
+        'topic_trip' => 'Usa ka biyahe',
         'title' => 'Pagpadala og feedback',
         'lead' => 'Unsa ang imong kasinatian sa GIYA? Isulti kanamo kon unsa ang makatabang, unsa ang makalibog ug unsa ang imong gusto sunod. Basahon sa grupo ang matag mensahe.',
         'rating_label' => 'Imong kinatibuk-ang kasinatian',

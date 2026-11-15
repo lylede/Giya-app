@@ -7384,3 +7384,7 @@ html[data-theme="dark"] .app-fb-stars input:checked ~ label { color: var(--gold,
 .appfb-stars { color: var(--gold, #D7A94A); white-space: nowrap; letter-spacing: 1px; }
 .appfb-stars-off { color: var(--border); }
 .appfb-comment { max-width: 420px; white-space: pre-line; }
+
+/* End of trip: the GIYA question sits apart from the churches. */
+.rate-app { background: var(--gold-bg, #FBEFD6); border-color: rgba(215,169,74,.45); margin-bottom: 12px; }
+html[data-theme="dark"] .rate-app { background: rgba(215,169,74,.10); }

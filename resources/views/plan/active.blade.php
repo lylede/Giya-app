@@ -216,6 +216,18 @@
             <p class="plan-modal-sub">{{ $itinerary->name }} &middot; <span id="rateProgress"></span></p>
             <p class="rate-ask">{{ __('giya.plan.rate_ask') }}</p>
             <div id="rateList" class="rate-list"></div>
+            {{-- About GIYA itself, not a church: goes to the admins' App Feedback. --}}
+            <div class="rate-item rate-app">
+                <p class="rate-name">{{ __('giya.plan.rate_app') }}</p>
+                <div class="rate-stars" role="radiogroup" data-stars="app">
+                    @for ($n = 1; $n <= 5; $n++)
+                        <button type="button" class="rate-star" role="radio" aria-checked="false" data-star="{{ $n }}"
+                                aria-label="{{ __('giya.plan.rate_stars', ['n' => $n]) }}">★</button>
+                    @endfor
+                </div>
+                <textarea class="giya-input rate-comment" rows="1" maxlength="1000" data-comment="app"
+                          placeholder="{{ __('giya.plan.rate_app_ph') }}"></textarea>
+            </div>
             <p class="rate-error" id="rateError" hidden>{{ __('giya.plan.rate_need_one') }}</p>
             <div class="plan-modal-actions">
                 <button type="button" class="btn btn-ghost" data-rate-later>{{ __('giya.plan.rate_later') }}</button>
@@ -842,7 +854,8 @@ const GiyaActive = (function () {
             const star = e.target.closest('[data-star]');
             if (star) {
                 const group = star.closest('[data-stars]');
-                const id = Number(group.dataset.stars), n = Number(star.dataset.star);
+                // A church's stop id, or "app" for GIYA itself.
+                const id = group.dataset.stars === 'app' ? 'app' : Number(group.dataset.stars), n = Number(star.dataset.star);
                 picked[id] = n;
                 group.querySelectorAll('[data-star]').forEach(function (b) {
                     const k = Number(b.dataset.star);
@@ -860,11 +873,15 @@ const GiyaActive = (function () {
         document.getElementById('rateSend').addEventListener('click', function () {
             const ratings = {};
             Object.keys(picked).forEach(function (id) {
+                if (id === 'app') return;
                 const box = rateModal.querySelector('[data-comment="' + id + '"]');
                 ratings[id] = { rating: picked[id], comment: box ? box.value : '' };
             });
+            const app = picked.app
+                ? { rating: picked.app, comment: rateModal.querySelector('[data-comment="app"]').value }
+                : null;
 
-            if (!Object.keys(ratings).length) {
+            if (!Object.keys(ratings).length && !app) {
                 document.getElementById('rateError').hidden = false;
                 return;
             }
@@ -875,7 +892,7 @@ const GiyaActive = (function () {
             fetch(rateUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrf },
-                body: JSON.stringify({ ratings: ratings }),
+                body: JSON.stringify({ ratings: ratings, app: app }),
             })
             .then(function (r) { return r.ok ? r.json() : Promise.reject(r); })
             .then(function () {

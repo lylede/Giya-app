@@ -186,4 +186,30 @@ class ArrivalNotificationTest extends TestCase
         $this->assertStringContainsString(e(route('plan.index', ['trip' => $this->stops[0]->itinerary_id])), $html);
         $this->assertStringContainsString(__('giya.hub.view_saved'), $html);
     }
+
+    public function test_the_end_of_trip_screen_also_asks_how_giya_was(): void
+    {
+        $this->finishTrip();
+        $trip = $this->stops[0]->itinerary_id;
+
+        $this->actingAs($this->user)->get(route('plan.show', $trip))->assertOk()->assertSee(__('giya.plan.rate_app'));
+
+        // GIYA only, no church stars: still accepted.
+        $this->actingAs($this->user)->postJson(route('plan.ratings', $trip), [
+            'ratings' => [],
+            'app'     => ['rating' => 4, 'comment' => 'The route was easy to follow.'],
+        ])->assertOk()->assertJsonPath('app', true)->assertJsonPath('saved', 0);
+
+        $row = \App\Models\AppFeedback::sole();
+        $this->assertSame([4, 'trip', 'The route was easy to follow.'], [$row->rating, $row->topic, $row->comment]);
+        $this->assertSame(0, Notification::where('dedupe_key', 'rate:'.$trip)->count());
+
+        // Both together.
+        $this->actingAs($this->user)->postJson(route('plan.ratings', $trip), [
+            'ratings' => [$this->stops[0]->id => ['rating' => 5, 'comment' => '']],
+            'app'     => ['rating' => 5],
+        ])->assertOk()->assertJsonPath('saved', 1)->assertJsonPath('app', true);
+
+        $this->assertSame(2, \App\Models\AppFeedback::count());
+    }
 }

@@ -12,7 +12,11 @@ class AppFeedback extends Model
 
     public $timestamps = false;
 
-    public const TOPICS = ['map', 'ai', 'planning', 'mass', 'account', 'other'];
+    /** Every topic; "trip" comes only from the end-of-trip rating screen. */
+    public const TOPICS = ['map', 'ai', 'planning', 'mass', 'account', 'other', 'trip'];
+
+    /** The topics offered on the Send feedback page. */
+    public const FORM_TOPICS = ['map', 'ai', 'planning', 'mass', 'account', 'other'];
 
     protected $fillable = ['user_id', 'rating', 'topic', 'comment', 'created_at'];
 

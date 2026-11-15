@@ -295,6 +295,8 @@ return [
         'rate_note_title' => 'Kumusta ang iyong :trip?',
         'rate_note_body' => 'I-rate ang mga simbahang binisita mo.',
         'rate_title' => 'Tapos na ang peregrinasyon',
+        'rate_app'          => 'Kumusta ang GIYA sa biyaheng ito?',
+        'rate_app_ph'       => 'May gusto ka bang sabihin tungkol sa GIYA? (opsyonal)',
         'rate_ask' => 'Kumusta ang bawat simbahan?',
         'rate_comment' => 'Komento (opsyonal)',
         'rate_later' => 'Mamaya',
@@ -772,6 +774,7 @@ return [
     ],
 
     'app_feedback' => [
+        'topic_trip' => 'Isang biyahe',
         'title' => 'Magpadala ng feedback',
         'lead' => 'Kumusta ang karanasan mo sa GIYA? Sabihin sa amin kung ano ang nakakatulong, ano ang nakakalito at ano ang gusto mong susunod. Binabasa ng grupo ang bawat mensahe.',
         'rating_label' => 'Iyong kabuuang karanasan',

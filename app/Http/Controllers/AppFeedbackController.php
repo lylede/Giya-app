@@ -13,7 +13,7 @@ class AppFeedbackController extends Controller
 {
     public function create(): View
     {
-        return view('feedback', ['topics' => AppFeedback::TOPICS]);
+        return view('feedback', ['topics' => AppFeedback::FORM_TOPICS]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -24,7 +24,7 @@ class AppFeedbackController extends Controller
 
         $data = $request->validate([
             'rating'  => ['required', 'integer', 'between:1,5'],
-            'topic'   => ['required', 'in:'.implode(',', AppFeedback::TOPICS)],
+            'topic'   => ['required', 'in:'.implode(',', AppFeedback::FORM_TOPICS)],
             'comment' => ['nullable', 'string', 'max:1000'],
         ], [
             'rating.required' => __('giya.app_feedback.need_rating'),

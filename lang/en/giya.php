@@ -305,6 +305,8 @@ return [
         'rate_note_title' => 'How was your :trip?',
         'rate_note_body' => 'Rate the churches you visited.',
         'rate_title' => 'Pilgrimage complete',
+        'rate_app'          => 'How was GIYA for this trip?',
+        'rate_app_ph'       => 'Anything about GIYA to tell us? (optional)',
         'rate_ask' => 'How was each church?',
         'rate_comment' => 'Comment (optional)',
         'rate_later' => 'Later',
@@ -782,6 +784,7 @@ return [
     ],
 
     'app_feedback' => [
+        'topic_trip' => 'A trip',
         'title' => 'Send feedback',
         'lead' => 'How is GIYA working for you? Tell us what helps, what is confusing and what you would like next. The team reads every message.',
         'rating_label' => 'Your overall experience',

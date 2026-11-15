@@ -264,12 +264,29 @@ class ItineraryController extends Controller
         Gate::authorize('update', $itinerary);
 
         $data = $request->validate([
-            'ratings'           => ['required', 'array'],
+            'ratings'           => ['nullable', 'array'],
             'ratings.*.rating'  => ['nullable', 'integer', 'between:1,5'],
             'ratings.*.comment' => ['nullable', 'string', 'max:2000'],
+            // "How was GIYA for this trip?": about the app, not a church.
+            'app'               => ['nullable', 'array'],
+            'app.rating'        => ['nullable', 'integer', 'between:1,5'],
+            'app.comment'       => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $data['ratings'] = $data['ratings'] ?? [];
         $saved = 0;
+        $appSaved = false;
+
+        if (! empty($data['app']['rating']) && \Illuminate\Support\Facades\Schema::hasTable('app_feedback')) {
+            \App\Models\AppFeedback::create([
+                'user_id'    => Auth::id(),
+                'rating'     => (int) $data['app']['rating'],
+                'topic'      => 'trip',
+                'comment'    => trim((string) ($data['app']['comment'] ?? '')) ?: null,
+                'created_at' => now(),
+            ]);
+            $appSaved = true;
+        }
 
         foreach ($itinerary->stops()->where('is_visited', true)->get() as $stop) {
             $row = $data['ratings'][$stop->id] ?? null;
@@ -303,11 +320,11 @@ class ItineraryController extends Controller
         }
 
         // The reminder in the bell has done its job.
-        if ($saved) {
+        if ($saved || $appSaved) {
             Notification::where('user_id', Auth::id())->where('dedupe_key', 'rate:'.$itinerary->id)->delete();
         }
 
-        return response()->json(['ok' => true, 'saved' => $saved]);
+        return response()->json(['ok' => true, 'saved' => $saved, 'app' => $appSaved]);
     }
 
     public function markVisited(Request $request): JsonResponse
