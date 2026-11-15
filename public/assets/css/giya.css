@@ -7319,16 +7319,53 @@ html[data-theme="dark"] .visit-toast { background: var(--surface-2, #2A211C); }
 .about-section h2 { font-family: var(--font-display, 'Playfair Display', serif); font-size: 1.375rem; margin: 0 0 10px; }
 .about-section p { font-size: .9375rem; line-height: 1.7; max-width: 66ch; margin: 0 0 10px; }
 
-.about-does { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 10px; }
-.about-does li { display: flex; align-items: flex-start; gap: 12px; font-size: .9375rem; line-height: 1.55; }
-.about-does .bi { flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
-  background: var(--gold-bg, #FBEFD6); color: var(--primary); font-size: 1rem; }
-.about-does span { padding-top: 6px; }
+/* About: figures strip, features, steps, audiences. */
+.about-figures { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.about-figures li { padding: 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+.about-figures li + li { border-left: 1px solid var(--border); }
+.about-figures strong { font-family: var(--font-display, 'Playfair Display', serif); font-size: 1.75rem; line-height: 1.1; color: var(--primary); }
+.about-figures span { font-size: .8125rem; line-height: 1.35; color: var(--text-muted); }
+
+.about-features { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 24px; }
+.about-features li { display: flex; align-items: flex-start; gap: 12px; }
+.about-features .bi { flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--gold-bg, #FBEFD6); color: var(--primary); font-size: 1.05rem; }
+.about-features strong { display: block; font-size: .9375rem; line-height: 1.35; margin-bottom: 2px; }
+.about-features span { display: block; font-size: .875rem; line-height: 1.55; color: var(--text-muted); }
+
+.about-steps { list-style: none; counter-reset: about-step; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.about-steps li { counter-increment: about-step; position: relative; padding-top: 44px; }
+.about-steps li::before { content: counter(about-step); position: absolute; top: 0; left: 0; width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .875rem; background: var(--primary); color: #fff; }
+.about-steps li:not(:last-child)::after { content: ""; position: absolute; top: 16px; left: 42px; right: -8px; border-top: 1px dashed var(--border); }
+.about-steps strong { display: block; font-size: .9375rem; margin-bottom: 2px; }
+.about-steps span { display: block; font-size: .8125rem; line-height: 1.55; color: var(--text-muted); }
+
+.about-for { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.about-for li { padding: 14px 16px; border-left: 3px solid var(--primary); background: var(--surface, #fff); border-radius: 0 10px 10px 0; }
+.about-for strong { display: block; font-size: .9375rem; margin-bottom: 2px; }
+.about-for span { display: block; font-size: .8125rem; line-height: 1.55; color: var(--text-muted); }
+.about-section p a { color: var(--primary); }
+
+html[data-theme="dark"] .about-features .bi { background: rgba(215,169,74,.14); color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .about-figures strong,
+html[data-theme="dark"] .about-section p a { color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .about-steps li::before { background: var(--gold-light, #E9C77E); color: #241C18; }
+html[data-theme="dark"] .about-for li { border-left-color: var(--gold-light, #E9C77E); background: rgba(255,255,255,.04); }
+@media (max-width: 700px) {
+  .about-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .about-figures li:nth-child(3) { border-left: 0; }
+  .about-figures li:nth-child(n+3) { border-top: 1px solid var(--border); }
+  .about-features, .about-for { grid-template-columns: 1fr; }
+  .about-steps { grid-template-columns: 1fr; gap: 14px; }
+  .about-steps li { padding: 0 0 0 46px; min-height: 32px; }
+  .about-steps li:not(:last-child)::after { top: 38px; bottom: -10px; left: 16px; right: auto; border-top: 0; border-left: 1px dashed var(--border); }
+}
 
 .about-school { padding: 18px 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface, #fff); }
 .about-school h2 { font-size: 1.125rem; }
 .about-school p { margin: 0; }
-html[data-theme="dark"] .about-does .bi { background: rgba(215,169,74,.14); color: var(--gold-light, #E9C77E); }
 
 /* About: the team. Four across, round photos, name and role, then a
    line about each (the first About design, with the new text). */
