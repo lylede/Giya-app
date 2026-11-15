@@ -43,6 +43,13 @@ new class extends Component
     @error('email')
         <div class="alert alert-danger"><i class="bi bi-exclamation-circle-fill"></i><span>{{ $message }}</span></div>
     @enderror
+    @if (session('error'))
+        <div class="alert alert-danger"><i class="bi bi-exclamation-circle-fill"></i><span>{{ session('error') }}</span></div>
+    @endif
+
+    <a href="{{ route('auth.google') }}" class="btn btn-outline-secondary btn-w-full mb-3">
+        <i class="bi bi-google" aria-hidden="true"></i> Continue with Google
+    </a>
 
     <form wire:submit="login" novalidate>
         <div class="field">

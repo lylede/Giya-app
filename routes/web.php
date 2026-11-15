@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ScheduleController as AdminScheduleController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -32,6 +33,9 @@ Route::get('/', [HomeController::class, 'landing'])->name('root');
 Route::middleware('guest')->group(function () {
     Route::get('/welcome',        [\App\Http\Controllers\OnboardingController::class, 'show'])->name('onboarding');
     Route::get('/welcome/finish', [\App\Http\Controllers\OnboardingController::class, 'finish'])->name('onboarding.finish');
+
+    Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
     Route::get('/login',  [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
