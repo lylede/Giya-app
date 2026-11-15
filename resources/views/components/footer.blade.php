@@ -40,11 +40,12 @@
         {{-- Credits for the team who built GIYA, on the Home page footer. --}}
         @if (request()->routeIs('home', 'root'))
             @php
+                // Roles as in the team's CVs, the same as the About page.
                 $developers = [
-                    ['Lyle Adrien Dedumo',   'Software Engineer'],
-                    ['Clint Eroll Capondag', 'UI/UX Designer'],
-                    ['Josh Efraim Padernal', 'Project Manager'],
-                    ['Ian Francis Loyola',   'Database Designer'],
+                    ['Lyle Adrien Dedumo',   __('giya.about.role_backend')],
+                    ['Clint Eroll Capondag', __('giya.about.role_design')],
+                    ['Josh Efraim Padernal', __('giya.about.role_pm')],
+                    ['Ian Francis Loyola',   __('giya.about.role_qa')],
                 ];
             @endphp
             <section class="footer-credits" aria-labelledby="footerDevelopers">

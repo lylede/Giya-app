@@ -13,10 +13,10 @@ class FooterCreditsTest extends TestCase
     use RefreshDatabase;
 
     private const TEAM = [
-        'Lyle Adrien Dedumo'   => 'Software Engineer',
+        'Lyle Adrien Dedumo'   => 'Back-end Developer',
         'Clint Eroll Capondag' => 'UI/UX Designer',
         'Josh Efraim Padernal' => 'Project Manager',
-        'Ian Francis Loyola'   => 'Database Designer',
+        'Ian Francis Loyola'   => 'QA Tester and Database Designer',
     ];
 
     private function user(): User

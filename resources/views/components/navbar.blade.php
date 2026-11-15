@@ -4,6 +4,7 @@
         ['url' => route(auth()->check() ? 'home' : 'root'), 'label' => __('giya.nav.home'), 'icon' => 'house-fill',   'match' => auth()->check() ? 'home' : 'root'],
         ['url' => route('map'),                            'label' => __('giya.nav.map'),  'icon' => 'map-fill',     'match' => 'map'],
         ['url' => route('plan.hub'),                       'label' => __('giya.nav.plan'), 'icon' => 'giya-route', 'match' => 'plan.*'],
+        ['url' => route('about'),                          'label' => __('giya.nav.about'), 'icon' => 'info-circle', 'match' => 'about'],
     ];
 @endphp
 

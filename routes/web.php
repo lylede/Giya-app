@@ -124,7 +124,7 @@ Route::get('/map', [MapController::class, 'index'])->name('map');
 
 // Search engines: which public pages to list, and what to skip.
 Route::get('/sitemap.xml', function () {
-    $pages = ['root' => 'weekly', 'map' => 'weekly', 'register' => 'monthly', 'login' => 'monthly', 'privacy' => 'yearly', 'terms' => 'yearly'];
+    $pages = ['root' => 'weekly', 'map' => 'weekly', 'register' => 'monthly', 'login' => 'monthly', 'privacy' => 'yearly', 'terms' => 'yearly', 'about' => 'yearly'];
 
     return response()->view('sitemap', ['pages' => $pages])->header('Content-Type', 'application/xml');
 })->name('sitemap');
@@ -165,6 +165,7 @@ Route::view('/offline', 'offline')->name('offline');
 // Privacy Policy and Terms: open to everyone, linked from sign-up and the footer.
 Route::view('/privacy', 'legal.privacy')->name('privacy');
 Route::view('/terms', 'legal.terms')->name('terms');
+Route::view('/about', 'about')->name('about');
 
 Route::middleware('auth')->group(function () {
     Route::get('/churches/{church}', [MapController::class, 'show'])->name('churches.show');
