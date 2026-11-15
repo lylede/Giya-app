@@ -12,7 +12,7 @@
                     <p style="color:#D7A94A;font-size:20px;font-weight:700;margin:0">Giya</p>
                     <p style="color:#fff;font-size:20px;font-weight:700;margin:14px 0 4px">Confirm your email</p>
                     <p style="color:rgba(255,255,255,0.7);font-size:13px;margin:0;font-family:Arial,sans-serif">
-                        Your pilgrimage companion for Metro Cebu
+                        Your pilgrimage companion for Cebu
                     </p>
                 </td>
             </tr>
@@ -34,6 +34,17 @@
                         </td></tr>
                     </table>
 
+                    @if ($code)
+                        {{-- Gmail turns off the button in Spam; a code works anywhere. --}}
+                        <table cellpadding="0" cellspacing="0" width="100%">
+                            <tr><td align="center" style="padding:0 0 24px">
+                                <p style="color:#7A6355;font-size:13px;margin:0 0 8px">Or type this code on the GIYA "Check your email" page:</p>
+                                <p style="display:inline-block;margin:0;padding:12px 22px;background:#FDF3E3;border:1px dashed #D7A94A;border-radius:10px;
+                                          color:#241C18;font-size:28px;font-weight:700;letter-spacing:8px;font-family:'Courier New',monospace">{{ $code }}</p>
+                            </td></tr>
+                        </table>
+                    @endif
+
                     <p style="color:#7A6355;font-size:12px;margin:0 0 6px">
                         If the button does not work, copy this link into your browser:
                     </p>
@@ -42,7 +53,7 @@
                     <hr style="border:none;border-top:1px solid rgba(142,59,47,0.1);margin:0 0 18px">
 
                     <p style="color:#B9A493;font-size:12px;line-height:1.6;margin:0">
-                        This link expires in <strong>24 hours</strong>. If you did not create a GIYA account, you can ignore this email.
+                        The link and code expire in <strong>24 hours</strong>. If you did not create a GIYA account, you can ignore this email.
                     </p>
                 </td>
             </tr>
@@ -50,7 +61,7 @@
             <tr>
                 <td style="background:#FDF3E3;padding:16px 32px;text-align:center;border-top:1px solid rgba(142,59,47,0.08)">
                     <p style="color:#B9A493;font-size:11px;margin:0;font-family:Arial,sans-serif">
-                        GIYA - Localized Pilgrimage Companion for Metro Cebu
+                        GIYA - Pilgrimage Companion for Cebu
                     </p>
                 </td>
             </tr>

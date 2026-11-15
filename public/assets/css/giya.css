@@ -7263,3 +7263,10 @@ html[data-theme="dark"] .fab-say-name { color: #E9C77E; }
 @media (max-width: 480px) {
   .fab-say { display: flex; max-width: min(210px, calc(100vw - 28px)); padding: 8px 12px 9px; font-size: .78rem; }
 }
+
+/* "Check your email": the code box. */
+.verify-code-form { margin: 0 0 16px; text-align: left; }
+.verify-code-label { display: block; font-size: .8125rem; font-weight: 600; color: var(--text-muted); margin: 0 0 6px; }
+.verify-code-row { display: flex; gap: 8px; }
+.verify-code-input { flex: 1; min-width: 0; text-align: center; font-size: 1.25rem; font-weight: 700; letter-spacing: .3em; font-variant-numeric: tabular-nums; }
+.verify-code-error { margin: 6px 0 0; }

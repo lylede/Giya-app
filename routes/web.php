@@ -138,10 +138,14 @@ Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\Auth\EmailVerific
 Route::get('/email/check', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'pending'])->name('verification.pending');
 Route::post('/email/check/resend', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resendPending'])
     ->middleware('throttle:3,10')->name('verification.resend-pending');
+Route::post('/email/check/code', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'codePending'])
+    ->middleware('throttle:10,10')->name('verification.code-pending');
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::post('/email/verification-notification', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'resend'])
         ->middleware('throttle:3,10')->name('verification.send');
+    Route::post('/email/verify/code', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'code'])
+        ->middleware('throttle:10,10')->name('verification.code');
 });
 
 // A shared itinerary: anyone with the link can see it; signed in, save a copy.

@@ -72,4 +72,37 @@ class EmailVerificationController extends Controller
 
         return redirect()->route($request->user() ? 'home' : 'login')->with('success', __('giya.verify.done'));
     }
+
+    /** The code from the email, typed on "Check your email" after sign-up (not signed in). */
+    public function codePending(Request $request): RedirectResponse
+    {
+        $request->validate(['code' => ['required', 'string', 'max:20']]);
+        $user = \App\Models\User::where('email', (string) $request->session()->get('verify_email'))->first();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $result = $this->verification->verifyCode($user, $request->input('code'));
+
+        if ($result === 'ok') {
+            $request->session()->forget('verify_email');
+
+            return redirect()->route('login')->with('success', __('giya.verify.done'));
+        }
+
+        return back()->withErrors(['code' => __('giya.verify.code_'.$result)]);
+    }
+
+    /** The code from the email, typed while signed in. */
+    public function code(Request $request): RedirectResponse
+    {
+        $request->validate(['code' => ['required', 'string', 'max:20']]);
+
+        $result = $this->verification->verifyCode($request->user(), $request->input('code'));
+
+        return $result === 'ok'
+            ? redirect()->route('home')->with('success', __('giya.verify.done'))
+            : back()->withErrors(['code' => __('giya.verify.code_'.$result)]);
+    }
 }
