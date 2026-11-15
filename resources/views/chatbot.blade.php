@@ -95,6 +95,91 @@
     .chat-page .chat-log { padding: 10px 12px; }
     .chat-page .chat-composer { padding: 8px 10px; }
 }
+
+/*
+    Messenger-style on a phone.
+
+    While a conversation is open, the chat takes the whole screen: the site's
+    top bar, footer and floating robot step aside, and a slim chat header
+    with a back arrow takes their place. The conversation gets every pixel
+    the header and the text box do not need.
+
+    The keyboard covers part of the screen without changing 100dvh, so the
+    chat is sized to the visual viewport (--chat-h) and pinned to its top
+    (--chat-top), both kept up to date from JS. The text box therefore sits
+    right on top of the keys, with the conversation filling the rest.
+*/
+@media (max-width: 767px) {
+    body:has(.chat-page.is-chatting) .giya-nav,
+    body:has(.chat-page.is-chatting) .giya-footer,
+    body:has(.chat-page.is-chatting) .giya-fab,
+    body:has(.chat-page.is-chatting) .fab-say,
+    body:has(.chat-page.is-chatting) .ann-banner,
+    body:has(.chat-page.is-chatting) .verify-banner { display: none !important; }
+
+    .chat-page.is-chatting,
+    .chat-page.is-chatting.is-typing {
+        position: fixed; left: 0; right: 0;
+        top: var(--chat-top, 0px);
+        height: var(--chat-h, 100dvh);
+        margin: 0; padding: 0;
+        z-index: 900;
+        background: var(--bg);
+    }
+    .chat-page.is-chatting .chat-shell {
+        border: 0; border-radius: 0; box-shadow: none; margin: 0;
+    }
+
+    /* Header: back, the small robot, the title, then history and new chat. */
+    .chat-page.is-chatting .chat-bar {
+        gap: 8px;
+        padding: calc(8px + env(safe-area-inset-top)) 10px 8px 4px;
+        border-bottom: 1px solid var(--border);
+    }
+    .chat-back {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 40px; height: 40px; flex-shrink: 0;
+        border-radius: 50%; color: var(--text); text-decoration: none; font-size: 1.125rem;
+    }
+    .chat-back:hover, .chat-back:focus-visible { background: var(--bg-secondary); }
+    .chat-page.is-chatting .chat-history-label { display: none; }
+    /* One line each, so the header stays slim; long status text is cut with "...". */
+    .chat-page.is-chatting .chat-bar-title { min-width: 0; flex: 1; }
+    .chat-page.is-chatting .chat-bar-h1 { font-size: 1rem; line-height: 1.2; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-page.is-chatting .chat-bar-title > span {
+        display: flex; align-items: center; gap: 5px; font-size: .75rem; line-height: 1.3;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chat-page.is-chatting .chat-bar .btn { padding: 6px 10px; font-size: .8125rem; }
+    .chat-page.is-chatting .chat-bar-guide { flex-shrink: 0; }
+
+    /* Like Messenger: no avatar beside your own messages, so they get the width. */
+    .chat-page.is-chatting .chat-row.is-user .chat-user-icon { display: none; }
+
+    /* The conversation: tighter edges, wider bubbles. */
+    .chat-page.is-chatting .chat-log { padding: 12px 10px; gap: 10px; }
+    .chat-page.is-chatting .chat-bubble { max-width: 82%; font-size: .9375rem; line-height: 1.55; padding: 10px 14px; }
+    .chat-page.is-chatting .chat-row { gap: 8px; }
+
+    /* The suggestion chips step aside while the keyboard is up. */
+    .chat-page.is-chatting.is-typing .chat-starters { display: none; }
+    .chat-page.is-chatting .chat-starters { padding: 8px 10px; }
+
+    /* Text box: on top of the keys, clear of the home bar. 16px stops iPhone
+       Safari from zooming the whole page in when the box is tapped. */
+    .chat-page.is-chatting .chat-composer {
+        padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+        gap: 8px;
+    }
+    .chat-page.is-typing .chat-composer { padding-bottom: 8px; }
+}
+@media (min-width: 768px) {
+    .chat-back { display: none; }
+}
+/* Any phone, any state: 16px so iPhone Safari does not zoom in on focus. */
+@media (max-width: 767px) {
+    .chat-composer input { font-size: 16px; }
+}
 </style>
 @endpush
 
@@ -158,6 +243,9 @@
                 {{-- Inside the panel, so the assistant reads as one box rather than a
              heading floating above a separate card. --}}
         <div class="chat-bar">
+            <a href="{{ route('home') }}" class="chat-back" aria-label="{{ __('giya.back.home') }}">
+                <i class="bi bi-chevron-left" aria-hidden="true"></i>
+            </a>
             {{-- The guide, small, beside its name. It mirrors the big guide's
                  expressions (classes copied by the script below). --}}
             <span class="chat-bot-icon chat-bar-guide guide" id="guideMini" aria-hidden="true">
@@ -433,6 +521,26 @@
 
     function pinToBottom() {
         if (log) log.scrollTop = log.scrollHeight;
+    }
+
+    /*
+        Full-screen chat on a phone: the visible area, measured fresh on every
+        resize and scroll of the visual viewport (keyboard in or out, URL bar
+        showing or hiding). If the reader was at the newest message, they stay
+        at it as the space changes; if they had scrolled up to read, they are
+        left where they were.
+    */
+    function fitToScreen() {
+        if (!vv) return;
+        const nearBottom = log && log.scrollHeight - log.scrollTop - log.clientHeight < 80;
+        page.style.setProperty('--chat-h', vv.height + 'px');
+        page.style.setProperty('--chat-top', vv.offsetTop + 'px');
+        if (nearBottom) requestAnimationFrame(pinToBottom);
+    }
+    if (vv) {
+        vv.addEventListener('resize', fitToScreen);
+        vv.addEventListener('scroll', fitToScreen);
+        fitToScreen();
     }
 
     function open() {
