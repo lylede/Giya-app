@@ -68,7 +68,11 @@ class HomeController extends Controller
             'upcoming'  => $this->upcoming(),
             'stats'     => [
                 'churches' => Church::active()->count(),
-                'cities'   => Church::active()->distinct('location')->count('location'),
+                // Towns and cities, not addresses: "Osmena Blvd, Cebu City" and
+                // "P. Burgos St, Cebu City" are one place, Cebu City.
+                'cities'   => Church::active()->get(['municipality', 'location'])
+                    ->map(fn ($c) => mb_strtolower(\App\Services\RoutePlanner::townName((string) ($c->municipality ?: $c->location))))
+                    ->filter()->unique()->count(),
             ],
         ];
     }

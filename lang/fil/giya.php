@@ -88,7 +88,7 @@ return [
         'stat_churches'   => 'Mga Simbahan at Shrine',
         'stat_visits'     => 'Iyong mga Pagbisita',
         'stat_places'     => 'Mga Lugar na Matutuklasan',
-        'stat_cities'     => 'Mga Lungsod na Saklaw',
+        'stat_cities'     => 'Mga Bayan at Lungsod',
         'card_nearby'     => 'Maghanap ng Malapit na Simbahan',
         'card_nearby_d'   => 'Tuklasin ang mga relihiyosong destinasyon malapit sa iyong lokasyon.',
         'card_plan'       => 'Magplano ng Peregrinasyon',

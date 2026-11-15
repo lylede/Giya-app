@@ -98,7 +98,7 @@ return [
         'stat_churches'   => 'Churches & Shrines',
         'stat_visits'     => 'Your Visits',
         'stat_places'     => 'Places to Discover',
-        'stat_cities'     => 'Cities Covered',
+        'stat_cities'     => 'Municipalities & Cities',
         'card_nearby'     => 'Find Nearby Churches',
         'card_nearby_d'   => 'Discover religious destinations close to your current location.',
         'card_plan'       => 'Plan Pilgrimage',

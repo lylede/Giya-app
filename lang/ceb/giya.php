@@ -88,7 +88,7 @@ return [
         'stat_churches'   => 'Mga Simbahan ug Shrine',
         'stat_visits'     => 'Imong mga Pagbisita',
         'stat_places'     => 'Mga Dapit nga Madiskobrehan',
-        'stat_cities'     => 'Mga Siyudad nga Nalakip',
+        'stat_cities'     => 'Mga Lungsod ug Siyudad',
         'card_nearby'     => 'Pangitaa ang Duol nga Simbahan',
         'card_nearby_d'   => 'Diskobreha ang relihiyosong mga destinasyon nga duol sa imong nahimutangan.',
         'card_plan'       => 'Planoha ang Peregrinasyon',
