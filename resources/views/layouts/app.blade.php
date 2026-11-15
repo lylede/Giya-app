@@ -77,11 +77,10 @@
                 data-ask-again="{{ __('giya.chat.ask_again') }}"
                 data-ask-again-in="{{ __('giya.chat.ask_again_in', ['s' => ':s']) }}"
                 data-open-route="{{ __('giya.route.open') }}"
-                @if (request()->routeIs('home'))
-                    {{-- On Home the bubble speaks up now and then: a short line
-                         when the page opens, then every 30 seconds. --}}
-                    data-nudges="{{ json_encode(__('giya.chat.nudges')) }}"
-                @endif>
+                {{-- The bubble above the robot speaks up on every page it is on: a
+                     short line when the page opens, then every 30 seconds. The
+                     first line fits the page; then it rotates through the rest. --}}
+                data-nudges="{{ json_encode(\App\Support\GiyaNudges::lines()) }}">
             {{-- The assistant's own head, reused exactly: same classes, same
                  CSS, just scaled down. Restyling the guide restyles this too. --}}
             <span class="fab-head-wrap" aria-hidden="true">

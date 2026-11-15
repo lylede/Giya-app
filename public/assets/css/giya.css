@@ -7279,3 +7279,14 @@ html { overflow-x: clip; }
 
 /* The password rule, under every "choose a password" field. */
 .pw-rule { margin: 6px 0 0; font-size: .75rem; line-height: 1.45; color: var(--text-muted); }
+
+/* Map on a phone: the Giya robot was hidden because the church list covers
+   the bottom of the screen. It now sits just above the list while the list
+   is lowered, and steps aside when the list is pulled up or a church card is
+   open, so it never covers what someone is reading. */
+@media (max-width: 768px) {
+  body[data-page="map"]:has(.map-sidebar[data-state="peek"]) .giya-fab {
+    display: flex !important;
+    bottom: calc(var(--mx-sheet-h, 148px) + 12px) !important;
+  }
+}

@@ -590,6 +590,10 @@ return [
         'ask_ph'         => 'Pangutana sa Giya AI…',
         'starter'        => 'Kumusta, ako si Giya. Pangutan-a ko bisan unsa.',
         'nudges'         => ['Pangutana ko bahin sa oras sa Misa', 'Nanginahanglan ka ug ruta sa simbahan karon?', 'Nagplano ka ug Visita Iglesia?', 'Nangita ka ug simbahan nga duol?'],
+        'nudge_map' => 'Nangita ka ug simbahan nga duol? Pangutana ko.',
+        'nudge_plan' => 'Nanginahanglan ka ug tabang sa imong ruta?',
+        'nudge_profile' => 'Gusto ka magplano sa sunod nimong bisita?',
+        'nudge_church' => 'Pangutana ko bahin niini nga simbahan',
     ],
 
     'auth' => [

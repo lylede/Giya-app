@@ -1224,6 +1224,8 @@ onLocated: function (me) {
         const h = heights();
         sheetEl.style.height = (state === 'peek' ? h.peekTray : h[state]) + 'px';
         sheetEl.dataset.state = state;
+        // So the Giya robot can sit just above the lowered list.
+        document.documentElement.style.setProperty('--mx-sheet-h', sheetEl.style.height);
     }
 
     function layout() {

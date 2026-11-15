@@ -590,6 +590,10 @@ return [
         'ask_ph'         => 'Magtanong kay Giya AI…',
         'starter'        => 'Kumusta, ako si Giya. Tanungin mo ako ng kahit ano.',
         'nudges'         => ['Tanungin mo ako tungkol sa oras ng Misa', 'Kailangan mo ba ng ruta ng simbahan ngayon?', 'Nagpaplano ka ba ng Visita Iglesia?', 'Naghahanap ka ba ng simbahan sa malapit?'],
+        'nudge_map' => 'Naghahanap ka ba ng simbahan sa malapit? Tanungin mo ako.',
+        'nudge_plan' => 'Kailangan mo ba ng tulong sa iyong ruta?',
+        'nudge_profile' => 'Gusto mo bang planuhin ang susunod mong pagbisita?',
+        'nudge_church' => 'Tanungin mo ako tungkol sa simbahang ito',
     ],
 
     'auth' => [

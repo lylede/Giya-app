@@ -600,6 +600,10 @@ return [
         'ask_ph'         => 'Ask Giya AI…',
         'starter'        => "Hi, I'm Giya. Ask me anything.",
         'nudges'         => ['Ask me about Mass times', 'Need a church route for today?', 'Planning a Visita Iglesia?', 'Looking for a church nearby?'],
+        'nudge_map' => 'Looking for a church nearby? Ask me.',
+        'nudge_plan' => 'Need help planning your route?',
+        'nudge_profile' => 'Want to plan your next visit?',
+        'nudge_church' => 'Ask me about this church',
     ],
 
     'auth' => [
