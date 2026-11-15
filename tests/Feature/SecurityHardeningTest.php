@@ -57,7 +57,7 @@ class SecurityHardeningTest extends TestCase
 
         $this->post(route('password.update'), [
             'token' => 'tok', 'email' => $user->email,
-            'password' => 'new-password-1', 'password_confirmation' => 'new-password-1',
+            'password' => 'New-password-1', 'password_confirmation' => 'New-password-1',
         ])->assertSessionHasErrors('token');
 
         $this->assertTrue(Hash::check('old-password', $user->fresh()->password_hash),
@@ -78,10 +78,10 @@ class SecurityHardeningTest extends TestCase
 
         $this->post(route('password.update'), [
             'token' => 'tok', 'email' => $user->email,
-            'password' => 'new-password-1', 'password_confirmation' => 'new-password-1',
+            'password' => 'New-password-1', 'password_confirmation' => 'New-password-1',
         ])->assertRedirect(route('login'));
 
-        $this->assertTrue(Hash::check('new-password-1', $user->fresh()->password_hash));
+        $this->assertTrue(Hash::check('New-password-1', $user->fresh()->password_hash));
         $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
     }
 
@@ -161,7 +161,7 @@ class SecurityHardeningTest extends TestCase
 
         $this->actingAs($user)->patch(route('profile.password'), [
             'current_password' => 'old-password',
-            'password' => 'new-password-1', 'password_confirmation' => 'new-password-1',
+            'password' => 'New-password-1', 'password_confirmation' => 'New-password-1',
         ])->assertRedirect(route('profile'));
 
         $this->assertNotSame('old-remember-token', $user->fresh()->remember_token);

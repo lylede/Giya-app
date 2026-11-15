@@ -7270,3 +7270,12 @@ html[data-theme="dark"] .fab-say-name { color: #E9C77E; }
 .verify-code-row { display: flex; gap: 8px; }
 .verify-code-input { flex: 1; min-width: 0; text-align: center; font-size: 1.25rem; font-weight: 700; letter-spacing: .3em; font-variant-numeric: tabular-nums; }
 .verify-code-error { margin: 6px 0 0; }
+
+/* Nothing may make the page wider than the screen. On an iPad, anything that
+   pokes past the right edge makes Safari zoom the whole page out to fit it,
+   leaving a blank strip down the side. clip (unlike hidden) does not turn the
+   page into a scroll box, so the sticky top bar keeps working. */
+html { overflow-x: clip; }
+
+/* The password rule, under every "choose a password" field. */
+.pw-rule { margin: 6px 0 0; font-size: .75rem; line-height: 1.45; color: var(--text-muted); }

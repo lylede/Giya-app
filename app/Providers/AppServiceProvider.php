@@ -21,6 +21,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /* Every new password (sign-up, reset, change in Profile): at least 8
+           characters with an uppercase and a lowercase letter, a number and a
+           symbol. Signing in is not checked against this, so accounts made
+           before the rule keep working until their owner changes it. */
+        \Illuminate\Validation\Rules\Password::defaults(
+            fn () => \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols()
+        );
+
 
         /* Livewire's script lives at one address whichever build it serves,
            and browsers keep it for a year. Chrome that had visited GIYA

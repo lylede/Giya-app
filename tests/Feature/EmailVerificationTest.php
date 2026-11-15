@@ -17,7 +17,7 @@ class EmailVerificationTest extends TestCase
     private function person(?string $verified = null): User
     {
         return User::create([
-            'name' => 'Lyle Test', 'email' => 'lyle@example.com', 'password_hash' => Hash::make('secret123'),
+            'name' => 'Lyle Test', 'email' => 'lyle@example.com', 'password_hash' => Hash::make('Secret123!'),
             'role' => 'user', 'status' => 'Active', 'email_verified_at' => $verified,
             'created_at' => now(), 'updated_at' => now(),
         ]);
@@ -39,7 +39,7 @@ class EmailVerificationTest extends TestCase
 
         Livewire::test('auth.register')
             ->set('name', 'New Pilgrim')->set('email', 'new@example.com')
-            ->set('password', 'secret123')->set('password_confirmation', 'secret123')->set('terms', true)
+            ->set('password', 'Secret123!')->set('password_confirmation', 'Secret123!')->set('terms', true)
             ->call('register')->assertHasNoErrors();
 
         $this->assertNull(User::where('email', 'new@example.com')->value('email_verified_at'));
@@ -52,7 +52,7 @@ class EmailVerificationTest extends TestCase
 
         Livewire::test('auth.register')
             ->set('name', 'New Pilgrim')->set('email', 'new@example.com')
-            ->set('password', 'secret123')->set('password_confirmation', 'secret123')->set('terms', true)
+            ->set('password', 'Secret123!')->set('password_confirmation', 'Secret123!')->set('terms', true)
             ->call('register')
             ->assertRedirect(route('verification.pending'));
 
@@ -65,14 +65,14 @@ class EmailVerificationTest extends TestCase
         config(['app.verify_email' => true]);
         $user = $this->person();
 
-        $this->post(route('login.store'), ['email' => 'lyle@example.com', 'password' => 'secret123'])
+        $this->post(route('login.store'), ['email' => 'lyle@example.com', 'password' => 'Secret123!'])
             ->assertSessionHasErrors('email')
             ->assertSessionHas('verify_email', 'lyle@example.com');
         $this->assertGuest();
 
         $this->get(app(EmailVerification::class)->link($user));
 
-        $this->post(route('login.store'), ['email' => 'lyle@example.com', 'password' => 'secret123'])
+        $this->post(route('login.store'), ['email' => 'lyle@example.com', 'password' => 'Secret123!'])
             ->assertRedirect(route('home'));
         $this->assertAuthenticatedAs($user->fresh());
     }
@@ -156,7 +156,7 @@ class EmailVerificationTest extends TestCase
     {
         config(['app.verify_email' => true]);
         $stuck = $this->person();
-        $admin = User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password_hash' => Hash::make('secret123'),
+        $admin = User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password_hash' => Hash::make('Secret123!'),
             'role' => 'admin', 'status' => 'Active', 'email_verified_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
 
         $this->actingAs($admin)->get(route('admin.users'))->assertSee('Unconfirmed')->assertSee(route('admin.users.confirm', $stuck), false);
@@ -178,7 +178,7 @@ class EmailVerificationTest extends TestCase
 
         Livewire::test('auth.register')
             ->set('name', 'New Pilgrim')->set('email', 'nomail@example.com')
-            ->set('password', 'secret123')->set('password_confirmation', 'secret123')->set('terms', true)
+            ->set('password', 'Secret123!')->set('password_confirmation', 'Secret123!')->set('terms', true)
             ->call('register')
             ->assertRedirect(route('verification.pending'));
 

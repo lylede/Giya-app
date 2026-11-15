@@ -175,7 +175,7 @@ class ProfileController extends Controller
 
         $request->validate([
             'current_password' => ['required', 'string'],
-            'password'         => ['required', 'confirmed', Password::min(8)],
+            'password'         => ['required', 'confirmed', Password::defaults()],
         ], [
             'password.confirmed' => 'Passwords do not match.',
         ]);

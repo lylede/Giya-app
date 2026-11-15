@@ -254,6 +254,20 @@
         /* margin:0 because the grid column already places it; the width is
            whatever the open/closed state says it is. */
         .giya-nav .nav-search { margin: 0; }
+
+        /*
+            The open search is 320px, but on a tablet the right-hand column is
+            narrower than 320px plus the two sign-in buttons. Those
+            would not shrink, so the bar ran past the screen edge, the page
+            became wider than the screen, and Safari zoomed the whole page out
+            to fit it: the white strip down the right side on an iPad. (On a
+            touch screen the search is always open, so it happened on every
+            page.) Now the search gives way instead: it may shrink to its
+            magnifier, and nothing beside it shrinks.
+        */
+        .giya-nav .nav-end { margin-left: 0; width: 100%; }   /* an auto margin sized it to its content, past the column */
+        .giya-nav .nav-end > * { flex-shrink: 0; }
+        .giya-nav .nav-end > .nav-search { flex-shrink: 1; min-width: 42px; }
     }
 </style>
 

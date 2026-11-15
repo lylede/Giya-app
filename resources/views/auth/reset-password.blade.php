@@ -32,6 +32,7 @@
                 </button>
             </div>
             @error('password')<span class="field-error">{{ $message }}</span>@enderror
+            <p class="pw-rule">{{ __('giya.auth.pw_rule') }}</p>
         </div>
 
         <div class="field">

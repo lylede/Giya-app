@@ -21,7 +21,7 @@ class RegisterController extends Controller
         $data = $request->validate([
             'name'     => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', 'max:150', 'unique:devotees,email'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::defaults()],
             'terms'    => ['accepted'],
         ], [
             'terms.accepted'     => __('giya.auth.must_agree'),

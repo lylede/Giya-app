@@ -16,7 +16,7 @@ class PrivacyAndAccountTest extends TestCase
     private function user(string $role = 'user'): User
     {
         return User::create([
-            'name' => 'Lyle Test', 'email' => $role.'@example.com', 'password_hash' => Hash::make('secret123'),
+            'name' => 'Lyle Test', 'email' => $role.'@example.com', 'password_hash' => Hash::make('Secret123!'),
             'role' => $role, 'status' => 'Active', 'created_at' => now(), 'updated_at' => now(),
         ]);
     }
@@ -37,7 +37,7 @@ class PrivacyAndAccountTest extends TestCase
     {
         Livewire::test('auth.register')
             ->set('name', 'New Pilgrim')->set('email', 'new@example.com')
-            ->set('password', 'secret123')->set('password_confirmation', 'secret123')
+            ->set('password', 'Secret123!')->set('password_confirmation', 'Secret123!')
             ->call('register')
             ->assertHasErrors(['terms' => 'accepted']);
 
@@ -48,7 +48,7 @@ class PrivacyAndAccountTest extends TestCase
     {
         Livewire::test('auth.register')
             ->set('name', 'New Pilgrim')->set('email', 'new@example.com')
-            ->set('password', 'secret123')->set('password_confirmation', 'secret123')
+            ->set('password', 'Secret123!')->set('password_confirmation', 'Secret123!')
             ->set('terms', true)
             ->call('register')
             ->assertHasNoErrors();
@@ -61,7 +61,7 @@ class PrivacyAndAccountTest extends TestCase
         $user = $this->user();
         ChatSession::create(['user_id' => $user->id, 'title' => 'South Cebu', 'status' => 'Active']);
 
-        $this->actingAs($user)->delete(route('profile.destroy'), ['password' => 'secret123'])
+        $this->actingAs($user)->delete(route('profile.destroy'), ['password' => 'Secret123!'])
             ->assertRedirect(route('root'));
 
         $this->assertGuest();
@@ -83,7 +83,7 @@ class PrivacyAndAccountTest extends TestCase
     {
         $admin = $this->user('admin');
 
-        $this->actingAs($admin)->delete(route('profile.destroy'), ['password' => 'secret123'])
+        $this->actingAs($admin)->delete(route('profile.destroy'), ['password' => 'Secret123!'])
             ->assertSessionHas('error');
 
         $this->assertDatabaseHas('devotees', ['id' => $admin->id]);
