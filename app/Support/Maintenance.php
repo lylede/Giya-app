@@ -20,7 +20,7 @@ class Maintenance
 
     /** Pages a visitor still needs while the site is closed. */
     private const OPEN_PATHS = [
-        'login', 'logout', 'forgot-password', 'reset-password', 'reset-password/*',
+        'login', 'logout', 'auth/google', 'auth/google/callback', 'forgot-password', 'reset-password', 'reset-password/*',
         'maya/webhook', 'offline', 'up',
     ];
 

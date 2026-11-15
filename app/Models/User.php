@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Schema;
-use RuntimeException;
 
 /**
  * ERD entity: Devotees
@@ -32,7 +30,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
         'password_hash',
         'role',
         'status',
@@ -44,7 +41,7 @@ class User extends Authenticatable
         'updated_at',
     ];
 
-    protected $hidden = ['password', 'password_hash', 'remember_token'];
+    protected $hidden = ['password_hash', 'remember_token'];
 
     /** Derived values Blade can read straight off the model. */
     protected $appends = [
@@ -66,22 +63,10 @@ class User extends Authenticatable
         ];
     }
 
-    public function getAuthPasswordName(): string
-    {
-        if (Schema::hasColumn($this->getTable(), 'password_hash')) {
-            return 'password_hash';
-        }
-
-        if (Schema::hasColumn($this->getTable(), 'password')) {
-            return 'password';
-        }
-
-        throw new RuntimeException('The devotees table has no supported password column.');
-    }
-
+    /** The schema stores the hash in password_hash, not password. */
     public function getAuthPassword(): string
     {
-        return (string) $this->getAttribute($this->getAuthPasswordName());
+        return $this->password_hash;
     }
 
     public const STATUSES = ['Active', 'Inactive', 'Suspended'];
@@ -257,16 +242,5 @@ class User extends Authenticatable
            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
 
         return $earth * 2 * atan2(sqrt($a), sqrt(1 - $a));
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        if (config('app.env') === 'local') {
-            static::creating(function ($model) {
-                unset($model->email_verified_at);
-            });
-        }
     }
 }

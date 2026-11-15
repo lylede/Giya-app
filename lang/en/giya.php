@@ -610,6 +610,14 @@ return [
     ],
 
     'auth' => [
+        'google' => 'Continue with Google',
+        'or_email' => 'or use your email',
+        'google_agree' => 'By continuing with Google, you agree to the',
+        'google_cancelled' => 'Google sign-in was cancelled. You can try again or use your email.',
+        'google_failed' => 'We could not finish signing you in with Google. Please try again.',
+        'google_unverified' => 'Google did not share a confirmed email address for this account. Please use your email instead.',
+        'google_off' => 'Google sign-in is not available right now. Please use your email.',
+        'suspended' => 'This account has been suspended. Contact the administrator.',
         'agree_1' => 'I agree to the',
         'agree_2' => 'and the',
         'must_agree' => 'Please agree to the Terms of Use and Privacy Policy to create an account.',

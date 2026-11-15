@@ -34,8 +34,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/welcome',        [\App\Http\Controllers\OnboardingController::class, 'show'])->name('onboarding');
     Route::get('/welcome/finish', [\App\Http\Controllers\OnboardingController::class, 'finish'])->name('onboarding.finish');
 
-    Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-    Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+    Route::get('auth/google', [GoogleController::class, 'redirectToGoogle'])->middleware('throttle:20,1')->name('auth.google');
+    Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->middleware('throttle:20,1')->name('auth.google.callback');
 
     Route::get('/login',  [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');

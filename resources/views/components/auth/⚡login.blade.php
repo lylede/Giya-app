@@ -47,9 +47,7 @@ new class extends Component
         <div class="alert alert-danger"><i class="bi bi-exclamation-circle-fill"></i><span>{{ session('error') }}</span></div>
     @endif
 
-    <a href="{{ route('auth.google') }}" class="btn btn-outline-secondary btn-w-full mb-3">
-        <i class="bi bi-google" aria-hidden="true"></i> Continue with Google
-    </a>
+    @include('auth.partials.google')
 
     <form wire:submit="login" novalidate>
         <div class="field">

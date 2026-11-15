@@ -55,6 +55,11 @@ new class extends Component
         <a href="{{ route('login') }}" class="auth-tab" wire:navigate>{{ __('giya.auth.sign_in') }}</a>
         <a href="{{ route('register') }}" class="auth-tab active" wire:navigate>{{ __('giya.auth.sign_up') }}</a>
     </div>
+    @if (session('error'))
+        <div class="alert alert-danger"><i class="bi bi-exclamation-circle-fill"></i><span>{{ session('error') }}</span></div>
+    @endif
+    @include('auth.partials.google', ['signup' => true])
+
     <form wire:submit="register">
         <div class="field"><label class="form-label" for="register-name">{{ __('giya.profile.full_name') }}</label><input id="register-name" type="text" wire:model="name" class="giya-input @error('name') is-invalid @enderror" placeholder="{{ __('giya.auth.name_ph') }}" required autofocus autocomplete="name">@error('name')<span class="field-error">{{ $message }}</span>@enderror</div>
         <div class="field"><label class="form-label" for="register-email">{{ __('giya.profile.email') }}</label><input id="register-email" type="email" wire:model="email" class="giya-input @error('email') is-invalid @enderror" placeholder="{{ __('giya.auth.email_ph') }}" required autocomplete="email">@error('email')<span class="field-error">{{ $message }}</span>@enderror</div>

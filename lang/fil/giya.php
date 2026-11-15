@@ -600,6 +600,14 @@ return [
     ],
 
     'auth' => [
+        'google' => 'Magpatuloy gamit ang Google',
+        'or_email' => 'o gamitin ang iyong email',
+        'google_agree' => 'Sa pagpapatuloy gamit ang Google, sumasang-ayon ka sa',
+        'google_cancelled' => 'Kinansela ang pag-sign in gamit ang Google. Maaari kang sumubok muli o gamitin ang iyong email.',
+        'google_failed' => 'Hindi namin natapos ang pag-sign in mo gamit ang Google. Pakisubukang muli.',
+        'google_unverified' => 'Hindi ibinigay ng Google ang kumpirmadong email ng account na ito. Pakigamit ang iyong email.',
+        'google_off' => 'Hindi pa magagamit ngayon ang pag-sign in gamit ang Google. Pakigamit ang iyong email.',
+        'suspended' => 'Na-suspend ang account na ito. Makipag-ugnayan sa administrador.',
         'agree_1' => 'Sumasang-ayon ako sa',
         'agree_2' => 'at sa',
         'must_agree' => 'Pakisang-ayunan ang Mga Tuntunin ng Paggamit at Patakaran sa Privacy para makagawa ng account.',

@@ -600,6 +600,14 @@ return [
     ],
 
     'auth' => [
+        'google' => 'Padayon gamit ang Google',
+        'or_email' => 'o gamita ang imong email',
+        'google_agree' => 'Sa pagpadayon gamit ang Google, mouyon ka sa',
+        'google_cancelled' => 'Gikansela ang pag-sign in gamit ang Google. Mahimo kang mosulay pag-usab o gamiton ang imong email.',
+        'google_failed' => 'Wala namo mahuman ang pag-sign in nimo gamit ang Google. Palihug sulayi pag-usab.',
+        'google_unverified' => 'Wala gihatag sa Google ang kumpirmadong email niining account. Palihug gamita ang imong email.',
+        'google_off' => 'Dili pa magamit karon ang pag-sign in gamit ang Google. Palihug gamita ang imong email.',
+        'suspended' => 'Kining account gi-suspend. Kontaka ang administrador.',
         'agree_1' => 'Mouyon ko sa',
         'agree_2' => 'ug sa',
         'must_agree' => 'Palihog uyon sa Mga Termino sa Paggamit ug Palisiya sa Privacy aron makahimo og account.',
