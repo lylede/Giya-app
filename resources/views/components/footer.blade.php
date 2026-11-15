@@ -64,7 +64,8 @@
         <div class="footer-bottom">
             <span class="footer-copy">&copy; {{ date('Y') }} Giya · {{ __('giya.hub.copyright') }}
                 · <a href="{{ route('privacy') }}" class="footer-legal">{{ __('giya.legal.privacy') }}</a>
-                · <a href="{{ route('terms') }}" class="footer-legal">{{ __('giya.legal.terms') }}</a></span>
+                · <a href="{{ route('terms') }}" class="footer-legal">{{ __('giya.legal.terms') }}</a>
+                · <a href="{{ route('app-feedback') }}" class="footer-legal">{{ __('giya.app_feedback.link') }}</a></span>
             <span class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.3);font-size: .75rem">
                 <span style="width:6px;height:6px;border-radius:50%;background:var(--gold)"></span>
                 {{ __('giya.misc.made_with') }}

@@ -7346,3 +7346,41 @@ html[data-theme="dark"] .about-member img { border-color: #2A211C; }
   .about-team { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 14px; }
   .about-member img { width: 104px; height: 104px; }
 }
+
+/* ── Send feedback (about GIYA itself) ─────────────────────────── */
+.app-fb-page { max-width: 620px; }
+.app-fb-lead { color: var(--text-muted); font-size: .9375rem; line-height: 1.6; margin: 0 0 20px; }
+.app-fb-form { display: grid; gap: 22px; padding: 22px; }
+.app-fb-field { border: 0; margin: 0; padding: 0; min-width: 0; }
+.app-fb-field legend { padding: 0; margin-bottom: 8px; }
+/* Stars: drawn right to left so hovering or checking one lights every star before it. */
+.app-fb-stars { display: inline-flex; flex-direction: row-reverse; gap: 4px; }
+.app-fb-stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.app-fb-stars label { cursor: pointer; font-size: 2rem; color: #E2D6C6; line-height: 1; padding: 2px; border-radius: 6px; transition: color .12s ease, transform .12s ease; }
+.app-fb-stars label:hover,
+.app-fb-stars label:hover ~ label,
+.app-fb-stars input:checked ~ label { color: var(--gold, #D7A94A); }
+.app-fb-stars label:active { transform: scale(.9); }
+.app-fb-stars input:focus-visible + label { outline: 2px solid var(--primary); outline-offset: 2px; }
+html[data-theme="dark"] .app-fb-stars label { color: #4A3A2E; }
+html[data-theme="dark"] .app-fb-stars label:hover,
+html[data-theme="dark"] .app-fb-stars label:hover ~ label,
+html[data-theme="dark"] .app-fb-stars input:checked ~ label { color: var(--gold, #D7A94A); }
+.app-fb-topics { display: flex; flex-wrap: wrap; gap: 8px; }
+.app-fb-topics input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.app-fb-topics label { cursor: pointer; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); font-size: .8125rem; font-weight: 600; color: var(--text); background: var(--surface, #fff); }
+.app-fb-topics input:checked + label { background: var(--primary); border-color: var(--primary); color: #fff; }
+.app-fb-topics input:focus-visible + label { outline: 2px solid var(--primary); outline-offset: 2px; }
+.app-fb-send { justify-self: start; }
+.app-fb-note { margin: 14px 0 0; font-size: .8125rem; color: var(--text-muted); }
+
+/* Admin: App Feedback. */
+.appfb-topics { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; }
+.appfb-topics li { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-left: 1px solid var(--border-light, var(--border)); }
+.appfb-topics li:first-child { border-left: 0; padding-left: 0; }
+.appfb-topic-name { font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+.appfb-topic-num { font-size: 1.125rem; font-weight: 700; }
+.appfb-topic-count { font-size: .75rem; color: var(--text-muted); }
+.appfb-stars { color: var(--gold, #D7A94A); white-space: nowrap; letter-spacing: 1px; }
+.appfb-stars-off { color: var(--border); }
+.appfb-comment { max-width: 420px; white-space: pre-line; }

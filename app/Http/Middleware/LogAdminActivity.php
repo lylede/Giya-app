@@ -43,6 +43,7 @@ class LogAdminActivity
         'admin.users.export'     => 'Downloaded the users list',
         'admin.schedules.export' => 'Downloaded the schedules list',
         'admin.reports.download' => 'Downloaded a report',
+        'admin.app-feedback.download' => 'Downloaded the app feedback',
     ];
 
     public function handle(Request $request, Closure $next): Response

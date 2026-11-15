@@ -140,6 +140,12 @@ Route::post('/email/check/resend', [\App\Http\Controllers\Auth\EmailVerification
     ->middleware('throttle:3,10')->name('verification.resend-pending');
 Route::post('/email/check/code', [\App\Http\Controllers\Auth\EmailVerificationController::class, 'codePending'])
     ->middleware('throttle:10,10')->name('verification.code-pending');
+// "Send feedback": about GIYA itself, not a church.
+Route::middleware('auth')->group(function () {
+    Route::get('/feedback', [\App\Http\Controllers\AppFeedbackController::class, 'create'])->name('app-feedback');
+    Route::post('/feedback', [\App\Http\Controllers\AppFeedbackController::class, 'store'])->middleware('throttle:5,10')->name('app-feedback.store');
+});
+
 // Checking in at a church from the map (VisitController).
 Route::middleware('auth')->group(function () {
     Route::post('/visits/arrive', [\App\Http\Controllers\VisitController::class, 'arrive'])->middleware('throttle:30,1')->name('visits.arrive');
@@ -196,6 +202,8 @@ Route::middleware(['auth', 'admin', 'admin.log'])->prefix('admin')->name('admin.
 
     Route::get('/feedback',              [AdminFeedbackController::class, 'index'])->name('feedback');
     Route::patch('/feedback/{feedback}', [AdminFeedbackController::class, 'update'])->name('feedback.update');
+    Route::get('/app-feedback', [\App\Http\Controllers\Admin\AppFeedbackController::class, 'index'])->name('app-feedback');
+    Route::get('/app-feedback/download', [\App\Http\Controllers\Admin\AppFeedbackController::class, 'download'])->name('app-feedback.download');
 
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions');
     

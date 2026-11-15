@@ -61,5 +61,11 @@
         <h2 id="aboutSchool">{{ __('giya.about.school_title') }}</h2>
         <p>{{ __('giya.about.school_text') }}</p>
     </section>
+
+    <section class="about-section" aria-labelledby="aboutFeedback">
+        <h2 id="aboutFeedback">{{ __('giya.app_feedback.title') }}</h2>
+        <p>{{ __('giya.app_feedback.lead') }}</p>
+        <a href="{{ route('app-feedback') }}" class="btn btn-primary">{{ __('giya.app_feedback.send') }}</a>
+    </section>
 </div>
 @endsection
