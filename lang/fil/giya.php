@@ -745,6 +745,11 @@ return [
     ],
 
     'about' => [
+        'bio_qa' => 'Dinisenyo ang database na naglalaman ng bawat simbahan at iskedyul, at sinusubok ang bawat feature bago ito umabot sa mga peregrino.',
+        'bio_backend' => 'Binubuo ang tumatakbo sa likod ng mga screen: ang datos ng simbahan, ang tagaplano ng ruta, ang Giya AI at ang mga bayad.',
+        'bio_design' => 'Hinuhubog kung paano tumingin at gumana ang GIYA, mula sa mapa hanggang sa chat ng Giya AI, para madaling gamitin ang bawat screen sa telepono.',
+        'bio_pm' => 'Pinananatiling nasa tamang landas ang proyekto, mula sa unang survey ng mga peregrino hanggang sa bawat release, at tinitiyak na tugma ang bawat bahagi sa plano.',
+        'team_eyebrow' => 'Grupo ng pagbuo',
         'title' => 'Tungkol sa GIYA',
         'lead' => 'Ang GIYA ay kasama sa paglalakbay-pananampalataya sa Cebu. Tinutulungan nito ang mga deboto at manlalakbay na makahanap ng mga simbahan, makita ang oras ng Misa, magplano ng ruta, at masubaybayan ang mga simbahang nabisita nila.',
         'why_title' => 'Bakit namin ito ginawa',
@@ -756,8 +761,8 @@ return [
         'does_ai' => 'Sumasagot sa mga tanong at nagpaplano ng ruta para sa araw gamit ang Giya AI',
         'does_plan' => 'Nagpaplano ng iyong Visita Iglesia at iba pang paglalakbay',
         'does_visit' => 'Minamarkahan ang mga simbahang binisita mo at itinatala ang iyong progreso',
-        'team_title' => 'Ang grupo',
-        'team_lead' => 'Ang GIYA ay dinisenyo at binuo ng apat na estudyante ng Information Technology.',
+        'team_title' => 'Kilalanin ang mga gumawa ng GIYA',
+        'team_lead' => 'Ang mga tao sa likod ng GIYA, mula sa unang survey ng mga peregrino hanggang sa site na ginagamit mo ngayon.',
         'role_pm' => 'Tagapamahala ng Proyekto',
         'role_design' => 'Tagadisenyo ng UI/UX',
         'role_backend' => 'Back-end na Developer',

@@ -5,10 +5,10 @@
 @php
     // Photos and roles from the team's curriculum vitae in the capstone manuscript.
     $team = [
-        ['Josh Efraim C. Padernal',  __('giya.about.role_pm'),      'josh'],
-        ['Clint Eroll A. Capondag',  __('giya.about.role_design'),  'clint'],
-        ['Lyle Adrien P. Dedumo',    __('giya.about.role_backend'), 'lyle'],
-        ['Ian Francis M. Loyola',    __('giya.about.role_qa'),      'ian'],
+        ['Josh Efraim C. Padernal',  __('giya.about.role_pm'),      'josh',  __('giya.about.bio_pm')],
+        ['Clint Eroll A. Capondag',  __('giya.about.role_design'),  'clint', __('giya.about.bio_design')],
+        ['Lyle Adrien P. Dedumo',    __('giya.about.role_backend'), 'lyle',  __('giya.about.bio_backend')],
+        ['Ian Francis M. Loyola',    __('giya.about.role_qa'),      'ian',   __('giya.about.bio_qa')],
     ];
     $does = [
         ['map-fill',        __('giya.about.does_map')],
@@ -42,14 +42,16 @@
     </section>
 
     <section class="about-section" aria-labelledby="aboutTeam">
+        <p class="about-eyebrow">{{ __('giya.about.team_eyebrow') }}</p>
         <h2 id="aboutTeam">{{ __('giya.about.team_title') }}</h2>
         <p>{{ __('giya.about.team_lead') }}</p>
         <ul class="about-team">
-            @foreach ($team as [$name, $role, $photo])
+            @foreach ($team as [$name, $role, $photo, $bio])
                 <li class="about-member">
-                    <img src="{{ asset('images/team/'.$photo.'.jpg') }}" alt="{{ $name }}" width="160" height="160" loading="lazy">
+                    <img src="{{ asset('images/team/'.$photo.'.jpg') }}" alt="{{ $name }}" width="300" height="400" loading="lazy">
                     <span class="about-member-name">{{ $name }}</span>
                     <span class="about-member-role">{{ $role }}</span>
+                    <p class="about-member-bio">{{ $bio }}</p>
                 </li>
             @endforeach
         </ul>

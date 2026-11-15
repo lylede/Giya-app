@@ -745,6 +745,11 @@ return [
     ],
 
     'about' => [
+        'bio_qa' => 'Nagdisenyo sa database nga naghupot sa matag simbahan ug iskedyul, ug nagsulay sa matag bahin sa dili pa kini maabot sa mga peregrino.',
+        'bio_backend' => 'Naghimo sa nagdagan sa likod sa mga screen: ang datos sa simbahan, ang tigplano sa ruta, ang Giya AI ug mga bayad.',
+        'bio_design' => 'Naghulma kon unsaon pagtan-aw ug paggamit sa GIYA, gikan sa mapa hangtod sa chat sa Giya AI, aron sayon gamiton ang matag screen sa telepono.',
+        'bio_pm' => 'Nagdumala nga magpadayon ang proyekto, gikan sa unang survey sa mga peregrino hangtod sa matag release, ug nagsiguro nga ang matag bahin mohaom sa plano.',
+        'team_eyebrow' => 'Grupo sa pagpalambo',
         'title' => 'Mahitungod sa GIYA',
         'lead' => 'Ang GIYA usa ka kauban sa paglakaw-pagtuo sa Sugbo. Gitabangan niini ang mga deboto ug biyahedor nga makapangita og mga simbahan, makatan-aw sa oras sa Misa, makaplano og ruta, ug makasubay sa mga simbahan nga ilang nabisitahan.',
         'why_title' => 'Ngano nga gihimo namo kini',
@@ -756,8 +761,8 @@ return [
         'does_ai' => 'Motubag sa mga pangutana ug moplano og ruta alang sa adlaw pinaagi sa Giya AI',
         'does_plan' => 'Moplano sa imong Visita Iglesia ug uban pang paglakaw-pagtuo',
         'does_visit' => 'Markahan ang mga simbahan nga imong gibisitahan ug tipigan ang imong pag-uswag',
-        'team_title' => 'Ang grupo',
-        'team_lead' => 'Ang GIYA gidisenyo ug gihimo sa upat ka estudyante sa Information Technology.',
+        'team_title' => 'Ilha ang mga naghimo sa GIYA',
+        'team_lead' => 'Ang mga tawo sa likod sa GIYA, gikan sa unang survey sa mga peregrino hangtod sa site nga imong gigamit karon.',
         'role_pm' => 'Tagdumala sa Proyekto',
         'role_design' => 'Tigdisenyo sa UI/UX',
         'role_backend' => 'Back-end nga Developer',

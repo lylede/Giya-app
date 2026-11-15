@@ -755,6 +755,11 @@ return [
     ],
 
     'about' => [
+        'bio_qa' => 'Designs the database that holds every church and schedule, and tests each feature before it reaches pilgrims.',
+        'bio_backend' => 'Builds what runs behind the screens: the church data, the route planner, Giya AI and payments.',
+        'bio_design' => 'Shapes how GIYA looks and feels, from the map to the Giya AI chat, so every screen is easy to use on a phone.',
+        'bio_pm' => 'Keeps the project on track, from the first survey of pilgrims to every release, and makes sure each piece fits the plan.',
+        'team_eyebrow' => 'Development team',
         'title' => 'About GIYA',
         'lead' => 'GIYA is a pilgrimage companion for Cebu. It helps devotees and travelers find churches, check Mass times, plan a route and keep track of the churches they have visited.',
         'why_title' => 'Why we built it',
@@ -766,8 +771,8 @@ return [
         'does_ai' => 'Answers questions and plans a route for the day with Giya AI',
         'does_plan' => 'Plans your Visita Iglesia and other pilgrimages',
         'does_visit' => 'Marks the churches you visit and keeps your progress',
-        'team_title' => 'The team',
-        'team_lead' => 'GIYA was designed and built by four Information Technology students.',
+        'team_title' => 'Meet the creators of GIYA',
+        'team_lead' => 'The people behind GIYA, from the first survey of pilgrims to the site you are using now.',
         'role_pm' => 'Project Manager',
         'role_design' => 'UI/UX Designer',
         'role_backend' => 'Back-end Developer',
