@@ -6,6 +6,9 @@
 (function () {
     if (!('serviceWorker' in navigator)) return;
 
+    // A real page loaded, so the offline page may reload by itself again next time.
+    try { sessionStorage.removeItem('giya-offline-retries'); } catch (err) { /* private mode */ }
+
     window.addEventListener('load', function () {
         navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () { /* the site works without it */ });
     });

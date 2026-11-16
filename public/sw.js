@@ -15,7 +15,7 @@
  *   phone never sees someone else's itineraries.
  */
 // Change this whenever the caching rules change: the old saved copies are dropped.
-const VERSION = 'giya-v2';
+const VERSION = 'giya-v3';
 const SHELL = VERSION + '-shell';
 const PAGES = 'giya-pages';
 const TILES = 'giya-tiles';
@@ -57,10 +57,44 @@ async function trim(cacheName, max) {
   for (let i = 0; i < keys.length - max; i++) await cache.delete(keys[i]);
 }
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/*
+ * One failed request is not "no signal". A connection the phone had kept
+ * open goes stale, the server restarts for a deploy, the browser wakes from
+ * the background: each fails once and works a moment later. The browser
+ * retries those by itself for an ordinary page load, but not for a request
+ * made from here, so this used to show "You are offline" to people with
+ * full signal. Now it tries twice more before believing it.
+ *
+ * Not retried: when the phone itself says there is no connection (nothing
+ * to wait for), and one-time links (Google's sign-in return, signed email
+ * links), which must never be sent twice.
+ */
+async function fetchPatiently(request, url) {
+  try {
+    return await fetch(request);
+  } catch (first) {
+    const oneTime = url.pathname.startsWith('/auth/') || url.searchParams.has('code') || url.searchParams.has('signature');
+    if (self.navigator.onLine === false || oneTime) throw first;
+
+    let last = first;
+    for (const ms of [500, 1500]) {
+      await wait(ms);
+      try {
+        return await fetch(request);
+      } catch (again) {
+        last = again;
+      }
+    }
+    throw last;
+  }
+}
+
 async function page(request) {
   const url = new URL(request.url);
   try {
-    const response = await fetch(request);
+    const response = await fetchPatiently(request, url);
     if (response.ok && KEEP.some((re) => re.test(url.pathname)) && !response.redirected) {
       const cache = await caches.open(PAGES);
       await cache.put(url.pathname, response.clone());
