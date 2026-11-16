@@ -187,7 +187,7 @@
     </div>
 </div>
 
-<div class="mt-3"><x-pagination :paginator="$churches->withQueryString()" /></div>
+@include('admin.partials.table-foot', ['paginator' => $churches, 'perPage' => $perPage, 'noun' => 'destination', 'options' => \App\Http\Controllers\Controller::PER_PAGE, 'id' => 'destPer'])
 
 {{--
     Quick add, used while the map is expanded.

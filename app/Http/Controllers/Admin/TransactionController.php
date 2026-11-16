@@ -17,11 +17,12 @@ class TransactionController extends Controller
             ->when($request->status === 'All' ? null : $request->status,
                 fn ($q, $status) => $q->where('status', $status))
             ->orderByDesc('created_at')
-            ->paginate(15)
+            ->paginate($perPage = $this->perPage($request, 10))
             ->withQueryString();
 
         return view('admin.transactions', [
             'transactions' => $transactions,
+            'perPage'      => $perPage,
             'status'       => $request->status ?? 'All',
             'summary'      => [
                 'revenue' => (float) Transaction::where('status', 'Paid')->sum('amount'),

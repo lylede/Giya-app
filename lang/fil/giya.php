@@ -292,6 +292,7 @@ return [
 
     'plan' => [
         'rate_stars' => ':n bituin',
+        'trip_deleted_rate' => 'Nabura na ang biyaheng iyon, pero nakatala pa rin ang iyong mga pagbisita. I-rate ang mga simbahan dito sa Kasaysayan ng Pagbisita.',
         'rate_note_title' => 'Kumusta ang iyong :trip?',
         'rate_note_body' => 'I-rate ang mga simbahang binisita mo.',
         'rate_title' => 'Tapos na ang peregrinasyon',

@@ -292,6 +292,7 @@ return [
 
     'plan' => [
         'rate_stars' => ':n ka bituon',
+        'trip_deleted_rate' => 'Napapas na kanang biyahe, apan gitipigan ang imong mga pagbisita. I-rate ang mga simbahan dinhi sa Kasaysayan sa Pagbisita.',
         'rate_note_title' => 'Kumusta ang imong :trip?',
         'rate_note_body' => 'I-rate ang mga simbahan nga imong gibisitahan.',
         'rate_title' => 'Nahuman na ang panaw',

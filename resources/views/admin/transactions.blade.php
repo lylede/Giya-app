@@ -54,5 +54,5 @@
     </div>
 </div>
 
-<div class="mt-3"><x-pagination :paginator="$transactions" /></div>
+@include('admin.partials.table-foot', ['paginator' => $transactions, 'perPage' => $perPage, 'noun' => 'transaction', 'options' => \App\Http\Controllers\Controller::PER_PAGE, 'id' => 'txPer'])
 @endsection

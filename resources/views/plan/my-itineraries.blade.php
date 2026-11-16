@@ -22,7 +22,17 @@
         @endif
     </div>
 
-    {{-- Usage meter --}}
+    {{-- Usage meter. Premium has no allowance, so it shows what it has instead. --}}
+    @if ($premiumUntil)
+        <div class="card card-body mb-4 itin-premium">
+            <i class="bi bi-gem" aria-hidden="true"></i>
+            <div>
+                <strong>{{ __('giya.profile.unlimited') }}</strong>
+                <span>{{ __('giya.profile.planned', ['count' => $used]) }} · {{ __('giya.profile.premium_until', ['date' => $premiumUntil->format('M j, Y')]) }}</span>
+            </div>
+            <span class="badge badge-amber">{{ __('giya.upgrade.premium') }}</span>
+        </div>
+    @else
     <div @class(['card', 'card-body', 'mb-4']) style="{{ $atLimit ? 'background:rgba(142,59,47,0.04);border-color:rgba(142,59,47,0.25)' : '' }}">
         <div class="d-flex align-items-center gap-4 flex-wrap">
             <div style="flex:1;min-width:240px">
@@ -56,6 +66,8 @@
             @endif
         </div>
     </div>
+
+    @endif
 
     {{-- Cards --}}
     @if ($itineraries->isEmpty())

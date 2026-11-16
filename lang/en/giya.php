@@ -302,6 +302,7 @@ return [
 
     'plan' => [
         'rate_stars' => ':n star(s)',
+        'trip_deleted_rate' => 'That trip was deleted, but your visits are kept. Rate the churches here in Visit History.',
         'rate_note_title' => 'How was your :trip?',
         'rate_note_body' => 'Rate the churches you visited.',
         'rate_title' => 'Pilgrimage complete',

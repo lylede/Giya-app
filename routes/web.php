@@ -94,7 +94,8 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
         Route::get('/my-itineraries',  'index')->name('index');
         Route::post('/',               'store')->middleware('confirmed.email')->name('store');
         Route::post('/stop/visited',   'markVisited')->name('stop.visited');
-        Route::get('/{itinerary}',     'show')->name('show');
+        // withTrashed: an old notification can point at a trip deleted since; show() sends it on.
+        Route::get('/{itinerary}',     'show')->withTrashed()->name('show');
         Route::post('/{itinerary}/ratings', 'storeRatings')->middleware('confirmed.email')->name('ratings');
         Route::delete('/{itinerary}',  'destroy')->name('destroy');
         // Share with family or a parish group (SharedItineraryController).

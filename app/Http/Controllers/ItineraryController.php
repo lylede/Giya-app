@@ -8,6 +8,7 @@ use App\Models\Itinerary;
 use App\Models\ItineraryStop;
 use App\Models\Notification;
 use App\Models\ItineraryType;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Models\VisitHistory;
 use Illuminate\Http\JsonResponse;
@@ -129,6 +130,10 @@ class ItineraryController extends Controller
             'used'        => Itinerary::countingAgainstFreeLimit(Auth::id()),
             'limit'       => self::FREE_LIMIT,
             'atLimit'     => $this->atLimit(),
+            // Premium has no allowance, so it gets no meter: the Profile page
+            // already showed "Unlimited itineraries", this page still showed
+            // "Free Itinerary Usage 3 / 3" to people who had paid.
+            'premiumUntil' => Transaction::premiumExpiryByUser([Auth::id()])[Auth::id()] ?? null,
         ]);
     }
 
@@ -229,8 +234,19 @@ class ItineraryController extends Controller
             ->with('success', 'Itinerary created. Your pilgrimage has begun.');
     }
 
-    public function show(Itinerary $itinerary): View
+    public function show(Itinerary $itinerary): View|RedirectResponse
     {
+        /* The "How was your trip?" notification links here, and it outlives
+           the trip: deleting it left the link on a 404. The visits are still
+           the devotee's, so Visit History is where they can rate them now.
+           Someone else's deleted trip stays a plain 404. */
+        if ($itinerary->trashed()) {
+            abort_unless($itinerary->user_id === Auth::id(), 404);
+
+            return redirect()->route('profile', ['tab' => 'visits'])
+                ->with('info', __('giya.plan.trip_deleted_rate'));
+        }
+
         Gate::authorize('view', $itinerary);
 
         // Opening a trip only shows it. It becomes "In progress" (Active)

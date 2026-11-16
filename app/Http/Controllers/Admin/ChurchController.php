@@ -77,13 +77,14 @@ class ChurchController extends Controller
             ->when($request->status === 'active', fn ($q) => $q->where('is_active', true))
             ->when($request->status === 'hidden', fn ($q) => $q->where('is_active', false))
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($perPage = $this->perPage($request, 10))
             ->withQueryString();
 
         $all = Church::with('churchCategory', 'primaryImage')->get();
 
         return view('admin.destinations', [
             'churches'   => $churches,
+            'perPage'    => $perPage,
 
             /* Counted from the collection already in memory for the map
                pins, so the headline row costs no extra query. */
