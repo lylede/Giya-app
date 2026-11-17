@@ -120,6 +120,25 @@
                         <span id="countLabel" style="font-size: 0.75rem;color:var(--text-muted)">{{ __('giya.plan.stops_count', ['count' => 7]) }}</span>
                     </div>
 
+                    {{-- The suggestion: the main churches of the towns nearest
+                         the devotee, in driving order. Says where it measured
+                         from, and asks for a town when the phone will not say. --}}
+                    <div class="vi-suggest" id="viSuggest">
+                        <p class="vi-suggest-note" id="viNote" role="status" aria-live="polite"></p>
+                        <div class="vi-town" id="viTownPick" hidden>
+                            <label for="viTown" class="form-label-sm">{{ __('giya.plan.visita_start_from') }}</label>
+                            <select id="viTown" class="giya-input">
+                                <option value="">{{ __('giya.plan.visita_choose_town') }}</option>
+                                @foreach ($startTowns as $t)
+                                    <option value="{{ $t['id'] }}">{{ $t['town'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm vi-again" id="viAgain" hidden>
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i> {{ __('giya.plan.visita_suggest_again') }}
+                        </button>
+                    </div>
+
                     <div id="churchList" style="display:flex;flex-direction:column;gap:10px"></div>
 
                     <button type="button" onclick="GiyaVisita.openPicker()"
@@ -149,7 +168,19 @@
        that pushed this column to 397px inside a 358px grid and scrolled the
        whole page sideways - in English, and 7px further in Cebuano, where
        the words are longer. */
-    @media (max-width: 950px) { .visita-grid { grid-template-columns: minmax(0, 1fr) !important; } }
+    .vi-suggest { display: flex; flex-direction: column; gap: 10px; margin: 0 0 14px; padding: 12px 14px;
+                  border-radius: 13px; background: var(--gold-bg); }
+    .vi-suggest-note { margin: 0; font-size: .8125rem; line-height: 1.5; color: var(--text); }
+    .vi-suggest-note:empty { display: none; }
+    .vi-town { display: flex; flex-direction: column; gap: 4px; }
+    .vi-again { align-self: flex-start; }
+    html[data-theme="dark"] .vi-suggest { background: var(--surface-2); }
+    @media (max-width: 950px) {
+        .visita-grid { grid-template-columns: minmax(0, 1fr) !important; }
+        /* On a phone the route comes first: it is what the page is for, and
+           where the town picker appears when location is off. */
+        .visita-grid > div:last-child { order: -1; }
+    }
 </style>
 @endpush
 
@@ -161,7 +192,13 @@
         'name'     => $c->name,
         'location' => $c->location,
         'color'    => $c->color(),
+        'lat'      => $c->latitude !== null ? (float) $c->latitude : null,
+        'lng'      => $c->longitude !== null ? (float) $c->longitude : null,
+        // The mother church of its municipality: what the suggestion is built from.
+        'major'    => (bool) $c->is_major,
+        'town'     => \App\Services\RoutePlanner::townName((string) ($c->municipality ?: $c->location)),
     ])->values();
+
 @endphp
 @push('scripts')
 <script>
@@ -176,9 +213,105 @@ const GiyaVisita = (function () {
        there, and re-imposing seven would throw their choice away. */
     const returning = @json($preset);
 
-    let list = returning.length
-        ? returning.map(c => Object.assign({ visited: false }, c))
-        : all.slice(0, Math.min(7, all.length)).map(c => Object.assign({ visited: false }, c));
+    let list = returning.map(c => Object.assign({ visited: false }, c));
+
+    /* ---- Suggesting the churches ----
+       The main church (is_major) of each of the nearest towns, one per town,
+       measured from the phone's position or a town the devotee picks. A
+       main church more than NEAR_KM away does not count as near: the nearest
+       other churches fill those places instead. Then the route is put in
+       driving order, nearest first and each next one closest to the last. */
+    const NEAR_KM = 40;
+    const T = {
+        locating:  @json(__('giya.plan.visita_locating')),
+        nearYou:   @json(__('giya.plan.visita_near_you')),
+        nearTown:  @json(__('giya.plan.visita_near_town')),
+        plusYou:   @json(__('giya.plan.visita_near_you_plus')),
+        plusTown:  @json(__('giya.plan.visita_near_town_plus')),
+        noLoc:     @json(__('giya.plan.visita_no_location')),
+    };
+    let origin = null;      // { lat, lng, town } once known
+    let target = list.length || 7;
+
+    function km(a, b) {
+        const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+        const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+        return 12742 * Math.asin(Math.sqrt(h));
+    }
+
+    /** Every church in the order it should be suggested, and whether the top n needed filling. */
+    function ranked(n, skip) {
+        const placed = all.filter(c => c.lat != null && c.lng != null && !(skip || []).includes(c.id))
+            .map(c => ({ c: c, d: km(origin, c) }))
+            .sort((x, y) => x.d - y.d);
+        const out = [], towns = new Set();
+        placed.forEach(function (x) {
+            if (!x.c.major || x.d > NEAR_KM) return;
+            const town = (x.c.town || '').toLowerCase() || ('#' + x.c.id);
+            if (towns.has(town)) return;
+            towns.add(town);
+            out.push(x.c);
+        });
+        placed.forEach(function (x) { if (!out.includes(x.c)) out.push(x.c); });
+        return { churches: out };
+    }
+
+    function drivingOrder(churches) {
+        const rest = churches.slice(), ordered = [];
+        let here = origin;
+        while (rest.length) {
+            let best = 0, bestKm = Infinity;
+            rest.forEach(function (c, i) { const d = km(here, c); if (d < bestKm) { bestKm = d; best = i; } });
+            here = rest.splice(best, 1)[0];
+            ordered.push(here);
+        }
+        return ordered;
+    }
+
+    function note(text) { document.getElementById('viNote').textContent = text; }
+
+    function suggest(n) {
+        if (!origin) return false;
+        target = n;
+        const r = ranked(n);
+        list = drivingOrder(r.churches.slice(0, n)).map(c => Object.assign({ visited: false }, c));
+        // Say exactly what was picked: how many towns' main churches, and how
+        // many other churches made up the number when there were not enough.
+        const mains = list.filter(c => c.major && km(origin, c) <= NEAR_KM).length;
+        const extra = list.length - mains;
+        const tpl = extra > 0
+            ? (origin.town ? T.plusTown : T.plusYou)
+            : (origin.town ? T.nearTown : T.nearYou);
+        note(tpl.replace(':count', mains).replace(':total', list.length).replace(':town', origin.town || ''));
+        document.getElementById('viAgain').hidden = false;
+        render(); refreshPicker();
+        return true;
+    }
+
+    function askForTown() {
+        note(T.noLoc);
+        document.getElementById('viTownPick').hidden = false;
+    }
+
+    function locate() {
+        if (!navigator.geolocation) { askForTown(); return; }
+        note(T.locating);
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            origin = { lat: pos.coords.latitude, lng: pos.coords.longitude, town: null };
+            document.getElementById('viTownPick').hidden = true;
+            suggest(target);
+        }, askForTown, { enableHighAccuracy: false, timeout: 9000, maximumAge: 600000 });
+    }
+
+    document.getElementById('viTown').addEventListener('change', function () {
+        const c = all.find(x => x.id === Number(this.value));
+        if (!c) return;
+        origin = { lat: c.lat, lng: c.lng, town: c.town };
+        suggest(target);
+    });
+    document.getElementById('viAgain').addEventListener('click', function () {
+        if (origin) suggest(list.length || target); else locate();
+    });
 
     function render() {
         const done  = list.filter(c => c.visited).length;
@@ -237,6 +370,14 @@ const GiyaVisita = (function () {
 
     render();
 
+    // A route coming back from the map is the devotee's own; leave it, and
+    // offer Suggest again instead of replacing it.
+    if (returning.length) {
+        document.getElementById('viAgain').hidden = false;
+    } else {
+        locate();
+    }
+
     return {
         toggle: function (i) { list[i].visited = !list[i].visited; render(); },
         move:   function (i, d) {
@@ -248,7 +389,11 @@ const GiyaVisita = (function () {
         drop: function (i) { if (list.length > 1) { list.splice(i, 1); render(); refreshPicker(); } },
         step: function (d) {
             if (d > 0) {
-                const next = all.find(c => !list.some(x => x.id === c.id));
+                // With a start point, the next church is the next nearest town's;
+                // without one, the next church not already in the route.
+                const next = origin
+                    ? ranked(list.length + 1, list.map(c => c.id)).churches[0]
+                    : all.find(c => !list.some(x => x.id === c.id));
                 if (next) list.push(Object.assign({ visited: false }, next));
             } else if (list.length > 1) {
                 list.pop();
@@ -258,8 +403,11 @@ const GiyaVisita = (function () {
         preset: function (n, btn) {
             document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            list = all.slice(0, Math.min(n, all.length)).map(c => Object.assign({ visited: false }, c));
-            render(); refreshPicker();
+            if (!suggest(n)) {
+                target = n;
+                list = all.slice(0, Math.min(n, all.length)).map(c => Object.assign({ visited: false }, c));
+                render(); refreshPicker();
+            }
         },
         openPicker: function () { refreshPicker(); document.getElementById('addPicker').classList.remove('d-none'); },
 

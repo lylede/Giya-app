@@ -269,9 +269,14 @@ class MapPlannerTest extends TestCase
            is quietly ignored in favour of the usual seven. So the branch
            itself is the assertion. The browser proves the rest. */
         $this->assertMatchesRegularExpression(
-            '/list\s*=\s*returning\.length/',
+            '/let list = returning\.map\(/',
             $html,
             'The planner renders the returning route but does not start from it.'
+        );
+        // ...and does not replace it with a suggestion of the nearest towns.
+        $this->assertMatchesRegularExpression(
+            '/if \(returning\.length\) \{\s*document\.getElementById\(\'viAgain\'\)\.hidden = false;\s*\} else \{\s*locate\(\);/',
+            $html
         );
     }
 

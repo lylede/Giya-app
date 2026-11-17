@@ -9,6 +9,7 @@ use App\Models\ItineraryStop;
 use App\Models\Notification;
 use App\Models\ItineraryType;
 use App\Models\Transaction;
+use App\Services\RoutePlanner;
 use App\Models\User;
 use App\Models\VisitHistory;
 use Illuminate\Http\JsonResponse;
@@ -64,10 +65,21 @@ class ItineraryController extends Controller
             ])
             ->values();
 
+        // "Where are you starting from?", for when the phone's location is
+        // off: one entry per town, placed at that town's main church.
+        $startTowns = $churches
+            ->filter(fn (Church $c) => $c->is_major && $c->latitude !== null && $c->longitude !== null)
+            ->map(fn (Church $c) => ['id' => $c->id, 'town' => RoutePlanner::townName((string) ($c->municipality ?: $c->location))])
+            ->filter(fn (array $t) => $t['town'] !== '')
+            ->unique('town')
+            ->sortBy('town', SORT_NATURAL | SORT_FLAG_CASE)
+            ->values();
+
         return view('plan.visita', [
-            'churches' => $churches,
-            'atLimit'  => $this->atLimit(),
-            'preset'   => $preset,
+            'churches'   => $churches,
+            'atLimit'    => $this->atLimit(),
+            'preset'     => $preset,
+            'startTowns' => $startTowns,
         ]);
     }
 
