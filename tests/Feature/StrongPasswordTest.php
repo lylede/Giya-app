@@ -20,20 +20,26 @@ class StrongPasswordTest extends TestCase
             ->call('register');
     }
 
-    public function test_weak_passwords_are_refused_at_sign_up(): void
+    public function test_passwords_without_a_capital_or_under_8_are_refused(): void
     {
-        foreach (['secret12', 'Secret123', 'secret123!', 'SECRET123!', 'Secret!!', 'Se1!'] as $weak) {
+        foreach (['secret12', 'mariasantos', 'Maria12', 'Se1!'] as $weak) {
             $this->signUp($weak)->assertHasErrors('password');
         }
 
         $this->assertSame(0, User::count());
     }
 
-    public function test_a_password_with_upper_lower_number_and_symbol_is_accepted(): void
+    public function test_8_characters_with_one_capital_is_enough(): void
     {
-        $this->signUp('Pilgrim2026!')->assertHasNoErrors();
+        // No number and no symbol needed: simple for older devotees.
+        $this->signUp('Mariasantos')->assertHasNoErrors();
 
         $this->assertSame(1, User::count());
+    }
+
+    public function test_numbers_and_symbols_are_still_allowed(): void
+    {
+        $this->signUp('Pilgrim2026!')->assertHasNoErrors();
     }
 
     public function test_the_message_says_what_is_missing(): void
@@ -41,8 +47,9 @@ class StrongPasswordTest extends TestCase
         $this->signUp('secret123')->assertHasErrors(['password']);
 
         $errors = $this->signUp('secret123')->errors()->get('password');
-        $this->assertContains('The password needs both an uppercase and a lowercase letter.', $errors);
-        $this->assertContains('The password needs at least one symbol (like ! or #).', $errors);
+        $this->assertContains('The password needs at least one capital letter (like A or B).', $errors);
+        $this->assertNotContains('The password needs at least one symbol (like ! or #).', $errors);
+        $this->assertNotContains('The password needs at least one number.', $errors);
     }
 
     public function test_an_old_weak_password_still_signs_in(): void

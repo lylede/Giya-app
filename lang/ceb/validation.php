@@ -6,6 +6,7 @@
  */
 return [
     'password' => [
+        'uppercase' => 'Ang password kinahanglan adunay bisan usa ka dakong letra (sama sa A o B).',
         'mixed' => 'Ang password kinahanglan adunay dako ug gamay nga letra.',
         'numbers' => 'Ang password kinahanglan adunay numero.',
         'symbols' => 'Ang password kinahanglan adunay simbolo (sama sa ! o #).',

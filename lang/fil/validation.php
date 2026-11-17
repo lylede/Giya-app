@@ -6,6 +6,7 @@
  */
 return [
     'password' => [
+        'uppercase' => 'Ang password ay dapat may kahit isang malaking titik (gaya ng A o B).',
         'mixed' => 'Ang password ay dapat may malaki at maliit na titik.',
         'numbers' => 'Ang password ay dapat may numero.',
         'symbols' => 'Ang password ay dapat may simbolo (gaya ng ! o #).',

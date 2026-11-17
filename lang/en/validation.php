@@ -6,6 +6,7 @@
  */
 return [
     'password' => [
+        'uppercase' => 'The password needs at least one capital letter (like A or B).',
         'mixed' => 'The password needs both an uppercase and a lowercase letter.',
         'numbers' => 'The password needs at least one number.',
         'symbols' => 'The password needs at least one symbol (like ! or #).',

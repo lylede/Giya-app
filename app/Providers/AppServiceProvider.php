@@ -22,11 +22,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         /* Every new password (sign-up, reset, change in Profile): at least 8
-           characters with an uppercase and a lowercase letter, a number and a
-           symbol. Signing in is not checked against this, so accounts made
-           before the rule keep working until their owner changes it. */
+           characters with one capital letter. Kept simple on purpose: many
+           of GIYA's users are older devotees, and a rule asking for numbers
+           and symbols as well turned people away at sign-up. Signing in is
+           not checked against this, so every existing account keeps working. */
         \Illuminate\Validation\Rules\Password::defaults(
-            fn () => \Illuminate\Validation\Rules\Password::min(8)->mixedCase()->numbers()->symbols()
+            fn () => \Illuminate\Validation\Rules\Password::min(8)->rules([new \App\Rules\HasUppercase])
         );
 
 
