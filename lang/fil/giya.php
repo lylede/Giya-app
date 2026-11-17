@@ -385,6 +385,7 @@ return [
         'visita_start_from' => 'Magsisimula sa',
         'visita_choose_town' => 'Piliin ang iyong bayan',
         'visita_suggest_again' => 'Magmungkahi muli',
+        'picker_all_in' => 'Nasa iyong ruta na ang lahat ng simbahan.',
         'visita_title'      => 'Visita Iglesia Planner',
         'visita_lead'       => 'Ang tradisyonal na peregrinasyon sa maraming simbahan - baguhin ang bilang ng hinto ayon sa iyong debosyon at iskedyul.',
         'traditionally'     => 'Tradisyonal na 7 simbahan',

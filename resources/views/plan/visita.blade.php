@@ -92,7 +92,7 @@
                             <i class="bi bi-x" style="font-size: 1.125rem;color:var(--text-muted)"></i>
                         </button>
                     </div>
-                    <div id="pickerList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto"></div>
+                    <div id="pickerList" class="vi-pick-list"></div>
                 </div>
 
                 <div class="d-flex gap-2 flex-wrap">
@@ -168,6 +168,20 @@
        that pushed this column to 397px inside a 358px grid and scrolled the
        whole page sideways - in English, and 7px further in Cebuano, where
        the words are longer. */
+    /* Add a Church: the church icon, and type sized to be read on a phone. */
+    .vi-pick-list { display: flex; flex-direction: column; gap: 8px; max-height: min(360px, 55vh); overflow-y: auto; padding-right: 2px; }
+    .vi-pick { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 12px;
+               background: var(--bg); border: 1px solid var(--border); cursor: pointer; text-align: left; font-family: var(--font-body); }
+    .vi-pick:hover { border-color: var(--primary); }
+    .vi-pick:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+    .vi-pick-icon { width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px; display: inline-flex; align-items: center;
+                    justify-content: center; background: var(--gold-bg); font-size: 1.125rem; }
+    .vi-pick-text { min-width: 0; }
+    .vi-pick-name { display: block; font-size: .9375rem; font-weight: 600; line-height: 1.35; color: var(--text); }
+    .vi-pick-place { display: block; margin-top: 2px; font-size: .8125rem; line-height: 1.4; color: var(--text-muted); }
+    .vi-pick-empty { margin: 0; padding: 8px; font-size: .875rem; color: var(--text-muted); }
+    html[data-theme="dark"] .vi-pick { background: var(--surface); }
+    html[data-theme="dark"] .vi-pick-icon { background: rgba(215,169,74,.14); }
     .vi-suggest { display: flex; flex-direction: column; gap: 10px; margin: 0 0 14px; padding: 12px 14px;
                   border-radius: 13px; background: var(--gold-bg); }
     .vi-suggest-note { margin: 0; font-size: .8125rem; line-height: 1.5; color: var(--text); }
@@ -361,11 +375,11 @@ const GiyaVisita = (function () {
         const box = document.getElementById('pickerList');
         box.innerHTML = available.length
             ? available.map(c =>
-                '<button type="button" onclick="GiyaVisita.pick(' + c.id + ')" style="display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:10px;background:var(--bg);border:1px solid var(--border);cursor:pointer;text-align:left;width:100%">' +
-                '<i class="bi bi-building" style="color:' + esc(c.color) + '"></i>' +
-                '<span><span style="display:block;font-size: 0.75rem;font-weight:600;color:var(--text)">' + esc(c.name) + '</span>' +
-                '<span style="display:block;font-size: .75rem;color:var(--text-muted)">' + esc(c.location) + '</span></span></button>').join('')
-            : '<p style="font-size: 0.75rem;color:var(--text-muted);padding:8px;margin:0">Every destination is already in your route.</p>';
+                '<button type="button" class="vi-pick" onclick="GiyaVisita.pick(' + c.id + ')">' +
+                '<span class="vi-pick-icon" style="color:' + esc(c.color) + '"><i class="bi bi-giya-spires" aria-hidden="true"></i></span>' +
+                '<span class="vi-pick-text"><span class="vi-pick-name">' + esc(c.name) + '</span>' +
+                '<span class="vi-pick-place">' + esc(c.location) + '</span></span></button>').join('')
+            : '<p class="vi-pick-empty">' + esc(@json(__('giya.plan.picker_all_in'))) + '</p>';
     }
 
     render();
