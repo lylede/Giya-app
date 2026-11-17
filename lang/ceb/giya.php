@@ -19,6 +19,8 @@ return [
         'profile'        => 'Propayl',
         'search'         => 'Pangitaa ang simbahan…',
         'search_label'   => 'Pangitaa ang simbahan',
+        'theme_dark' => 'Ibalhin sa dark mode',
+        'theme_light' => 'Ibalhin sa light mode',
         'notifications'  => 'Mga Pahibalo',
         'mark_all_read'  => 'Markahi tanan nga nabasa',
         'notif_empty'    => 'Wala pay bisan unsa. Ang mga iskedyul, tubag sa imong mga review ug mga pahinumdom sa panaw makita dinhi.',

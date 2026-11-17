@@ -7488,3 +7488,17 @@ html[data-theme="dark"] { --scroll-thumb: rgba(233, 199, 126, .26); --scroll-thu
 ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
 ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); background-clip: padding-box; }
 ::-webkit-scrollbar-button { display: none; height: 0; width: 0; }
+
+
+/* The light / dark button in the top bar: the bell's twin. A moon in light
+   mode (tap for dark), a sun in dark mode (tap for light). */
+.nav-theme {
+  flex-shrink: 0; width: 34px; height: 34px; border: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(255,255,255,.12); color: var(--gold); font-size: .9375rem;
+}
+.nav-theme:hover { background: rgba(255,255,255,.2); }
+.nav-theme:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.nav-theme .nav-theme-sun { display: none; }
+html[data-theme="dark"] .nav-theme .nav-theme-moon { display: none; }
+html[data-theme="dark"] .nav-theme .nav-theme-sun { display: inline; }

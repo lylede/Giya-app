@@ -19,6 +19,8 @@ return [
         'profile'        => 'Propayl',
         'search'         => 'Maghanap ng simbahan…',
         'search_label'   => 'Maghanap ng simbahan',
+        'theme_dark' => 'Lumipat sa dark mode',
+        'theme_light' => 'Lumipat sa light mode',
         'notifications'  => 'Mga Abiso',
         'mark_all_read'  => 'Markahang lahat bilang nabasa',
         'notif_empty'    => 'Wala pa. Dito lalabas ang mga iskedyul, sagot sa iyong mga review at paalala sa paglalakbay.',

@@ -29,6 +29,8 @@ return [
         'profile'        => 'Profile',
         'search'         => 'Search churches…',
         'search_label'   => 'Search churches',
+        'theme_dark' => 'Switch to dark mode',
+        'theme_light' => 'Switch to light mode',
         'notifications'  => 'Notifications',
         'mark_all_read'  => 'Mark all read',
         'notif_empty'    => 'Nothing yet. Schedules, replies to your reviews and pilgrimage reminders appear here.',

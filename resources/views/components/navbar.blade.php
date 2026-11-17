@@ -310,6 +310,18 @@
         </form>
 
         <div class="nav-right">
+            {{-- Light / dark in one tap. Signed in, it is saved to the
+                 account, like the setting in Profile; a guest's choice is
+                 kept on this device. --}}
+            <button type="button" class="nav-theme" id="navTheme"
+                    data-save-url="{{ auth()->check() ? route('profile.preference') : '' }}"
+                    data-label-dark="{{ __('giya.nav.theme_dark') }}"
+                    data-label-light="{{ __('giya.nav.theme_light') }}"
+                    aria-label="{{ __('giya.nav.theme_dark') }}" title="{{ __('giya.nav.theme_dark') }}">
+                <i class="bi bi-moon-fill nav-theme-moon" aria-hidden="true"></i>
+                <i class="bi bi-sun-fill nav-theme-sun" aria-hidden="true"></i>
+            </button>
+
             @auth
                 @php($unreadCount = \App\Models\Notification::where('user_id', $user->id)->where('is_read', false)->count())
 

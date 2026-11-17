@@ -10,6 +10,11 @@
     <title>GIYA - @yield('title', 'Pilgrimage Companion')</title>
     <x-meta />
 
+    @guest
+        {{-- A guest's light / dark choice lives on this device. Read before
+             the page paints, so it does not flash light first. --}}
+        <script>try { var t = localStorage.getItem('giya-theme'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}</script>
+    @endguest
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/giya-icons.css') }}?v={{ filemtime(public_path('assets/css/giya-icons.css')) }}">
     <link rel="stylesheet" href="{{ asset('assets/css/giya.css') }}?v={{ filemtime(public_path('assets/css/giya.css')) }}">

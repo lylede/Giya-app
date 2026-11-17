@@ -212,3 +212,54 @@
     window.GiyaProfile = Profile;
     window.giyaTogglePassword = togglePassword;   // used inline by the auth forms
 })(window, document);
+
+/*
+ * The light / dark button in the top bar.
+ * Flips <html data-theme> at once, then remembers the choice: on the account
+ * when signed in (the same setting as Profile > Preferences), otherwise on
+ * this device. If saving to the account fails the page still switches; the
+ * next page load shows the saved setting again.
+ */
+(function () {
+    var btn = document.getElementById('navTheme');
+    if (!btn) return;
+    var root = document.documentElement;
+
+    function label() {
+        var dark = root.getAttribute('data-theme') === 'dark';
+        var text = dark ? btn.getAttribute('data-label-light') : btn.getAttribute('data-label-dark');
+        btn.setAttribute('aria-label', text);
+        btn.setAttribute('title', text);
+        btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    }
+
+    btn.addEventListener('click', function () {
+        var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        label();
+
+        // Profile's own Light / Dark choice, if this is that page.
+        var radio = document.querySelector('.pref-choice input[name="theme_style"][value="' + (next === 'dark' ? 'Dark' : 'Light') + '"]');
+        if (radio) {
+            radio.checked = true;
+            document.querySelectorAll('.pref-choice input[name="theme_style"]').forEach(function (r) {
+                var pill = r.closest('.pref-choice label, label');
+                if (pill) pill.classList.toggle('is-active', r.checked);
+            });
+        }
+
+        var url = btn.getAttribute('data-save-url');
+        if (!url) {
+            try { localStorage.setItem('giya-theme', next); } catch (e) { /* private mode: this page only */ }
+            return;
+        }
+        var token = document.querySelector('meta[name="csrf-token"]');
+        fetch(url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token ? token.content : '' },
+            body: JSON.stringify({ field: 'theme_style', value: next === 'dark' ? 'Dark' : 'Light' })
+        }).catch(function () { /* offline: switched for now, saved next time */ });
+    });
+
+    label();
+})();
