@@ -587,6 +587,42 @@ html[data-theme="dark"] .alert-info {
   min-height: calc(100vh - 64px);
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
+  position: relative; z-index: 1;
+}
+
+/* Sign in, sign up and the password pages: a large, faint GIYA logo behind
+   the card breathes slowly (6s), and a gold ripple leaves it every 2s. Slow
+   and pale on purpose, so the eye stays on the form. */
+.auth-bg {
+  position: fixed; inset: 64px 0 0 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, #F6EFE6 0%, var(--bg) 62%);
+}
+.auth-bg-logo {
+  position: absolute; left: 50%; top: 50%;
+  width: min(118vmin, 980px); height: auto;
+  translate: -50% -50%;
+  opacity: .13;
+  animation: auth-breathe 6s ease-in-out infinite;
+}
+.auth-bg-ring {
+  position: absolute; left: 50%; top: 50%;
+  width: min(70vmin, 600px); aspect-ratio: 1;
+  translate: -50% -50%;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: auth-ring 6s ease-out infinite;
+}
+.auth-bg-ring.is-2 { animation-delay: 2s; }
+.auth-bg-ring.is-3 { animation-delay: 4s; }
+@keyframes auth-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes auth-ring { 0% { transform: scale(.6); opacity: .55; } 100% { transform: scale(1.9); opacity: 0; } }
+html[data-theme="dark"] .auth-bg { background: radial-gradient(circle at 50% 50%, #221915 0%, var(--bg) 62%); }
+html[data-theme="dark"] .auth-bg-logo { opacity: .08; }
+html[data-theme="dark"] .auth-bg-ring { border-color: rgba(233, 199, 126, .55); }
+@media (prefers-reduced-motion: reduce) {
+  .auth-bg-logo, .auth-bg-ring { animation: none; }
 }
 .auth-card {
   width: 100%; max-width: 420px; background: #fff;

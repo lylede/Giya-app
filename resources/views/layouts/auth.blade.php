@@ -16,6 +16,15 @@
 
 <x-navbar />
 
+{{-- Behind the card: one large, faint GIYA logo that slowly breathes, with
+     gold ripples spreading out from it every few seconds. Decoration only. --}}
+<div class="auth-bg" aria-hidden="true">
+    <span class="auth-bg-ring"></span>
+    <span class="auth-bg-ring is-2"></span>
+    <span class="auth-bg-ring is-3"></span>
+    <img class="auth-bg-logo" src="{{ asset('images/logo/giya-logo.svg') }}?v=2" alt="">
+</div>
+
 <main class="auth-content">
 <div class="auth-card">
     <header class="auth-header">
