@@ -25,6 +25,11 @@
 <body class="onb-page">
 
 <main class="onb" id="onb" aria-roledescription="carousel" aria-label="{{ __('giya.onboarding.title') }}">
+    {{-- The official logo and name, opposite Skip, on every slide. --}}
+    <div class="onb-brand">
+        <img src="{{ asset('images/logo/giya-logo.svg') }}?v=2" alt="" width="40" height="40">
+        <span>Giya</span>
+    </div>
     <a class="onb-skip" href="{{ route('onboarding.finish', ['next' => 'root']) }}">{{ __('giya.onboarding.skip') }}</a>
 
     <div class="onb-track" id="onbTrack" tabindex="0">
