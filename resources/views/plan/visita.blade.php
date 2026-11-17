@@ -168,6 +168,19 @@
        that pushed this column to 397px inside a 358px grid and scrolled the
        whole page sideways - in English, and 7px further in Cebuano, where
        the words are longer. */
+    /* The drag handle: six dots, a finger's width wide. */
+    .vi-grip { flex-shrink: 0; width: 28px; height: 42px; margin-left: -4px; display: inline-flex; align-items: center;
+               justify-content: center; border: 0; border-radius: 8px; background: none; color: var(--text-muted);
+               cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; }
+    .vi-grip svg { width: 10px; height: 16px; fill: currentColor; }
+    .vi-grip:hover { color: var(--primary); background: rgba(142,59,47,.06); }
+    .vi-grip:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+    #churchList.is-sorting { -webkit-user-select: none; user-select: none; }
+    #churchList.is-sorting .vi-grip { cursor: grabbing; }
+    .vi-row.is-dragging { position: relative; z-index: 2; box-shadow: 0 10px 24px rgba(60, 25, 15, .18);
+                          border-color: var(--primary); transform: scale(1.01); }
+    html[data-theme="dark"] .vi-row.is-dragging { box-shadow: 0 10px 24px rgba(0, 0, 0, .5); }
+    @media (prefers-reduced-motion: reduce) { .vi-row.is-dragging { transform: none; } }
     /* Add a Church: the church icon, and type sized to be read on a phone. */
     .vi-pick-list { display: flex; flex-direction: column; gap: 8px; max-height: min(360px, 55vh); overflow-y: auto; padding-right: 2px; }
     .vi-pick { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 12px;
@@ -243,6 +256,8 @@ const GiyaVisita = (function () {
         plusYou:   @json(__('giya.plan.visita_near_you_plus')),
         plusTown:  @json(__('giya.plan.visita_near_town_plus')),
         noLoc:     @json(__('giya.plan.visita_no_location')),
+        dragLabel: @json(__('giya.plan.drag_label')),
+        dragHint:  @json(__('giya.plan.drag_hint')),
     };
     let origin = null;      // { lat, lng, town } once known
     let target = list.length || 7;
@@ -352,7 +367,10 @@ const GiyaVisita = (function () {
                 ? '<i class="bi bi-check-lg" style="color:var(--gold);font-size: 1.0625rem"></i>'
                 : '<span style="font-size: 0.75rem;font-weight:700;color:' + (isCurrent ? 'var(--primary)' : 'var(--text-muted)') + '">' + (i + 1) + '</span>';
 
-            return '<div class="vi-row ' + cls + '">' +
+            return '<div class="vi-row ' + cls + '" data-i="' + i + '">' +
+                '<button type="button" class="vi-grip" aria-label="' + esc(T.dragLabel.replace(':name', c.name)) + '" title="' + esc(T.dragHint) + '">' +
+                  '<svg viewBox="0 0 10 16" aria-hidden="true" focusable="false"><circle cx="2.5" cy="2.5" r="1.5"/><circle cx="7.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13.5" r="1.5"/><circle cx="7.5" cy="13.5" r="1.5"/></svg>' +
+                '</button>' +
                 '<span style="width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(142,59,47,.15);background:' + badgeBg + '">' + inner + '</span>' +
                 '<span class="vi-info" style="flex:1;min-width:0">' +
                   '<span style="display:block;font-size: 0.875rem;font-weight:600;color:var(--text)' + (c.visited ? ';text-decoration:line-through;opacity:.65' : '') + '">' + esc(c.name) + '</span>' +
@@ -360,15 +378,73 @@ const GiyaVisita = (function () {
                   (isCurrent ? '<span class="badge badge-primary" style="margin-top:4px">Next stop</span>' : '') +
                 '</span>' +
                 '<span class="vi-actions" style="display:flex;align-items:center;gap:8px;flex-shrink:0">' +
-                  '<span class="vi-move" style="display:flex;flex-direction:column;gap:2px">' +
-                    '<button type="button" class="route-btn" onclick="GiyaVisita.move(' + i + ',-1)" style="color:' + (i === 0 ? '#D8C4BC' : 'var(--primary)') + ';font-size: 0.75rem">▲</button>' +
-                    '<button type="button" class="route-btn" onclick="GiyaVisita.move(' + i + ',1)" style="color:' + (i === list.length - 1 ? '#D8C4BC' : 'var(--primary)') + ';font-size: 0.75rem">▼</button>' +
-                  '</span>' +
                   '<button type="button" class="vi-mark" onclick="GiyaVisita.toggle(' + i + ')" style="padding:8px 13px;border-radius:10px;font-size: 0.75rem;font-weight:700;border:none;cursor:pointer;min-width:100px;font-family:var(--font-body);background:' + (c.visited ? 'var(--gold-bg)' : 'var(--primary)') + ';color:' + (c.visited ? 'var(--primary)' : '#fff') + '">' + (c.visited ? @json(__('giya.plan.visited_b')) : @json(__('giya.plan.mark_visited_b'))) + '</button>' +
                   '<button type="button" class="vi-drop" aria-label="Remove" onclick="GiyaVisita.drop(' + i + ')" style="width:28px;height:28px;border-radius:8px;background:rgba(212,24,61,.08);color:#D4183D;border:none;cursor:pointer;font-size: 0.9375rem">×</button>' +
                 '</span></div>';
         }).join('');
     }
+
+    /* ---- Dragging to reorder ----
+       Pointer events, so one piece of code serves a mouse, a finger and a
+       pen. The row moves in the page while it is dragged; the route is
+       re-ordered from the rows when it is let go. The handle has
+       touch-action: none so dragging it does not scroll the page; near the
+       top or bottom of the screen the page scrolls along. On a keyboard the
+       handle moves its church with the up and down arrow keys. */
+    const listEl = document.getElementById('churchList');
+    let drag = null;
+
+    listEl.addEventListener('pointerdown', function (e) {
+        const grip = e.target.closest('.vi-grip');
+        if (!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        e.preventDefault();
+        const row = grip.closest('.vi-row');
+        drag = { row: row, grip: grip, pointer: e.pointerId };
+        grip.setPointerCapture(e.pointerId);
+        row.classList.add('is-dragging');
+        listEl.classList.add('is-sorting');
+    });
+
+    listEl.addEventListener('pointermove', function (e) {
+        if (!drag || e.pointerId !== drag.pointer) return;
+        e.preventDefault();
+        const others = Array.from(listEl.querySelectorAll('.vi-row')).filter(r => r !== drag.row);
+        const before = others.find(function (r) {
+            const box = r.getBoundingClientRect();
+            return e.clientY < box.top + box.height / 2;
+        });
+        if (before) { if (drag.row.nextElementSibling !== before) listEl.insertBefore(drag.row, before); }
+        else if (listEl.lastElementChild !== drag.row) { listEl.appendChild(drag.row); }
+
+        const edge = 70;
+        if (e.clientY < edge) window.scrollBy(0, -14);
+        else if (e.clientY > window.innerHeight - edge) window.scrollBy(0, 14);
+    });
+
+    function finishDrag(e) {
+        if (!drag || (e && e.pointerId !== drag.pointer)) return;
+        const order = Array.from(listEl.querySelectorAll('.vi-row')).map(r => Number(r.dataset.i));
+        drag.row.classList.remove('is-dragging');
+        listEl.classList.remove('is-sorting');
+        drag = null;
+        const moved = order.some((n, k) => n !== k);
+        if (moved) { list = order.map(n => list[n]); }
+        render();
+    }
+    listEl.addEventListener('pointerup', finishDrag);
+    listEl.addEventListener('pointercancel', finishDrag);
+
+    listEl.addEventListener('keydown', function (e) {
+        const grip = e.target.closest('.vi-grip');
+        if (!grip || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+        e.preventDefault();
+        const i = Number(grip.closest('.vi-row').dataset.i), t = i + (e.key === 'ArrowUp' ? -1 : 1);
+        if (t < 0 || t >= list.length) return;
+        [list[i], list[t]] = [list[t], list[i]];
+        render();
+        const again = listEl.querySelector('.vi-row[data-i="' + t + '"] .vi-grip');
+        if (again) again.focus();
+    });
 
     function refreshPicker() {
         const available = all.filter(c => !list.some(x => x.id === c.id));

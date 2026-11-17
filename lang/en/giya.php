@@ -396,6 +396,8 @@ return [
         'visita_choose_town' => 'Choose your town',
         'visita_suggest_again' => 'Suggest again',
         'picker_all_in' => 'Every church is already in your route.',
+        'drag_label' => 'Move :name: drag, or use the up and down arrow keys',
+        'drag_hint' => 'Drag to change the order',
         'visita_title'      => 'Visita Iglesia Planner',
         'visita_lead'       => 'The traditional multi-church pilgrimage - adjust the number of stops to suit your devotion and schedule.',
         'traditionally'     => 'Traditionally 7 churches',

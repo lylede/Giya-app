@@ -386,6 +386,8 @@ return [
         'visita_choose_town' => 'Pilia ang imong lungsod',
         'visita_suggest_again' => 'Isugyot pag-usab',
         'picker_all_in' => 'Anaa na sa imong ruta ang tanang simbahan.',
+        'drag_label' => 'Ibalhin ang :name: guyda, o gamita ang pataas ug paubos nga arrow keys',
+        'drag_hint' => 'Guyda aron usbon ang han-ay',
         'visita_title'      => 'Visita Iglesia Planner',
         'visita_lead'       => 'Ang tradisyonal nga peregrinasyon sa daghang simbahan - usba ang gidaghanon sa hunongan sumala sa imong debosyon ug iskedyul.',
         'traditionally'     => 'Tradisyonal nga 7 ka simbahan',

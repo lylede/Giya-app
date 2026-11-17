@@ -6302,9 +6302,8 @@ html[data-theme="dark"] .giya-back:not(.is-dark) .giya-back-icon { background: v
 @media (max-width: 600px) {
   /* ── Visita Iglesia: buttons on their own line under the church ── */
   .vi-row { flex-wrap: wrap; row-gap: 10px; }
-  .vi-row .vi-info { flex: 1 1 calc(100% - 56px); }
-  .vi-row .vi-actions { flex: 1 1 100%; padding-left: 52px; }
-  .vi-row .vi-move { flex-direction: row !important; gap: 4px !important; }
+  .vi-row .vi-info { flex: 1 1 calc(100% - 90px); }
+  .vi-row .vi-actions { flex: 1 1 100%; padding-left: 86px; }
   .vi-row .route-btn {
     width: 36px; height: 36px; border-radius: 10px;
     background: #fff; border: 1px solid var(--border);

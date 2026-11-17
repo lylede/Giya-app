@@ -90,4 +90,20 @@ class VisitaNearTownsTest extends TestCase
             ->assertSee('if (returning.length) {', false)
             ->assertSee('"name":"Talisay Parish"', false);
     }
+
+    public function test_the_route_is_reordered_by_dragging_not_arrows(): void
+    {
+        $this->church('Talisay Parish', 'Talisay', 10.2447, 123.8494, true);
+
+        $html = $this->actingAs($this->pilgrim())->get(route('plan.visita'))->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('▲', $html);
+        $this->assertStringNotContainsString('▼', $html);
+        $this->assertStringContainsString('class="vi-grip"', $html);
+        // Pointer events: mouse, finger and pen; the handle does not scroll the page.
+        $this->assertStringContainsString("listEl.addEventListener('pointerdown'", $html);
+        $this->assertStringContainsString('touch-action: none', $html);
+        // Still usable from a keyboard.
+        $this->assertStringContainsString("e.key !== 'ArrowUp' && e.key !== 'ArrowDown'", $html);
+    }
 }

@@ -37,7 +37,7 @@ class BigPhoneLayoutTest extends TestCase
     {
         $view = file_get_contents(resource_path('views/plan/visita.blade.php'));
 
-        foreach (['vi-info', 'vi-actions', 'vi-move', 'vi-mark', 'vi-drop'] as $class) {
+        foreach (['vi-grip', 'vi-info', 'vi-actions', 'vi-mark', 'vi-drop'] as $class) {
             $this->assertStringContainsString('class="'.$class.'"', $view);
         }
         $this->assertStringContainsString('.vi-row .vi-actions { flex: 1 1 100%;', $this->css());
