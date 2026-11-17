@@ -36,8 +36,45 @@
         @foreach ($slides as $i => $s)
             <section class="onb-slide" aria-roledescription="slide"
                      aria-label="{{ __('giya.onboarding.slide', ['n' => $i + 1, 'total' => count($slides)]) }}">
-                <span class="onb-icon">
-                    <img src="{{ asset('assets/img/onboarding/'.$s['img'].'.png') }}" alt="" width="77" height="78">
+                {{-- Drawn, not a small picture, so they stay sharp on any phone. --}}
+                <span class="onb-icon is-{{ $s['img'] }}" aria-hidden="true">
+                    @if ($s['img'] === 'discover')
+                        <svg viewBox="0 0 96 96">
+                            <circle cx="48" cy="48" r="48" fill="#F8E3C6"/>
+                            <rect x="46" y="14" width="4" height="15" rx="1" fill="#E3B043"/>
+                            <rect x="41" y="18" width="14" height="4" rx="1" fill="#E3B043"/>
+                            <path d="M48 28 31 43v31h34V43L48 28Z" fill="#8E3B2F"/>
+                            <path d="M22 52 31 45v29h-9V52Zm52 0-9-7v29h9V52Z" fill="#6B2D22"/>
+                            <path d="M42 74V61a6 6 0 0 1 12 0v13H42Z" fill="#F8E3C6"/>
+                            <circle cx="48" cy="47" r="4" fill="#F8E3C6"/>
+                            <rect x="18" y="74" width="60" height="4" rx="2" fill="#E3B043"/>
+                        </svg>
+                    @elseif ($s['img'] === 'routes')
+                        <svg viewBox="0 0 96 96">
+                            <circle cx="48" cy="48" r="48" fill="#F8E3C6"/>
+                            <path d="M33 74c10 2 22 0 26-8s2-10 7-14" fill="none" stroke="#E3B043" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>
+                            <path d="M30 76c-6-7-12-12-12-19a12 12 0 0 1 24 0c0 7-6 12-12 19Z" fill="#8E3B2F"/>
+                            <circle cx="30" cy="57" r="4.5" fill="#F8E3C6"/>
+                            <path d="M66 50c-6-7-12-12-12-19a12 12 0 0 1 24 0c0 7-6 12-12 19Z" fill="#8E3B2F"/>
+                            <rect x="64.6" y="24" width="2.8" height="12" rx=".6" fill="#E3B043"/>
+                            <rect x="61" y="27.6" width="10" height="2.8" rx=".6" fill="#E3B043"/>
+                        </svg>
+                    @else
+                        <span class="onb-robot">
+                            <span class="guide-face">
+                                <span class="guide-ear guide-ear-l"></span>
+                                <span class="guide-ear guide-ear-r"></span>
+                                <span class="guide-screen">
+                                    <span class="guide-eye guide-eye-l"><i></i></span>
+                                    <span class="guide-eye guide-eye-r"><i></i></span>
+                                    <span class="guide-mouth"></span>
+                                    <span class="guide-blush guide-blush-l"></span>
+                                    <span class="guide-blush guide-blush-r"></span>
+                                </span>
+                                <span class="guide-lamp"></span>
+                            </span>
+                        </span>
+                    @endif
                 </span>
                 {{-- One h1 per page: the first slide titles the page, the others are sections. --}}
                 <{{ $loop->first ? 'h1' : 'h2' }} class="onb-title">{{ $s['title'] }}</{{ $loop->first ? 'h1' : 'h2' }}>
