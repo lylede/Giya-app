@@ -44,7 +44,7 @@ class OfflineAppTest extends TestCase
 
         // Pages are fetched with retries, and nothing else calls fetch() for a page.
         $this->assertStringContainsString('await fetchPatiently(request, url)', $sw);
-        $this->assertStringContainsString('for (const ms of [500, 1500])', $sw);
+        $this->assertStringContainsString('for (const ms of [500, 1500, 3000])', $sw);
         // No waiting when the phone itself reports no connection, and
         // one-time links (Google's return, signed email links) go out once.
         $this->assertStringContainsString('self.navigator.onLine === false || oneTime', $sw);
@@ -65,5 +65,24 @@ class OfflineAppTest extends TestCase
         $this->get('/up')->assertOk();
 
         $this->assertStringContainsString("sessionStorage.removeItem('giya-offline-retries')", file_get_contents(public_path('assets/js/giya-offline.js')));
+    }
+
+    public function test_pages_are_asked_for_by_the_browser_first_and_a_slow_answer_is_waited_for(): void
+    {
+        $sw = file_get_contents(public_path('sw.js'));
+
+        $this->assertStringContainsString('navigationPreload.enable()', $sw);
+        $this->assertStringContainsString('await event.preloadResponse', $sw);
+
+        $this->get('/offline')->assertOk()
+            ->assertSee('Opening GIYA')
+            ->assertSee('180000', false);
+    }
+
+    public function test_a_plan_address_that_is_not_a_number_is_not_found_not_a_crash(): void
+    {
+        $user = \App\Models\User::create(['name' => 'Plan User', 'email' => 'plan-user@example.com', 'password_hash' => 'hashed-password']);
+
+        $this->actingAs($user)->get('/plan/abc')->assertNotFound();
     }
 }

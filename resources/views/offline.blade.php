@@ -14,7 +14,7 @@
     <title>GIYA - You are offline</title>
     <link rel="icon" href="/images/brand/icon-192.png">
     <style>
-        body { margin: 0; font-family: Lato, system-ui, sans-serif; background: #FFF8ED; color: #241C18; }
+        body { margin: 0; font-family: Lato, system-ui, sans-serif; background: #F3E5D0; color: #241C18; }
         .wrap { max-width: 460px; margin: 0 auto; padding: 48px 20px; text-align: center; }
         img { width: 72px; height: 72px; }
         h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; margin: 16px 0 8px; }
@@ -23,6 +23,10 @@
         li a { display: block; padding: 12px 14px; margin-bottom: 8px; border-radius: 12px; background: #fff;
                border: 1px solid rgba(142,59,47,.15); color: #8E3B2F; font-weight: 700; text-decoration: none; }
         .status { margin: 14px 0 0; font-size: .875rem; }
+        .spinner { width: 34px; height: 34px; margin: 18px auto 0; border-radius: 50%;
+                   border: 3px solid rgba(142,59,47,.18); border-top-color: #8E3B2F; animation: spin .9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.5s; } }
         button { padding: 12px 22px; border: 0; border-radius: 999px; background: #8E3B2F; color: #fff; font-weight: 700; font-size: 1rem; }
         @media (prefers-color-scheme: dark) {
             body { background: #17110E; color: #F2E8DC; } p { color: #CDBBA8; }
@@ -33,6 +37,7 @@
 <body>
 <div class="wrap">
     <img src="/images/logo/giya-logo.svg" alt="GIYA">
+    <div id="spinner" class="spinner" hidden></div>
     <h1 id="title">You are offline</h1>
     <p id="lead">No signal right now. Pages you opened before are still here:</p>
     <ul id="saved"></ul>
@@ -54,12 +59,14 @@
 
     function describe() {
         var online = navigator.onLine !== false;
-        document.getElementById('title').textContent = online ? 'GIYA is not answering' : 'You are offline';
+        var waiting = online && tries < 4;
+        document.getElementById('title').textContent = waiting ? 'Opening GIYA\u2026' : (online ? 'GIYA is not answering' : 'You are offline');
         document.title = 'GIYA - ' + document.getElementById('title').textContent;
-        document.getElementById('lead').textContent = online
-            ? 'Your internet looks fine, but GIYA did not answer just now. Pages you opened before are still here:'
-            : 'No signal right now. Pages you opened before are still here:';
-        document.getElementById('status').hidden = tries >= 4;
+        document.getElementById('lead').textContent = waiting
+            ? 'The connection is slow or GIYA is just starting up. This page opens by itself the moment it answers. Pages you opened before are here too:'
+            : (online ? 'GIYA did not answer. Pages you opened before are still here:' : 'No signal right now. Pages you opened before are still here:');
+        document.getElementById('spinner').hidden = !waiting;
+        document.getElementById('status').hidden = !waiting;
     }
 
     function check() {
@@ -76,8 +83,14 @@
     window.addEventListener('online', function () { describe(); check(); });
     window.addEventListener('offline', describe);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
-    timer = setInterval(check, 4000);
-    setTimeout(check, 1200);
+    // Every 3 seconds for up to 3 minutes: Render's free plan can take a
+    // minute to wake up.
+    var started = Date.now();
+    timer = setInterval(function () {
+        if (Date.now() - started > 180000) { clearInterval(timer); tries = 4; describe(); return; }
+        check();
+    }, 3000);
+    setTimeout(check, 800);
 })();
 </script>
 <script>

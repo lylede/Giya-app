@@ -15,7 +15,7 @@
  *   phone never sees someone else's itineraries.
  */
 // Change this whenever the caching rules change: the old saved copies are dropped.
-const VERSION = 'giya-v3';
+const VERSION = 'giya-v4';
 const SHELL = VERSION + '-shell';
 const PAGES = 'giya-pages';
 const TILES = 'giya-tiles';
@@ -39,9 +39,17 @@ self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(SHELL).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
 
+/*
+ * Navigation preload: the browser asks for the page itself, the same way it
+ * would with no worker at all, while the worker is still starting. A request
+ * the worker made by hand failed more often on a slow server (Render's free
+ * plan waking up) and on weak data, and showed "GIYA is not answering" for a
+ * page that loaded fine a second later.
+ */
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys()
+    Promise.resolve(self.registration.navigationPreload && self.registration.navigationPreload.enable()).catch(() => {})
+      .then(() => caches.keys())
       .then((keys) => Promise.all(keys.filter((k) => k.endsWith('-shell') && k !== SHELL).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
@@ -79,7 +87,7 @@ async function fetchPatiently(request, url) {
     if (self.navigator.onLine === false || oneTime) throw first;
 
     let last = first;
-    for (const ms of [500, 1500]) {
+    for (const ms of [500, 1500, 3000]) {
       await wait(ms);
       try {
         return await fetch(request);
@@ -91,10 +99,17 @@ async function fetchPatiently(request, url) {
   }
 }
 
-async function page(request) {
+async function page(event) {
+  const request = event.request;
   const url = new URL(request.url);
   try {
-    const response = await fetchPatiently(request, url);
+    let response;
+    try {
+      response = await event.preloadResponse;
+    } catch (e) {
+      response = undefined; // the browser's own try failed: try again from here
+    }
+    if (!response) response = await fetchPatiently(request, url);
     if (response.ok && KEEP.some((re) => re.test(url.pathname)) && !response.redirected) {
       const cache = await caches.open(PAGES);
       await cache.put(url.pathname, response.clone());
@@ -170,7 +185,7 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     // Signing in or out: forget the previous person's saved pages.
     if (url.pathname === '/login' || url.pathname === '/register') caches.delete(PAGES);
-    event.respondWith(page(request));
+    event.respondWith(page(event));
     return;
   }
 

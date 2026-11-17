@@ -78,7 +78,7 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
     Route::post('/profile/review', [ProfileController::class, 'storeReview'])->middleware(['throttle:giya-actions', 'confirmed.email'])->name('profile.review');
 
     /* Plan / Itineraries - static segments registered before {itinerary} */
-    Route::prefix('plan')->name('plan.')->controller(ItineraryController::class)->group(function () {
+    Route::prefix('plan')->name('plan.')->controller(ItineraryController::class)->where(['itinerary' => '[0-9]+'])->group(function () {
         Route::get('/',                'hub')->name('hub');
         /* The custom planner is the map now. This stays only so a link
            someone already has - a bookmark, a message, an old screenshot -

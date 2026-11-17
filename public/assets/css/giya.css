@@ -1,7 +1,7 @@
 /* ============================================================
    GIYA - Design System CSS
    Fonts: Playfair Display (headings) + Lato (body)
-   Colors: #8E3B2F (primary) · #D7A94A (gold) · #FFF8ED (bg) · #241C18 (text)
+   Colors: #8E3B2F (primary) · #D7A94A (gold) · #F3E5D0 (bg) · #241C18 (text)
    ============================================================ */
 
 /* ── Fonts ─────────────────────────────────────────────────── */
@@ -28,16 +28,20 @@
   --gold:          #D7A94A;
   --gold-light:    #F0C76C;
   --gold-bg:       #FAE8CC;
-  --bg:            #FFF8ED;
-  --bg-input:      #FDF3E3;
-  --bg-secondary:  #FAF0DC;
+  /* The page is a warm parchment, a step darker than the cards, so a white
+     card or a white input reads as something you can tap rather than
+     blending into a near-white page. Borders and shadows are a little
+     firmer for the same reason. */
+  --bg:            #F3E5D0;
+  --bg-input:      #FFFBF5;
+  --bg-secondary:  #EBDBC2;
   --text:          #241C18;
-  --text-muted:    #7A6355;
-  --border:        rgba(142,59,47,0.15);
-  --border-light:  rgba(142,59,47,0.08);
-  --shadow-sm:     0 1px 6px rgba(142,59,47,0.07);
-  --shadow-md:     0 2px 12px rgba(142,59,47,0.09);
-  --shadow-lg:     0 8px 32px rgba(142,59,47,0.14);
+  --text-muted:    #6E5748;
+  --border:        rgba(142,59,47,0.22);
+  --border-light:  rgba(142,59,47,0.14);
+  --shadow-sm:     0 1px 2px rgba(60,25,15,0.06), 0 2px 8px rgba(142,59,47,0.08);
+  --shadow-md:     0 1px 3px rgba(60,25,15,0.08), 0 4px 16px rgba(142,59,47,0.11);
+  --shadow-lg:     0 2px 6px rgba(60,25,15,0.08), 0 10px 32px rgba(142,59,47,0.16);
   --shadow-xl:     0 20px 60px rgba(0,0,0,0.15);
   --radius-sm:     8px;
   --radius-md:     12px;
@@ -261,18 +265,18 @@ img { max-width: 100%; display: block; }
 .btn-gold:hover { background: var(--gold-light); color: var(--text); }
 
 .btn-outline {
-  background: transparent; color: var(--primary);
+  background: #fff; color: var(--primary);
   padding: 13px 22px; border-radius: var(--radius-xl);
-  font-size: 0.875rem; border: 1.5px solid var(--border);
+  font-size: 0.875rem; border: 1.5px solid rgba(142,59,47,0.5);
 }
 .btn-outline:hover { background: rgba(142,59,47,0.05); color: var(--primary); }
 
 .btn-outline-gold {
-  background: rgba(215,169,74,0.08); color: var(--text);
+  background: var(--gold-bg); color: var(--primary-dark); font-weight: 700;
   padding: 13px 22px; border-radius: var(--radius-xl);
   font-size: 0.875rem; border: 1.5px solid var(--gold);
 }
-.btn-outline-gold:hover { background: rgba(215,169,74,0.16); }
+.btn-outline-gold:hover { background: #F6DCB0; color: var(--primary-dark); }
 
 /*
    .btn-ghost defaults to LIGHT surfaces - cards, panels, tables, which is
@@ -283,7 +287,7 @@ img { max-width: 100%; display: block; }
    every card in the app.
 */
 .btn-ghost {
-  background: transparent; color: var(--text);
+  background: var(--bg-input); color: var(--text);
   padding: 12px 20px; border-radius: var(--radius-xl);
   font-size: 0.875rem; border: 1px solid var(--border);
 }
@@ -2513,6 +2517,8 @@ html[data-theme="dark"] .btn-outline,
 html[data-theme="dark"] .btn-ghost { background: transparent; color: var(--text); border-color: var(--border); }
 html[data-theme="dark"] .btn-outline:hover,
 html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
+html[data-theme="dark"] .btn-outline-gold { background: rgba(215,169,74,0.14); color: var(--gold-light); }
+html[data-theme="dark"] .btn-outline-gold:hover { background: rgba(215,169,74,0.24); color: var(--gold-light); }
 
 /* Preference pills read as unselected white chips otherwise. */
 html[data-theme="dark"] .pref-choice { background: var(--surface-2); color: var(--text); border-color: var(--border); }
@@ -3531,7 +3537,7 @@ html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
 .mx-pick {
   position: relative;
   width: 30px; height: 30px; flex-shrink: 0;
-  border-radius: 50%; cursor: pointer;
+  padding: 0; border-radius: 50%; cursor: pointer;
   background: #fff; color: transparent;
   border: 2px solid rgba(142, 59, 47, .6);
   box-shadow: 0 1px 3px rgba(60, 25, 15, .12);
@@ -3540,15 +3546,21 @@ html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
   transition: background .15s, border-color .15s, color .15s, transform .15s;
 }
 .mx-pick:not(.is-on) .bi { display: none; }
-.mx-pick:not(.is-on)::before {
-  content: "+"; color: var(--primary);
-  font: 700 1.25rem/1 var(--font-body);
-  margin-top: -2px;
+/* The + is two bars centred exactly, not a "+" character: a letter sits a
+   little high or low depending on the phone's font. */
+.mx-pick:not(.is-on)::before,
+.mx-pick:not(.is-on)::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 12px; height: 2px; border-radius: 1px;
+  background: var(--primary);
+  transform: translate(-50%, -50%);
 }
+.mx-pick:not(.is-on)::after { transform: translate(-50%, -50%) rotate(90deg); }
 .mx-pick:hover { border-color: var(--primary); background: var(--gold-bg, #FBEFD6); }
 .mx-pick:active { transform: scale(.94); }
 html[data-theme="dark"] .mx-pick:not(.is-on) { background: var(--surface-2); border-color: var(--gold-light, #E9C77E); }
-html[data-theme="dark"] .mx-pick:not(.is-on)::before { color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .mx-pick:not(.is-on)::before,
+html[data-theme="dark"] .mx-pick:not(.is-on)::after { background: var(--gold-light, #E9C77E); }
 .mx-pick.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
 .mx-pick:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
