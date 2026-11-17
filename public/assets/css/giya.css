@@ -1,7 +1,7 @@
 /* ============================================================
    GIYA - Design System CSS
    Fonts: Playfair Display (headings) + Lato (body)
-   Colors: #8E3B2F (primary) · #D7A94A (gold) · #F3E5D0 (bg) · #241C18 (text)
+   Colors: #8E3B2F (primary) · #D7A94A (gold) · #EFE8DF (bg) · #241C18 (text)
    ============================================================ */
 
 /* ── Fonts ─────────────────────────────────────────────────── */
@@ -28,13 +28,13 @@
   --gold:          #D7A94A;
   --gold-light:    #F0C76C;
   --gold-bg:       #FAE8CC;
-  /* The page is a warm parchment, a step darker than the cards, so a white
-     card or a white input reads as something you can tap rather than
-     blending into a near-white page. Borders and shadows are a little
-     firmer for the same reason. */
-  --bg:            #F3E5D0;
+  /* The page is a soft warm linen, a step darker than the cards and far less
+     yellow than cream, so a white card, input or button stands out with its
+     shadow instead of blending into the page. Borders and shadows are a
+     little firmer for the same reason. */
+  --bg:            #EFE8DF;
   --bg-input:      #FFFBF5;
-  --bg-secondary:  #EBDBC2;
+  --bg-secondary:  #E6DDD1;
   --text:          #241C18;
   --text-muted:    #6E5748;
   --border:        rgba(142,59,47,0.22);
@@ -1009,6 +1009,18 @@ html[data-theme="dark"] .google-consent a { color: var(--gold-light, #E9C77E); }
    Route" was rendering as an unreadable "Trac". The corner belongs to the
    wave; the badge has the width of the card to itself down here. */
 .plan-card-badge-row { display: block; margin: 14px 0 12px; }
+
+/* Icon and title side by side, like the Home cards. Clear of the number and
+   the wave in the top-right corner. */
+.plan-card-head { display: flex; align-items: center; gap: 14px; padding-right: 64px; margin-bottom: 14px; }
+.plan-card-head .plan-card-icon { flex-shrink: 0; }
+.plan-card-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.plan-card-heading .plan-card-title { font-size: 1.0625rem; margin: 0; }
+@media (max-width: 600px) {
+  .plan-card-head { padding-right: 92px; }
+  .plan-card-head .plan-card-icon { width: 42px; height: 42px; border-radius: 14px; }
+  .plan-card-head .plan-card-icon i { font-size: 1.2rem; }
+}
 
 .plan-card-title { display: block; font-size: .9375rem; font-weight: 700; color: var(--text); line-height: 1.3; margin-bottom: 8px; }
 .plan-card-desc  { display: block; font-size: .75rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 14px; }

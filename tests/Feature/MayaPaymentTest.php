@@ -498,13 +498,17 @@ class MayaPaymentTest extends TestCase
     {
         $page = $this->actingAs($this->devotee())->get(route('upgrade'))->assertOk();
 
+        // Leave out the ?v=<timestamp> on stylesheet and script links: a
+        // timestamp such as 1794917420 contains "4917" by pure chance.
+        $html = preg_replace('/\?v=\d+/', '', $page->getContent());
+
         foreach ([
             '5123', '4917', 'mctest1',       // sandbox test cards
             'Sandbox', 'sandbox',            // which environment we point at
             'MAYA_PUBLIC_KEY', '.env',       // setup instructions
             'Pending transaction',           // our own transaction handling
         ] as $developerOnly) {
-            $page->assertDontSee($developerOnly, false);
+            $this->assertStringNotContainsString($developerOnly, $html);
         }
     }
 

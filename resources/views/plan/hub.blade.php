@@ -68,20 +68,22 @@
                 <span class="plan-card-body">
                     <span class="plan-card-num" aria-hidden="true">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
 
-                    <span class="plan-card-icon">
-                        <i class="bi bi-{{ $card['icon'] }}"></i>
-                    </span>
-
-                    {{-- Below the icon, not opposite it. The top-right corner
-                         is the wave's and the number's; a badge put there
-                         was being painted over. --}}
-                    <span class="plan-card-badge-row">
-                        <span @class(['badge', 'badge-primary' => $card['featured'], 'badge-brown' => ! $card['featured']])>
-                            {{ $card['badge'] }}
+                    {{-- The icon with the title beside it, the same as the
+                         Home cards. The badge sits above the title, inside
+                         the card rather than in the top-right corner, which
+                         belongs to the wave and the number. --}}
+                    <span class="plan-card-head">
+                        <span class="plan-card-icon">
+                            <i class="bi bi-{{ $card['icon'] }}"></i>
+                        </span>
+                        <span class="plan-card-heading">
+                            <span @class(['badge', 'badge-primary' => $card['featured'], 'badge-brown' => ! $card['featured']])>
+                                {{ $card['badge'] }}
+                            </span>
+                            <span class="plan-card-title">{{ $card['title'] }}</span>
                         </span>
                     </span>
 
-                    <span class="plan-card-title">{{ $card['title'] }}</span>
                     <span class="plan-card-rule" aria-hidden="true"></span>
                     <span class="plan-card-desc">{{ $card['desc'] }}</span>
 

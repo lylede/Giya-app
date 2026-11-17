@@ -85,8 +85,8 @@ class PlanCardTest extends TestCase
     {
         $html = $this->hub();
 
-        // Its own row under the icon, not the right-hand end of the icon row.
-        $this->assertSame(2, substr_count($html, 'plan-card-badge-row'));
+        // Beside the icon, above the title - not in the top-right corner.
+        $this->assertSame(2, substr_count($html, 'class="plan-card-heading"'));
 
         /* The old markup cleared the number with a hard margin. If that is
            back, the badge is back in the corner with it. */
