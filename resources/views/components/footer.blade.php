@@ -37,30 +37,6 @@
             </div>
         </div>
 
-        {{-- Credits for the team who built GIYA, on the Home page footer. --}}
-        @if (request()->routeIs('home', 'root'))
-            @php
-                // Roles as in the team's CVs, the same as the About page.
-                $developers = [
-                    ['Lyle Adrien Dedumo',   __('giya.about.role_backend')],
-                    ['Clint Eroll Capondag', __('giya.about.role_design')],
-                    ['Josh Efraim Padernal', __('giya.about.role_pm')],
-                    ['Ian Francis Loyola',   __('giya.about.role_qa')],
-                ];
-            @endphp
-            <section class="footer-credits" aria-labelledby="footerDevelopers">
-                <div class="footer-col-title" id="footerDevelopers">{{ __('giya.footer.developers') }}</div>
-                <ul class="footer-credits-list">
-                    @foreach ($developers as [$name, $role])
-                        <li>
-                            <span class="footer-credit-name">{{ $name }}</span>
-                            <span class="footer-credit-role">{{ $role }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </section>
-        @endif
-
         <div class="footer-bottom">
             <span class="footer-copy">&copy; {{ date('Y') }} Giya · {{ __('giya.hub.copyright') }}
                 · <a href="{{ route('privacy') }}" class="footer-legal">{{ __('giya.legal.privacy') }}</a>

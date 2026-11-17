@@ -7,17 +7,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-/** The developer credits in the Home page footer. */
+/** The footer carries no developer credits; the team is on the About page. */
 class FooterCreditsTest extends TestCase
 {
     use RefreshDatabase;
-
-    private const TEAM = [
-        'Lyle Adrien Dedumo'   => 'Back-end Developer',
-        'Clint Eroll Capondag' => 'UI/UX Designer',
-        'Josh Efraim Padernal' => 'Project Manager',
-        'Ian Francis Loyola'   => 'QA Tester and Database Designer',
-    ];
 
     private function user(): User
     {
@@ -27,26 +20,19 @@ class FooterCreditsTest extends TestCase
         ]);
     }
 
-    public function test_home_footer_credits_the_team_with_names_under_the_heading(): void
+    public function test_the_home_footer_has_no_developer_list(): void
     {
         $html = $this->actingAs($this->user())->get(route('home'))->assertOk()->getContent();
+        $footer = substr($html, (int) strpos($html, '<footer'));
 
-        $this->assertStringContainsString('>Developers<', $html);
-        $after = substr($html, strpos($html, '>Developers<'));
-        foreach (self::TEAM as $name => $role) {
-            $this->assertStringContainsString($name, $after);
-            $this->assertStringContainsString($role, $after);
-        }
+        $this->assertStringNotContainsString('>Developers<', $footer);
+        $this->assertStringNotContainsString('footer-credits', $footer);
     }
 
-    public function test_visitors_see_it_on_the_start_page_too(): void
+    public function test_visitors_do_not_see_it_on_the_start_page_either(): void
     {
-        $this->withCookie(OnboardingController::COOKIE, '1')
-            ->get(route('root'))->assertOk()->assertSee('Lyle Adrien Dedumo');
-    }
+        $html = $this->withCookie(OnboardingController::COOKIE, '1')->get(route('root'))->assertOk()->getContent();
 
-    public function test_other_pages_keep_the_plain_footer(): void
-    {
-        $this->actingAs($this->user())->get(route('plan.hub'))->assertOk()->assertDontSee('Lyle Adrien Dedumo');
+        $this->assertStringNotContainsString('footer-credits', $html);
     }
 }
