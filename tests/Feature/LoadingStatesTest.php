@@ -60,10 +60,9 @@ class LoadingStatesTest extends TestCase
         $this->assertStringContainsString('giya-loading', $html);
         $this->assertStringContainsString(__('giya.map.loading'), $html);
 
-        // The face and the edge are what make it an object rather than a
-        // flipping sticker; losing the edge is a silent downgrade.
-        $this->assertStringContainsString('giya-loading-face', $html);
-        $this->assertStringContainsString('giya-loading-edge', $html);
+        // The pin drops like water onto a ripple.
+        $this->assertStringContainsString('giya-loading-pin', $html);
+        $this->assertStringContainsString('giya-loading-ripple', $html);
     }
 
     public function test_the_map_list_holds_its_shape_until_the_script_fills_it(): void
@@ -131,10 +130,11 @@ class LoadingStatesTest extends TestCase
             'giya.css must hide the loading panel once the map is ready.'
         );
 
-        $this->assertMatchesRegularExpression(
-            '/@keyframes\s+giya-pin-turn\s*\{[^}]*rotateY/',
+        $this->assertStringContainsString('@keyframes giya-pin-drop', $css);
+        $this->assertStringContainsString(
+            'transform: translateY(0) scale(1.18, .78);',
             $css,
-            'The pin should turn in three dimensions, which is what rotateY does.'
+            'The pin should squash as it lands, like a drop of water.'
         );
 
         $this->assertMatchesRegularExpression(
@@ -150,7 +150,7 @@ class LoadingStatesTest extends TestCase
         $this->assertMatchesRegularExpression(
             '/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{[^}]*giya-loading-pin[^}]*\}/',
             $css,
-            'The turning pin must hold still for anyone who asks for less motion.'
+            'The dropping pin must hold still for anyone who asks for less motion.'
         );
     }
 
