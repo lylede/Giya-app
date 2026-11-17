@@ -85,16 +85,6 @@
                     </div>
                 </div>
 
-                <div class="card card-body mb-3 d-none" id="addPicker">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span style="font-size: 0.875rem;font-weight:700;color:var(--primary)">{{ __('giya.plan.add_a_church') }}</span>
-                        <button type="button" class="route-btn" onclick="document.getElementById('addPicker').classList.add('d-none')">
-                            <i class="bi bi-x" style="font-size: 1.125rem;color:var(--text-muted)"></i>
-                        </button>
-                    </div>
-                    <div id="pickerList" class="vi-pick-list"></div>
-                </div>
-
                 <div class="d-flex gap-2 flex-wrap">
                     <button type="button" class="btn btn-primary" style="flex:1;min-width:170px"
                             onclick="GiyaVisita.submit()" @disabled($atLimit)>
@@ -149,6 +139,28 @@
             </div>
         </div>
     </form>
+
+    {{-- Add Church: a sheet that slides up over the page (a centred pop-up on
+         a computer), right where the finger is, so it cannot be missed. It
+         stays open to add several; Done shows where they went. --}}
+    <div class="modal vi-sheet" id="addPicker" tabindex="-1" aria-hidden="true" role="dialog" aria-labelledby="addPickerTitle">
+        <div class="modal-dialog">
+            <div class="modal-content vi-sheet-body">
+                <div class="vi-sheet-head">
+                    <h2 class="vi-sheet-title" id="addPickerTitle">{{ __('giya.plan.add_a_church') }}</h2>
+                    <button type="button" class="vi-sheet-x" data-modal-close aria-label="{{ __('giya.common.close') }}"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div class="vi-sheet-search">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="search" id="pickerSearch" class="giya-input" autocomplete="off"
+                           placeholder="{{ __('giya.plan.picker_search') }}" aria-label="{{ __('giya.plan.picker_search') }}">
+                </div>
+                <p class="vi-sheet-note" id="pickerNote" aria-live="polite"></p>
+                <div id="pickerList" class="vi-pick-list"></div>
+                <button type="button" class="btn btn-primary btn-w-full vi-sheet-done" data-modal-close>{{ __('giya.plan.picker_done') }}</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @push('head')
@@ -446,17 +458,80 @@ const GiyaVisita = (function () {
         if (again) again.focus();
     });
 
+    /* ---- Add Church sheet ----
+       Nearest first: measured from the last church in the route, so the next
+       stop is close to where the devotee will be. Search by name or town.
+       Churches added while the sheet is open stay in the list as "Added". */
+    let justAdded = [];
+    const P = {
+        added:   @json(__('giya.plan.picker_added')),
+        add:     @json(__('giya.plan.picker_add')),
+        none:    @json(__('giya.plan.picker_none')),
+        allIn:   @json(__('giya.plan.picker_all_in')),
+        count:   @json(__('giya.plan.picker_count')),
+        seven:   @json(__('giya.plan.picker_seven')),
+    };
+
     function refreshPicker() {
-        const available = all.filter(c => !list.some(x => x.id === c.id));
         const box = document.getElementById('pickerList');
-        box.innerHTML = available.length
-            ? available.map(c =>
-                '<button type="button" class="vi-pick" onclick="GiyaVisita.pick(' + c.id + ')">' +
-                '<span class="vi-pick-icon" style="color:' + esc(c.color) + '"><i class="bi bi-giya-spires" aria-hidden="true"></i></span>' +
-                '<span class="vi-pick-text"><span class="vi-pick-name">' + esc(c.name) + '</span>' +
-                '<span class="vi-pick-place">' + esc(c.location) + '</span></span></button>').join('')
-            : '<p class="vi-pick-empty">' + esc(@json(__('giya.plan.picker_all_in'))) + '</p>';
+        const q = (document.getElementById('pickerSearch').value || '').trim().toLowerCase();
+        // From the last church that was in the route before this sheet opened, so
+        // the distances do not jump about while churches are being added.
+        const from = [...list].reverse().find(c => c.lat != null && c.lng != null && !justAdded.includes(c.id));
+        let shown = all.filter(c => !list.some(x => x.id === c.id) || justAdded.includes(c.id));
+        if (q) shown = shown.filter(c => (c.name + ' ' + (c.town || '') + ' ' + (c.location || '')).toLowerCase().includes(q));
+        const dist = c => (from && c.lat != null) ? km(from, c) : null;
+        shown.sort((a, b) => {
+            const da = dist(a), db = dist(b);
+            if (da !== null && db !== null) return da - db;
+            if (da !== null) return -1;
+            if (db !== null) return 1;
+            return a.name.localeCompare(b.name);
+        });
+
+        box.innerHTML = shown.length
+            ? shown.map(c => {
+                const done = justAdded.includes(c.id), d = dist(c);
+                return '<button type="button" class="vi-pick' + (done ? ' is-added' : '') + '"' +
+                    (done ? ' disabled' : ' onclick="GiyaVisita.pick(' + c.id + ')"') + '>' +
+                    '<span class="vi-pick-icon" style="color:' + esc(c.color) + '"><i class="bi bi-giya-spires" aria-hidden="true"></i></span>' +
+                    '<span class="vi-pick-text"><span class="vi-pick-name">' + esc(c.name) + '</span>' +
+                    '<span class="vi-pick-place">' + esc(c.location || c.town || '') +
+                    (d !== null ? ' · ' + (d < 10 ? d.toFixed(1) : Math.round(d)) + ' km' : '') + '</span></span>' +
+                    '<span class="vi-pick-act">' + (done ? '<i class="bi bi-check-lg"></i> ' + esc(P.added)
+                                                        : '<i class="bi bi-plus-lg"></i><span class="visually-hidden">' + esc(P.add) + '</span>') + '</span>' +
+                    '</button>';
+            }).join('')
+            : '<p class="vi-pick-empty">' + esc(q ? P.none : P.allIn) + '</p>';
+
+        // How many so far, and a gentle word past the traditional seven.
+        const n = list.length;
+        document.getElementById('pickerNote').innerHTML =
+            esc(P.count.replace(':n', n)) + (n > 7 ? ' <span class="vi-sheet-seven">' + esc(P.seven) + '</span>' : '');
     }
+
+    // Closing the sheet (Done, ✕, the backdrop or Escape) shows where the new
+    // churches went: the list scrolls to the last one and it glows briefly.
+    (function () {
+        const sheet = document.getElementById('addPicker');
+        let wasOpen = false;
+        new MutationObserver(function () {
+            const open = sheet.classList.contains('is-open');
+            if (wasOpen && !open && justAdded.length) {
+                const last = justAdded[justAdded.length - 1];
+                const i = list.findIndex(c => c.id === last);
+                const row = document.querySelector('#churchList .vi-row[data-i="' + i + '"]');
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.classList.add('is-new');
+                    setTimeout(() => row.classList.remove('is-new'), 2200);
+                }
+                justAdded = [];
+            }
+            wasOpen = open;
+        }).observe(sheet, { attributes: true, attributeFilter: ['class'] });
+        document.getElementById('pickerSearch').addEventListener('input', refreshPicker);
+    })();
 
     render();
 
@@ -499,7 +574,15 @@ const GiyaVisita = (function () {
                 render(); refreshPicker();
             }
         },
-        openPicker: function () { refreshPicker(); document.getElementById('addPicker').classList.remove('d-none'); },
+        openPicker: function () {
+            justAdded = [];
+            document.getElementById('pickerSearch').value = '';
+            refreshPicker();
+            GiyaUI.Modal.open('addPicker');
+            document.getElementById('pickerList').scrollTop = 0;
+            // On a phone, do not throw the keyboard up over the list at once.
+            if (window.matchMedia('(pointer: coarse)').matches) document.activeElement.blur();
+        },
 
         /* Hand the route to the map by id. The map already knows how to read
            ?stops= - it ticks each one, opens the tray and draws the line - so
@@ -517,8 +600,12 @@ const GiyaVisita = (function () {
         },
         pick: function (id) {
             const c = all.find(x => x.id === id);
-            if (c) { list.push(Object.assign({ visited: false }, c)); render(); refreshPicker(); }
-            document.getElementById('addPicker').classList.add('d-none');
+            if (c && !list.some(x => x.id === id)) {
+                list.push(Object.assign({ visited: false }, c));
+                justAdded.push(id);
+                render();
+                refreshPicker();
+            }
         },
         submit: function () {
             if (!list.length) { GiyaConfirm.ask({ title: @json(__('giya.plan.no_churches_t')), message: @json(__('giya.plan.no_churches_b')), ok: @json(__('giya.common.got_it')), cancel: @json(__('giya.common.close')), tone: 'primary' }); return; }
