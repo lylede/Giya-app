@@ -6248,6 +6248,8 @@ html[data-theme="dark"] .guide-bubble::after { border-top-color: var(--surface);
   .fab-head-wrap { width: 46px !important; height: 43px !important; }
   .fab-head-wrap .guide-face { transform: translate(-50%, -50%) scale(.38); }
   main { padding-bottom: 72px; }
+  /* The welcome slides have no robot button to make room for. */
+  main.onb { padding-bottom: 0; }
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -6348,8 +6350,9 @@ html[data-theme="dark"] .onb-brand span { color: var(--gold-light, #E9C77E); }
 }
 /* With script, "I already have an account" appears on the last slide only,
    keeping its space so the button does not jump. */
-.onb-js .onb-login { visibility: hidden; }
-.onb-js .onb-login.is-shown { visibility: visible; }
+/* "I already have an account" shows on every slide: someone with an
+   account can sign in straight away, and the space under the button is
+   used instead of held empty until the last slide. */
 
 /* A computer: the same slides in a phone-width card. */
 @media (min-width: 640px) {
@@ -7844,3 +7847,25 @@ html[data-theme="dark"] .tt-dated-when { color: var(--gold-light, #E9C77E); }
 html[data-theme="dark"] .sm-bulk { background: rgba(233, 199, 126, .08); border-color: rgba(233, 199, 126, .3); }
 
 .church-admin-sched { margin: -4px 0 12px; }
+
+/* ── WELCOME SLIDES: fit any phone ───────────────────────────
+   The picture, title and sentence sit in the middle of the space between
+   the logo at the top and the dots, and the Next button sits near the
+   bottom of the screen. Sizes follow the screen's height, so a short
+   phone gets a slightly smaller picture rather than a squashed layout,
+   and a tall one does not leave a gap under the button. */
+.onb-slide {
+  justify-content: center;
+  padding: calc(72px + env(safe-area-inset-top)) 28px clamp(8px, 2vh, 20px);
+}
+.onb-icon { width: clamp(64px, 11vh, 96px); height: clamp(64px, 11vh, 96px); margin-bottom: clamp(16px, 3vh, 28px); }
+.onb-icon img { width: 100%; height: 100%; }
+.onb-title { font-size: clamp(1.5rem, 4vh, 2rem); }
+.onb-text { max-width: 320px; font-size: clamp(.875rem, 2.1vh, 1rem); }
+.onb-foot { padding: 0 24px calc(clamp(12px, 2.5vh, 24px) + env(safe-area-inset-bottom)); }
+.onb-dots { margin-bottom: clamp(16px, 3vh, 26px); }
+.onb-btn { height: clamp(50px, 7vh, 58px); }
+.onb-login { margin-top: clamp(6px, 1.4vh, 12px); padding: 6px; }
+@media (min-width: 640px) {
+  .onb-slide { padding-top: 72px; }
+}
