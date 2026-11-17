@@ -7090,7 +7090,10 @@ html[data-theme="dark"] .legal-page a { color: var(--primary-ink, #E59C86); }
 .chat-history-modal { border: none; border-radius: var(--radius-2xl); padding: 24px; }
 .chat-history-search { margin: 4px 0 12px; }
 .chat-history-list { list-style: none; margin: 0; padding: 0; max-height: 52vh; overflow-y: auto; }
-.chat-history-item { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+/* The bin sits inside the row with the same space on its right as the text
+   has on its left, centred top to bottom. */
+.chat-history-item { display: flex; align-items: center; gap: 10px; padding: 4px 10px 4px 4px; border-bottom: 1px solid var(--border); }
+.chat-history-item > form { margin: 0; display: flex; flex-shrink: 0; }
 .chat-history-item:last-child { border-bottom: 0; }
 .chat-history-item.is-current { background: rgba(215,169,74,.10); border-radius: 10px; }
 .chat-history-link { flex: 1; min-width: 0; padding: 10px 8px; text-decoration: none; color: var(--text); }
