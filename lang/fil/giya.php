@@ -108,6 +108,8 @@ return [
         'no_featured_d'   => 'Makakapili ang administrador ng mga destinasyon mula sa admin panel.',
         'no_events_d'     => 'Ang mga iskedyul na idinagdag sa admin panel ay makikita rito.',
         'recurring'       => 'Paulit-ulit',
+        'every'           => 'Tuwing',
+        'daily'           => 'Araw-araw',
         'sign_in_go'      => 'Mag-sign in para magpatuloy',
     ],
 

@@ -2041,32 +2041,38 @@ img.gs-img.is-loaded { background: none; animation: none; }
   box-shadow: var(--shadow-sm);
 }
 
+/* A calendar tile: the month small, the day big. A white frame with a dark
+   maroon outline like the card icons; the soonest event is solid maroon so
+   the next one is the first thing you see. */
 .event-date {
-  width: 56px; height: 56px;
+  width: 56px; height: 58px;
   flex-shrink: 0;
   border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center;
   padding: 4px;
-  background: var(--gold-bg);
+  background: #fff;
+  border: 1.5px solid var(--primary-dark);
+  box-shadow: 0 3px 0 rgba(36, 28, 24, .10);
+  color: var(--primary-dark);
 }
-
-.event-date.is-soonest { background: var(--primary); }
-
-.event-kind {
-  font-size: .5625rem;
-  font-weight: 700;
-  text-transform: none;
-  line-height: 1.2;
-  color: var(--primary);
-}
-
-.event-date.is-soonest .event-kind { color: var(--gold); }
+.event-month { font-size: .6875rem; font-weight: 700; line-height: 1; color: var(--primary); }
+.event-day   { font-size: 1.5rem; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums lining-nums; }
+.event-date.is-word .event-day { font-size: .8125rem; line-height: 1.15; overflow-wrap: anywhere; }
+.event-date.is-soonest { background: var(--primary); border-color: var(--primary-dark); color: #fff; }
+.event-date.is-soonest .event-month { color: var(--gold-light, #F0C76C); }
 
 .event-body  { flex: 1; min-width: 0; }
 .event-name  { font-size: .875rem; font-weight: 700; color: var(--text); }
-.event-where { font-size: .75rem; color: var(--text-muted); }
+.event-where { font-size: .75rem; color: var(--text-muted); display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; }
 .event-where .bi { font-size: .75rem; }
+.event-church { min-width: 0; }
+/* What kind of event, beside the church: the same soft badge as the plan cards. */
+.event-tag {
+  font-size: .6875rem; font-weight: 700; line-height: 1;
+  padding: 4px 8px; border-radius: 999px;
+  background: rgba(142, 59, 47, .09); color: var(--primary);
+}
 
 .event-when {
   font-size: .75rem;
@@ -6381,10 +6387,8 @@ html[data-theme="dark"] .giya-back:not(.is-dark) .giya-back-icon { background: v
    Checked page by page at 360, 390, 412, 430 and 440px.
    ════════════════════════════════════════════════════════════════ */
 
-/* Home, upcoming activities: a long type ("PROCESSION") ran out of its
-   tile. A little wider and tighter, and it may break if it must. */
-.event-date { width: 64px; }
-.event-kind { font-size: .5rem; letter-spacing: -.01em; overflow-wrap: anywhere; }
+/* Home, upcoming activities: the tile holds a date now, and the type
+   ("Procession") sits in a tag that wraps under the church if it must. */
 
 @media (max-width: 768px) {
   /* ── Admin: the menu is a drawer, not a screen-filling strip ──── */
@@ -6950,7 +6954,6 @@ html[data-theme="dark"] .badge[class*="status-"],
 html[data-theme="dark"] .mx-tag.is-town,
 html[data-theme="dark"] .church-tab.is-active,
 html[data-theme="dark"] .church-next-mass-link,
-html[data-theme="dark"] .event-date:not(.is-soonest) .event-kind,
 html[data-theme="dark"] .giya-popup-btn.is-secondary,
 html[data-theme="dark"] .mx-more-btn,
 html[data-theme="dark"] .profile-tab.is-active,
@@ -6965,7 +6968,9 @@ html[data-theme="dark"] .church-tab.is-active { border-bottom-color: var(--prima
 
 /* Gold buttons: dark ink, like the light theme, never light text on gold. */
 html[data-theme="dark"] .btn-gold { color: #241C18; }
-html[data-theme="dark"] .event-date.is-soonest .event-kind { color: #F5E9D9; }
+html[data-theme="dark"] .event-date:not(.is-soonest) { background: var(--surface-2, #2A211C); border-color: var(--gold-light, #E9C77E); color: #F5E9D9; }
+html[data-theme="dark"] .event-date:not(.is-soonest) .event-month { color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .event-tag { background: rgba(229, 156, 134, .14); color: var(--primary-ink); }
 
 /* Map pop-ups follow the dark surface. */
 html[data-theme="dark"] .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); }

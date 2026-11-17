@@ -108,6 +108,8 @@ return [
         'no_featured_d'   => 'Makapili ang administrador ug mga destinasyon gikan sa admin panel.',
         'no_events_d'     => 'Ang mga iskedyul nga gidugang sa admin panel makita dinhi.',
         'recurring'       => 'Balik-balik',
+        'every'           => 'Matag',
+        'daily'           => 'Adlaw-adlaw',
         'sign_in_go'      => 'Sulod aron magpadayon',
     ],
 

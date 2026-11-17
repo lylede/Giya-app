@@ -215,20 +215,47 @@
                     {{-- The soonest one is the only one in the primary colour.
                          Everything after it is the same weight, because a list
                          where each row shouts equally has no next. --}}
+                    @php
+                        /* The box shows when: month and day for a dated event,
+                           "Every Sun" or "Daily" for one that repeats by
+                           weekday. The type moves to a tag by the church. */
+                        $when = $event->schedule_date;
+                        $days = $when ? null : $event->weekdays();
+                        if ($when) {
+                            $boxTop = $when->locale(app()->getLocale())->translatedFormat('M');
+                            $boxBig = $when->format('j');
+                        } elseif ($days && count($days) === 7) {
+                            $boxTop = '';
+                            $boxBig = __('giya.home.daily');
+                        } elseif ($days) {
+                            $boxTop = __('giya.home.every');
+                            $boxBig = now()->startOfWeek(\Carbon\Carbon::SUNDAY)->addDays($days[0])
+                                ->locale(app()->getLocale())->translatedFormat('D').(count($days) > 1 ? '+' : '');
+                        } else {
+                            $boxTop = '';
+                            $boxBig = __('giya.home.recurring');
+                        }
+                        $isWord = ! $when;
+                    @endphp
                     <div class="card event-row">
-                        <span @class(['event-date', 'is-soonest' => $i === 0])>
-                            <span class="event-kind">{{ $event->event_type }}</span>
+                        <span @class(['event-date', 'is-soonest' => $i === 0, 'is-word' => $isWord])
+                              title="{{ $event->day_label }}">
+                            @if ($boxTop !== '')<span class="event-month">{{ $boxTop }}</span>@endif
+                            <span class="event-day">{{ $boxBig }}</span>
                         </span>
                         <div class="event-body">
                             <div class="event-name">{{ $event->event_name }}</div>
                             <div class="event-where">
                                 <i class="bi bi-giya-spires"></i>
-                                {{ $event->church->name ?? ($event->location ?: 'Cebu') }}
+                                <span class="event-church">{{ $event->church->name ?? ($event->location ?: 'Cebu') }}</span>
+                                @if (filled($event->event_type))
+                                    <span class="event-tag">{{ $event->event_type }}</span>
+                                @endif
                             </div>
                         </div>
-                        <div class="event-when">
-                            {{ $event->schedule_date?->format('M j, Y') ?? ($event->recurrence ?? __('giya.home.recurring')) }}
-                        </div>
+                        @if ($event->start_time)
+                            <div class="event-when">{{ $event->timeLabel($event->start_time) }}</div>
+                        @endif
                     </div>
                 @empty
                     <x-empty-state icon="calendar-event" :title="__('giya.home.no_events')"

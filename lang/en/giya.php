@@ -118,6 +118,8 @@ return [
         'no_featured_d'   => 'An administrator can feature destinations from the admin panel.',
         'no_events_d'     => 'Schedules added in the admin panel will appear here.',
         'recurring'       => 'Recurring',
+        'every'           => 'Every',
+        'daily'           => 'Daily',
         'sign_in_go'      => 'Sign in to continue',
     ],
 

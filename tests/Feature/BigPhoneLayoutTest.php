@@ -43,9 +43,11 @@ class BigPhoneLayoutTest extends TestCase
         $this->assertStringContainsString('.vi-row .vi-actions { flex: 1 1 100%;', $this->css());
     }
 
-    public function test_long_event_types_fit_their_tile(): void
+    public function test_long_event_types_fit(): void
     {
-        $this->assertStringContainsString('.event-kind { font-size: .5rem; letter-spacing: -.01em; overflow-wrap: anywhere; }', $this->css());
+        // The type is a tag that wraps under the church; the tile holds the date.
+        $this->assertStringContainsString('.event-where { font-size: .75rem; color: var(--text-muted); display: flex; align-items: center; flex-wrap: wrap;', $this->css());
+        $this->assertStringContainsString('.event-date.is-word .event-day { font-size: .8125rem; line-height: 1.15; overflow-wrap: anywhere; }', $this->css());
     }
 
     public function test_chat_keyboard_check_does_not_trust_inner_height(): void
