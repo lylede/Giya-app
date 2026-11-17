@@ -212,7 +212,7 @@
     <div class="guide" id="guide" data-online="{{ $online ? '1' : '0' }}">
         <div class="guide-bubble" id="guideBubble">
             <span id="guideSay">
-                {{ $online ? __('giya.chat.guide_online') : __('giya.chat.guide_offline') }}
+                {{ $online ? __('giya.chat.guide_online', ['greet' => \App\Support\Greeting::word()]) : __('giya.chat.guide_offline') }}
             </span>
         </div>
 
@@ -301,7 +301,7 @@
                         </span>
                     </span>
                     <div class="chat-bubble chat-bubble-bot">
-                        {{ __('giya.chat.greeting_long') }}
+                        {{ __('giya.chat.greeting_long', ['greet' => \App\Support\Greeting::word()]) }}
                     </div>
                 </div>
             @else

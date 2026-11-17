@@ -145,6 +145,26 @@
        the pilgrimage screen), so the bell does not wait for the next poll. */
     window.GiyaNotifications = { refresh: function () { return load(true); } };
 
+    /* While the notifications panel or the phone menu is open, <body> says
+       so (has-nav-overlay). On the phone map page the CSS then hides the map
+       under it: iPhone Safari draws the map tiles and the sliding filter row
+       on top of the top bar's panels whatever their z-index, which cut the
+       list off below the first item. One watcher covers every way they open
+       and close (bell, ☰, a tap outside, Escape). */
+    (function () {
+        var menu = document.getElementById('navMobileMenu');
+        function sync() {
+            var open = panel.classList.contains('is-open') || (menu && menu.classList.contains('open'));
+            document.body.classList.toggle('has-nav-overlay', !!open);
+        }
+        if (window.MutationObserver) {
+            var watch = new MutationObserver(sync);
+            watch.observe(panel, { attributes: true, attributeFilter: ['class'] });
+            if (menu) watch.observe(menu, { attributes: true, attributeFilter: ['class'] });
+        }
+        sync();
+    })();
+
     bell.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();

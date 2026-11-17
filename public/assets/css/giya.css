@@ -4128,6 +4128,7 @@ input[type="date"][readonly] { cursor: pointer; }
 .notif-panel {
   position: absolute; top: calc(100% + 12px); right: 0;
   z-index: 1300;
+  -webkit-transform: translateZ(0); transform: translateZ(0);   /* its own layer in Safari */
   width: min(340px, calc(100vw - 24px));
   background: #fff;
   border: 1px solid var(--border);
@@ -6569,6 +6570,14 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
     order: 0;
   }
   body[data-page="map"] .map-sidebar.is-dragging { transition: none; }
+
+  /* The notifications panel or the ☰ menu is open: hide the map under it.
+     iPhone Safari paints the map tiles, the sliding filter row and the sheet
+     above the top bar's panels whatever their z-index (they are composited
+     layers), so the notifications list was cut off after one item. Hidden,
+     not removed, so the map is exactly where it was when the panel closes. */
+  body[data-page="map"].has-nav-overlay .map-grid,
+  body[data-page="map"]:has(.nav-toggle-input:checked) .map-grid { visibility: hidden; }
   body[data-page="map"] .mx-grab {
     display: block; flex: 0 0 auto; width: 100%; padding: 9px 0 5px;
     background: none; border: 0; cursor: grab; touch-action: none;
@@ -7508,3 +7517,9 @@ html[data-theme="dark"] { --scroll-thumb: rgba(233, 199, 126, .26); --scroll-thu
 .nav-theme .nav-theme-sun { display: none; }
 html[data-theme="dark"] .nav-theme .nav-theme-moon { display: none; }
 html[data-theme="dark"] .nav-theme .nav-theme-sun { display: inline; }
+
+/* The robot and its speech bubble float bottom-right on every page; on a
+   phone they sat on top of the open notifications list. Out of the way while
+   the notifications panel or the ☰ menu is open. */
+body.has-nav-overlay .giya-fab,
+body:has(.nav-toggle-input:checked) .giya-fab { visibility: hidden; }

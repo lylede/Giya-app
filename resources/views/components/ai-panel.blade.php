@@ -58,7 +58,7 @@
                 </span>
             </span>
             <div class="chat-bubble chat-bubble-bot">
-                {{ __('giya.chat.greeting_panel') }}
+                {{ __('giya.chat.greeting_panel', ['greet' => \App\Support\Greeting::word()]) }}
             </div>
         </div>
     </div>

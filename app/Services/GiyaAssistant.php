@@ -689,6 +689,10 @@ class GiyaAssistant
 
         $me = $this->aboutDevotee();
 
+        // The time in Cebu, so a greeting back fits the hour.
+        $clock = now()->timezone(config('app.timezone'))->format('g:i A');
+        $greet = \App\Support\Greeting::word();
+
         $tired = $this->streak >= self::TIRED_EVERY && $this->streak % self::TIRED_EVERY === 0
             ? "\nThe devotee has asked {$this->streak} questions in a row. Start with ONE short playful line that your "
               .'lantern is getting a little tired from all this walking (for example "Whew, my lantern needs a quick '
@@ -740,6 +744,8 @@ class GiyaAssistant
         - For a greeting ("hi", "hello", "hey", "kumusta", "maayong buntag")
           or "are you online?", reply in ONE short friendly line, for example
           "Yes, I'm here! Which church or route can I help you with?"
+          It is now {$clock} in Cebu: if you greet back by time of day, say
+          "{$greet}", never a greeting for another time of day.
         - Short or misspelled messages are still questions: read "give
           northern church" or "in north cebu" with the earlier messages and
           answer them.
