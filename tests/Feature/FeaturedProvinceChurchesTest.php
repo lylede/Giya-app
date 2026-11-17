@@ -45,17 +45,41 @@ class FeaturedProvinceChurchesTest extends TestCase
         $this->assertFalse($argao->fresh()->is_featured);
     }
 
-    public function test_home_shows_up_to_twelve_featured_churches_that_have_photos(): void
+    public function test_home_shows_up_to_twenty_featured_churches_photos_first(): void
     {
-        foreach (range(1, 13) as $n) {
+        $this->church('Featured Without Photo', 'Oslob', true);
+        foreach (range(1, 21) as $n) {
             $c = $this->church("Featured Church {$n}", 'Argao', true);
             ChurchImage::create(['church_id' => $c->id, 'image_url' => "https://upload.wikimedia.org/wikipedia/commons/a/a1/Featured_{$n}.jpg", 'is_primary' => true, 'created_at' => now()]);
         }
+
+        $html = $this->withCookie(\App\Http\Controllers\OnboardingController::COOKIE, '1')->get('/')->assertOk()->getContent();
+
+        $this->assertSame(20, substr_count($html, 'class="proc-bar"'));
+        $this->assertStringContainsString('const HOLD = 6000;', $html);
+        $this->assertStringContainsString('setTimeout(function () { show(live + 1); }, HOLD)', $html);
+    }
+
+    public function test_a_featured_church_without_a_photo_gets_a_drawn_slide(): void
+    {
         $this->church('Featured Without Photo', 'Oslob', true);
 
         $html = $this->withCookie(\App\Http\Controllers\OnboardingController::COOKIE, '1')->get('/')->assertOk()->getContent();
 
-        $this->assertSame(12, substr_count($html, 'class="proc-bar"'));
-        $this->assertStringNotContainsString('Featured Without Photo', $html);
+        $this->assertStringContainsString('Featured Without Photo', $html);
+        $this->assertStringContainsString('is-plain', $html);
+        $this->assertStringContainsString('bi-giya-spires', $html);
+    }
+
+    public function test_the_second_migration_features_more_city_churches(): void
+    {
+        $guadalupe = $this->church('Our Lady of Guadalupe Parish', 'Cebu City');
+        $other     = $this->church('Our Lady of Guadalupe Parish', 'Toledo City');
+
+        $migration = require database_path('migrations/2026_11_17_000002_feature_more_city_churches.php');
+        $migration->up();
+
+        $this->assertTrue($guadalupe->fresh()->is_featured);
+        $this->assertFalse($other->fresh()->is_featured);
     }
 }

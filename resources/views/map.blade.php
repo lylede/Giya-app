@@ -827,7 +827,7 @@ onLocated: function (me) {
                 '<span class="mx-thumb">' +
                     (c.image
                         ? '<img src="' + escapeAttr(c.image) + '" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'is-empty\')">'
-                        : '<i class="bi bi-building"></i>') +
+                        : '<i class="bi bi-giya-spires"></i>') +
                 '</span>' +
                 '<div class="mx-row-body">' +
                     '<h3>' +

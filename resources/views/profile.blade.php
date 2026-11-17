@@ -211,7 +211,7 @@
                 @if ($visit->church)
                     <img class="history-thumb gs-img" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
                 @else
-                    <span class="history-icon"><i class="bi bi-building" style="font-size: 1.125rem;color:var(--primary)"></i></span>
+                    <span class="history-icon"><i class="bi bi-giya-spires" style="font-size: 1.125rem;color:var(--primary)"></i></span>
                 @endif
                     <div style="flex:1;min-width:0">
                         <div style="font-size: 0.875rem;font-weight:700;color:var(--text)">{{ $visit->church_name }}</div>
@@ -222,7 +222,7 @@
                     @endif
                 </div>
             @empty
-                <x-empty-state icon="building" :title="__('giya.profile.no_visits')"
+                <x-empty-state icon="giya-spires" :title="__('giya.profile.no_visits')"
                                :desc="__('giya.profile.no_visits_d')" />
             @endforelse
         </div>
@@ -240,7 +240,7 @@
                 @if ($visit->church)
                     <img class="history-thumb gs-img" src="{{ $visit->church->imagePath() }}" alt="" loading="lazy">
                 @else
-                    <span class="history-icon"><i class="bi bi-building" style="font-size: 1.125rem;color:var(--primary)"></i></span>
+                    <span class="history-icon"><i class="bi bi-giya-spires" style="font-size: 1.125rem;color:var(--primary)"></i></span>
                 @endif
                 <div class="history-body">
                     <div class="history-name">{{ $visit->church_name }}</div>

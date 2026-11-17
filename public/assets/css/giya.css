@@ -1115,8 +1115,17 @@ html[data-theme="dark"] .google-consent a { color: var(--gold-light, #E9C77E); }
 
 .home-card-icon i { font-size: 1.375rem; color: #fff; transition: color .35s ease; }
 
-.home-card-title { display: block; font-size: .9375rem; font-weight: 700; color: var(--text); }
-.home-card-desc  { display: block; font-size: .75rem; color: var(--text-muted); margin-top: 4px; line-height: 1.6; }
+/* The icon and the title sit side by side: they say the same thing, so they
+   read as one label, and the card is a row shorter on a phone. The sentence
+   under them keeps the card's full width. */
+.home-card-head { display: flex; align-items: center; gap: 12px; padding-right: 44px; }
+.home-card-head .home-card-icon { flex-shrink: 0; }
+.home-card-title { display: block; font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+.home-card-desc  { display: block; font-size: .8125rem; color: var(--text-muted); line-height: 1.6; }
+@media (max-width: 600px) {
+  .home-card-head .home-card-icon { width: 42px; height: 42px; border-radius: 14px; }
+  .home-card-head .home-card-icon i { font-size: 1.2rem; }
+}
 
 .home-card-go {
   margin-top: auto;
@@ -5159,6 +5168,20 @@ html[data-theme="dark"] .giya-popup span   { color: #6B5B4E; }
   to   { transform: scale(1); }
 }
 
+/* A featured church with no photo yet: a warm glow and a large church
+   outline instead of being left out of the slideshow. */
+.proc-slide.is-plain {
+  background: radial-gradient(circle at 78% 38%, #B4685B 0%, #8E3B2F 38%, #4A1F18 100%);
+}
+.proc-slide.is-plain .bi {
+  position: absolute; right: 7%; top: 46%; transform: translateY(-50%);
+  font-size: clamp(150px, 26vw, 300px); line-height: 1;
+  color: rgba(240, 199, 108, .24);
+}
+@media (max-width: 640px) {
+  .proc-slide.is-plain .bi { right: 50%; top: 30%; transform: translate(50%, -50%); }
+}
+
 .proc-veil {
   position: absolute; inset: 0; z-index: 2;
   background:
@@ -5241,9 +5264,12 @@ html[data-theme="dark"] .giya-popup span   { color: #6B5B4E; }
   transform: scaleX(0);
 }
 .proc-bar.is-done span::after { transform: scaleX(1); }
-/* Filled, not filling. With no timer there is nothing to count down, so the
-   live bar simply shows which destination is on screen. */
-.proc-bar.is-live span::after { transform: scaleX(1); }
+/* The live bar fills over the six seconds a church is on screen, so you can
+   see when the next one is coming. Paused while the pointer or a finger is on
+   the slideshow. */
+.proc-bar.is-live span::after { animation: proc-fill 6s linear forwards; }
+.proc.is-paused .proc-bar.is-live span::after { animation-play-state: paused; }
+@keyframes proc-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 .proc-bar:hover span { background: rgba(255,255,255,.5); }
 .proc-bar:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
@@ -7204,15 +7230,21 @@ html:not([data-theme="dark"]) .admin-layout {
 html[data-theme="dark"] .admin-layout .stat-row { background: var(--surface-1, #1F1814); }
 .admin-layout .stat-tile,
 .admin-layout .stat-tile:hover {
-  display: flex; flex-direction: column; gap: 2px;
+  display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; row-gap: 0; align-items: center;
   margin: -1px 0 0 -1px; padding: 14px 18px 13px;
   border: 0; border-left: 1px solid var(--border-light); border-top: 1px solid var(--border-light);
   border-radius: 0; box-shadow: none; transform: none; background: transparent;
 }
-.admin-layout .stat-tile-icon { display: none; }
-.admin-layout .stat-tile-label { order: -1; margin: 0; font-size: .75rem; font-weight: 600; color: var(--text-muted); }
-.admin-layout .stat-tile-value { margin: 0; font-size: 1.5rem; line-height: 1.25; font-weight: 700; }
-.admin-layout .stat-tile-sub { margin: 0; font-size: .75rem; }
+/* The icon sits to the left of its label and figure, so each number has a
+   picture beside it saying what it counts. */
+.admin-layout .stat-tile-icon {
+  grid-column: 1; grid-row: 1 / span 3; align-self: center;
+  width: 40px; height: 40px; margin: 0; border-radius: 10px;
+}
+.admin-layout .stat-tile-icon .bi { font-size: 1.125rem; }
+.admin-layout .stat-tile-label { grid-column: 2; grid-row: 1; margin: 0; font-size: .75rem; font-weight: 600; color: var(--text-muted); }
+.admin-layout .stat-tile-value { grid-column: 2; grid-row: 2; margin: 0; font-size: 1.5rem; line-height: 1.25; font-weight: 700; }
+.admin-layout .stat-tile-sub { grid-column: 2; grid-row: 3; margin: 0; font-size: .75rem; }
 
 /* Controls: square-ish, the same height, white fields. */
 .admin-layout .btn { border-radius: 6px; padding: 9px 14px; font-size: .8125rem; font-weight: 600; transition: background .15s, border-color .15s; }

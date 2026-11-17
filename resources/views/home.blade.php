@@ -110,13 +110,13 @@
                         <i class="b1"></i><i class="b2"></i>
                     </span>
 
-                    <span class="home-card-icon">
-                        <i class="bi bi-{{ $icon }}"></i>
-                    </span>
-                    <span>
+                    <span class="home-card-head">
+                        <span class="home-card-icon">
+                            <i class="bi bi-{{ $icon }}"></i>
+                        </span>
                         <span class="home-card-title">{{ $title }}</span>
-                        <span class="home-card-desc">{{ $desc }}</span>
                     </span>
+                    <span class="home-card-desc">{{ $desc }}</span>
                     <span class="home-card-go">
                         {{ $route === 'login' ? __('giya.home.sign_in_go') : __('giya.home.get_started') }}
                         <i class="bi bi-chevron-right"></i>
@@ -138,7 +138,7 @@
         </div>
 
         @if ($featured->isEmpty())
-            <x-empty-state icon="building" :title="__('giya.home.no_featured')"
+            <x-empty-state icon="giya-spires" :title="__('giya.home.no_featured')"
                            :desc="__('giya.home.no_featured_d')" />
         @else
             {{--
@@ -152,9 +152,10 @@
             --}}
             <div class="proc" id="proc" tabindex="0" aria-roledescription="carousel">
                 @foreach ($featured as $i => $church)
-                    <figure @class(['proc-slide', 'is-live' => $i === 0])
-                            style="background-image:url('{{ $church->imagePath() }}')"
-                            aria-hidden="{{ $i === 0 ? 'false' : 'true' }}"></figure>
+                    @php $plain = str_contains($church->imagePath(), 'placeholder'); @endphp
+                    <figure @class(['proc-slide', 'is-plain' => $plain, 'is-live' => $i === 0])
+                            @unless ($plain) style="background-image:url('{{ $church->imagePath() }}')" @endunless
+                            aria-hidden="{{ $i === 0 ? 'false' : 'true' }}">@if ($plain)<i class="bi bi-giya-spires"></i>@endif</figure>
                 @endforeach
 
                 <div class="proc-veil"></div>
@@ -202,7 +203,7 @@
                         <div class="event-body">
                             <div class="event-name">{{ $event->event_name }}</div>
                             <div class="event-where">
-                                <i class="bi bi-building"></i>
+                                <i class="bi bi-giya-spires"></i>
                                 {{ $event->church->name ?? ($event->location ?: 'Cebu') }}
                             </div>
                         </div>
@@ -284,12 +285,16 @@
         restart();
     }
 
-    /* No automatic advance. Nothing moves unless the devotee moves it - the
-       bars, the arrow keys and a swipe are the controls.
-
-       The pause and resume handlers below are left in place: they cost
-       nothing, and turning the timer back on is a one-line change. */
-    function restart() {}
+    /* The next church every six seconds. The bars, the arrow keys and a
+       swipe still jump straight to one, and the timer starts over from there.
+       Nothing moves for someone who has asked for less motion. */
+    function restart() {
+        clearTimeout(timer);
+        const bar = bars[live];
+        if (bar) { bar.classList.remove('is-live'); void bar.offsetWidth; bar.classList.add('is-live'); }
+        if (paused || still || items.length < 2) return;
+        timer = setTimeout(function () { show(live + 1); }, HOLD);
+    }
 
     /* Pausing on hover or focus is the difference between a slideshow that
        helps and one that snatches the page away mid-sentence. */

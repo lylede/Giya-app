@@ -64,12 +64,12 @@ class HomeController extends Controller
     {
         return [
             // rating is derived now, so sort on the averaged feedback column.
-            // The slideshow shows one church at a time, filling the frame, so it
-            // can hold all twelve - but only those with a real photo: a slide of
-            // the grey placeholder looks broken. A featured church appears here
-            // as soon as Destinations has a photo for it.
-            'featured'  => Church::active()->featured()->orderByRating()->orderBy('name')->take(12)->get()
-                ->reject(fn (Church $c) => str_contains($c->imagePath(), 'placeholder'))->values(),
+            // The slideshow shows one church at a time and moves on every six
+            // seconds, so it can hold up to twenty. Churches with a real photo
+            // come first; one without a photo yet gets a drawn slide (a church
+            // outline on a warm glow) rather than the grey placeholder.
+            'featured'  => Church::active()->featured()->orderByRating()->orderBy('name')->take(20)->get()
+                ->sortBy(fn (Church $c) => str_contains($c->imagePath(), 'placeholder') ? 1 : 0)->values(),
             'upcoming'  => $this->upcoming(),
             'stats'     => [
                 'churches' => Church::active()->count(),
