@@ -7665,3 +7665,51 @@ html[data-theme="dark"] .nav-theme .nav-theme-sun { display: inline; }
    the notifications panel or the ☰ menu is open. */
 body.has-nav-overlay .giya-fab,
 body:has(.nav-toggle-input:checked) .giya-fab { visibility: hidden; }
+
+/* ── DELETE BUTTONS ──────────────────────────────────────────
+   One look for every delete control (chat history, saved itineraries, the
+   admin tables). It was a bare thin red outline icon that nearly vanished
+   on the dark and brown rows. Now a soft red tile with the bin icon at a
+   readable size, a clear outline, and solid red under the pointer, so it
+   is easy to see and easy to hit with a thumb. */
+.chat-history-del,
+.btn-danger.btn-sm:has(> .bi-trash3:only-child),
+.icon-btn.is-danger {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; padding: 0; flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(192, 40, 63, .10);
+  border: 1px solid rgba(192, 40, 63, .35);
+  box-shadow: none;
+  color: #B3182F;
+  font-size: 1rem; line-height: 1;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.chat-history-del .bi,
+.btn-danger.btn-sm:has(> .bi-trash3:only-child) .bi,
+.icon-btn.is-danger .bi { width: 1rem; height: 1rem; font-size: 1rem; }
+.chat-history-del:hover, .chat-history-del:focus-visible,
+.btn-danger.btn-sm:has(> .bi-trash3:only-child):hover,
+.btn-danger.btn-sm:has(> .bi-trash3:only-child):focus-visible,
+.icon-btn.is-danger:hover, .icon-btn.is-danger:focus-visible {
+  background: #C0283F; border-color: #C0283F; color: #fff; box-shadow: none;
+}
+html[data-theme="dark"] .chat-history-del,
+html[data-theme="dark"] .btn-danger.btn-sm:has(> .bi-trash3:only-child),
+html[data-theme="dark"] .icon-btn.is-danger {
+  background: rgba(240, 138, 155, .20);
+  border-color: rgba(240, 138, 155, .60);
+  box-shadow: none;
+  color: #FFB3BE;
+}
+html[data-theme="dark"] .chat-history-del:hover,
+html[data-theme="dark"] .btn-danger.btn-sm:has(> .bi-trash3:only-child):hover,
+html[data-theme="dark"] .icon-btn.is-danger:hover {
+  background: #C0283F; border-color: #C0283F; color: #fff;
+}
+
+/* The Ask Giya AI card's robot stays white in dark mode, like the other three
+   card icons beside it, so the row reads as one set. */
+html[data-theme="dark"] .home-card-icon.is-robot .guide-face,
+html[data-theme="dark"] .home-card-icon.is-robot .guide-ear { background: #fff; }
