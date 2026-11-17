@@ -3714,18 +3714,31 @@ html[data-theme="dark"] .giya-fab { box-shadow: 0 6px 22px rgba(0,0,0,.55); }
 
 .map-grid {
   display: grid;
-  grid-template-columns: minmax(300px, 360px) 1fr;
+  grid-template-columns: minmax(340px, 400px) 1fr;
   gap: 18px;
   align-items: start;
 }
 
-/* Sidebar and map share one height, so the columns line up. */
+/* Sidebar and map share one height, so the columns line up. They take the
+   screen below the header (the page scrolls a little to reach them), not
+   68% of it: at 68% a laptop was left with room for one church in the list
+   once the search, the filters and the selected churches had theirs. */
 .map-sidebar,
-.giya-map-canvas { height: clamp(460px, 68vh, 720px); }
+.giya-map-canvas { height: clamp(600px, calc(100vh - 110px), 900px); }
+
+/* The church list always keeps room for about three churches. If the panel
+   is shorter than everything in it, the panel scrolls rather than the list
+   being squeezed to a sliver. */
+.mx-list { min-height: 230px; }
+.map-sidebar { overflow-y: auto; }
+
+/* The selected churches: about three lines on a short screen, up to five
+   on a tall one, then the list scrolls. */
+.mx-tray-list { max-height: clamp(72px, 13vh, 130px); }
 
 .map-sidebar {
   display: flex; flex-direction: column;
-  padding: 0; overflow: hidden; width: auto;
+  padding: 0; width: auto;
 }
 
 /* ── Tablet and small laptop: stack, both full width ──────────── */
@@ -3740,7 +3753,7 @@ html[data-theme="dark"] .giya-fab { box-shadow: 0 6px 22px rgba(0,0,0,.55); }
   .map-sidebar     { height: auto; max-height: none; }
 
   /* No fixed height means the list needs its own cap. */
-  .mx-list { max-height: 46vh; }
+  .mx-list { max-height: 46vh; min-height: 0; }
 }
 
 /* ── Tablet: two church columns, since the row is wide ────────── */
