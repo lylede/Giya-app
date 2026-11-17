@@ -2724,7 +2724,9 @@ html[data-theme="dark"] .history-item img[src$=".svg"] { filter: invert(1) brigh
   cursor: pointer;
 }
 .giya-cluster:hover span { background: var(--primary-dark, #6B2416); }
-html[data-theme="dark"] .giya-dot { border-color: #2E241E; }
+/* On the dark map the church dots stay light (cream with a white ring), so
+   they stand out instead of sinking into the dark streets. */
+html[data-theme="dark"] .giya-dot { background: #F8E3C6; color: #8E3B2F; border-color: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.6); }
 html[data-theme="dark"] .giya-cluster span { border-color: #2E241E; }
 
 .giya-me {
@@ -2814,8 +2816,15 @@ html[data-theme="dark"] .giya-pin-tail { border-color: #2E241E; }
 html[data-theme="dark"] .giya-pin-tail { border-top-color: #2E241E; }
 html[data-theme="dark"] .leaflet-popup-content-wrap,
 html[data-theme="dark"] .leaflet-popup-tip { background: var(--surface); color: var(--text); }
-html[data-theme="dark"] .leaflet-container { background: #1D1714; }
-html[data-theme="dark"] .leaflet-tile { filter: brightness(.78) saturate(.85) contrast(1.05); }
+/* A dark map in dark mode, from the same OpenStreetMap tiles: inverted so
+   the land goes dark and the roads go light, then the hues turned back
+   round so water stays blue and parks stay green. Only the tiles are
+   filtered; the church pins, the route and the pop-ups keep their colours.
+   No second map service, and the tiles kept for offline still work. */
+html[data-theme="dark"] .leaflet-container { background: #1A1D21; }
+html[data-theme="dark"] .leaflet-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.92) saturate(.55);
+}
 
 /* ── Destination Manager (Figma node 157:55) ─────────────────── */
 
