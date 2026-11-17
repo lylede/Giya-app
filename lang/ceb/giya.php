@@ -203,7 +203,7 @@ return [
         'act_add'        => 'Pagdugang sa :church sa usa ka ruta',
         'act_details'    => 'Iskedyul sa misa, mga review, ug litrato sa :church',
         'plan_lead'      => 'Pagpili sa imong mga destinasyon sa mapa, dayon nganli ang panaw ug sugdi kini.',
-        'search_ph'      => 'Pangita, o sulayi ang "abli" o "misa"',
+        'search_ph'      => 'Pangitaa ang simbahan o lungsod',
         'within'         => ':count ka destinasyon sulod sa :km km',
         'none_within'    => 'Walay destinasyon sulod sa :km km. Ang pinakaduol ang gipakita.',
         'near_unlocated' => ':count ka destinasyon - ablihi ang lokasyon aron han-ayon sumala sa gilay-on',

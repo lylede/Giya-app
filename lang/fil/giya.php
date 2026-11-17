@@ -203,7 +203,7 @@ return [
         'act_add'        => 'Pagdagdag ng :church sa isang ruta',
         'act_details'    => 'Iskedyul ng misa, mga review, at larawan ng :church',
         'plan_lead'      => 'Piliin ang iyong mga destinasyon sa mapa, pagkatapos pangalanan ang biyahe at simulan ito.',
-        'search_ph'      => 'Maghanap, o subukan ang "bukas" o "misa"',
+        'search_ph'      => 'Maghanap ng simbahan o bayan',
         'within'         => ':count na destinasyon sa loob ng :km km',
         'none_within'    => 'Walang destinasyon sa loob ng :km km. Ang pinakamalapit ang ipinapakita.',
         'near_unlocated' => ':count na destinasyon - buksan ang lokasyon para isunod ayon sa layo',

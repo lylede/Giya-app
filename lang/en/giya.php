@@ -213,7 +213,7 @@ return [
         'act_add'        => 'Adding :church to a route',
         'act_details'    => 'Mass schedules, reviews and photos for :church',
         'plan_lead'      => 'Pick your destinations on the map, then name the trip and start it.',
-        'search_ph'      => 'Search, or try "open" or "mass"',
+        'search_ph'      => 'Search a church or town',
         'within'         => '{1}:count destination within :km km|[0,*]:count destinations within :km km',
         'none_within'    => 'No destinations within :km km. Showing the closest instead.',
         'near_unlocated' => '{1}:count destination - turn on location to sort by distance|[0,*]:count destinations - turn on location to sort by distance',
