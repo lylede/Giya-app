@@ -7474,3 +7474,18 @@ html[data-theme="dark"] .adm-tab-count { background: rgba(215,169,74,.16); color
 .itin-premium strong { display: block; font-size: .9375rem; color: var(--text); }
 .itin-premium span:not(.badge) { display: block; font-size: .8125rem; color: var(--text-muted); }
 .itin-premium .badge { padding: 8px 16px; font-size: .75rem; }
+
+
+/* Scrollbars in GIYA's colours. The browser's own bar is a bright white
+   strip with arrows, which stood out beside the church list in dark mode.
+   A thin bar the colour of the theme, clear behind it. Elements that hide
+   their bar (the filter chips, the chat starters) still do. */
+:root { --scroll-thumb: rgba(139, 58, 47, .32); --scroll-thumb-hover: rgba(139, 58, 47, .55); color-scheme: light; }
+html[data-theme="dark"] { --scroll-thumb: rgba(233, 199, 126, .26); --scroll-thumb-hover: rgba(233, 199, 126, .48); color-scheme: dark; }
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+*:hover { scrollbar-color: var(--scroll-thumb-hover) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); background-clip: padding-box; }
+::-webkit-scrollbar-button { display: none; height: 0; width: 0; }

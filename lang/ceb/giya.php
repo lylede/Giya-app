@@ -593,7 +593,7 @@ return [
         'open_full_t'    => 'Ablihi ang tibuok panid',
         'ask_ph'         => 'Pangutana sa Giya AI…',
         'starter'        => 'Kumusta, ako si Giya. Pangutan-a ko bisan unsa.',
-        'nudges'         => ['Pangutana ko bahin sa oras sa Misa', 'Nanginahanglan ka ug ruta sa simbahan karon?', 'Nagplano ka ug Visita Iglesia?', 'Nangita ka ug simbahan nga duol?'],
+        'nudges'         => ['Pangutana ko bahin sa oras sa Misa', 'Gusto ka ug mubo nga pag-ampo sa dili pa ka mobisita?', 'Nanginahanglan ka ug ruta sa simbahan karon?', 'Pangayo kanako ug pag-ampo alang sa imong intensyon', 'Nagplano ka ug Visita Iglesia?', 'Kinahanglan nimo ang mga pag-ampo sa Estasyon sa Krus?', 'Nangita ka ug simbahan nga duol?'],
         'nudge_map' => 'Nangita ka ug simbahan nga duol? Pangutana ko.',
         'nudge_plan' => 'Nanginahanglan ka ug tabang sa imong ruta?',
         'nudge_profile' => 'Gusto ka magplano sa sunod nimong bisita?',

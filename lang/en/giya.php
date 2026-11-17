@@ -603,7 +603,7 @@ return [
         'open_full_t'    => 'Open full page',
         'ask_ph'         => 'Ask Giya AI…',
         'starter'        => "Hi, I'm Giya. Ask me anything.",
-        'nudges'         => ['Ask me about Mass times', 'Need a church route for today?', 'Planning a Visita Iglesia?', 'Looking for a church nearby?'],
+        'nudges'         => ['Ask me about Mass times', 'Want a short prayer before your visit?', 'Need a church route for today?', 'Ask me for a prayer for your intention', 'Planning a Visita Iglesia?', 'Need the prayers for the Stations of the Cross?', 'Looking for a church nearby?'],
         'nudge_map' => 'Looking for a church nearby? Ask me.',
         'nudge_plan' => 'Need help planning your route?',
         'nudge_profile' => 'Want to plan your next visit?',

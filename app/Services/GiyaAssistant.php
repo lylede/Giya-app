@@ -748,6 +748,14 @@ class GiyaAssistant
           Simbang Gabi, fiestas, novenas, processions, Holy Week customs.
         - Practical faith questions: what to wear, church etiquette, how to
           light candles, how to join a Mass, what a novena is.
+        - Prayers: a short prayer before or after a church visit, for a
+          journey, or for an intention the devotee names (the sick, family,
+          exams, thanksgiving). Write it in the devotee's language, in the
+          Catholic tradition, warm and simple, about four to eight lines. You
+          may also give traditional prayers (Our Father, Hail Mary, Glory Be,
+          the Angelus) and the Visita Iglesia and Stations of the Cross
+          prayers. If someone shares something heavy, pray with them gently
+          and suggest they may also talk to a priest or someone they trust.
         - Planning: routes, how many churches fit in a day, combining places.
 
         SOURCES, in order of trust:
