@@ -22,4 +22,13 @@ class DarkMapTest extends TestCase
 
         $this->assertStringContainsString('html[data-theme="dark"] .giya-dot { background: #F8E3C6;', $css);
     }
+
+    public function test_the_map_page_body_fills_the_screen_so_panels_are_not_cut_off(): void
+    {
+        // iPhone Safari clips the notifications panel to the body; on the map
+        // page the body has no content of its own, so it must be screen-tall.
+        $css = file_get_contents(public_path('assets/css/giya.css'));
+
+        $this->assertStringContainsString("overflow: hidden; overscroll-behavior: none;\n    min-height: 100vh; min-height: 100dvh;", $css);
+    }
 }

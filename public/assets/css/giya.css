@@ -6660,7 +6660,14 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
 .mx-card[hidden] { display: none; }
 
 @media (max-width: 768px) {
-  body[data-page="map"] { overflow: hidden; overscroll-behavior: none; }
+  /* No page scroll under the map. The body must still be as tall as the
+     screen: the map floats above it, so on its own it was 136px tall, and
+     iPhone Safari clipped the notifications panel and the menu to that
+     box, cutting them off a little below the top bar. */
+  body[data-page="map"] {
+    overflow: hidden; overscroll-behavior: none;
+    min-height: 100vh; min-height: 100dvh;
+  }
   body[data-page="map"] .giya-footer,
   body[data-page="map"] .giya-fab { display: none !important; }
 
