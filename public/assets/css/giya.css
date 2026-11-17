@@ -1,7 +1,7 @@
 /* ============================================================
    GIYA - Design System CSS
    Fonts: Playfair Display (headings) + Lato (body)
-   Colors: #8E3B2F (primary) · #D7A94A (gold) · #F7ECDA (bg) · #241C18 (text)
+   Colors: #8E3B2F (primary) · #D7A94A (gold) · #FFF8ED (bg) · #241C18 (text)
    ============================================================ */
 
 /* ── Fonts ─────────────────────────────────────────────────── */
@@ -28,12 +28,9 @@
   --gold:          #D7A94A;
   --gold-light:    #F0C76C;
   --gold-bg:       #FAE8CC;
-  /* A warm parchment, deep enough that the page never reads as white and
-     the white cards stand out on it (was #FFF8ED, which looked white on
-     many screens). Grey text on it is still 4.8:1. */
-  --bg:            #F7ECDA;
+  --bg:            #FFF8ED;
   --bg-input:      #FDF3E3;
-  --bg-secondary:  #F0E2CA;
+  --bg-secondary:  #FAF0DC;
   --text:          #241C18;
   --text-muted:    #7A6355;
   --border:        rgba(142,59,47,0.15);
@@ -3528,16 +3525,30 @@ html[data-theme="dark"] .btn-ghost:hover { background: var(--surface-2); }
 .mx-tag.is-open { background: #DCF2E3; color: #166534; }
 
 /* ── The select ring ─────────────────────────────────────────── */
+/* Add to route. It was a pale ring the colour of the card's own border, so
+   it was hard to see it was a button at all: now a white circle with a
+   maroon ring and a +, which fills maroon with a check once picked. */
 .mx-pick {
-  width: 26px; height: 26px; flex-shrink: 0;
+  position: relative;
+  width: 30px; height: 30px; flex-shrink: 0;
   border-radius: 50%; cursor: pointer;
-  background: transparent; color: transparent;
-  border: 2px solid var(--border);
+  background: #fff; color: transparent;
+  border: 2px solid rgba(142, 59, 47, .6);
+  box-shadow: 0 1px 3px rgba(60, 25, 15, .12);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem;
-  transition: background .15s, border-color .15s, color .15s;
+  font-size: 0.8125rem;
+  transition: background .15s, border-color .15s, color .15s, transform .15s;
 }
-.mx-pick:hover { border-color: var(--primary); }
+.mx-pick:not(.is-on) .bi { display: none; }
+.mx-pick:not(.is-on)::before {
+  content: "+"; color: var(--primary);
+  font: 700 1.25rem/1 var(--font-body);
+  margin-top: -2px;
+}
+.mx-pick:hover { border-color: var(--primary); background: var(--gold-bg, #FBEFD6); }
+.mx-pick:active { transform: scale(.94); }
+html[data-theme="dark"] .mx-pick:not(.is-on) { background: var(--surface-2); border-color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .mx-pick:not(.is-on)::before { color: var(--gold-light, #E9C77E); }
 .mx-pick.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
 .mx-pick:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
