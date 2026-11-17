@@ -50,9 +50,16 @@ abstract class Report
     /** Limit a query to the chosen from/to window on the given column. */
     public static function range(Builder $query, array $filters, string $column): Builder
     {
+        /* The Reports page sends a date AND a time ("2026-11-17T23:59"), and
+           that exact moment is used. A date on its own ("2026-11-17": a typed
+           or shared link, or a browser without a date-and-time picker) means
+           the whole day: it used to mean midnight at the START of the day, so
+           "to Nov 17" left out everything from Nov 17 itself. */
+        $bareDate = fn (string $date) => preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($date)) === 1;
+
         return $query
-            ->when($filters['from'] ?? null, fn (Builder $q, string $date) => $q->where($column, '>=', Carbon::parse($date)))
-            ->when($filters['to'] ?? null, fn (Builder $q, string $date) => $q->where($column, '<=', Carbon::parse($date)));
+            ->when($filters['from'] ?? null, fn (Builder $q, string $date) => $q->where($column, '>=', $bareDate($date) ? Carbon::parse($date)->startOfDay() : Carbon::parse($date)))
+            ->when($filters['to'] ?? null, fn (Builder $q, string $date) => $q->where($column, '<=', $bareDate($date) ? Carbon::parse($date)->endOfDay() : Carbon::parse($date)));
     }
 
     protected function inRange(Builder $query, string $column): Builder
