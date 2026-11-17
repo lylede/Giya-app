@@ -3,7 +3,11 @@
 namespace App\Services;
 
 use App\Models\Church;
+use App\Models\Favorite;
+use App\Models\Itinerary;
 use App\Models\Schedule;
+use App\Models\VisitHistory;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -79,6 +83,9 @@ class GiyaAssistant
     /** The route GIYA worked out for this question, when it asks for one (see RoutePlanner). */
     protected ?array $plan = null;
 
+    /** What GIYA knows about the signed-in devotee, worked out once per question. */
+    protected ?string $devotee = null;
+
     public function configured(): bool
     {
         return filled(config('services.groq.key'));
@@ -98,6 +105,7 @@ class GiyaAssistant
     public function ask(string $question, array $history = [], int $streak = 0): array
     {
         $this->streak = $streak;
+        $this->devotee = null;
 
         /* Giya is a pilgrimage guide, not a general assistant. A request that
            is plainly about something else (writing code, solving maths) is
@@ -679,6 +687,8 @@ class GiyaAssistant
               .'a timetable, do NOT list the stops again, and do NOT name any church that is not in this route.'
             : '';
 
+        $me = $this->aboutDevotee();
+
         $tired = $this->streak >= self::TIRED_EVERY && $this->streak % self::TIRED_EVERY === 0
             ? "\nThe devotee has asked {$this->streak} questions in a row. Start with ONE short playful line that your "
               .'lantern is getting a little tired from all this walking (for example "Whew, my lantern needs a quick '
@@ -802,10 +812,99 @@ class GiyaAssistant
         {$details}
         {$festivals}
         {$region}{$route}{$tired}
+        {$me}
 
         Now answer the devotee's latest message directly, starting with the mood tag. No self-introduction.
         A church's town and address come only from the records above.
         PROMPT;
+    }
+
+    /**
+     * The devotee's own GIYA: the churches they visited, their favorites and
+     * their recent trips, so "what was the last church I visited?" has an
+     * answer and suggestions can leave out what they have already done.
+     *
+     * Read from their account at the moment they ask, only for them: the chat
+     * is theirs alone. Kept short (10 visits, 15 favorites, 5 trips) because
+     * it rides along with every question.
+     */
+    protected function aboutDevotee(): string
+    {
+        if ($this->devotee !== null) {
+            return $this->devotee;
+        }
+
+        $user = Auth::user();
+
+        if (! $user) {
+            return $this->devotee = "\nTHE DEVOTEE is not signed in, so you know nothing about their visits, favorites "
+                .'or trips. If they ask about them, say kindly that once they sign in GIYA remembers their visits, '
+                .'favorites and itineraries, and you can then help with them.';
+        }
+
+        try {
+            $day   = fn ($date) => $date ? \Illuminate\Support\Carbon::parse($date)->timezone(config('app.timezone'))->format('M j, Y') : 'no date';
+            $where = fn (?Church $c) => $c ? $c->name.' ('.RoutePlanner::townName((string) ($c->municipality ?: $c->location)).')' : 'a church no longer listed';
+
+            $visits = VisitHistory::with('church')
+                ->where('user_id', $user->id)
+                ->orderByDesc('visited_at')
+                ->limit(10)
+                ->get();
+            $visitCount   = VisitHistory::where('user_id', $user->id)->count();
+            $churchCount  = VisitHistory::where('user_id', $user->id)->distinct('church_id')->count('church_id');
+
+            $favorites = Favorite::with('church')
+                ->where('user_id', $user->id)
+                ->where('is_active', true)
+                ->orderByDesc('created_at')
+                ->limit(15)
+                ->get();
+
+            $trips = Itinerary::with(['itineraryType', 'stops' => fn ($q) => $q->orderBy('stop_order'), 'stops.church'])
+                ->where('user_id', $user->id)
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get();
+
+            $visitedIds = VisitHistory::where('user_id', $user->id)->pluck('church_id')->unique();
+
+            $lines = [];
+            $lines[] = 'Name: '.$user->firstName().'. Today is '.now()->timezone(config('app.timezone'))->format('l, M j, Y').'.';
+
+            $lines[] = $visits->isEmpty()
+                ? 'Visited churches: none yet.'
+                : "Visited churches (latest first; {$visitCount} visits to {$churchCount} churches in all):\n"
+                  .$visits->map(fn ($v) => '- '.$day($v->visited_at).': '.$where($v->church))->implode("\n");
+
+            $lines[] = $favorites->isEmpty()
+                ? 'Favorites: none yet.'
+                : "Favorites (newest first; \"visited\" marks the ones they have been to):\n"
+                  .$favorites->map(fn ($f) => '- '.$where($f->church).($visitedIds->contains($f->church_id) ? ', visited' : ', not visited yet'))->implode("\n");
+
+            $lines[] = $trips->isEmpty()
+                ? 'Itineraries: none yet.'
+                : "Itineraries (newest first):\n".$trips->map(function (Itinerary $t) use ($day) {
+                    $done  = $t->stops->where('is_visited', true)->count();
+                    $stops = $t->stops->map(fn ($s) => ($s->church?->name ?? 'a removed church').($s->is_visited ? ' (visited)' : ''))->implode('; ');
+
+                    return '- "'.$t->name.'" ('.$t->type.', '.$t->status.', '.$day($t->schedule_date).'): '
+                        ."{$done} of {$t->stops->count()} churches visited. Stops in order: ".($stops ?: 'none');
+                })->implode("\n");
+
+            return $this->devotee = "\nABOUT THIS DEVOTEE (from their own GIYA account; only they see this chat):\n"
+                .implode("\n", $lines)."\n"
+                .'USING IT: Answer questions about their visits, favorites and trips ONLY from the lines above; never '
+                .'invent a visit, a favorite or a trip, and say plainly when something is not there. Use it to help: '
+                .'suggest favorites they have not visited yet, leave out churches they have already visited when they '
+                .'want somewhere new, and mention an upcoming or active trip when it fits. Bring it up only when it '
+                .'helps the question; do not recite the lists unasked. If a list is empty and they ask, say so kindly '
+                .'and tell them how it fills: checking in at a church, tapping the heart on a church, planning a trip.';
+        } catch (\Throwable $e) {
+            Log::warning('Giya AI could not read the devotee\'s history', ['error' => $e->getMessage()]);
+
+            return $this->devotee = '';
+        }
     }
 
     /** A full record with its history cut to $chars characters (the rest of the record kept). */
