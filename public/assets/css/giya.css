@@ -6952,8 +6952,15 @@ html[data-theme="dark"] .ap-notice { background: #3A2A1C; color: #F0D9B5; border
 html[data-theme="dark"] .fab-say { background: var(--surface-2); color: var(--text); border-color: var(--gold); }
 html[data-theme="dark"] .mx-tag.is-open { background: rgba(74,180,110,.16); color: #8FD9A8; }
 html[data-theme="dark"] .map-note.is-error { background: rgba(212,24,61,.16); color: #F3A6B1; border-color: rgba(212,24,61,.35); }
-html[data-theme="dark"] .leaflet-control-attribution { background: rgba(23,17,14,.75) !important; color: var(--text-muted); }
-html[data-theme="dark"] .leaflet-control-attribution a { color: var(--gold); }
+/* The map credit, as small and quiet as it can be while staying readable. */
+.leaflet-container .leaflet-control-attribution {
+  background: rgba(255, 255, 255, .55) !important;
+  font-size: 9px; line-height: 1.4; padding: 0 5px;
+  color: rgba(36, 28, 24, .55); border-top-left-radius: 6px;
+}
+.leaflet-container .leaflet-control-attribution a { color: inherit; }
+html[data-theme="dark"] .leaflet-control-attribution { background: rgba(23,17,14,.45) !important; color: rgba(242, 232, 220, .5); }
+html[data-theme="dark"] .leaflet-control-attribution a { color: inherit; }
 @media (max-width: 767px) {
   html[data-theme="dark"] body[data-page="map"] .mx-float .mx-search-field,
   html[data-theme="dark"] body[data-page="map"] .mx-float .cat-chip:not(.is-active) { background: var(--surface); color: var(--text); }

@@ -70,12 +70,18 @@ window.GiyaLeaflet = (function () {
 
     var CEBU = { lat: 10.3157, lng: 123.8854 };
 
+    /* The map credit: no "Leaflet" link or flag, only the short
+       OpenStreetMap credit their free map service requires. */
+    if (window.L && L.Control && L.Control.Attribution) {
+        L.Control.Attribution.prototype.options.prefix = false;
+    }
+
     /* ---------------------------------------------------------------- tiles */
 
     function tileLayer(cfg) {
         var local = L.tileLayer(cfg.tileUrl || '/tiles/{z}/{x}/{y}.png', {
             minZoom: 9, maxZoom: 18, subdomains: [''],
-            attribution: '&copy; OpenStreetMap contributors',
+            attribution: '&copy; OpenStreetMap',
             errorTileUrl: '/tiles/blank.png'
         });
 
