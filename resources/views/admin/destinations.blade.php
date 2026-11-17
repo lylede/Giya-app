@@ -157,6 +157,12 @@
                                 <i class="bi bi-pencil-square"></i>
                             </button>
 
+                            {{-- Straight to this church's weekly timetable. --}}
+                            <a href="{{ route('admin.schedules', ['view' => 'church', 'church_id' => $church->id]) }}"
+                               class="icon-btn" title="Edit schedule" aria-label="Edit schedule of {{ $church->name }}">
+                                <i class="bi bi-calendar3"></i>
+                            </a>
+
                             <form method="POST" action="{{ route('admin.destinations.toggle', $church) }}">
                                 @csrf @method('PATCH')
                                 <button type="submit" class="icon-btn"

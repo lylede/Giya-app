@@ -91,7 +91,7 @@ class FestivalImportTest extends TestCase
         $this->assertNull($s->church_id);
         $this->assertSame('Yearly - January 20', $s->recurrence);
 
-        $this->actingAs($this->admin())->get(route('admin.schedules'))->assertOk()->assertSee('Town festival');
+        $this->actingAs($this->admin())->get(route('admin.schedules', ['view' => 'all']))->assertOk()->assertSee('Town festival');
     }
 
     public function test_a_schedule_needs_a_destination_or_a_town(): void

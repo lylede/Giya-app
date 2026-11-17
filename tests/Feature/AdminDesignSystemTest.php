@@ -132,6 +132,10 @@ class AdminDesignSystemTest extends TestCase
     {
         // The dashboard lives at the panel's root, not at /admin/dashboard.
         $url = $module === 'dashboard' ? '/admin' : "/admin/{$module}";
+        // Schedules opens on the By church timetable; the table is the All schedules tab.
+        if ($module === 'schedules') {
+            $url .= '?view=all';
+        }
 
         $this->withoutExceptionHandling();
 

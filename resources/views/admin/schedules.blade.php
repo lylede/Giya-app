@@ -5,6 +5,191 @@
 
 @section('content')
 
+{{-- Two ways in: By church (a timetable for editing one church's week)
+     and All schedules (the long list, for searching and bulk changes). --}}
+<nav class="sm-tabs" aria-label="Schedule views">
+    <a href="{{ route('admin.schedules', array_filter(['view' => 'church', 'church_id' => request('church_id')])) }}"
+       @class(['sm-tab', 'is-on' => $view === 'church'])>
+        <i class="bi bi-calendar3"></i> By church
+    </a>
+    <a href="{{ route('admin.schedules', ['view' => 'all']) }}" @class(['sm-tab', 'is-on' => $view === 'all'])>
+        <i class="bi bi-list"></i> All schedules
+    </a>
+</nav>
+
+@if ($view === 'church')
+@php
+    // Monday first, the way a parish bulletin reads.
+    $weekOrder = [1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat', 0 => 'Sun'];
+@endphp
+<div class="card adm-panel tt">
+    <form method="GET" class="tt-pick" id="ttPick">
+        <input type="hidden" name="view" value="church">
+        <input type="hidden" name="church_id" id="ttChurchId" value="{{ $church->id ?? '' }}">
+        <label class="dm-label" for="ttChurch">Church</label>
+        <div class="sm-search tt-pick-box">
+            <i class="bi bi-search"></i>
+            <input type="search" id="ttChurch" list="ttChurches" autocomplete="off"
+                   value="{{ $church->name ?? '' }}" placeholder="Type a church name, e.g. Basilica">
+        </div>
+        <datalist id="ttChurches">
+            @foreach ($churches as $c)
+                <option value="{{ $c->name }}" data-id="{{ $c->id }}">{{ ($counts[$c->id] ?? 0) }} schedules</option>
+            @endforeach
+        </datalist>
+    </form>
+
+    @if (! $church)
+        <x-empty-state icon="calendar3" title="Pick a church"
+                       desc="Type a church name above to see and edit its weekly Mass times." />
+    @else
+        <div class="tt-head">
+            <div>
+                <h2 class="tt-title">{{ $church->name }}</h2>
+                <p class="tt-sub">{{ $weekly->count() }} weekly {{ $weekly->count() === 1 ? 'Mass' : 'Masses' }}
+                    · {{ $dated->count() }} other {{ $dated->count() === 1 ? 'date' : 'dates' }}.
+                    Tap a day to add or remove it.</p>
+            </div>
+            <div class="tt-actions">
+                <button type="button" class="btn btn-primary" id="ttAdd" data-church="{{ $church->id }}">
+                    <i class="bi bi-plus-lg"></i> Add Mass
+                </button>
+                <button type="button" class="btn btn-outline" data-modal-open="copyModal">
+                    <i class="bi bi-journal-text"></i> Copy from another church
+                </button>
+            </div>
+        </div>
+
+        <div class="adm-table-scroll">
+            <table class="giya-table tt-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Mass</th>
+                        @foreach ($weekOrder as $n => $short)<th class="tt-daycol">{{ $short }}</th>@endforeach
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($weekly as $s)
+                        @php $on = $s->weekdays() ?? []; @endphp
+                        <tr>
+                            <td class="cell-strong tt-time">
+                                {{ $s->is_whole_day ? 'Whole day' : $s->timeLabel($s->start_time) }}
+                                @if ($s->end_time)<span class="tt-end">to {{ $s->timeLabel($s->end_time) }}</span>@endif
+                            </td>
+                            <td>
+                                {{ $s->event_name }}
+                                <span class="tt-meta">
+                                    @if ($s->event_type !== 'Mass')<span class="badge badge-gold">{{ $s->event_type }}</span>@endif
+                                    @if ($s->language)<span class="sched-lang">{{ $s->language }}</span>@endif
+                                </span>
+                            </td>
+                            @foreach ($weekOrder as $n => $short)
+                                <td class="tt-daycol">
+                                    <form method="POST" action="{{ route('admin.schedules.days', $s) }}">
+                                        @csrf
+                                        <button type="submit" name="day" value="{{ $n }}"
+                                                @class(['tt-day', 'is-on' => in_array($n, $on, true)])
+                                                aria-pressed="{{ in_array($n, $on, true) ? 'true' : 'false' }}"
+                                                aria-label="{{ $s->event_name }} {{ $s->timeLabel($s->start_time) }} on {{ \App\Support\Recurrence::WEEKDAYS[$n] }}">
+                                            @if (in_array($n, $on, true))<i class="bi bi-check-lg"></i>@endif
+                                        </button>
+                                    </form>
+                                </td>
+                            @endforeach
+                            <td>
+                                <span @class(['badge', 'badge-published' => $s->status === 'Published',
+                                              'badge-brown' => $s->status !== 'Published'])>{{ $s->status }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="icon-btn is-edit" title="Edit" data-schedule="{{ $s->toJson() }}">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                    <form method="POST" action="{{ route('admin.schedules.destroy', $s) }}"
+                                          data-confirm-title="Remove this Mass?"
+                                          data-confirm="{{ $s->event_name }} at {{ $s->timeLabel($s->start_time) }} will no longer show for devotees."
+                                          data-confirm-ok="Remove">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="icon-btn is-danger" title="Delete"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="11" class="is-flush">
+                            <x-empty-state icon="calendar3" title="No weekly Masses yet"
+                                           desc="Add one, or copy the schedule of a church with the same times." />
+                        </td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="tt-subhead">Feast days, novenas and other dates</h3>
+        @if ($dated->isEmpty())
+            <p class="tt-none">None for this church.</p>
+        @else
+            <ul class="tt-dated">
+                @foreach ($dated as $s)
+                    <li>
+                        <span class="tt-dated-when">{{ $s->day_label }}</span>
+                        <span class="tt-dated-what">
+                            <strong>{{ $s->event_name }}</strong>
+                            <span class="badge badge-gold">{{ $s->event_type }}</span>
+                            @if ($s->start_time)<span class="tt-meta">{{ $s->timeLabel($s->start_time) }}</span>@endif
+                        </span>
+                        <span @class(['badge', 'badge-published' => $s->status === 'Published',
+                                      'badge-brown' => $s->status !== 'Published'])>{{ $s->status }}</span>
+                        <span class="d-flex gap-1">
+                            <button type="button" class="icon-btn is-edit" title="Edit" data-schedule="{{ $s->toJson() }}">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <form method="POST" action="{{ route('admin.schedules.destroy', $s) }}"
+                                  data-confirm-title="Remove this event?" data-confirm="{{ $s->event_name }} will no longer show for devotees."
+                                  data-confirm-ok="Remove">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="icon-btn is-danger" title="Delete"><i class="bi bi-trash3"></i></button>
+                            </form>
+                        </span>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+
+        {{-- Copy every schedule of another church into this one, as Drafts. --}}
+        <div class="modal" id="copyModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-title"><i class="bi bi-journal-text"></i> Copy a schedule</div>
+                    <form method="POST" action="{{ route('admin.schedules.copy') }}">
+                        @csrf
+                        <input type="hidden" name="to_church_id" value="{{ $church->id }}">
+                        <label class="dm-label" for="copyFrom">Copy every Mass and event from</label>
+                        <select id="copyFrom" name="from_church_id" class="giya-input" required>
+                            <option value="">Pick a church</option>
+                            @foreach ($churches as $c)
+                                @if ($c->id !== $church->id && ($counts[$c->id] ?? 0) > 0)
+                                    <option value="{{ $c->id }}">{{ $c->name }} ({{ $counts[$c->id] }})</option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <p class="tt-note">They are added to {{ $church->name }} as <strong>Draft</strong>, so devotees
+                            do not see them until you check the times and publish them.</p>
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-outline is-grow" data-modal-close>Cancel</button>
+                            <button type="submit" class="btn btn-primary is-grow">Copy</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+</div>
+@else
+
 <div class="card adm-panel">
 
     {{-- ── Search + filters ── --}}
@@ -70,11 +255,23 @@
         </div>
     </form>
 
+    {{-- ── Bulk bar: shows once a row is ticked ── --}}
+    <form method="POST" action="{{ route('admin.schedules.bulk') }}" id="bulkForm" class="sm-bulk" hidden
+          data-confirm-title="Change the ticked schedules?" data-confirm="This applies to every schedule you ticked."
+          data-confirm-ok="Yes, apply">
+        @csrf
+        <span class="sm-bulk-count" id="bulkCount">0 selected</span>
+        <button type="submit" name="action" value="publish" class="btn btn-outline btn-sm"><i class="bi bi-check-circle-fill"></i> Publish</button>
+        <button type="submit" name="action" value="draft" class="btn btn-outline btn-sm"><i class="bi bi-eye-slash"></i> Set to Draft</button>
+        <button type="submit" name="action" value="delete" class="btn btn-danger-solid btn-sm"><i class="bi bi-trash3"></i> Delete</button>
+    </form>
+
     {{-- ── Table ── --}}
     <div class="adm-table-scroll">
         <table class="giya-table sm-table">
             <thead>
                 <tr>
+                    <th class="sm-check"><input type="checkbox" id="bulkAll" aria-label="Select all on this page"></th>
                     <th>No.</th>
                     <th>Destination</th>
                     <th>Event Name</th>
@@ -92,6 +289,8 @@
             <tbody>
                 @forelse ($schedules as $i => $s)
                     <tr>
+                        <td class="sm-check"><input type="checkbox" name="ids[]" value="{{ $s->id }}" form="bulkForm"
+                                                    class="bulk-pick" aria-label="Select {{ $s->event_name }}"></td>
                         <td>{{ $schedules->firstItem() + $i }}</td>
                         <td class="cell-strong">
                             @if ($s->church)
@@ -120,7 +319,7 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
-                                <button type="button" class="icon-btn" title="Edit"
+                                <button type="button" class="icon-btn is-edit" title="Edit"
                                         data-schedule="{{ $s->toJson() }}">
                                     <i class="bi bi-pencil-square"></i>
                                 </button>
@@ -137,8 +336,8 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="12" class="is-flush">
-                        <x-empty-state icon="giya-candle" title="No schedules match"
+                    <tr><td colspan="13" class="is-flush">
+                        <x-empty-state icon="calendar3" title="No schedules match"
                                        desc="Adjust the filters, or add the first schedule." />
                     </td></tr>
                 @endforelse
@@ -172,12 +371,14 @@
     </div>
 </div>
 
+@endif
+
 {{-- ══════════════ Add / edit modal ══════════════ --}}
 <div class="modal" id="scheduleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog is-wide">
         <div class="modal-content dm-form-modal">
             <div class="modal-title">
-                <i class="bi bi-giya-candle"></i>
+                <i class="bi bi-calendar-event"></i>
                 <span id="scheduleModalTitle">Add Schedule</span>
             </div>
 
@@ -396,10 +597,55 @@
         document.getElementById('s-submit').textContent = 'Save Schedule';
     }
 
-    document.getElementById('btnAddSchedule').addEventListener('click', function () {
+    // "Add Schedule" is on the All schedules list; "Add Mass" is on a
+    // church's timetable and starts the form on that church, weekly.
+    const addBtn = document.getElementById('btnAddSchedule');
+    if (addBtn) addBtn.addEventListener('click', function () {
         reset();
         GiyaUI.Modal.open(modal);
     });
+    const ttAdd = document.getElementById('ttAdd');
+    if (ttAdd) ttAdd.addEventListener('click', function () {
+        reset();
+        document.getElementById('s-church').value = this.dataset.church;
+        document.getElementById('s-name').value = 'Mass';
+        setRepeat({ type: 'weekly', days: [0] }, null);
+        document.getElementById('scheduleModalTitle').textContent = 'Add Mass';
+        GiyaUI.Modal.open(modal);
+    });
+
+    /* ---- By church: pick a church by typing its name ---- */
+    const ttChurch = document.getElementById('ttChurch');
+    if (ttChurch) {
+        const pick = function () {
+            const name = ttChurch.value.trim().toLowerCase();
+            const opt = Array.prototype.find.call(document.querySelectorAll('#ttChurches option'),
+                function (o) { return o.value.toLowerCase() === name; });
+            if (!opt || opt.dataset.id === document.getElementById('ttChurchId').value) return;
+            document.getElementById('ttChurchId').value = opt.dataset.id;
+            document.getElementById('ttPick').submit();
+        };
+        ttChurch.addEventListener('change', pick);
+        ttChurch.addEventListener('input', pick);
+    }
+
+    /* ---- All schedules: tick rows, then act on them together ---- */
+    const bulkForm = document.getElementById('bulkForm');
+    if (bulkForm) {
+        const picks = Array.prototype.slice.call(document.querySelectorAll('.bulk-pick'));
+        const all = document.getElementById('bulkAll');
+        const refresh = function () {
+            const n = picks.filter(function (c) { return c.checked; }).length;
+            bulkForm.hidden = n === 0;
+            document.getElementById('bulkCount').textContent = n + ' selected';
+            if (all) all.checked = n > 0 && n === picks.length;
+        };
+        picks.forEach(function (c) { c.addEventListener('change', refresh); });
+        if (all) all.addEventListener('change', function () {
+            picks.forEach(function (c) { c.checked = all.checked; });
+            refresh();
+        });
+    }
 
     document.querySelectorAll('[data-schedule]').forEach(function (btn) {
         btn.addEventListener('click', function () {

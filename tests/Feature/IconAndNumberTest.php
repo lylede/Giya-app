@@ -71,7 +71,7 @@ class IconAndNumberTest extends TestCase
             'Dashboard'    => 'giya-magellan',
             'Users'        => 'giya-pilgrim',
             'Destinations' => 'giya-spires',
-            'Schedules'    => 'giya-candle',
+            'Schedules'    => 'calendar3',   // a calendar, asked for by the team
             'Feedback'     => 'giya-star',
             'Transactions' => 'giya-payment',
             'Reports'      => 'giya-tally',

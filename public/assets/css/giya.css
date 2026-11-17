@@ -7752,3 +7752,88 @@ html[data-theme="dark"] .icon-btn.is-danger:hover {
    card icons beside it, so the row reads as one set. */
 html[data-theme="dark"] .home-card-icon.is-robot .guide-face,
 html[data-theme="dark"] .home-card-icon.is-robot .guide-ear { background: #fff; }
+
+/* ── EDIT BUTTONS ────────────────────────────────────────────
+   The pencil sat on a muddy gold tile and vanished in dark mode. Now the
+   twin of the delete button: a soft tile with a clear outline and a
+   readable icon, solid under the pointer. Maroon in light mode, gold in
+   dark mode. */
+.icon-btn:not(.is-danger) {
+  width: 36px; height: 36px; padding: 0; border-radius: 10px;
+  background: rgba(142, 59, 47, .08);
+  border: 1px solid rgba(142, 59, 47, .35);
+  box-shadow: none;
+  color: var(--primary);
+  font-size: 1rem;
+}
+.icon-btn:not(.is-danger) .bi { width: 1rem; height: 1rem; font-size: 1rem; }
+.icon-btn:not(.is-danger):hover,
+.icon-btn:not(.is-danger):focus-visible { background: var(--primary); border-color: var(--primary); color: #fff; }
+html[data-theme="dark"] .icon-btn:not(.is-danger) {
+  background: rgba(233, 199, 126, .16);
+  border-color: rgba(233, 199, 126, .60);
+  color: #F2D58E;
+}
+html[data-theme="dark"] .icon-btn:not(.is-danger):hover { background: var(--gold); border-color: var(--gold); color: #241C18; }
+
+/* ── SCHEDULES: two views ─────────────────────────────────── */
+.sm-tabs { display: flex; gap: 6px; margin: 0 0 14px; }
+.sm-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 8px;
+  font-size: .875rem; font-weight: 700; text-decoration: none;
+  color: var(--text-muted); border: 1px solid var(--border); background: #fff;
+}
+.sm-tab.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
+html[data-theme="dark"] .sm-tab { background: var(--surface); color: var(--text-muted); }
+html[data-theme="dark"] .sm-tab.is-on { background: var(--primary); color: #fff; }
+
+/* By church: the timetable. */
+.tt-pick { max-width: 520px; margin-bottom: 18px; }
+.tt-pick-box { margin-top: 6px; }
+.tt-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+.tt-title { font-size: 1.25rem; font-weight: 700; margin: 0; }
+.tt-sub { margin: 2px 0 0; font-size: .8125rem; color: var(--text-muted); }
+.tt-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.tt-table td, .tt-table th { vertical-align: middle; }
+.tt-time { white-space: nowrap; }
+.tt-end { display: block; font-size: .75rem; font-weight: 400; color: var(--text-muted); }
+.tt-meta { display: inline-flex; gap: 6px; align-items: center; margin-left: 6px; font-size: .75rem; color: var(--text-muted); }
+.tt-daycol { text-align: center; width: 52px; }
+.tt-daycol form { margin: 0; display: flex; justify-content: center; }
+/* A day: an empty rounded box, or a filled maroon one with a tick. */
+.tt-day {
+  width: 32px; height: 32px; padding: 0; border-radius: 8px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border: 1.5px dashed rgba(142, 59, 47, .35); color: #fff;
+  transition: background .12s, border-color .12s;
+}
+.tt-day:hover { border-style: solid; border-color: var(--primary); background: rgba(142, 59, 47, .08); }
+.tt-day.is-on { background: var(--primary); border: 1.5px solid var(--primary); }
+.tt-day.is-on:hover { background: var(--primary-dark); }
+.tt-day .bi { width: 1rem; height: 1rem; }
+html[data-theme="dark"] .tt-day { background: transparent; border-color: rgba(233, 199, 126, .4); }
+html[data-theme="dark"] .tt-day.is-on { background: var(--gold); border-color: var(--gold); color: #241C18; }
+.tt-subhead { font-size: 1rem; font-weight: 700; margin: 22px 0 10px; }
+.tt-none { font-size: .875rem; color: var(--text-muted); margin: 0; }
+.tt-dated { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 8px; }
+.tt-dated li { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; border-top: 1px solid var(--border-light); }
+.tt-dated li:first-child { border-top: 0; }
+.tt-dated-when { min-width: 210px; font-size: .8125rem; font-weight: 700; color: var(--primary); }
+.tt-dated-what { flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .875rem; }
+html[data-theme="dark"] .tt-dated-when { color: var(--gold-light, #E9C77E); }
+.tt-note { font-size: .8125rem; color: var(--text-muted); margin: 10px 0 0; }
+
+/* All schedules: tick rows, then act on them. */
+.sm-check { width: 36px; text-align: center; }
+.sm-check input { width: 17px; height: 17px; accent-color: var(--primary); cursor: pointer; }
+.sm-bulk {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 12px; padding: 10px 12px; border-radius: 8px;
+  background: rgba(142, 59, 47, .07); border: 1px solid rgba(142, 59, 47, .25);
+}
+.sm-bulk[hidden] { display: none; }
+.sm-bulk-count { font-size: .875rem; font-weight: 700; margin-right: auto; }
+html[data-theme="dark"] .sm-bulk { background: rgba(233, 199, 126, .08); border-color: rgba(233, 199, 126, .3); }
+
+.church-admin-sched { margin: -4px 0 12px; }

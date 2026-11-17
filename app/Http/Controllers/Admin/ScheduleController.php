@@ -27,13 +27,131 @@ class ScheduleController extends Controller
             ? (int) $request->per_page
             : 10;
 
+        /* Two ways in. "By church" is the one for editing: pick a church and
+           see its week as a timetable, one row per Mass with a tick for each
+           day. "All schedules" is the long list, for searching across every
+           church and for changing many rows at once. Any list filter in the
+           address means the list. */
+        $listFilters = ['search', 'event_type', 'day', 'status', 'page', 'per_page'];
+        $view = $request->input('view');
+        if (! in_array($view, ['church', 'all'], true)) {
+            $view = collect($listFilters)->contains(fn ($k) => $request->filled($k)) ? 'all' : 'church';
+        }
+
+        $churches = Church::orderBy('name')->get();
+        $church   = $view === 'church' && $request->filled('church_id')
+            ? $churches->firstWhere('id', (int) $request->church_id)
+            : null;
+
+        $weekly = collect();
+        $dated  = collect();
+        if ($church) {
+            $all = Schedule::where('church_id', $church->id)
+                ->orderByRaw('start_time NULLS LAST')->orderBy('event_name')->get();
+            // A Mass that repeats on weekdays goes in the timetable; feast
+            // days, novenas and one-off events go in the list under it.
+            [$weekly, $dated] = $all->partition(fn (Schedule $s) => $s->weekdays() !== null);
+            $dated = $dated->sortBy(fn (Schedule $s) => $s->schedule_date?->timestamp ?? PHP_INT_MAX)->values();
+        }
+
         return view('admin.schedules', [
-            'schedules' => $this->filtered($request)->paginate($perPage)->withQueryString(),
-            'churches'  => Church::orderBy('name')->get(),
+            'view'      => $view,
+            'church'    => $church,
+            'weekly'    => $weekly->values(),
+            'dated'     => $dated,
+            'counts'    => Schedule::selectRaw('church_id, COUNT(*) AS n')->groupBy('church_id')->pluck('n', 'church_id'),
+            'schedules' => $view === 'all'
+                ? $this->filtered($request)->paginate($perPage)->withQueryString()
+                : null,
+            'churches'  => $churches,
             'types'     => $this->types,
             'days'      => $this->days,
             'perPage'   => $perPage,
         ]);
+    }
+
+    /**
+     * Timetable tick: add or remove one weekday on a repeating schedule.
+     * Seven days make it Daily; the last day cannot be taken away (delete
+     * the Mass instead), so a Mass never ends up on no day at all.
+     */
+    public function toggleDay(Request $request, Schedule $schedule): RedirectResponse
+    {
+        $day  = (int) $request->validate(['day' => ['required', 'integer', 'between:0,6']])['day'];
+        $days = $schedule->weekdays() ?? [];
+
+        $days = in_array($day, $days, true)
+            ? array_values(array_diff($days, [$day]))
+            : array_merge($days, [$day]);
+        sort($days);
+
+        if ($days === []) {
+            return back()->with('warning', 'A Mass needs at least one day. To remove it completely, use the bin.');
+        }
+
+        $rule = count($days) === 7 ? ['type' => 'daily'] : Recurrence::fromInput('weekly', $days);
+
+        $schedule->update([
+            'recurrence_rule' => $rule,
+            'recurrence'      => Recurrence::label($rule),
+            'is_recurring'    => true,
+            'schedule_date'   => null,
+            'updated_at'      => now(),
+        ]);
+
+        return back()->with('success', $schedule->event_name.' now: '.Recurrence::label($rule).'.');
+    }
+
+    /**
+     * Copy every schedule from one church to another. The copies arrive as
+     * Drafts, so nobody sees them until the admin has checked the times and
+     * published them.
+     */
+    public function copy(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'from_church_id' => ['required', 'exists:churches,id', 'different:to_church_id'],
+            'to_church_id'   => ['required', 'exists:churches,id'],
+        ], ['from_church_id.different' => 'Pick a different church to copy from.']);
+
+        $copied = 0;
+        foreach (Schedule::where('church_id', $data['from_church_id'])->get() as $s) {
+            $new = $s->replicate();
+            $new->church_id  = (int) $data['to_church_id'];
+            $new->status     = 'Draft';
+            $new->created_at = now();
+            $new->updated_at = now();
+            $new->save();
+            $copied++;
+        }
+
+        return redirect()->route('admin.schedules', ['view' => 'church', 'church_id' => $data['to_church_id']])
+            ->with('success', $copied === 0
+                ? 'That church has no schedules to copy.'
+                : "{$copied} ".($copied === 1 ? 'schedule' : 'schedules').' copied as Draft. Check the times, then publish them.');
+    }
+
+    /** Several rows at once: publish them, set them to Draft, or delete them. */
+    public function bulk(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['integer'],
+            'action' => ['required', 'in:publish,draft,delete'],
+        ], ['ids.required' => 'Tick at least one schedule first.']);
+
+        $rows = Schedule::whereIn('id', $data['ids']);
+        $n    = (clone $rows)->count();
+
+        match ($data['action']) {
+            'publish' => $rows->update(['status' => 'Published', 'updated_at' => now()]),
+            'draft'   => $rows->update(['status' => 'Draft', 'updated_at' => now()]),
+            'delete'  => $rows->get()->each->delete(),
+        };
+
+        $done = ['publish' => 'published', 'draft' => 'set to Draft', 'delete' => 'removed'][$data['action']];
+
+        return back()->with('success', "{$n} ".($n === 1 ? 'schedule' : 'schedules')." {$done}.");
     }
 
     public function store(Request $request): RedirectResponse

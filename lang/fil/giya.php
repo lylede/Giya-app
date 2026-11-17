@@ -114,6 +114,7 @@ return [
     ],
 
     'church' => [
+        'edit_schedule' => 'I-edit ang iskedyul',
         'lang_cebuano' => 'Sebwano',
         'lang_english' => 'Ingles',
         'lang_filipino' => 'Wikang Filipino',

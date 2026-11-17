@@ -203,6 +203,9 @@ Route::middleware(['auth', 'admin', 'admin.log'])->prefix('admin')->name('admin.
     Route::get('/schedules',              [AdminScheduleController::class, 'index'])->name('schedules');
     Route::post('/schedules',             [AdminScheduleController::class, 'store'])->name('schedules.store');
     Route::get('/schedules/export',       [AdminScheduleController::class, 'export'])->name('schedules.export');
+    Route::post('/schedules/copy',        [AdminScheduleController::class, 'copy'])->name('schedules.copy');
+    Route::post('/schedules/bulk',        [AdminScheduleController::class, 'bulk'])->name('schedules.bulk');
+    Route::post('/schedules/{schedule}/days', [AdminScheduleController::class, 'toggleDay'])->name('schedules.days');
     Route::delete('/schedules/{schedule}',[AdminScheduleController::class, 'destroy'])->name('schedules.destroy');
 
     Route::get('/feedback',              [AdminFeedbackController::class, 'index'])->name('feedback');

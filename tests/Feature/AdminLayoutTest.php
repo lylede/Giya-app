@@ -51,7 +51,9 @@ class AdminLayoutTest extends TestCase
             ]);
         }
 
-        $html = $this->actingAs($this->admin())->get("/admin/{$name}")->getContent();
+        // Schedules opens on the By church timetable; the list is its second tab.
+        $url = $name === 'schedules' ? '/admin/schedules?view=all' : "/admin/{$name}";
+        $html = $this->actingAs($this->admin())->get($url)->getContent();
 
         if (env('GIYA_DUMP_ADMIN')) {
             file_put_contents("/tmp/admin-{$name}.html", preg_replace(

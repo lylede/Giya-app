@@ -124,6 +124,7 @@ return [
     ],
 
     'church' => [
+        'edit_schedule' => 'Edit schedule',
         'lang_cebuano' => 'Cebuano',
         'lang_english' => 'English',
         'lang_filipino' => 'Filipino',

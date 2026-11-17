@@ -222,6 +222,13 @@
 
         <section>
             <h2 class="section-title church-section-title">{{ __('giya.church.mass_schedule') }}</h2>
+            @auth
+                @if (auth()->user()->isAdmin())
+                    {{-- Admins only: open this church in the schedule timetable. --}}
+                    <a href="{{ route('admin.schedules', ['view' => 'church', 'church_id' => $church->id]) }}"
+                       class="btn btn-outline btn-sm church-admin-sched"><i class="bi bi-calendar3"></i> {{ __('giya.church.edit_schedule') }}</a>
+                @endif
+            @endauth
 
             <div class="card church-schedule-card">
                 @if ($church->schedules->where('event_type', 'Mass')->contains('is_estimate', true))
