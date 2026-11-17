@@ -14,7 +14,7 @@
     <title>GIYA - You are offline</title>
     <link rel="icon" href="/images/brand/icon-192.png">
     <style>
-        body { margin: 0; font-family: Lato, system-ui, sans-serif; background: #FFF8ED; color: #241C18; }
+        body { margin: 0; font-family: Lato, system-ui, sans-serif; background: #F7ECDA; color: #241C18; }
         .wrap { max-width: 460px; margin: 0 auto; padding: 48px 20px; text-align: center; }
         img { width: 72px; height: 72px; }
         h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.6rem; margin: 16px 0 8px; }

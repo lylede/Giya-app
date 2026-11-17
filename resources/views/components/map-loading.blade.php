@@ -23,11 +23,11 @@
     // or the pin would change as it turned.
     $pinFace = <<<'SVG'
         <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="28" cy="28" r="28" fill="#FFF8ED"/>
+            <circle cx="28" cy="28" r="28" fill="#F7ECDA"/>
             <path d="M28 10C21.373 10 16 15.373 16 22C16 30 28 46 28 46C28 46 40 30 40 22C40 15.373 34.627 10 28 10Z" fill="#D7A94A"/>
             <circle cx="28" cy="22" r="6" fill="#8E3B2F"/>
-            <rect x="26.5" y="18" width="3" height="8" rx="1.5" fill="#FFF8ED"/>
-            <rect x="24" y="20.5" width="8" height="3" rx="1.5" fill="#FFF8ED"/>
+            <rect x="26.5" y="18" width="3" height="8" rx="1.5" fill="#F7ECDA"/>
+            <rect x="24" y="20.5" width="8" height="3" rx="1.5" fill="#F7ECDA"/>
         </svg>
         SVG;
 @endphp

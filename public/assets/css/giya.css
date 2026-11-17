@@ -1,7 +1,7 @@
 /* ============================================================
    GIYA - Design System CSS
    Fonts: Playfair Display (headings) + Lato (body)
-   Colors: #8E3B2F (primary) · #D7A94A (gold) · #FFF8ED (bg) · #241C18 (text)
+   Colors: #8E3B2F (primary) · #D7A94A (gold) · #F7ECDA (bg) · #241C18 (text)
    ============================================================ */
 
 /* ── Fonts ─────────────────────────────────────────────────── */
@@ -28,9 +28,12 @@
   --gold:          #D7A94A;
   --gold-light:    #F0C76C;
   --gold-bg:       #FAE8CC;
-  --bg:            #FFF8ED;
+  /* A warm parchment, deep enough that the page never reads as white and
+     the white cards stand out on it (was #FFF8ED, which looked white on
+     many screens). Grey text on it is still 4.8:1. */
+  --bg:            #F7ECDA;
   --bg-input:      #FDF3E3;
-  --bg-secondary:  #FAF0DC;
+  --bg-secondary:  #F0E2CA;
   --text:          #241C18;
   --text-muted:    #7A6355;
   --border:        rgba(142,59,47,0.15);
