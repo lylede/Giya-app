@@ -1,8 +1,9 @@
 <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="28" cy="28" r="28" fill="#FFF8ED"/>
-  <ellipse cx="28" cy="42" rx="10" ry="4" fill="rgba(142,59,47,0.15)"/>
-  <path d="M28 10C21.373 10 16 15.373 16 22C16 30 28 46 28 46C28 46 40 30 40 22C40 15.373 34.627 10 28 10Z" fill="#D7A94A"/>
-  <circle cx="28" cy="22" r="6" fill="#8E3B2F"/>
-  <rect x="26.5" y="18" width="3" height="8" rx="1.5" fill="#FFF8ED"/>
-  <rect x="24" y="20.5" width="8" height="3" rx="1.5" fill="#FFF8ED"/>
+  <title>GIYA</title>
+  <circle cx="28" cy="28" r="28" fill="#F8E3C6"/>
+  <ellipse cx="28" cy="45" rx="11.5" ry="2.1" fill="#E3B043"/>
+  <path d="M28 44.4C24.2 40.4 13 31.6 13 21.6A15 15 0 0 1 43 21.6C43 31.6 31.8 40.4 28 44.4Z" fill="#8E3B2F"/>
+  <path d="M28 30.2C25.8 27.6 19.3 24 19.3 18.6A8.7 8.7 0 0 1 36.7 18.6C36.7 24 30.2 27.6 28 30.2Z" fill="#F8E3C6"/>
+  <rect x="26.6" y="14" width="2.8" height="11.4" rx=".4" fill="#E3B043"/>
+  <rect x="23.2" y="17.6" width="9.6" height="2.6" rx=".4" fill="#E3B043"/>
 </svg>

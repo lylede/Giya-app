@@ -15,7 +15,7 @@
  *   phone never sees someone else's itineraries.
  */
 // Change this whenever the caching rules change: the old saved copies are dropped.
-const VERSION = 'giya-v4';
+const VERSION = 'giya-v5';
 const SHELL = VERSION + '-shell';
 const PAGES = 'giya-pages';
 const TILES = 'giya-tiles';
