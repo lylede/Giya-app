@@ -9,7 +9,7 @@
         <span class="eyebrow-text">{{ __('giya.upgrade.premium') }}</span>
     </div>
 
-    <h1 style="font-family:var(--font-display);font-size:2rem;margin:0 0 10px">
+    <h1 style="font-family:var(--font-title);font-size:2rem;margin:0 0 10px">
         {{ __('giya.upgrade.title') }}
     </h1>
     <p style="color:var(--text-muted);font-size:0.9375rem;line-height:1.7;max-width:580px;margin:0 0 32px">

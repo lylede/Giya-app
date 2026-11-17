@@ -6,7 +6,7 @@
 
 
     <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
-        <h1 style="font-family:var(--font-display);font-size: 1.75rem;margin:0">{{ __('giya.plan.visita_title') }}</h1>
+        <h1 style="font-family:var(--font-title);font-size: 1.75rem;margin:0">{{ __('giya.plan.visita_title') }}</h1>
         <span class="badge badge-brown">{{ __('giya.plan.traditionally') }}</span>
     </div>
     <p style="color:var(--text-muted);font-size: 0.875rem;margin:0 0 32px">

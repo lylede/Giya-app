@@ -7,7 +7,7 @@
 
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
         <div>
-            <h1 style="font-family:var(--font-display);font-size: 1.75rem;margin:0 0 4px">{{ __('giya.plan.my_title') }}</h1>
+            <h1 style="font-family:var(--font-title);font-size: 1.75rem;margin:0 0 4px">{{ __('giya.plan.my_title') }}</h1>
             <p style="color:var(--text-muted);font-size: 0.875rem;margin:0">{{ __('giya.plan.my_lead') }}</p>
         </div>
 

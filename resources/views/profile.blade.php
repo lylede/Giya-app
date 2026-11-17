@@ -20,7 +20,7 @@
                 </span>
             @endif
             <div style="flex:1;min-width:220px">
-                <h1 style="font-family:var(--font-display);color:#fff;font-size: 1.625rem;line-height:1.2;margin:0">{{ $user->name }}</h1>
+                <h1 style="font-family:var(--font-title);color:#fff;font-size: 1.625rem;line-height:1.2;margin:0">{{ $user->name }}</h1>
                 <p style="color:rgba(255,255,255,0.7);font-size: 0.8125rem;margin:3px 0 0">{{ $user->email }}</p>
                 <p class="d-flex align-items-center gap-1" style="color:rgba(255,255,255,0.55);font-size: 0.75rem;margin:5px 0 0">
                     <i class="bi bi-geo-alt-fill" style="color:var(--gold);font-size: .75rem"></i>
