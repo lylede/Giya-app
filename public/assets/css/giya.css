@@ -1132,6 +1132,45 @@ html[data-theme="dark"] .google-consent a { color: var(--gold-light, #E9C77E); }
    under them keeps the card's full width. */
 .home-card-head { display: flex; align-items: center; gap: 12px; padding-right: 44px; }
 .home-card-head .home-card-icon { flex-shrink: 0; }
+/* Every card icon in the robot's style, so the four Home cards and the two
+   Plan Hub cards read as one family with the Ask Giya AI head: a white frame
+   with a dark maroon outline and a dark maroon screen with the symbol in
+   the robot's eye colour. */
+.home-card-icon:not(.is-robot),
+.plan-card-icon {
+  position: relative;
+  width: 50px; height: 46px; border-radius: 13px;
+  background: #fff;
+  border: 1.5px solid var(--primary-dark);
+  box-shadow: 0 3px 0 rgba(36, 28, 24, .12);
+  filter: drop-shadow(0 6px 10px rgba(36, 28, 24, .16));
+}
+.home-card-icon:not(.is-robot) i,
+.plan-card-icon i {
+  width: 37px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 5px 7px;
+  background: var(--primary-dark);
+  color: #F5E9D9; font-size: 1rem;
+}
+/* The card turning maroon on hover does not change the little robot. */
+.home-card:hover .home-card-icon:not(.is-robot),
+.home-card:focus-visible .home-card-icon:not(.is-robot),
+.plan-card:hover .plan-card-icon,
+.plan-card:focus-visible .plan-card-icon {
+  background: #fff; box-shadow: 0 3px 0 rgba(0, 0, 0, .15);
+}
+.home-card:hover .home-card-icon:not(.is-robot) i,
+.home-card:focus-visible .home-card-icon:not(.is-robot) i,
+.plan-card:hover .plan-card-icon i,
+.plan-card:focus-visible .plan-card-icon i { color: #F5E9D9; }
+@media (max-width: 600px) {
+  .home-card-head .home-card-icon:not(.is-robot),
+  .plan-card-head .plan-card-icon { width: 46px; height: 42px; border-radius: 12px; }
+  .home-card-head .home-card-icon:not(.is-robot) i,
+  .plan-card-head .plan-card-icon i { width: 34px; height: 29px; padding: 5px 7px; }
+}
+
 /* The robot head in place of an icon tile: no tile behind it, the head
    itself scaled to the same 48px. */
 .home-card-icon.is-robot,
@@ -1140,6 +1179,7 @@ html[data-theme="dark"] .google-consent a { color: var(--gold-light, #E9C77E); }
   position: relative; background: none; box-shadow: none;
   filter: drop-shadow(0 6px 10px rgba(36, 28, 24, .28));
 }
+.home-card-icon.is-robot .guide-lamp { display: none; }
 .home-card-icon.is-robot .guide-face {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%) scale(.42);
