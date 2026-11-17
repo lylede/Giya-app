@@ -302,6 +302,11 @@
                     <i class="bi bi-arrows-fullscreen"></i>
                 </button>
 
+                <button type="button" class="map-tool" id="btnFitRoute" hidden
+                        title="{{ __('giya.map.fit_route') }}" aria-label="{{ __('giya.map.fit_route') }}">
+                    <i class="bi bi-giya-route"></i>
+                </button>
+
                 <button type="button" class="map-tool" id="btnLocate"
                         title="{{ __('giya.map.locate') }}" aria-label="{{ __('giya.map.locate') }}">
                     <i class="bi bi-geo-alt-fill"></i>
@@ -599,6 +604,8 @@ onLocated: function (me) {
             const wrap = document.getElementById('routeStops');
             const note = document.getElementById('routeMode');
             document.getElementById('btnClearRoute').style.display = stops.length ? '' : 'none';
+            // Adding a church leaves the map alone, so this is how to see the whole trip.
+            document.getElementById('btnFitRoute').hidden = stops.length < 2;
 
             // Redraw the list BEFORE returning, or the last tick stays filled
             // even though nothing is selected any more.
@@ -915,6 +922,7 @@ onLocated: function (me) {
         setTimeout(function () { locBtn.classList.remove('is-busy'); }, 13000);
     });
     document.getElementById('btnClearRoute').addEventListener('click', function () { map.clearRoute(); });
+    document.getElementById('btnFitRoute').addEventListener('click', function () { map.fitRoute(); });
 
     /* Plan Route opens the trip's details above the map rather than leaving for
        a second screen. The churches are already picked and the distances are
@@ -1186,6 +1194,8 @@ onLocated: function (me) {
 
         known.forEach(function (id) { map.addStop(id); });
         renderList();
+        // A saved trip opening is the one time the map frames it unasked.
+        map.fitRoute();
     })();
 
     /* Arriving from ?church=<id> - a "View Details" in Favorites, a link in

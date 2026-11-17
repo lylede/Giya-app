@@ -188,6 +188,7 @@ return [
         'card_close'     => 'Isira',
         'selected'       => ':count ka simbahan ang napili',
         'plan_route'     => 'Planoha ang Ruta',
+        'fit_route' => 'Ipakita ang tibuok ruta',
         'locate'         => 'Pangitaa ang akong nahimutangan',
         'fullscreen'     => 'Tibuok screen',
         'zoom_in'        => 'Padak-a',

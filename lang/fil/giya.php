@@ -188,6 +188,7 @@ return [
         'card_close'     => 'Isara',
         'selected'       => ':count na simbahang napili',
         'plan_route'     => 'Planuhin ang Ruta',
+        'fit_route' => 'Ipakita ang buong ruta',
         'locate'         => 'Hanapin ang aking lokasyon',
         'fullscreen'     => 'Buong screen',
         'zoom_in'        => 'Palakihin',

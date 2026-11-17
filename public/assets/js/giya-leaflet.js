@@ -547,6 +547,7 @@ window.GiyaLeaflet = (function () {
             }).filter(Boolean);
 
             if (!stops.length) {
+                lastPath = [];
                 if (cfg.onRoute) cfg.onRoute([], 0, { mode: 'none' });
                 return;
             }
@@ -573,19 +574,20 @@ window.GiyaLeaflet = (function () {
         /**
          * Draw the line. `dashed` marks it as an approximation.
          *
-         * `fit` forces the map to frame the whole route. It is deliberately
-         * NOT the default: paint() runs on every redraw, so fitting each time
-         * meant one Add to route zoomed the map twice - once for the straight
-         * line, again when the roads arrived - pulling the view out from under
-         * someone who was reading it. Adding a stop is not a request to move.
-         *
-         * Without `fit` the map only moves when the route would otherwise be
-         * off-screen, which is the one case where staying put is useless.
+         * `fit` frames the whole route. Only asked for when the person asks
+         * (the Show whole route button) or a saved trip opens. Adding or
+         * removing a church never moves the map: the person is looking at the
+         * church they just tapped, and a pilgrimage across Cebu is always
+         * partly off a phone's screen, so "fit when off-screen" meant every
+         * Add to route zoomed out and away, and again when the roads arrived.
          */
+        var lastPath = [];
+
         function paint(path, dashed, fit) {
             if (routeLine) { map.removeLayer(routeLine); }
 
             routeLine = L.layerGroup().addTo(map);
+            lastPath = path;
 
             L.polyline(path, {
                 color: '#8E3B2F', weight: dashed ? 4 : 6, opacity: .85,
@@ -596,15 +598,13 @@ window.GiyaLeaflet = (function () {
                 color: '#D7A94A', weight: dashed ? 1.5 : 2, opacity: .9
             }).addTo(routeLine);
 
-            // A single point has no meaningful bounds - fitting one zooms to
-            // the maximum, which reads as the map lurching.
-            if (path.length < 2) return;
+            if (fit) fitRoute();
+        }
 
-            var bounds = L.polyline(path).getBounds();
-
-            if (fit || !map.getBounds().contains(bounds)) {
-                map.fitBounds(bounds.pad(0.2), { animate: true });
-            }
+        /** Frame the whole route. A single point has no bounds worth fitting. */
+        function fitRoute() {
+            if (lastPath.length < 2 || !routeLine) return;
+            map.fitBounds(L.polyline(lastPath).getBounds().pad(0.15), { animate: true });
         }
 
         /** Ask for road geometry; leave the straight line alone on failure. */
@@ -678,8 +678,18 @@ window.GiyaLeaflet = (function () {
            its own page): filtering and a location fix no longer reframe it. */
         var keepView = false;
 
+        /* Which churches the map last framed. The list redraws for many
+           reasons (a church added to the route, a tick, a removal), and each
+           redraw calls showOnly with the same churches: framing them again
+           pulled the map back out over Cebu after every Add to route. Now the
+           map only moves when the set shown changes (a search, a filter). */
+        var framedKey = null;
+
         function showOnly(ids) {
             var shown = [];
+            var key = ids.slice().sort(function (x, y) { return x - y; }).join(',');
+            var sameSet = key === framedKey;
+            framedKey = key;
 
             churches.forEach(function (c) {
                 var m = markers[c.id];
@@ -695,7 +705,7 @@ window.GiyaLeaflet = (function () {
                 }
             });
 
-            if (!shown.length || keepView) return;
+            if (!shown.length || keepView || sameSet) return;
 
             // One match reads better centred than filling the screen.
             if (shown.length === 1) {
@@ -800,7 +810,7 @@ window.GiyaLeaflet = (function () {
             map: map, locate: locate, focus: focus, frameAll: frameAll,
             keepView: function (on) { keepView = !!on; },
             showOnly: showOnly,
-            addStop: addStop, toggleStop: toggleStop,
+            addStop: addStop, toggleStop: toggleStop, fitRoute: fitRoute,
             removeStop: removeStop, clearRoute: clearRoute,
             externalDirections: externalDirections,
             directionsTo: directionsTo,

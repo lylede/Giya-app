@@ -198,6 +198,7 @@ return [
         'card_close'     => 'Close',
         'selected'       => '{1}:count church selected|[0,*]:count churches selected',
         'plan_route'     => 'Plan Route',
+        'fit_route' => 'Show the whole route',
         'locate'         => 'Find my location',
         'fullscreen'     => 'Fullscreen',
         'zoom_in'        => 'Zoom in',
