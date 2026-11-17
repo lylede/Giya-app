@@ -111,9 +111,28 @@
                     </span>
 
                     <span class="home-card-head">
-                        <span class="home-card-icon">
-                            <i class="bi bi-{{ $icon }}"></i>
-                        </span>
+                        @if ($icon === 'giya-assistant')
+                            {{-- Ask Giya AI wears the assistant's own head, the
+                                 same one as the button in the corner. --}}
+                            <span class="home-card-icon is-robot" aria-hidden="true">
+                                <span class="guide-face">
+                                    <span class="guide-ear guide-ear-l"></span>
+                                    <span class="guide-ear guide-ear-r"></span>
+                                    <span class="guide-screen">
+                                        <span class="guide-eye guide-eye-l"><i></i></span>
+                                        <span class="guide-eye guide-eye-r"><i></i></span>
+                                        <span class="guide-mouth"></span>
+                                        <span class="guide-blush guide-blush-l"></span>
+                                        <span class="guide-blush guide-blush-r"></span>
+                                    </span>
+                                    <span class="guide-lamp"></span>
+                                </span>
+                            </span>
+                        @else
+                            <span class="home-card-icon">
+                                <i class="bi bi-{{ $icon }}"></i>
+                            </span>
+                        @endif
                         <span class="home-card-title">{{ $title }}</span>
                     </span>
                     <span class="home-card-desc">{{ $desc }}</span>

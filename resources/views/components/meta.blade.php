@@ -20,7 +20,7 @@
 <meta property="og:image" content="{{ $metaImage }}">
 <meta property="og:locale" content="{{ str_replace('-', '_', app()->getLocale() === 'en' ? 'en_PH' : (app()->getLocale() === 'fil' ? 'fil_PH' : 'ceb_PH')) }}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="apple-touch-icon" href="{{ asset('images/brand/apple-touch-icon.png') }}">
+<link rel="apple-touch-icon" href="{{ asset('images/brand/apple-touch-icon.png') }}?v=2">
 <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="GIYA">

@@ -12,7 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#8E3B2F">
     <title>GIYA - You are offline</title>
-    <link rel="icon" href="/images/brand/icon-192.png">
+    <link rel="icon" href="/images/brand/icon-192.png?v=2">
     <style>
         body { margin: 0; font-family: Lato, system-ui, sans-serif; background: #EFE8DF; color: #241C18; }
         .wrap { max-width: 460px; margin: 0 auto; padding: 48px 20px; text-align: center; }
@@ -36,7 +36,7 @@
 </head>
 <body>
 <div class="wrap">
-    <img src="/images/logo/giya-logo.svg" alt="GIYA">
+    <img src="/images/logo/giya-logo.svg?v=2" alt="GIYA">
     <div id="spinner" class="spinner" hidden></div>
     <h1 id="title">You are offline</h1>
     <p id="lead">No signal right now. Pages you opened before are still here:</p>

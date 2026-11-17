@@ -10,7 +10,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>GIYA Admin - @yield('title')</title>
 
-    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}?v=2">
     <link rel="stylesheet" href="{{ asset('assets/css/giya-icons.css') }}?v={{ filemtime(public_path('assets/css/giya-icons.css')) }}">
     <link rel="stylesheet" href="{{ asset('assets/css/giya.css') }}?v={{ filemtime(public_path('assets/css/giya.css')) }}">
     @stack('head')
@@ -23,7 +23,7 @@
     <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar-head">
             <a href="{{ route('admin.dashboard') }}" class="admin-brand">
-                <img src="{{ asset('images/logo/giya-logo.svg') }}" alt="GIYA" width="32" height="32">
+                <img src="{{ asset('images/logo/giya-logo.svg') }}?v=2" alt="GIYA" width="32" height="32">
                 <span>
                     <span class="admin-brand-name">Giya</span>
                     <span class="admin-brand-sub">Admin Panel</span>

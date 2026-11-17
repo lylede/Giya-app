@@ -16,7 +16,7 @@ class OfflineAppTest extends TestCase
         $this->assertSame('GIYA', $manifest['short_name']);
         $this->assertSame('standalone', $manifest['display']);
         foreach ($manifest['icons'] as $icon) {
-            $this->assertFileExists(public_path(ltrim($icon['src'], '/')));
+            $this->assertFileExists(public_path(ltrim(strtok($icon['src'], '?'), '/')));
         }
 
         $this->get('/login')->assertSee('rel="manifest"', false)->assertSee('giya-offline.js', false);

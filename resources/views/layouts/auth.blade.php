@@ -7,7 +7,7 @@
     <title>GIYA - @yield('title')</title>
     <x-meta />
 
-    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}?v=2">
     <link rel="stylesheet" href="{{ asset('assets/css/giya-icons.css') }}?v={{ filemtime(public_path('assets/css/giya-icons.css')) }}">
     <link rel="stylesheet" href="{{ asset('assets/css/giya.css') }}?v={{ filemtime(public_path('assets/css/giya.css')) }}">
     @livewireStyles
@@ -20,7 +20,7 @@
 <div class="auth-card">
     <header class="auth-header">
         <div class="auth-header-brand">
-            <img src="{{ asset('images/logo/giya-logo.svg') }}" alt="GIYA" width="32" height="32">
+            <img src="{{ asset('images/logo/giya-logo.svg') }}?v=2" alt="GIYA" width="32" height="32">
             <span class="auth-header-brand-name">Giya</span>
         </div>
         <h1>@yield('heading')</h1>

@@ -19,7 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#EFE8DF">
     <title>GIYA - {{ __('giya.onboarding.title') }}</title>
-    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}?v=2">
     <link rel="stylesheet" href="{{ asset('assets/css/giya.css') }}?v={{ filemtime(public_path('assets/css/giya.css')) }}">
 </head>
 <body class="onb-page">

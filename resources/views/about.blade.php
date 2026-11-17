@@ -43,8 +43,11 @@
 @section('content')
 <div class="about-page">
     <header class="about-head">
-        <h1 class="about-title">{{ __('giya.about.title') }}</h1>
-        <p class="about-lead">{{ __('giya.about.lead') }}</p>
+        <img class="about-logo" src="{{ asset('images/logo/giya-logo.svg') }}?v=2" alt="GIYA" width="104" height="104">
+        <div>
+            <h1 class="about-title">{{ __('giya.about.title') }}</h1>
+            <p class="about-lead">{{ __('giya.about.lead') }}</p>
+        </div>
     </header>
 
     <ul class="about-figures" aria-label="{{ __('giya.about.figures_label') }}">

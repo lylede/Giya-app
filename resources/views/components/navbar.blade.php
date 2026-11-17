@@ -279,7 +279,7 @@
 
         <a href="{{ route(auth()->check() ? 'home' : 'root') }}" class="nav-logo">
             <span class="nav-logo-icon">
-                <img src="{{ asset('images/logo/giya-icon.svg') }}" alt="" width="32" height="32">
+                <img src="{{ asset('images/logo/giya-icon.svg') }}?v=2" alt="" width="32" height="32">
             </span>
             <span class="nav-logo-name">Giya</span>
             <span class="nav-logo-badge d-none d-sm-inline">{{ __('giya.nav.region') }}</span>

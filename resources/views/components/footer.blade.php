@@ -3,7 +3,7 @@
         <div class="footer-grid">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-3">
-                    <img src="{{ asset('images/logo/giya-logo.svg') }}" alt="GIYA" width="28" height="28">
+                    <img src="{{ asset('images/logo/giya-logo.svg') }}?v=2" alt="GIYA" width="28" height="28">
                     <span class="footer-logo-name">Giya</span>
                 </div>
                 <p class="footer-desc">

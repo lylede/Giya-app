@@ -15,7 +15,7 @@
  *   phone never sees someone else's itineraries.
  */
 // Change this whenever the caching rules change: the old saved copies are dropped.
-const VERSION = 'giya-v5';
+const VERSION = 'giya-v6';
 const SHELL = VERSION + '-shell';
 const PAGES = 'giya-pages';
 const TILES = 'giya-tiles';
@@ -27,8 +27,8 @@ const PRECACHE = [
   '/assets/css/giya.css',
   '/assets/css/giya-icons.css',
   '/assets/js/giya.js',
-  '/images/logo/giya-logo.svg',
-  '/images/brand/icon-192.png',
+  '/images/logo/giya-logo.svg?v=2',
+  '/images/brand/icon-192.png?v=2',
 ];
 
 // Pages worth having offline.
