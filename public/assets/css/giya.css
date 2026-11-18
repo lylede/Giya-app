@@ -7894,10 +7894,18 @@ html[data-theme="dark"] .onb-robot .guide-ear { background: #fff; }
 .vi-sheet-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: min(640px, calc(100vh - 32px)); }
 .vi-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .vi-sheet-title { margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--text); }
+/* Close: just the ×, no box behind it, still a thumb-sized target. */
 .vi-sheet-x {
-  width: 40px; height: 40px; border: 0; border-radius: 10px; cursor: pointer;
-  background: var(--bg-secondary); color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; margin-right: -8px; border: 0; padding: 0; cursor: pointer;
+  background: none; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.25rem;
 }
+.vi-sheet-x .bi { width: 1.25rem; height: 1.25rem; }
+.vi-sheet-x:hover, .vi-sheet-x:focus-visible { color: var(--primary); }
+html[data-theme="dark"] .vi-sheet-x:hover { color: var(--gold-light, #E9C77E); }
+/* The handle and title row can be dragged down to close the sheet. */
+.vi-sheet-grab { display: none; }
+.vi-sheet-head { touch-action: none; }
 .vi-sheet-search { position: relative; }
 .vi-sheet-search .bi { position: absolute; left: 14px; top: 50%; translate: 0 -50%; color: var(--text-muted); width: 1rem; height: 1rem; }
 .vi-sheet-search .giya-input { padding-left: 40px; height: 48px; font-size: 1rem; }
@@ -7927,7 +7935,13 @@ html[data-theme="dark"] .vi-sheet-seven { color: var(--gold-light, #E9C77E); }
     padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
     animation: vi-sheet-up .22s cubic-bezier(.2, .8, .2, 1);
   }
-  .vi-sheet-body::before { content: ""; align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #D5C8BC; margin: -4px 0 2px; }
+  .vi-sheet-grab {
+    display: block; align-self: center; position: relative;
+    width: 44px; height: 5px; min-height: 5px; flex-shrink: 0; margin: -4px 0 2px; border-radius: 3px;
+    background: #D5C8BC; cursor: grab; touch-action: none;
+  }
+  /* A finger-sized area around the thin bar. */
+  .vi-sheet-grab::after { content: ""; position: absolute; inset: -14px -40px; }
 }
 @keyframes vi-sheet-up { from { transform: translateY(40px); opacity: .6; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .vi-sheet-body, .vi-row.is-new { animation: none; } }

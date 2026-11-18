@@ -23,5 +23,8 @@ class VisitaAddChurchSheetTest extends TestCase
         $this->assertStringContainsString(__('giya.plan.picker_done'), $html);
         $this->assertStringContainsString("GiyaUI.Modal.open('addPicker')", $html);
         $this->assertStringNotContainsString('card card-body mb-3 d-none" id="addPicker"', $html);
+        // A real handle to swipe the sheet down with.
+        $this->assertStringContainsString('class="vi-sheet-grab"', $html);
+        $this->assertStringContainsString("addEventListener('pointerdown', startDrag)", $html);
     }
 }

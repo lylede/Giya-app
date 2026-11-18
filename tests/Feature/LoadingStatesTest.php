@@ -166,4 +166,13 @@ class LoadingStatesTest extends TestCase
         // And must not hang when the tile server only ever answers errors.
         $this->assertStringContainsString("layer.on('tileerror'", $js);
     }
+
+    /** The water-drop loader stays at least six seconds, even on a fast connection. */
+    public function test_the_map_loader_stays_at_least_six_seconds(): void
+    {
+        $js = file_get_contents(public_path('assets/js/giya-leaflet.js'));
+
+        $this->assertStringContainsString('var LOADING_AT_LEAST_MS = 6000;', $js);
+        $this->assertStringContainsString('LOADING_AT_LEAST_MS - (Date.now() - started)', $js);
+    }
 }

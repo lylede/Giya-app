@@ -145,7 +145,9 @@
          stays open to add several; Done shows where they went. --}}
     <div class="modal vi-sheet" id="addPicker" tabindex="-1" aria-hidden="true" role="dialog" aria-labelledby="addPickerTitle">
         <div class="modal-dialog">
-            <div class="modal-content vi-sheet-body">
+            <div class="modal-content vi-sheet-body" id="addPickerBody">
+                {{-- The handle: drag it (or the title row) down to close. --}}
+                <span class="vi-sheet-grab" aria-hidden="true"></span>
                 <div class="vi-sheet-head">
                     <h2 class="vi-sheet-title" id="addPickerTitle">{{ __('giya.plan.add_a_church') }}</h2>
                     <button type="button" class="vi-sheet-x" data-modal-close aria-label="{{ __('giya.common.close') }}"><i class="bi bi-x-lg"></i></button>
@@ -531,6 +533,42 @@ const GiyaVisita = (function () {
             wasOpen = open;
         }).observe(sheet, { attributes: true, attributeFilter: ['class'] });
         document.getElementById('pickerSearch').addEventListener('input', refreshPicker);
+
+        /* Swipe down to close, as on any phone sheet: drag the handle or the
+           title row. It follows the finger; let go past 90px (or with a quick
+           flick) and it closes, otherwise it springs back. */
+        const body = document.getElementById('addPickerBody');
+        let y0 = null, dy = 0, t0 = 0;
+        function startDrag(e) {
+            if (e.target.closest('button')) return;
+            y0 = e.clientY; dy = 0; t0 = Date.now();
+            body.style.transition = 'none';
+            if (body.setPointerCapture) body.setPointerCapture(e.pointerId);
+        }
+        body.querySelector('.vi-sheet-grab').addEventListener('pointerdown', startDrag);
+        body.querySelector('.vi-sheet-head').addEventListener('pointerdown', startDrag);
+        body.addEventListener('pointermove', function (e) {
+            if (y0 === null) return;
+            dy = Math.max(0, e.clientY - y0);
+            body.style.transform = 'translateY(' + dy + 'px)';
+        });
+        function endDrag() {
+            if (y0 === null) return;
+            const quick = dy > 30 && (dy / Math.max(1, Date.now() - t0)) > 0.6;
+            y0 = null;
+            body.style.transition = 'transform .2s ease';
+            if (dy > 90 || quick) {
+                body.style.transform = 'translateY(100%)';
+                setTimeout(function () {
+                    GiyaUI.Modal.close('addPicker');
+                    body.style.transition = ''; body.style.transform = '';
+                }, 180);
+            } else {
+                body.style.transform = '';
+            }
+        }
+        body.addEventListener('pointerup', endDrag);
+        body.addEventListener('pointercancel', endDrag);
     })();
 
     render();

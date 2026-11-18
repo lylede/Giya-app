@@ -142,13 +142,23 @@ window.GiyaLeaflet = (function () {
        putting <x-map-loading> beside its map and writing no JavaScript at
        all.
     */
+    /* The loading screen (the GIYA pin dropping like water) stays for at
+       least six seconds, even when the map is ready sooner, so the drop
+       plays through instead of flashing past. Only the screen waits: the
+       map itself, and anything waiting for its tiles, carry on at once. */
+    var LOADING_AT_LEAST_MS = 6000;
+
     function markReadyWhenTilesArrive(map, cfg) {
         var layer = tileLayer(cfg).addTo(map);
+        var started = Date.now();
 
         whenTilesArrive(layer, function () {
-            var shell = map.getContainer().parentNode;
-            if (shell && shell.classList) shell.classList.add('is-map-ready');
             if (cfg.onTilesReady) cfg.onTilesReady();
+            var shell = map.getContainer().parentNode;
+            if (!shell || !shell.classList) return;
+            setTimeout(function () {
+                shell.classList.add('is-map-ready');
+            }, Math.max(0, LOADING_AT_LEAST_MS - (Date.now() - started)));
         });
 
         return layer;
