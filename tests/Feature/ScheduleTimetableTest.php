@@ -151,4 +151,33 @@ class ScheduleTimetableTest extends TestCase
             ->assertSee('class="sm-church-link"', false)
             ->assertSee(e($link), false);
     }
+
+    public function test_a_blank_location_takes_the_church_address(): void
+    {
+        $this->basilica->update(['location' => 'Osmena Blvd, Cebu City']);
+
+        $this->actingAs($this->admin)->post(route('admin.schedules.store'), [
+            'church_id' => $this->basilica->id, 'event_name' => 'Mass', 'event_type' => 'Mass',
+            'start_time' => '06:00', 'schedule_date' => '2027-01-05', 'status' => 'Published', 'location' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Osmena Blvd, Cebu City', \App\Models\Schedule::latest('id')->first()->location);
+    }
+
+    public function test_a_typed_location_is_kept(): void
+    {
+        $this->actingAs($this->admin)->post(route('admin.schedules.store'), [
+            'church_id' => $this->basilica->id, 'event_name' => 'Mass', 'event_type' => 'Mass',
+            'start_time' => '07:00', 'schedule_date' => '2027-01-05', 'status' => 'Published', 'location' => 'Pilgrim Center',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Pilgrim Center', \App\Models\Schedule::latest('id')->first()->location);
+    }
+
+    public function test_the_form_knows_each_church_address(): void
+    {
+        $this->basilica->update(['location' => 'Osmena Blvd, Cebu City']);
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['view' => 'all']))
+            ->assertSee('data-place="Osmena Blvd, Cebu City"', false);
+    }
 }

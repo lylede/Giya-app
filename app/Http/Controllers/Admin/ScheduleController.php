@@ -157,6 +157,12 @@ class ScheduleController extends Controller
     {
         $data = $this->validated($request);
 
+        // Left blank: the church's own address from the map.
+        if (blank($data['location'] ?? null) && ! empty($data['church_id'])) {
+            $church = Church::find($data['church_id']);
+            $data['location'] = $church ? (\Illuminate\Support\Str::limit((string) ($church->location ?: $church->municipality), 147) ?: null) : null;
+        }
+
         if (! empty($data['schedule_id'])) {
             $schedule = Schedule::findOrFail($data['schedule_id']);
             unset($data['schedule_id']);

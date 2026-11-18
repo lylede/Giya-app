@@ -395,7 +395,7 @@
                         <select id="s-church" name="church_id" class="giya-input">
                             <option value="">None - a town festival (type the town in Location)</option>
                             @foreach ($churches as $church)
-                                <option value="{{ $church->id }}">{{ $church->name }}</option>
+                                <option value="{{ $church->id }}" data-place="{{ $church->location ?: $church->municipality }}">{{ $church->name }}</option>
                             @endforeach
                         </select>
                         @error('church_id')<span class="field-error">{{ $message }}</span>@enderror
@@ -441,7 +441,7 @@
                     <div class="field">
                         <label class="dm-label" for="s-location">Location</label>
                         <input id="s-location" type="text" name="location" class="giya-input"
-                               placeholder="Main Church" maxlength="150">
+                               placeholder="Filled from the church's address" maxlength="150">
                     </div>
                 </div>
 
@@ -581,6 +581,25 @@
 (function () {
     const modal = 'scheduleModal';
 
+    /* Location comes from the church's address on the map, so it is not
+       typed twice. It follows the church while it is the church's own
+       address; anything the admin typed ("Main Church", "Chapel") stays. */
+    const churchBox = document.getElementById('s-church');
+    const placeBox  = document.getElementById('s-location');
+    function churchPlace() {
+        const o = churchBox.options[churchBox.selectedIndex];
+        return o && o.value ? (o.dataset.place || '') : '';
+    }
+    function fillPlace() {
+        const place = churchPlace();
+        if (!placeBox.value.trim() || placeBox.dataset.auto === '1') {
+            placeBox.value = place;
+            placeBox.dataset.auto = place ? '1' : '';
+        }
+    }
+    churchBox.addEventListener('change', fillPlace);
+    placeBox.addEventListener('input', function () { placeBox.dataset.auto = ''; });
+
     function reset() {
         document.getElementById('s-id').value        = '';
         document.getElementById('s-church').value    = '';
@@ -588,6 +607,7 @@
         document.getElementById('s-type').value      = 'Mass';
         document.getElementById('s-label').value     = '';
         document.getElementById('s-location').value  = '';
+        document.getElementById('s-location').dataset.auto = '';
         setRepeat(null, null);
         document.getElementById('s-date').value      = '';
         document.getElementById('s-start').value     = '';
@@ -611,6 +631,7 @@
     if (ttAdd) ttAdd.addEventListener('click', function () {
         reset();
         document.getElementById('s-church').value = this.dataset.church;
+        fillPlace();
         document.getElementById('s-name').value = 'Mass';
         setRepeat({ type: 'weekly', days: [0] }, null);
         document.getElementById('scheduleModalTitle').textContent = 'Add Mass';
@@ -661,6 +682,8 @@
             document.getElementById('s-type').value       = s.event_type || 'Mass';
             document.getElementById('s-label').value      = s.time_frame_label || '';
             document.getElementById('s-location').value   = s.location || '';
+            if (!s.location) fillPlace();       // an older schedule with no Location yet
+            else if (s.location === churchPlace()) placeBox.dataset.auto = '1';
             setRepeat(s.recurrence_rule, s.recurrence);
             document.getElementById('s-date').value       = s.schedule_date ? s.schedule_date.substring(0, 10) : '';
             document.getElementById('s-start').value      = s.start_time ? s.start_time.substring(0, 5) : '';
