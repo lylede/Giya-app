@@ -234,4 +234,14 @@ class ScheduleTimetableTest extends TestCase
         $this->assertSame('Osmena Blvd, Cebu City', $a->fresh()->location);
         $this->assertSame('Osmena Blvd, Cebu City', $b->fresh()->location);
     }
+
+    public function test_the_list_shows_the_church_address_when_location_is_empty(): void
+    {
+        $this->basilica->update(['location' => 'Osmena Blvd, Cebu City']);
+        $m = $this->mass($this->basilica, '05:00', ['type' => 'weekly', 'days' => [5]]);
+        \Illuminate\Support\Facades\DB::table('schedules')->where('id', $m->id)->update(['location' => null]);
+
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['view' => 'all']))->assertOk()
+            ->assertSee('<td>Osmena Blvd, Cebu City</td>', false);
+    }
 }

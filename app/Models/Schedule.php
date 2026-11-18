@@ -86,6 +86,18 @@ class Schedule extends Model
     }
 
     /**
+     * Where it happens, for showing: its own Location, else its church's
+     * address. So a schedule never reads "-" even before its Location has
+     * been filled in (the fill-in migrations, or the next save).
+     */
+    public function placeLabel(): ?string
+    {
+        return filled($this->location) && trim($this->location) !== '-'
+            ? $this->location
+            : $this->church?->placeLabel();
+    }
+
+    /**
      * "Monday" for a recurring service, the date for a one-off, and for a
      * monthly or yearly one both: "Yearly - 4th Sunday of January (Jan 24, 2027)".
      */

@@ -313,7 +313,7 @@
                         <td>{{ $s->timeLabel($s->start_time) }}</td>
                         <td>{{ $s->timeLabel($s->end_time) }}</td>
                         <td>{{ $s->is_whole_day ? 'Yes' : 'No' }}</td>
-                        <td>{{ $s->location ?: '-' }}</td>
+                        <td>{{ $s->placeLabel() ?: '-' }}</td>
                         <td>
                             <span @class(['badge', 'badge-published' => $s->status === 'Published',
                                           'badge-brown' => $s->status !== 'Published'])>

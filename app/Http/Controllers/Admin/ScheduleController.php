@@ -222,7 +222,7 @@ class ScheduleController extends Controller
                     $s->timeLabel($s->start_time),
                     $s->timeLabel($s->end_time),
                     $s->is_whole_day ? 'Yes' : 'No',
-                    $s->location,
+                    $s->placeLabel(),
                     $s->status,
                 ]);
             }
