@@ -774,18 +774,26 @@ html[data-theme="dark"] .google-consent a { color: var(--gold-light, #E9C77E); }
 
 .is-railed .admin-nav-item { justify-content: center; padding: 12px 0; gap: 0; }
 .is-railed .admin-nav-label { display: none; }
-/* Railed, a section heading becomes a rule. "MANAGEMENT" does not fit in
-   78px at any size worth reading - it came out as "MANAGEME" - and a line
-   says the same thing a heading says here: a new group starts. The text
-   stays in the markup for a screen reader. */
-.is-railed .admin-nav-section {
-  font-size: 0; padding: 0; overflow: hidden;
-  height: 1px; margin: 14px 14px 10px;
-  background: rgba(255,255,255,.12);
+/* Railed, a section heading shows its first letter: "Management" does not
+   fit in 78px at any size worth reading - it came out as "MANAGEME". The
+   full word stays in the markup for a screen reader, and on hover. (It was
+   meant to be a thin line, but the admin layout's own heading padding won
+   and left an empty dark block.) */
+.admin-layout.is-railed .admin-nav-section {
+  font-size: 0; padding: 0; margin: 12px 0 4px; height: auto; background: none;
+  display: flex; justify-content: center; overflow: hidden;
+}
+.admin-layout.is-railed .admin-nav-section::before {
+  content: attr(data-initial);
+  font-size: .75rem; font-weight: 700; line-height: 1; letter-spacing: 0;
+  color: rgba(255,255,255,.45);
+  width: 26px; height: 22px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid rgba(255,255,255,.14);
 }
 
 /* Except the first, which would draw a line above the very first item. */
-.is-railed .admin-sidebar-nav > .admin-nav-section:first-child { display: none; }
+.admin-layout.is-railed .admin-sidebar-nav > .admin-nav-section:first-child { display: none; }
 
 .admin-brand {
   display: flex; align-items: center; gap: 10px;

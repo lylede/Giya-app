@@ -40,7 +40,7 @@
         </div>
 
         <nav class="admin-sidebar-nav">
-            <div class="admin-nav-section">Overview</div>
+            <div class="admin-nav-section" data-initial="O" title="Overview">Overview</div>
             <a href="{{ route('admin.dashboard') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.dashboard')])>
                 <i class="bi bi-giya-magellan"></i> <span class="admin-nav-label">Dashboard</span>
             </a>
@@ -48,7 +48,7 @@
                 <i class="bi bi-bar-chart"></i> <span class="admin-nav-label">Insights</span>
             </a>
 
-            <div class="admin-nav-section">Management</div>
+            <div class="admin-nav-section" data-initial="M" title="Management">Management</div>
             <a href="{{ route('admin.users') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.users')])>
                 <i class="bi bi-giya-pilgrim"></i> <span class="admin-nav-label">Users</span>
             </a>
@@ -68,7 +68,7 @@
                 <i class="bi bi-giya-tally"></i> <span class="admin-nav-label">Reports</span>
             </a>
 
-            <div class="admin-nav-section">System</div>
+            <div class="admin-nav-section" data-initial="S" title="System">System</div>
             <a href="{{ route('admin.system') }}" @class(['admin-nav-item', 'active' => request()->routeIs('admin.system*')])>
                 <i class="bi bi-cone-striped"></i> <span class="admin-nav-label">Maintenance</span>
             </a>
@@ -79,7 +79,7 @@
                 <i class="bi bi-clock-history"></i> <span class="admin-nav-label">Activity Log</span>
             </a>
 
-            <div class="admin-nav-section">Site</div>
+            <div class="admin-nav-section" data-initial="S" title="Site">Site</div>
             <a href="{{ route('home') }}" class="admin-nav-item">
                 <i class="bi bi-box-arrow-up-right"></i> <span class="admin-nav-label">View Public Site</span>
             </a>
