@@ -5,6 +5,8 @@
 
 @section('content')
 
+@include('admin.partials.money-tabs', ['tab' => 'payments'])
+
 <div class="stat-row">
     @foreach ([
         ['giya-payment',      'Total Revenue', '₱' . number_format($summary['revenue'], 2), 'gold'],

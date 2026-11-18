@@ -217,6 +217,10 @@ Route::middleware(['auth', 'admin', 'admin.log'])->prefix('admin')->name('admin.
     Route::get('/app-feedback/download', [\App\Http\Controllers\Admin\AppFeedbackController::class, 'download'])->name('app-feedback.download');
 
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions');
+    Route::post('/plans', [\App\Http\Controllers\Admin\PlanController::class, 'store'])->name('plans.store');
+    Route::put('/plans/{plan}', [\App\Http\Controllers\Admin\PlanController::class, 'update'])->name('plans.update');
+    Route::patch('/plans/{plan}/toggle', [\App\Http\Controllers\Admin\PlanController::class, 'toggle'])->name('plans.toggle');
+    Route::delete('/plans/{plan}', [\App\Http\Controllers\Admin\PlanController::class, 'destroy'])->name('plans.destroy');
     
     Route::get('/reports', [AdminReportController::class, 'index'])->name('reports');
     Route::get('/reports/download/{report}', [AdminReportController::class, 'download'])->name('reports.download');

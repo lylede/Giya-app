@@ -7,6 +7,7 @@ use App\Models\Announcement;
 use App\Models\Church;
 use App\Models\Feedback;
 use App\Models\Schedule;
+use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
@@ -36,6 +37,10 @@ class LogAdminActivity
         'admin.announcements.store'   => 'Posted an announcement',
         'admin.announcements.stop'    => 'Stopped an announcement',
         'admin.announcements.destroy' => 'Deleted an announcement',
+        'admin.plans.store'           => 'Added a plan',
+        'admin.plans.update'          => 'Changed a plan',
+        'admin.plans.toggle'          => 'Offered or hid a plan',
+        'admin.plans.destroy'         => 'Deleted a plan',
     ];
 
     /** Pages that only read, but hand over a file of people's data. */
@@ -99,6 +104,7 @@ class LogAdminActivity
                 $value instanceof Schedule     => $value->event_name,
                 $value instanceof Announcement => $value->title,
                 $value instanceof Feedback     => 'Review #'.$value->id,
+                $value instanceof SubscriptionPlan => $value->name,
                 is_string($value)              => $value,
                 default                        => null,
             };

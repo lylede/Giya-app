@@ -8251,3 +8251,18 @@ html[data-theme="dark"] .lchart-dot { border-color: #2E241E; }
 .soft-list { outline: none; }
 .soft-list .adm-scroller { transition: opacity .15s ease; }
 .soft-list.is-soft-loading .adm-scroller { opacity: .45; pointer-events: none; }
+
+/* ── Admin: Plans & prices ──────────────────────────────────── */
+.pl-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.pl-sub, .pl-foot { margin: 4px 0 0; font-size: .8125rem; color: var(--text-muted); max-width: 62ch; }
+.pl-foot { margin-top: 14px; }
+.pl-actions-head { text-align: right; }
+.giya-table tr.is-muted td { opacity: .62; }
+.giya-table tr.is-muted td:last-child { opacity: 1; }
+.pl-check { display: flex; align-items: center; gap: 10px; margin: 6px 0 4px; font-size: .875rem; cursor: pointer; }
+.pl-check input { width: 18px; height: 18px; accent-color: var(--primary); }
+.pl-change {
+  margin: 12px 0 0; padding: 10px 12px; border-radius: 10px;
+  background: rgba(215, 169, 74, .16); color: var(--text); font-size: .8125rem; font-weight: 600;
+}
+html[data-theme="dark"] .pl-change { background: rgba(215, 169, 74, .14); }
