@@ -677,4 +677,47 @@ class GiyaAssistantKnowledgeTest extends TestCase
     {
         $this->assertStringContainsString('Never estimate travel times', $this->promptFor('Hello'));
     }
+
+    /** North Cebu, with the real positions of the towns. */
+    private function northCebu(): void
+    {
+        $this->church('San Guillermo Parish', 'Church', ['location' => 'Catmon', 'municipality' => 'Catmon', 'latitude' => 10.7186, 'longitude' => 124.0130]);
+        $this->church('St. Michael Parish', 'Church', ['location' => 'Carmen', 'municipality' => 'Carmen', 'latitude' => 10.5870, 'longitude' => 124.0218]);
+        $this->church('St. James the Apostle Parish', 'Church', ['location' => 'Sogod', 'municipality' => 'Sogod', 'latitude' => 10.7520, 'longitude' => 124.0050]);
+        $this->church('St. Thomas of Villanueva Parish', 'Church', ['location' => 'Danao City', 'municipality' => 'Danao City', 'latitude' => 10.5200, 'longitude' => 124.0270]);
+        $this->church('Archdiocesan Shrine of San Vicente Ferrer', 'Shrine', ['location' => 'Bogo City', 'municipality' => 'Bogo City', 'latitude' => 11.0500, 'longitude' => 124.0050]);
+    }
+
+    public function test_closest_churches_are_measured_on_the_map(): void
+    {
+        $this->northCebu();
+
+        $prompt = $this->promptFor('What churches are closest to San Guillermo Parish in Catmon?');
+
+        $this->assertStringContainsString('NEAREST CHURCHES, measured by GIYA on the map', $prompt);
+        $this->assertMatchesRegularExpression('/1\. St\. James the Apostle Parish \(Sogod\) - about 3\.\d km north/', $prompt);
+        $this->assertMatchesRegularExpression('/2\. St\. Michael Parish \(Carmen\) - about 14\.\d km south/', $prompt);
+        // Bogo is the farthest, so it comes last, not as a "neighbour".
+        $near = substr($prompt, strpos($prompt, 'NEAREST CHURCHES, measured'));
+        $this->assertGreaterThan(strpos($near, 'Danao City'), strpos($near, 'Bogo City'));
+        $this->assertStringNotContainsString('1. San Guillermo Parish', $near);
+    }
+
+    public function test_near_a_town_works_in_cebuano(): void
+    {
+        $this->northCebu();
+
+        $prompt = $this->promptFor('Unsa nga simbahan ang duol sa Carmen?');
+
+        $this->assertStringContainsString('from the town of Carmen', $prompt);
+        $this->assertStringContainsString('1. St. Michael Parish (Carmen) - in Carmen itself', $prompt);
+        $this->assertMatchesRegularExpression('/2\. St\. Thomas of Villanueva Parish \(Danao City\) - about 7\.\d km south/', $prompt);
+    }
+
+    public function test_no_nearest_list_when_nothing_is_asked_about_nearness(): void
+    {
+        $this->northCebu();
+
+        $this->assertStringNotContainsString('NEAREST CHURCHES, measured', $this->promptFor('Tell me the history of San Guillermo Parish'));
+    }
 }

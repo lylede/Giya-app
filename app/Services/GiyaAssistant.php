@@ -42,7 +42,7 @@ class GiyaAssistant
     protected string $endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
     /** Cache key for the per-church entries. Cleared whenever a church or schedule changes. */
-    public const CACHE_KEY = 'giya:assistant:knowledge:v4';
+    public const CACHE_KEY = 'giya:assistant:knowledge:v5';
 
     /** How much of a history the short entry carries. */
     protected const HISTORY_PREVIEW = 220;
@@ -82,6 +82,12 @@ class GiyaAssistant
 
     /** The route GIYA worked out for this question, when it asks for one (see RoutePlanner). */
     protected ?array $plan = null;
+
+    /** "Near / closest to X": the churches nearest X, measured on the map. */
+    protected string $near = '';
+
+    /** How many nearest churches the AI is given for a "near X" question. */
+    protected const NEAREST = 6;
 
     /** What GIYA knows about the signed-in devotee, worked out once per question. */
     protected ?string $devotee = null;
@@ -365,6 +371,8 @@ class GiyaAssistant
                 ->map(fn (Church $c) => [
                     'id'       => $c->id,
                     'name'     => $c->name,
+                    'lat'      => $c->latitude !== null ? (float) $c->latitude : null,
+                    'lng'      => $c->longitude !== null ? (float) $c->longitude : null,
                     'category' => Str::lower((string) $c->category),
                     'town'     => (string) ($c->municipality ?: $c->location ?: ''),
                     'region'   => CebuRegion::of($c->municipality.' '.$c->location.' '.$c->address),
@@ -571,6 +579,7 @@ class GiyaAssistant
         $entries   = $this->entries();
         $focus     = $this->relevant($question, $history);
         $festivals = $this->festivals($question, $history);
+        $this->near = $this->nearestBlock($question, $entries, $focus);
 
         /* From most to least helpful, each step smaller than the last; the
            first that fits the budget is used. */
@@ -631,6 +640,88 @@ class GiyaAssistant
         }
 
         return $prompt;   // the smallest; better than nothing
+    }
+
+    /**
+     * "What churches are near / closest to San Guillermo Parish?" The model
+     * cannot see the map, so it answered from memory and named towns that
+     * are not neighbours at all (Bogo and San Remigio for Catmon) with
+     * made-up directions. Here GIYA measures it: the churches nearest the
+     * named church (or town), straight-line distance and compass direction
+     * from the coordinates on the map, nearest first.
+     */
+    protected function nearestBlock(string $question, Collection $entries, Collection $focus): string
+    {
+        $q = $this->normalize($question);
+        $asksNear = preg_match('/ (near|nearest|nearby|closest|close to|around|beside|next to|neighbou?r\w*|malapit\w*|duol|haduol|pinakaduol|duol sa|kilid|katapad) /', $q);
+        if (! $asksNear) {
+            return '';
+        }
+
+        // From a church named in the question, else from a town named in it.
+        $anchor = $focus->first(fn ($e) => $e['score'] >= 10 && $e['lat'] !== null);
+        $from = null;
+        if ($anchor) {
+            $from = ['lat' => $anchor['lat'], 'lng' => $anchor['lng'], 'label' => $anchor['name'].' ('.$anchor['town'].')', 'skip' => $anchor['id']];
+        } else {
+            $town = $entries->pluck('town')->filter()->unique()
+                ->sortByDesc(fn ($t) => mb_strlen($t))
+                ->first(fn ($t) => str_contains($q, $this->normalize($t)));
+            $inTown = $town ? $entries->where('town', $town)->filter(fn ($e) => $e['lat'] !== null) : collect();
+            if ($inTown->isNotEmpty()) {
+                $centre = $inTown->firstWhere('major', true) ?? $inTown->first();
+                $from = ['lat' => $centre['lat'], 'lng' => $centre['lng'], 'label' => 'the town of '.$town, 'skip' => null, 'town' => $town];
+            }
+        }
+        if (! $from) {
+            return '';
+        }
+
+        $near = $entries
+            ->filter(fn ($e) => $e['lat'] !== null && $e['id'] !== $from['skip'])
+            ->map(fn ($e) => $e + ['km' => self::km($from['lat'], $from['lng'], $e['lat'], $e['lng'])])
+            ->sortBy('km')
+            ->take(self::NEAREST)
+            ->values()
+            ->map(fn ($e, $i) => ($i + 1).'. '.$e['name'].' ('.($e['town'] ?: 'Cebu').') - '.match (true) {
+                // Asked about a town: its own churches are in it, not "north of" it.
+                isset($from['town']) && $e['town'] === $from['town'] => 'in '.$from['town'].' itself',
+                $e['km'] < 1 => 'less than 1 km away',
+                default => 'about '.number_format($e['km'], 1).' km '.self::compass($from['lat'], $from['lng'], $e['lat'], $e['lng']),
+            });
+
+        return "
+NEAREST CHURCHES, measured by GIYA on the map (straight-line distance and direction from "
+            .$from['label']."), nearest first:
+".$near->implode("
+")
+            ."
+For this question recommend ONLY churches from this list, nearest first, with their towns as given. "
+            .'You may give each one\'s straight-line distance and direction exactly as written here (say "in a straight '
+            .'line"; roads are longer). Never name other towns as neighbours and never guess directions. To travel '
+            .'between them, suggest asking GIYA for a route.';
+    }
+
+    /** Straight-line distance in kilometres (haversine). */
+    public static function km(float $lat1, float $lng1, float $lat2, float $lng2): float
+    {
+        $r = 6371.0;
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLng = deg2rad($lng2 - $lng1);
+        $a = sin($dLat / 2) ** 2 + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLng / 2) ** 2;
+
+        return 2 * $r * asin(min(1, sqrt($a)));
+    }
+
+    /** "north", "south-east"...: which way the second point lies from the first. */
+    public static function compass(float $lat1, float $lng1, float $lat2, float $lng2): string
+    {
+        $y = sin(deg2rad($lng2 - $lng1)) * cos(deg2rad($lat2));
+        $x = cos(deg2rad($lat1)) * sin(deg2rad($lat2)) - sin(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($lng2 - $lng1));
+        $deg = fmod(rad2deg(atan2($y, $x)) + 360, 360);
+        $names = ['north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west'];
+
+        return $names[(int) round($deg / 45) % 8];
     }
 
     /**
@@ -799,7 +890,8 @@ class GiyaAssistant
           paragraphs or a short list for history, recommendations or plans.
         - Never estimate travel times or distances between places yourself,
           and never call two churches "a short walk" apart: you cannot see the
-          roads. Routes and their times come from GIYA (see ROUTE below when
+          roads. The only distances you may give are the straight-line ones
+          GIYA measured in NEAREST CHURCHES below, when it is there. Routes and their times come from GIYA (see ROUTE below when
           there is one). Without one, suggest asking for a route with the
           number of hours, e.g. "plan a 5 hour route in south Cebu".
         - Reply in the language the devotee writes in: English, Cebuano or
@@ -817,7 +909,7 @@ class GiyaAssistant
         FULL RECORDS for the destinations this conversation is about:
         {$details}
         {$festivals}
-        {$region}{$route}{$tired}
+        {$region}{$route}{$this->near}{$tired}
         {$me}
 
         Now answer the devotee's latest message directly, starting with the mood tag. No self-introduction.
