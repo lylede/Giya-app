@@ -1105,9 +1105,16 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
     /* After a save the page reloads. Open the map on the church just saved,
        instead of zooming all the way out to Cebu City; otherwise on the view
        the admin last had. */
+    // Opened from the dashboard's to-do list or the quick search.
+    (function fromLink() {
+        const want = @json(request('issue'));
+        const chip = want && document.querySelector('.dm-chip[data-issue="' + want + '"]');
+        if (chip) { chip.click(); document.querySelector('.dm-mapcard').scrollIntoView({ block: 'start' }); }
+    })();
+
     (function keepView() {
         const KEY = 'giya.admin.mapView';
-        const focusId = @json(session('focus_church'));
+        const focusId = @json(session('focus_church') ?? (request('focus') ? (int) request('focus') : null));
         const saved = focusId ? rows.filter(function (r) { return r.id === focusId; })[0] : null;
 
         if (saved && saved.lat && saved.lng) {

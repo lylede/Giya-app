@@ -8087,3 +8087,57 @@ html[data-theme="dark"] .dm-issue { color: #FFB3BE; background: rgba(240, 138, 1
 @media (prefers-reduced-motion: reduce) { .dm-side { animation: none; } .giya-toast { transition: none; } }
 /* The town just filled in from the nearest church: a short gold glow. */
 .giya-input.is-guessed { box-shadow: 0 0 0 3px rgba(215, 169, 74, .55); transition: box-shadow .3s; }
+
+/* ── ADMIN: dashboard to-do ──────────────────────────────── */
+.todo-card { margin-bottom: 20px; }
+.todo-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+.todo-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: #fff; color: var(--text); text-decoration: none;
+  transition: border-color .15s, background .15s;
+}
+.todo-item:hover, .todo-item:focus-visible { border-color: var(--primary); background: rgba(142, 59, 47, .04); }
+.todo-icon { width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
+.todo-icon .bi { width: 1.05rem; height: 1.05rem; }
+.todo-icon.is-gold    { background: rgba(215, 169, 74, .18); color: #9A6E14; }
+.todo-icon.is-blue    { background: rgba(62, 116, 196, .14); color: #2D5EA8; }
+.todo-icon.is-primary { background: rgba(142, 59, 47, .12); color: var(--primary); }
+.todo-icon.is-green   { background: rgba(75, 122, 59, .14); color: #4B7A3B; }
+.todo-text { flex: 1; font-size: .875rem; line-height: 1.4; }
+.todo-text b { font-size: 1rem; }
+.todo-go { width: .9rem; height: .9rem; color: var(--text-muted); }
+.todo-done { margin: 0; display: flex; align-items: center; gap: 8px; color: #4B7A3B; font-weight: 600; }
+html[data-theme="dark"] .todo-item { background: var(--surface); }
+
+/* ── ADMIN: quick search in the top bar ─────────────────── */
+.adm-qs { position: relative; flex: 0 1 420px; margin: 0 20px; }
+.adm-qs > .bi { position: absolute; left: 12px; top: 50%; translate: 0 -50%; width: .95rem; height: .95rem; color: var(--text-muted); pointer-events: none; }
+.adm-qs-input {
+  width: 100%; height: 38px; padding: 0 64px 0 36px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg-input, #FFFBF5); color: var(--text); font-size: .875rem;
+}
+.adm-qs-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(142, 59, 47, .15); }
+.adm-qs-key {
+  position: absolute; right: 8px; top: 50%; translate: 0 -50%;
+  padding: 2px 6px; border-radius: 5px; border: 1px solid var(--border);
+  font: 600 .6875rem var(--font-body); color: var(--text-muted); background: #fff; pointer-events: none;
+}
+.adm-qs-input:focus ~ .adm-qs-key { display: none; }
+.adm-qs-list {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 1200;
+  max-height: 420px; overflow-y: auto; padding: 6px;
+  background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 14px 34px rgba(36, 28, 24, .18);
+}
+.adm-qs-group { padding: 8px 10px 4px; font-size: .6875rem; font-weight: 700; color: var(--text-muted); }
+.adm-qs-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; color: var(--text); text-decoration: none; }
+.adm-qs-item .bi { width: 1rem; height: 1rem; color: var(--primary); flex-shrink: 0; }
+.adm-qs-item b { display: block; font-size: .875rem; font-weight: 600; }
+.adm-qs-item small { display: block; font-size: .75rem; color: var(--text-muted); }
+.adm-qs-item.is-on, .adm-qs-item:hover { background: rgba(142, 59, 47, .08); }
+.adm-qs-none { margin: 0; padding: 12px; font-size: .875rem; color: var(--text-muted); }
+html[data-theme="dark"] .adm-qs-list, html[data-theme="dark"] .adm-qs-key { background: var(--surface); }
+html[data-theme="dark"] .admin-topbar .adm-qs-input { background: var(--surface-2); }
+@media (max-width: 900px) {
+  .adm-qs { flex: 1 1 auto; margin: 0 10px; }
+  .adm-qs-key { display: none; }
+}

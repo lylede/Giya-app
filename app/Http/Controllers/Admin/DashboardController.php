@@ -31,14 +31,20 @@ class DashboardController extends Controller
             'monthlyVisits'   => $this->monthlyVisits(),
             'popularChurches' => $this->popularChurches(),
             'recentActivity'  => $this->recentActivity(),
+            'todo'            => $this->todo(),
         ]);
     }
 
-    /** Visits grouped by month for the last 6 months (PostgreSQL to_char). */
+    /** Visits grouped by month for the last 6 months. */
     private function monthlyVisits(): array
     {
+        // PostgreSQL in production; SQLite in the tests.
+        $month = DB::connection()->getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', visited_at)"
+            : "to_char(visited_at, 'YYYY-MM')";
+
         $rows = VisitHistory::query()
-            ->select(DB::raw("to_char(visited_at, 'YYYY-MM') as ym"), DB::raw('count(*) as total'))
+            ->select(DB::raw("$month as ym"), DB::raw('count(*) as total'))
             ->where('visited_at', '>=', now()->subMonths(5)->startOfMonth())
             ->groupBy('ym')
             ->orderBy('ym')
@@ -106,5 +112,42 @@ class DashboardController extends Controller
         usort($items, fn ($a, $b) => ($b['at'] ?? Carbon::minValue()) <=> ($a['at'] ?? Carbon::minValue()));
 
         return array_slice($items, 0, 6);
+    }
+
+    /**
+     * What needs an admin today, in the order it matters to devotees: each
+     * line counts something waiting and links straight to where it is done.
+     * Lines with nothing waiting are left out.
+     */
+    private function todo(): array
+    {
+        $churches = Church::query()
+            ->withCount(['schedules as live_schedules' => fn ($q) => $q->where('status', 'Published')])
+            ->with('primaryImage')
+            ->get();
+
+        $noMass  = $churches->where('is_active', true)->where('live_schedules', 0)->count();
+        $noPhoto = $churches->where('is_active', true)
+            ->filter(fn (Church $c) => str_contains($c->imagePath(), 'placeholder'))->count();
+
+        $items = [
+            ['n' => Feedback::where('status', 'Pending')->count(), 'icon' => 'giya-star',
+             'one' => 'review waiting for approval', 'many' => 'reviews waiting for approval',
+             'url' => route('admin.feedback', ['status' => 'Pending']), 'tone' => 'gold'],
+            ['n' => \App\Models\Transaction::where('status', 'Pending')->count(), 'icon' => 'credit-card',
+             'one' => 'payment to check', 'many' => 'payments to check',
+             'url' => route('admin.transactions', ['status' => 'Pending']), 'tone' => 'blue'],
+            ['n' => $noMass, 'icon' => 'calendar3',
+             'one' => 'published church with no Mass schedule', 'many' => 'published churches with no Mass schedule',
+             'url' => route('admin.destinations', ['issue' => 'schedule']), 'tone' => 'primary'],
+            ['n' => \App\Models\Schedule::where('status', '!=', 'Published')->count(), 'icon' => 'eye-slash',
+             'one' => 'schedule saved as Draft', 'many' => 'schedules saved as Draft',
+             'url' => route('admin.schedules', ['view' => 'all', 'status' => 'Draft']), 'tone' => 'primary'],
+            ['n' => $noPhoto, 'icon' => 'camera-fill',
+             'one' => 'published church with no photo', 'many' => 'published churches with no photo',
+             'url' => route('admin.destinations', ['issue' => 'photo']), 'tone' => 'green'],
+        ];
+
+        return array_values(array_filter($items, fn ($i) => $i['n'] > 0));
     }
 }

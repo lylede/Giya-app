@@ -12,6 +12,26 @@
     @endforeach
 </div>
 
+{{-- What needs doing: each line opens the place where it is done. --}}
+<section class="card card-body todo-card" aria-labelledby="todoTitle">
+    <div class="card-title" id="todoTitle">To do</div>
+    @if (empty($todo))
+        <p class="todo-done"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> All caught up. Nothing is waiting.</p>
+    @else
+        <ul class="todo-list">
+            @foreach ($todo as $t)
+                <li>
+                    <a href="{{ $t['url'] }}" class="todo-item">
+                        <span @class(['todo-icon', 'is-'.$t['tone']])><i class="bi bi-{{ $t['icon'] }}" aria-hidden="true"></i></span>
+                        <span class="todo-text"><b>{{ number_format($t['n']) }}</b> {{ $t['n'] === 1 ? $t['one'] : $t['many'] }}</span>
+                        <i class="bi bi-chevron-right todo-go" aria-hidden="true"></i>
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+</section>
+
 <div class="chart-grid">
     <div class="card card-body">
         <div class="card-title">Visits - Last 6 Months</div>
