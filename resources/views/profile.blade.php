@@ -66,15 +66,19 @@
 
             <div class="card card-body">
                 <div class="form-label-sm" style="margin-bottom:14px">{{ __('giya.profile.account_info') }}</div>
-                @foreach ([
-                    [__('giya.profile.full_name'),    $user->name],
-                    [__('giya.profile.email'),        $user->email],
-                    [__('giya.profile.role'),         ucfirst($user->role)],
-                    [__('giya.profile.member_since'), ($user->member_since ?? $user->created_at)?->format('M Y')],
-                    [__('giya.profile.plan_label'),   $user->is_premium ? __('giya.upgrade.premium') : __('giya.profile.free_plan')],
-                ] as $i => [$label, $value])
+                @php
+                    // "Role" is an admin word: pilgrims see it only if they are one.
+                    $accountRows = array_values(array_filter([
+                        [__('giya.profile.full_name'),    $user->name],
+                        [__('giya.profile.email'),        $user->email],
+                        $user->role === 'admin' ? [__('giya.profile.role'), ucfirst($user->role)] : null,
+                        [__('giya.profile.member_since'), ($user->member_since ?? $user->created_at)?->format('M Y')],
+                        [__('giya.profile.plan_label'),   $user->is_premium ? __('giya.upgrade.premium') : __('giya.profile.free_plan')],
+                    ]));
+                @endphp
+                @foreach ($accountRows as $i => [$label, $value])
                     <div class="d-flex justify-content-between align-items-center"
-                         style="padding:9px 0;{{ $i < 4 ? 'border-bottom:1px solid var(--border-light)' : '' }}">
+                         style="padding:9px 0;{{ $i < count($accountRows) - 1 ? 'border-bottom:1px solid var(--border-light)' : '' }}">
                         <span style="font-size: 0.8125rem;color:var(--text-muted)">{{ $label }}</span>
                         <span style="font-size: 0.8125rem;font-weight:600;color:var(--text);text-align:right">{{ $value }}</span>
                     </div>

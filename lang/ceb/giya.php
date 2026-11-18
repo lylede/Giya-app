@@ -388,7 +388,7 @@ return [
         'visita_near_town' => 'Ang mga nag-unang simbahan sa :count ka lungsod nga labing duol sa :town, sumala sa han-ay sa biyahe.',
         'visita_near_you_plus' => 'Ang mga nag-unang simbahan sa :count ka lungsod nga labing duol kanimo, gidugangan hangtod :total sa labing duol nga ubang simbahan, sumala sa han-ay sa biyahe.',
         'visita_near_town_plus' => 'Ang mga nag-unang simbahan sa :count ka lungsod nga labing duol sa :town, gidugangan hangtod :total sa labing duol nga ubang simbahan, sumala sa han-ay sa biyahe.',
-        'visita_no_location' => 'Napalong ang imong lokasyon. Pilia kung asa ka magsugod, ug isugyot sa GIYA ang mga nag-unang simbahan sa labing duol nga mga lungsod.',
+        'visita_no_location' => 'Asa ka magsugod? Pilia ang imong lungsod ug isugyot sa GIYA ang mga nag-unang simbahan sa labing duol nga mga lungsod.',
         'visita_start_from' => 'Magsugod sa',
         'visita_choose_town' => 'Pilia ang imong lungsod',
         'visita_suggest_again' => 'Isugyot pag-usab',

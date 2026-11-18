@@ -388,7 +388,7 @@ return [
         'visita_near_town' => 'Ang mga pangunahing simbahan ng :count bayang pinakamalapit sa :town, ayon sa pagkakasunod ng biyahe.',
         'visita_near_you_plus' => 'Ang mga pangunahing simbahan ng :count bayang pinakamalapit sa iyo, dinagdagan hanggang :total ng pinakamalapit na ibang simbahan, ayon sa pagkakasunod ng biyahe.',
         'visita_near_town_plus' => 'Ang mga pangunahing simbahan ng :count bayang pinakamalapit sa :town, dinagdagan hanggang :total ng pinakamalapit na ibang simbahan, ayon sa pagkakasunod ng biyahe.',
-        'visita_no_location' => 'Nakapatay ang iyong lokasyon. Piliin kung saan ka magsisimula, at magmumungkahi ang GIYA ng mga pangunahing simbahan ng pinakamalapit na bayan.',
+        'visita_no_location' => 'Saan ka magsisimula? Piliin ang iyong bayan at magmumungkahi ang GIYA ng mga pangunahing simbahan ng pinakamalapit na mga bayan.',
         'visita_start_from' => 'Magsisimula sa',
         'visita_choose_town' => 'Piliin ang iyong bayan',
         'visita_suggest_again' => 'Magmungkahi muli',

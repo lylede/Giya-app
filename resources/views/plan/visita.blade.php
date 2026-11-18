@@ -37,7 +37,9 @@
 
             {{-- Left --}}
             <div>
-                <div class="upgrade-card mb-3">
+                {{-- Shown once the route has churches: "0 of 0" told a new
+                     pilgrim nothing except that something was empty. --}}
+                <div class="upgrade-card mb-3" id="viProgress" hidden>
                     <div style="position:relative">
                         <div style="color:rgba(255,255,255,0.7);font-size: 0.75rem;margin-bottom:4px">{{ __('giya.plan.route_progress') }}</div>
                         <div style="font-family:var(--font-display);color:var(--gold);font-size: 1.875rem;font-weight:700;line-height:1">
@@ -362,6 +364,7 @@ const GiyaVisita = (function () {
         const pct   = total ? Math.round((done / total) * 100) : 0;
         const current = list.find(c => !c.visited);
 
+        document.getElementById('viProgress').hidden = total === 0;
         document.getElementById('visitedCount').textContent = done;
         document.getElementById('totalCountA').textContent  = total;
         document.getElementById('countValue').textContent   = total;

@@ -398,7 +398,7 @@ return [
         'visita_near_town' => 'The main churches of the :count towns nearest :town, in driving order.',
         'visita_near_you_plus' => 'The main churches of the :count towns nearest you, made up to :total with the nearest other churches, in driving order.',
         'visita_near_town_plus' => 'The main churches of the :count towns nearest :town, made up to :total with the nearest other churches, in driving order.',
-        'visita_no_location' => 'Your location is off. Choose where you are starting from, and GIYA will suggest the main churches of the nearest towns.',
+        'visita_no_location' => 'Where are you starting from? Pick your town and GIYA will suggest the main churches of the nearest towns.',
         'visita_start_from' => 'Starting from',
         'visita_choose_town' => 'Choose your town',
         'visita_suggest_again' => 'Suggest again',
