@@ -15,7 +15,7 @@ use Tests\TestCase;
  * NUMBERS. They were set in Playfair, which is a display serif. Its figures
  * are proportional - a 1 is narrower than a 0 - so a column of counts never
  * lines up and a number that ticks upward shifts everything beside it. They
- * are in Lato now, which is already loaded and is what the rest of the app
+ * are in Inter now, which is already loaded and is what the rest of the app
  * reads in, with tabular lining figures.
  */
 class IconAndNumberTest extends TestCase

@@ -1,14 +1,15 @@
 /* ============================================================
    GIYA - Design System CSS
-   Fonts: Playfair Display (headings) + Lato (body)
+   Fonts: Playfair Display (page titles) + Inter (everything else)
    Colors: #8E3B2F (primary) · #D7A94A (gold) · #EFE8DF (bg) · #241C18 (text)
    ============================================================ */
 
 /* ── Fonts ─────────────────────────────────────────────────── */
 @font-face{font-family:'Playfair Display';src:url('../fonts/playfair-display-400.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'Playfair Display';src:url('../fonts/playfair-display-700.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
-@font-face{font-family:'Lato';src:url('../fonts/lato-400.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
-@font-face{font-family:'Lato';src:url('../fonts/lato-700.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:'Inter';src:url('../fonts/inter-400.woff') format('woff');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Inter';src:url('../fonts/inter-600.woff') format('woff');font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:'Inter';src:url('../fonts/inter-700.woff') format('woff');font-weight:700;font-style:normal;font-display:swap}
 
 /* ── hidden ─────────────────────────────────────────────────
    The browser's own rule for [hidden] is display:none at the very bottom
@@ -53,14 +54,14 @@
      box titles, popups, big numbers) now reads in the body font. */
   --font-title:    'Playfair Display', Georgia, serif;
   --font-display:  var(--font-body);
-  --font-body:     'Lato', system-ui, -apple-system, sans-serif;
+  --font-body:     'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Numbers are GIYA's own second face, not a third one.
 
      They were set in Playfair, which is a display serif: its figures are
      proportional, so a 1 is narrower than a 0 and a column of counts never
      lines up, and its thin strokes wash out at the sizes a statistic is
-     shown at. Lato is already loaded, it is the face the rest of the app
+     shown at. Inter is already loaded, it is the face the rest of the app
      reads in, and it has tabular lining figures - every digit the same
      width, all sitting on the baseline at cap height. Simple, and already
      part of the system rather than bolted onto it. */

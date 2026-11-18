@@ -1,3 +1,5 @@
-Lato (Lukasz Dziedzic) and Playfair Display (Claus Eggers Sorensen)
-are licensed under the SIL Open Font License 1.1: https://openfontlicense.org
-Files: latin subset from Fontsource (github.com/fontsource/font-files).
+Inter (The Inter Project Authors, github.com/rsms/inter) and
+Playfair Display (Claus Eggers Sorensen) are licensed under the
+SIL Open Font License 1.1: https://openfontlicense.org
+Files: Latin subsets. Playfair from Fontsource (github.com/fontsource/font-files);
+Inter cut from the official release (with the peso sign and tabular figures kept).
