@@ -160,7 +160,7 @@ class ScheduleController extends Controller
         // Left blank: the church's own address from the map.
         if (blank($data['location'] ?? null) && ! empty($data['church_id'])) {
             $church = Church::find($data['church_id']);
-            $data['location'] = $church ? (\Illuminate\Support\Str::limit((string) ($church->location ?: $church->municipality), 147) ?: null) : null;
+            $data['location'] = $church ? (\Illuminate\Support\Str::limit((string) ($church->location ?: $church->address ?: $church->municipality), 147) ?: null) : null;
         }
 
         if (! empty($data['schedule_id'])) {

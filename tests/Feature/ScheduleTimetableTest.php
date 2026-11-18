@@ -180,4 +180,18 @@ class ScheduleTimetableTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.schedules', ['view' => 'all']))
             ->assertSee('data-place="Osmena Blvd, Cebu City"', false);
     }
+
+    public function test_the_migration_fills_only_blank_locations(): void
+    {
+        $this->basilica->update(['location' => 'Osmena Blvd, Cebu City']);
+        $blank = $this->mass($this->basilica, '06:00', ['type' => 'weekly', 'days' => [0]]);
+        $typed = $this->mass($this->basilica, '08:00', ['type' => 'weekly', 'days' => [0]]);
+        $blank->update(['location' => null]);
+        $typed->update(['location' => 'Pilgrim Center']);
+
+        (require database_path('migrations/2026_11_18_000001_fill_schedule_locations_from_churches.php'))->up();
+
+        $this->assertSame('Osmena Blvd, Cebu City', $blank->fresh()->location);
+        $this->assertSame('Pilgrim Center', $typed->fresh()->location);
+    }
 }

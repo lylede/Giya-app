@@ -395,7 +395,7 @@
                         <select id="s-church" name="church_id" class="giya-input">
                             <option value="">None - a town festival (type the town in Location)</option>
                             @foreach ($churches as $church)
-                                <option value="{{ $church->id }}" data-place="{{ $church->location ?: $church->municipality }}">{{ $church->name }}</option>
+                                <option value="{{ $church->id }}" data-place="{{ $church->location ?: $church->address ?: $church->municipality }}">{{ $church->name }}</option>
                             @endforeach
                         </select>
                         @error('church_id')<span class="field-error">{{ $message }}</span>@enderror
