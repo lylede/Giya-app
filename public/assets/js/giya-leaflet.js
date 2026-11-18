@@ -145,7 +145,9 @@ window.GiyaLeaflet = (function () {
     /* The loading screen (the GIYA pin dropping like water) stays for at
        least six seconds, even when the map is ready sooner, so the drop
        plays through instead of flashing past. Only the screen waits: the
-       map itself, and anything waiting for its tiles, carry on at once. */
+       map itself, and anything waiting for its tiles, carry on at once.
+       A map can pass loaderMinMs (the admin map passes 0: admins open it
+       many times a day and the wait read as lag). */
     var LOADING_AT_LEAST_MS = 6000;
 
     function markReadyWhenTilesArrive(map, cfg) {
@@ -158,7 +160,7 @@ window.GiyaLeaflet = (function () {
             if (!shell || !shell.classList) return;
             setTimeout(function () {
                 shell.classList.add('is-map-ready');
-            }, Math.max(0, LOADING_AT_LEAST_MS - (Date.now() - started)));
+            }, Math.max(0, (cfg.loaderMinMs != null ? cfg.loaderMinMs : LOADING_AT_LEAST_MS) - (Date.now() - started)));
         });
 
         return layer;
@@ -346,10 +348,10 @@ window.GiyaLeaflet = (function () {
      * devotee zooms in. Falls back to a plain layer group if the cluster
      * script did not load, so the map still works - just busier.
      */
-    function churchLayer() {
+    function churchLayer(extra) {
         if (!L.markerClusterGroup) return L.layerGroup();
 
-        return L.markerClusterGroup({
+        return L.markerClusterGroup(L.extend({
             maxClusterRadius: 45,          // px; raise to group more, lower to group less
             showCoverageOnHover: false,
             /* Keep pins that slide off screen. The default drops them, and
@@ -368,7 +370,7 @@ window.GiyaLeaflet = (function () {
                     iconSize: [size, size]
                 });
             }
-        });
+        }, extra || {}));
     }
 
     function userIcon() {
@@ -873,41 +875,92 @@ window.GiyaLeaflet = (function () {
 
         map.on('click', function (e) { place(e.latlng.lat, e.latlng.lng); });
 
-        var byId = {};
+        /*
+         * The admin map: nearby pins group into one numbered bubble (about
+         * 166 pins become about 15 at the start, which is what made it lag),
+         * and every pin is made once. Filtering shows and hides pins that
+         * already exist instead of deleting and remaking all of them.
+         */
+        if (cfg.cluster && L.markerClusterGroup) {
+            map.removeLayer(existing);
+            existing = churchLayer({
+                chunkedLoading: true,              // add pins in batches; the page stays responsive
+                removeOutsideVisibleBounds: true,  // admin: no popups to keep open, so drop off-screen pins
+                iconCreateFunction: function (cluster) {
+                    var kids = cluster.getAllChildMarkers();
+                    var n = kids.length, need = 0;
+                    kids.forEach(function (k) { if (k.options.giyaIssues) need++; });
+                    var size = n < 10 ? 34 : n < 50 ? 40 : 46;
+                    return L.divIcon({
+                        html: '<span>' + n + '</span>' + (cfg.showIssues && need ? '<i class="giya-cluster-need" title="' + need + ' need attention">' + need + '</i>' : ''),
+                        className: 'giya-cluster',
+                        iconSize: [size, size]
+                    });
+                }
+            }).addTo(map);
+        }
+
+        var byId = {}, pickedId = null;
+
+        function make(c) {
+            var issues = cfg.showIssues && c.issues ? c.issues.length : 0;
+            var m = L.marker([c.lat, c.lng], {
+                icon: churchIcon(c, { size: 42 }),
+                opacity: c.active ? 1 : 0.55,
+                title: c.name,
+                giyaIssues: issues,
+                // Admin: drag a pin that is in the wrong place to fix it.
+                draggable: !!cfg.onChurchMove
+            })
+                .on('click', function () { if (cfg.onChurchClick) cfg.onChurchClick(c); })
+                .bindTooltip(escapeHtml(c.name), { direction: 'top', offset: [0, -50] });
+
+            if (cfg.onChurchMove) {
+                var from = L.latLng(c.lat, c.lng);
+                m.on('dragend', function (e) {
+                    var to = e.target.getLatLng();
+                    cfg.onChurchMove(c, to.lat, to.lng, function undo() { m.setLatLng(from); }, function keep() {
+                        from = to; c.lat = to.lat; c.lng = to.lng;
+                    });
+                });
+            }
+
+            // A grouped pin has no element until it is shown, so the badge
+            // and the ring go on each time it appears.
+            m.on('add', function () {
+                var el = m.getElement();
+                if (!el) return;
+                if (issues) { el.classList.add('has-issues'); el.setAttribute('data-issues', issues); }
+                el.classList.toggle('is-picked', c.id === pickedId);
+            });
+            return m;
+        }
+
         function draw(churches) {
             existing.clearLayers();
             byId = {};
+            var list = [];
             (churches || []).forEach(function (c) {
                 if (!c.lat || !c.lng) return;
-
-                var m = L.marker([c.lat, c.lng], {
-                    icon: churchIcon(c, { size: 42 }),
-                    opacity: c.active ? 1 : 0.55,
-                    title: c.name,
-                    // Admin: drag a pin that is in the wrong place to fix it.
-                    draggable: !!cfg.onChurchMove
-                })
-                    .on('click', function () { if (cfg.onChurchClick) cfg.onChurchClick(c); })
-                    .bindTooltip(escapeHtml(c.name), { direction: 'top', offset: [0, -50] })
-                    .addTo(existing);
-
-                if (cfg.onChurchMove) {
-                    var from = L.latLng(c.lat, c.lng);
-                    m.on('dragend', function (e) {
-                        var to = e.target.getLatLng();
-                        cfg.onChurchMove(c, to.lat, to.lng, function undo() { m.setLatLng(from); }, function keep() {
-                            from = to; c.lat = to.lat; c.lng = to.lng;
-                        });
-                    });
-                }
-
-                // A church that still needs something gets a small count badge.
-                if (cfg.showIssues && c.issues && c.issues.length) {
-                    var el = m.getElement();
-                    if (el) { el.classList.add('has-issues'); el.setAttribute('data-issues', c.issues.length); }
-                }
-                byId[c.id] = m;
+                byId[c.id] = make(c);
+                list.push(byId[c.id]);
             });
+            if (existing.addLayers) existing.addLayers(list);
+            else list.forEach(function (m) { existing.addLayer(m); });
+        }
+
+        // Show only the churches for which keep(c) is true. Pins are not remade.
+        function filter(churches, keep) {
+            var show = [], hide = [];
+            (churches || []).forEach(function (c) {
+                var m = byId[c.id];
+                if (!m) return;
+                var on = existing.hasLayer(m);
+                if (keep(c) && !on) show.push(m);
+                else if (!keep(c) && on) hide.push(m);
+            });
+            if (existing.removeLayers) { existing.removeLayers(hide); existing.addLayers(show); }
+            else { hide.forEach(function (m) { existing.removeLayer(m); }); show.forEach(function (m) { existing.addLayer(m); }); }
         }
 
         draw(cfg.churches);
@@ -916,11 +969,20 @@ window.GiyaLeaflet = (function () {
         window.addEventListener('resize', function () { map.invalidateSize(); });
 
         return {
-            map: map, place: place, draw: draw,
+            map: map, place: place, draw: draw, filter: filter,
+            // Put a church's pin somewhere else (used by Undo after a move).
+            moveTo: function (id, lat, lng) { if (byId[id]) byId[id].setLatLng([lat, lng]); },
+            // Zoom until a grouped pin is on its own, then run done().
+            reveal: function (id, done) {
+                var m = byId[id];
+                if (m && existing.zoomToShowLayer) existing.zoomToShowLayer(m, done || function () {});
+                else if (done) done();
+            },
             clear: function () { if (pin) { map.removeLayer(pin); pin = null; } },
             focus: function (lat, lng) { map.setView([lat, lng], 16); },
             // Ring the pin of the church whose panel is open.
             select: function (id) {
+                pickedId = id;
                 Object.keys(byId).forEach(function (k) {
                     var el = byId[k].getElement();
                     if (el) el.classList.toggle('is-picked', Number(k) === id);

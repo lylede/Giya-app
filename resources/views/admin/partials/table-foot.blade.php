@@ -17,7 +17,7 @@
                 @endif
             @endforeach
             <label for="{{ $id }}" class="per-page-label">Rows per page</label>
-            <select id="{{ $id }}" name="per_page" class="giya-input per-page-select" onchange="this.form.submit()">
+            <select id="{{ $id }}" name="per_page" class="giya-input per-page-select" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
                 @foreach ($options as $n)
                     <option value="{{ $n }}" @selected($perPage === $n)>{{ $n }}</option>
                 @endforeach

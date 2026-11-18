@@ -173,6 +173,13 @@ class LoadingStatesTest extends TestCase
         $js = file_get_contents(public_path('assets/js/giya-leaflet.js'));
 
         $this->assertStringContainsString('var LOADING_AT_LEAST_MS = 6000;', $js);
-        $this->assertStringContainsString('LOADING_AT_LEAST_MS - (Date.now() - started)', $js);
+        $this->assertStringContainsString('cfg.loaderMinMs != null ? cfg.loaderMinMs : LOADING_AT_LEAST_MS', $js);
+    }
+
+    public function test_the_admin_map_skips_the_six_second_wait(): void
+    {
+        $page = file_get_contents(resource_path('views/admin/destinations.blade.php'));
+
+        $this->assertStringContainsString('loaderMinMs: 0', $page);
     }
 }

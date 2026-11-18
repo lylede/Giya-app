@@ -107,7 +107,7 @@
     of the old set lands on a page that no longer exists, and the table comes
     back empty - which reads as "the filter is broken".
 --}}
-<form method="GET" class="dm-filters">
+<form method="GET" class="dm-filters" data-soft-list-form="dmList">
     <div class="dm-filter-field is-wide">
         <label class="dm-label" for="q">Search Destination</label>
         <input id="q" type="search" name="search" value="{{ $search }}" class="giya-input"
@@ -116,7 +116,7 @@
 
     <div class="dm-filter-field">
         <label class="dm-label" for="fcat">Category</label>
-        <select id="fcat" name="category" class="giya-input" onchange="this.form.submit()">
+        <select id="fcat" name="category" class="giya-input" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
             @foreach ($categories as $cat)
                 <option value="{{ $cat }}" @selected($category === $cat)>{{ $cat === 'All' ? 'All Categories' : $cat }}</option>
             @endforeach
@@ -125,7 +125,7 @@
 
     <div class="dm-filter-field">
         <label class="dm-label" for="fstatus">Status</label>
-        <select id="fstatus" name="status" class="giya-input" onchange="this.form.submit()">
+        <select id="fstatus" name="status" class="giya-input" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
             <option value="">All Status</option>
             <option value="active" @selected(request('status') === 'active')>Published</option>
             <option value="hidden" @selected(request('status') === 'hidden')>Draft</option>
@@ -137,7 +137,7 @@
             <i class="bi bi-search"></i> Apply
         </button>
         @if ($search || ($category && $category !== 'All') || request('status'))
-            <a href="{{ route('admin.destinations') }}" class="btn btn-outline">
+            <a href="{{ route('admin.destinations') }}" class="btn btn-outline" data-soft-list-link="dmList">
                 <i class="bi bi-arrow-clockwise"></i> Reset
             </a>
         @endif
@@ -145,6 +145,8 @@
 </form>
 
 {{-- ═══════════════════════════ TABLE ═══════════════════════════ --}}
+{{-- Next page, rows per page and the filters swap only this list (giya-soft-list.js): the map stays as it is. --}}
+<div id="dmList" class="soft-list" data-soft-list tabindex="-1" aria-live="polite">
 <div class="card adm-scroller">
     <div>
     <table class="giya-table">
@@ -165,7 +167,7 @@
                     <td>{{ $churches->firstItem() + $i }}</td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <img class="gs-img cell-thumb" src="{{ $church->imagePath() }}" alt="">
+                            <img class="gs-img cell-thumb" src="{{ $church->imagePath() }}" alt="" loading="lazy" decoding="async">
                             <span class="cell-strong">{{ $church->name }}</span>
                         </div>
                     </td>
@@ -228,6 +230,7 @@
 </div>
 
 @include('admin.partials.table-foot', ['paginator' => $churches, 'perPage' => $perPage, 'noun' => 'destination', 'options' => \App\Http\Controllers\Controller::PER_PAGE, 'id' => 'destPer'])
+</div>
 
 {{--
     Quick add, used while the map is expanded.
@@ -561,7 +564,9 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 
 @push('scripts')
 <script src="{{ asset('assets/js/leaflet.js') }}?v={{ filemtime(public_path('assets/js/leaflet.js')) }}"></script>
+<script src="{{ asset('assets/js/leaflet.markercluster.js') }}?v={{ filemtime(public_path('assets/js/leaflet.markercluster.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-leaflet.js') }}?v={{ filemtime(public_path('assets/js/giya-leaflet.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-soft-list.js') }}?v={{ filemtime(public_path('assets/js/giya-soft-list.js')) }}"></script>
 <script>
 (function () {
     const markers = @json($markers);
@@ -628,14 +633,16 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                             saveMove(c.id, oldLat, oldLng).then(function () {
                                 c.lat = oldLat; c.lng = oldLng;
                                 if (r) { r.lat = oldLat; r.lng = oldLng; }
-                                drawFiltered();
+                                picker.moveTo(c.id, oldLat, oldLng);
                             });
                         }
                     });
                 });
             });
         },
-        showIssues: true
+        showIssues: true,
+        cluster: true,     // nearby pins group into one bubble until zoomed in
+        loaderMinMs: 0     // no six-second loading screen for admins
     });
 
     /* A new pin: fill in the town from the nearest church already on the
@@ -669,11 +676,11 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
     /* ---------------------------------------------- needs-attention chips */
     let issueFilter = '';
     function drawFiltered() {
-        picker.draw(markers.filter(function (m) {
+        picker.filter(markers, function (m) {
             if (!issueFilter) return true;
             if (issueFilter === 'any') return m.issues.length > 0;
             return m.issues.indexOf(issueFilter) !== -1;
-        }));
+        });
         if (sideId) picker.select(sideId);
     }
     document.querySelectorAll('.dm-chip').forEach(function (chip) {
@@ -1062,8 +1069,11 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
     });
 
     /* ---- edit from the table ---- */
-    document.querySelectorAll('[data-edit]').forEach(function (b) {
-        b.addEventListener('click', function () { openModal(Number(this.dataset.edit)); });
+    // One listener for the whole page: the list's rows are swapped when
+    // changing page, and buttons bound one by one would stop working.
+    document.addEventListener('click', function (e) {
+        const b = e.target.closest('[data-edit]');
+        if (b) openModal(Number(b.dataset.edit));
     });
 
     /* ---- photograph ---- */

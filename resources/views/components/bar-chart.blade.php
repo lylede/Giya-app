@@ -1,41 +1,28 @@
 {{--
-    Horizontal bar chart, drawn as inline SVG.
+    Horizontal bar chart, as ordinary HTML.
 
-    @param  array  $labels  category names (drawn to the left of each bar)
-    @param  array  $data    numeric values, same length as $labels
+    It used to be one SVG scaled to the card's width, which scaled its text
+    too: in a wide card the labels came out bigger than the card's own title,
+    and long church names were cut at 22 letters. Now the text stays at the
+    page's size, names wrap to a second line instead of being cut, and only
+    the bars stretch.
+
+    @param  array   $labels  category names (to the left of each bar)
+    @param  array   $data    numeric values, same length as $labels
+    @param  string  $unit    what is counted, for the hover note ("visits", "follows")
 --}}
-@props(['labels' => [], 'data' => [], 'aria' => 'Bar chart of most visited destinations'])
+@props(['labels' => [], 'data' => [], 'aria' => 'Bar chart of most visited destinations', 'unit' => 'visits'])
 
 @php
-    $rows  = count($data);
-    $rowH  = 30;
-    $W     = 520;
-    $H     = max($rows * $rowH + 20, 60);
-    $padL  = 150; $padR = 40;
-    $plotW = $W - $padL - $padR;
-    $max   = max(max($data ?: [0]), 1);
+    $max = max(max($data ?: [0]), 1);
 @endphp
 
-<svg class="chart-svg" viewBox="0 0 {{ $W }} {{ $H }}" role="img"
-     aria-label="{{ $aria }}">
-
+<div class="hbar" role="img" aria-label="{{ $aria }}">
     @foreach ($data as $i => $value)
-        @php
-            $y  = 10 + $i * $rowH;
-            $bw = round(($value / $max) * $plotW, 2);
-        @endphp
-
-        <text class="chart-axis-text" x="{{ $padL - 10 }}" y="{{ $y + 14 }}" text-anchor="end">
-            {{ \Illuminate\Support\Str::limit($labels[$i] ?? '', 22) }}
-        </text>
-
-        <rect class="chart-bar" x="{{ $padL }}" y="{{ $y }}" width="{{ max($bw, 2) }}"
-              height="18" rx="4">
-            <title>{{ $labels[$i] ?? '' }}: {{ $value }} visits</title>
-        </rect>
-
-        <text class="chart-axis-text" x="{{ $padL + max($bw, 2) + 8 }}" y="{{ $y + 14 }}">
-            {{ $value }}
-        </text>
+        <div class="hbar-row" title="{{ $labels[$i] ?? '' }}: {{ $value }} {{ $unit }}">
+            <span class="hbar-label">{{ $labels[$i] ?? '' }}</span>
+            <span class="hbar-track"><span class="hbar-fill" style="width: {{ max(round($value / $max * 100, 2), 1.5) }}%"></span></span>
+            <span class="hbar-val">{{ $value }}</span>
+        </div>
     @endforeach
-</svg>
+</div>

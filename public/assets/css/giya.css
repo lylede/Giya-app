@@ -8142,3 +8142,90 @@ html[data-theme="dark"] .admin-topbar .adm-qs-input { background: var(--surface-
   .adm-qs { flex: 1 1 auto; margin: 0 10px; }
   .adm-qs-key { display: none; }
 }
+
+/* ── GiyaCombo: GIYA's own suggestion list (replaces <datalist>) ── */
+.giya-combo {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 1300;
+  list-style: none; margin: 0; padding: 6px; max-height: 320px; overflow-y: auto;
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(36, 28, 24, .18);
+  scrollbar-width: thin; scrollbar-color: rgba(142, 59, 47, .35) transparent;
+}
+.giya-combo-item { padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+.giya-combo-item b { display: block; font-size: .875rem; font-weight: 600; color: var(--text); }
+.giya-combo-item small { display: block; font-size: .75rem; color: var(--text-muted); }
+.giya-combo-item:hover, .giya-combo-item.is-on { background: rgba(142, 59, 47, .08); }
+.giya-combo-item.is-on b { color: var(--primary); }
+.giya-combo-none { padding: 10px 12px; font-size: .875rem; color: var(--text-muted); }
+html[data-theme="dark"] .giya-combo { background: var(--surface-2); box-shadow: 0 14px 34px rgba(0, 0, 0, .45); scrollbar-color: rgba(215, 169, 74, .35) transparent; }
+html[data-theme="dark"] .giya-combo-item:hover, html[data-theme="dark"] .giya-combo-item.is-on { background: rgba(215, 169, 74, .12); }
+html[data-theme="dark"] .giya-combo-item.is-on b { color: var(--gold-light); }
+
+/* ── Horizontal bar chart (x-bar-chart) ─────────────────────── */
+.hbar { display: grid; gap: 10px; padding: 6px 0 2px; }
+.hbar-row { display: grid; grid-template-columns: minmax(110px, 36%) 1fr 2.5em; align-items: center; gap: 12px; }
+.hbar-label {
+  font-size: .8125rem; line-height: 1.3; color: var(--text-muted); text-align: right;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+}
+.hbar-track { height: 16px; border-radius: 4px; background: rgba(142, 59, 47, .06); overflow: hidden; }
+.hbar-fill { display: block; height: 100%; border-radius: 4px; background: var(--primary); transition: width .4s ease; }
+.hbar-row:hover .hbar-fill { background: var(--primary-dark); }
+.hbar-row:hover .hbar-label { color: var(--text); }
+.hbar-val { font-size: .8125rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+html[data-theme="dark"] .hbar-track { background: rgba(215, 169, 74, .07); }
+html[data-theme="dark"] .hbar-fill { background: #A9483A; }
+html[data-theme="dark"] .hbar-row:hover .hbar-fill { background: #C0705A; }
+@media (max-width: 520px) { .hbar-row { grid-template-columns: minmax(90px, 40%) 1fr 2em; gap: 8px; } }
+@media (prefers-reduced-motion: reduce) { .hbar-fill { transition: none; } }
+
+/* ── Admin map: square, sized to fit the screen ─────────────── */
+.dm-mapcard .dm-map-shell:not(.is-fullscreen) {
+  width: min(100%, max(420px, calc(100vh - 150px)));
+  width: min(100%, max(420px, calc(100dvh - 150px)));
+  aspect-ratio: 1 / 1; margin-inline: auto;
+}
+.dm-mapcard .dm-map-shell:not(.is-fullscreen) .dm-map-canvas { height: 100%; }
+
+/* A grouped bubble on the admin map: how many inside need attention. */
+.giya-cluster { position: relative; }
+.giya-cluster-need {
+  position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: 9px; background: #D7A94A; color: #241C18; border: 2px solid #fff;
+  font: 700 10px/14px var(--font-body); font-style: normal; text-align: center; box-sizing: border-box;
+  pointer-events: none;
+}
+html[data-theme="dark"] .giya-cluster-need { border-color: #2E241E; }
+
+/* ── Line chart (x-line-chart): text at page size, line stretches ── */
+.lchart {
+  display: grid; grid-template-columns: 2.25em 1fr; grid-template-rows: 200px auto;
+  column-gap: 10px; row-gap: 8px; padding: 8px 6px 0 0;
+}
+.lchart-y { position: relative; }
+.lchart-y span {
+  position: absolute; right: 0; translate: 0 -50%;
+  font-size: .75rem; line-height: 1; color: var(--text-muted); font-variant-numeric: tabular-nums;
+}
+.lchart-plot { position: relative; }
+.lchart-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.lchart-svg .chart-line { stroke-width: 2.5; }
+.lchart-dot {
+  position: absolute; width: 10px; height: 10px; translate: -50% -50%; border-radius: 50%;
+  background: var(--gold); border: 2px solid #fff; box-shadow: 0 1px 3px rgba(36, 28, 24, .25);
+}
+.lchart-dot:hover { scale: 1.3; }
+.lchart-x { grid-column: 2; position: relative; height: 1.1em; }
+.lchart-x span {
+  position: absolute; top: 0; translate: -50% 0; white-space: nowrap;
+  font-size: .75rem; line-height: 1.1; color: var(--text-muted);
+}
+.lchart-x span:first-child { translate: 0 0; }
+.lchart-x span:last-child { translate: -100% 0; }
+html[data-theme="dark"] .lchart-dot { border-color: #2E241E; }
+@media (max-width: 520px) { .lchart { grid-template-rows: 170px auto; } }
+
+/* A list changing page in place (giya-soft-list.js). */
+.soft-list { outline: none; }
+.soft-list .adm-scroller { transition: opacity .15s ease; }
+.soft-list.is-soft-loading .adm-scroller { opacity: .45; pointer-events: none; }

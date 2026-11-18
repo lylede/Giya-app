@@ -14,7 +14,7 @@
 <div class="chart-grid">
     <div class="card card-body">
         <div class="card-title">Giya AI questions per day</div>
-        <x-line-chart :labels="$perDay['labels']" :data="$perDay['data']" />
+        <x-line-chart :labels="$perDay['labels']" :data="$perDay['data']" aria="Line chart of Giya AI questions per day" />
     </div>
 
     <div class="card card-body">
@@ -22,22 +22,22 @@
         @if (empty($topics['labels']))
             <x-empty-state icon="chat-dots" title="No questions yet" desc="This fills in as pilgrims use Giya AI." />
         @else
-            <x-bar-chart :labels="$topics['labels']" :data="$topics['data']" aria="Bar chart of Giya AI question topics" />
+            <x-bar-chart :labels="$topics['labels']" :data="$topics['data']" aria="Bar chart of Giya AI question topics" unit="questions" />
         @endif
     </div>
 
     <div class="card card-body">
         <div class="card-title">Parts of Cebu asked about</div>
         @if (empty($regions['labels']))
-            <x-empty-state icon="map" title="No area asked yet" desc="Questions like &quot;churches in south Cebu&quot; show up here." />
+            <x-empty-state icon="map" title="No area asked yet" desc='Questions like "churches in south Cebu" show up here.' />
         @else
-            <x-bar-chart :labels="$regions['labels']" :data="$regions['data']" aria="Bar chart of parts of Cebu asked about" />
+            <x-bar-chart :labels="$regions['labels']" :data="$regions['data']" aria="Bar chart of parts of Cebu asked about" unit="questions" />
         @endif
     </div>
 
     <div class="card card-body">
         <div class="card-title">Busiest days for church visits</div>
-        <x-bar-chart :labels="$weekdays['labels']" :data="$weekdays['data']" aria="Bar chart of church visits by day of the week" />
+        <x-bar-chart :labels="$weekdays['labels']" :data="$weekdays['data']" aria="Bar chart of church visits by day of the week" unit="visits" />
     </div>
 
     <div class="card card-body">
@@ -45,13 +45,13 @@
         @if (empty($follows['labels']))
             <x-empty-state icon="bell" title="No follows yet" desc="Pilgrims follow a church to get its Mass reminders." />
         @else
-            <x-bar-chart :labels="$follows['labels']" :data="$follows['data']" aria="Bar chart of most followed churches" />
+            <x-bar-chart :labels="$follows['labels']" :data="$follows['data']" aria="Bar chart of most followed churches" unit="follows" />
         @endif
     </div>
 
     <div class="card card-body">
         <div class="card-title">New sign-ups per week</div>
-        <x-line-chart :labels="$signups['labels']" :data="$signups['data']" />
+        <x-line-chart :labels="$signups['labels']" :data="$signups['data']" aria="Line chart of new sign-ups per week" />
     </div>
 </div>
 

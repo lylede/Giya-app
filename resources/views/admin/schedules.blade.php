@@ -807,8 +807,11 @@
     });
 
     // Search submits on Enter without needing a visible button.
-    document.querySelector('.sm-search input').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('filterForm').submit(); }
+    // Only on All schedules: By church has its own box, and no filterForm.
+    const filterForm = document.getElementById('filterForm');
+    const filterSearch = filterForm && filterForm.querySelector('.sm-search input');
+    if (filterSearch) filterSearch.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); filterForm.submit(); }
     });
 
     @if ($errors->any())

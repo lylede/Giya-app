@@ -148,6 +148,7 @@
 <script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-toast.js') }}?v={{ filemtime(public_path('assets/js/giya-toast.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-admin-search.js') }}?v={{ filemtime(public_path('assets/js/giya-admin-search.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-combo.js') }}?v={{ filemtime(public_path('assets/js/giya-combo.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-datepicker.js') }}?v={{ filemtime(public_path('assets/js/giya-datepicker.js')) }}"></script>
 @stack('scripts')
 <script src="{{ asset('assets/js/giya-admin.js') }}?v={{ filemtime(public_path('assets/js/giya-admin.js')) }}"></script>
