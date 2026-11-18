@@ -83,4 +83,11 @@ class AdminTodoSearchTest extends TestCase
             ->assertSee('id="admQsInput"', false)
             ->assertSee('giya-admin-search.js', false);
     }
+
+    public function test_the_admin_bar_has_the_dark_mode_switch(): void
+    {
+        $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk()
+            ->assertSee('id="navTheme"', false)
+            ->assertSee(route('profile.preference'), false);
+    }
 }

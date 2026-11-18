@@ -115,6 +115,15 @@
                 <kbd class="adm-qs-key" aria-hidden="true">Ctrl K</kbd>
                 <div class="adm-qs-list" id="admQsList" role="listbox" hidden></div>
             </div>
+            {{-- Light / dark in one tap, saved to the admin's account (the same
+                 Theme setting as Profile), so it stays on every admin page. --}}
+            <button type="button" class="nav-theme adm-theme" id="navTheme"
+                    data-save-url="{{ route('profile.preference') }}"
+                    data-label-dark="Switch to dark mode" data-label-light="Switch to light mode"
+                    aria-label="Switch to dark mode" title="Switch to dark mode">
+                <i class="bi bi-moon-fill nav-theme-moon" aria-hidden="true"></i>
+                <i class="bi bi-sun-fill nav-theme-sun" aria-hidden="true"></i>
+            </button>
             <div class="admin-topbar-user">
                 <div class="nav-avatar is-admin">
                     @if (auth()->user()->avatarPath())
