@@ -142,4 +142,13 @@ class ScheduleTimetableTest extends TestCase
         $this->actingAs($this->admin)->get(route('admin.schedules', ['church_id' => $this->basilica->id]))
             ->assertViewHas('view', 'church');
     }
+
+    public function test_a_church_name_in_all_schedules_opens_it_by_church(): void
+    {
+        $this->mass($this->basilica, '06:00', ['type' => 'weekly', 'days' => [0]]);
+        $link = route('admin.schedules', ['view' => 'church', 'church_id' => $this->basilica->id]);
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['view' => 'all']))->assertOk()
+            ->assertSee('class="sm-church-link"', false)
+            ->assertSee(e($link), false);
+    }
 }

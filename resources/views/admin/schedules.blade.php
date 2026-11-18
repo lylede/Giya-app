@@ -295,7 +295,9 @@
                         <td>{{ $schedules->firstItem() + $i }}</td>
                         <td class="cell-strong">
                             @if ($s->church)
-                                {{ $s->church->name }}
+                                {{-- Straight to this church's week, to edit it as a timetable. --}}
+                                <a href="{{ route('admin.schedules', ['view' => 'church', 'church_id' => $s->church->id]) }}"
+                                   class="sm-church-link" title="Open {{ $s->church->name }} by church">{{ $s->church->name }}</a>
                             @else
                                 {{ $s->location ?: '-' }}
                                 <span class="sched-town-tag">Town festival</span>
