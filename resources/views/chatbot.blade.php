@@ -331,7 +331,7 @@
                                     <span class="guide-lamp"></span>
                                 </span>
                             </span>
-                            <div class="chat-bubble chat-bubble-bot">{!! \App\Support\Text::chatHtml($m->message) !!}@if ($m->planLink())<a class="chat-plan-link" href="{{ $m->planLink() }}"><i class="bi bi-map"></i> {{ __('giya.route.open') }}</a>@endif</div>
+                            <div class="chat-bubble chat-bubble-bot">{!! \App\Support\Text::chatHtml($m->message) !!}@if ($m->planLink())<a class="chat-plan-link" href="{{ $m->planLink() }}"><i class="bi bi-map"></i> {{ $m->planLabel() }}</a>@endif</div>
                         </div>
                     @endif
                 @endforeach
@@ -660,6 +660,16 @@
     /* mood: the face Giya AI chose for this reply (happy, excited,
        thinking, sorry, tired). The row carries it so its little face and
        the big guide above both show it. */
+    /* The words on the button under an answer: one for a route GIYA
+       planned, another when the answer named GIYA churches (picked=1),
+       singular when it named just one. */
+    function planLabel(url, labels) {
+        if (url.indexOf('picked=1') === -1) return labels.route;
+        var m = /[?&]stops=([^&]*)/.exec(url);
+        var n = m ? decodeURIComponent(m[1]).split(',').length : 0;
+        return n === 1 ? labels.one : labels.many;
+    }
+
     function addBot(text, ok, mood, planUrl) {
         const typing = document.getElementById('chatTyping');
         if (typing) typing.remove();
@@ -685,7 +695,11 @@
                 // A route Giya planned: one tap opens its stops on the planner map.
                 (planUrl && planUrl.indexOf('/') === 0 && planUrl.indexOf('//') !== 0
                     ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi bi-map"></i> ' +
-                      esc(@json(__('giya.route.open'))) + '</a>'
+                      esc(planLabel(planUrl, {
+                          route: @json(__('giya.route.open')),
+                          many:  @json(__('giya.route.picked')),
+                          one:   @json(__('giya.route.picked_one'))
+                      })) + '</a>'
                     : '') +
             '</div>';
         log.appendChild(row);

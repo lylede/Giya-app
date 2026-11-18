@@ -713,6 +713,8 @@ return [
         'from_city'     => 'Gikan sa Cebu City: mga :time sakay sa sakyanan.',
         'note'          => 'Ang oras gibanabana sa GIYA gikan sa mapa. Ang trapiko, Misa ug pista makausab niini.',
         'open'          => 'Ablihi kini nga ruta sa planner',
+        'picked'        => 'Planoha ang biyahe niining mga simbahan',
+        'picked_one'    => 'Planoha ang biyahe niining simbahan',
     ],
 
     'legal' => [

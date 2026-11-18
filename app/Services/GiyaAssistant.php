@@ -217,15 +217,63 @@ class GiyaAssistant
         ]);
     }
 
-    /** Adds the planner link when this answer carries a route. */
+    /**
+     * Adds the planner link: the route GIYA planned, or else the GIYA
+     * churches the answer names ("picked=1"), so one tap puts them on the
+     * planner map as stops.
+     */
     protected function withPlan(array $result): array
     {
         if ($this->plan) {
             // Relative, so it stays on whichever site the devotee is using (Vercel or Render).
             $result['plan_url'] = route('plan.create', ['stops' => implode(',', $this->plan['ids'])], false);
+        } elseif ($ids = $this->namedChurchIds((string) ($result['reply'] ?? ''))) {
+            $result['plan_url'] = route('plan.create', ['stops' => implode(',', $ids), 'picked' => 1], false);
         }
 
         return $result;
+    }
+
+    /** At most this many named churches go on the planner from one answer. */
+    protected const MAX_PICKED = 10;
+
+    /**
+     * The GIYA churches an answer names, in the order it names them. Church
+     * names are written in **bold** (the prompt asks for it). A name several
+     * churches share ("Sto. Nino Parish") is told apart by the town written
+     * beside it, "(Catmon)" or ", Danao City"; one that cannot be told apart
+     * is left out rather than guessed.
+     *
+     * @return array<int, int>
+     */
+    public function namedChurchIds(string $reply): array
+    {
+        if (! preg_match_all('/\*\*(.+?)\*\*([^\n*]{0,80})/u', $reply, $found, PREG_SET_ORDER)) {
+            return [];
+        }
+
+        $byName = $this->entries()->groupBy(fn ($e) => trim($this->normalize($e['name'])));
+        $ids = [];
+
+        foreach ($found as [, $bold, $after]) {
+            $paren = preg_match('/\((.*?)\)/u', $bold, $pm) ? $pm[1] : '';
+            $name  = trim($this->normalize(preg_replace('/\s*\(.*?\)\s*$/u', '', $bold)));
+            $same  = $byName->get($name);
+            if (! $same) {
+                continue;
+            }
+
+            $near = $this->normalize($paren.' '.$after);
+            $pick = $same->count() === 1
+                ? $same->first()
+                : $same->first(fn ($e) => $e['town'] !== '' && str_contains($near, $this->normalize($e['town'])));
+
+            if ($pick && ! in_array($pick['id'], $ids, true)) {
+                $ids[] = $pick['id'];
+            }
+        }
+
+        return array_slice($ids, 0, self::MAX_PICKED);
     }
 
     /**

@@ -713,6 +713,8 @@ return [
         'from_city'     => 'Mula sa Cebu City: mga :time sakay ng sasakyan.',
         'note'          => 'Tantiya ng GIYA ang oras mula sa mapa. Maaaring magbago ito dahil sa trapiko, Misa at pista.',
         'open'          => 'Buksan ang rutang ito sa planner',
+        'picked'        => 'Magplano ng biyahe sa mga simbahang ito',
+        'picked_one'    => 'Magplano ng biyahe sa simbahang ito',
     ],
 
     'legal' => [

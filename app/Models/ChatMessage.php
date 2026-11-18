@@ -22,6 +22,18 @@ class ChatMessage extends Model
         return str_starts_with($url, '/') && ! str_starts_with($url, '//') ? $url : null;
     }
 
+    /** The button's words: a planned route, or the churches an answer named. */
+    public function planLabel(): string
+    {
+        $url = (string) $this->planLink();
+        if (! str_contains($url, 'picked=1')) {
+            return __('giya.route.open');
+        }
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $q);
+
+        return count(explode(',', (string) ($q['stops'] ?? ''))) === 1 ? __('giya.route.picked_one') : __('giya.route.picked');
+    }
+
     protected function casts(): array
     {
         return ['created_at' => 'datetime'];

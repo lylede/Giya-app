@@ -198,6 +198,16 @@
     }
 
     // mood: the face Giya AI chose for this reply; the row's little face shows it.
+    /* The words on the button under an answer: one for a route GIYA
+       planned, another when the answer named GIYA churches (picked=1),
+       singular when it named just one. */
+    function planLabel(url, labels) {
+        if (url.indexOf('picked=1') === -1) return labels.route;
+        var m = /[?&]stops=([^&]*)/.exec(url);
+        var n = m ? decodeURIComponent(m[1]).split(',').length : 0;
+        return n === 1 ? labels.one : labels.many;
+    }
+
     function addBot(text, ok, mood, planUrl) {
         var typing = document.getElementById('giyaPanelTyping');
         if (typing) typing.remove();
@@ -226,7 +236,11 @@
                 // A route Giya planned: one tap opens its stops on the planner map.
                 (planUrl && planUrl.indexOf('/') === 0 && planUrl.indexOf('//') !== 0
                     ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi bi-map"></i> ' +
-                      esc(fab.dataset.openRoute || 'Open this route in the planner') + '</a>'
+                      esc(planLabel(planUrl, {
+                          route: fab.dataset.openRoute || 'Open this route in the planner',
+                          many:  fab.dataset.planPicked || 'Plan a trip with these churches',
+                          one:   fab.dataset.planPickedOne || 'Plan a trip to this church'
+                      })) + '</a>'
                     : '') +
             '</div>';
         log.appendChild(row);

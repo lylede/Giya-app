@@ -723,6 +723,8 @@ return [
         'from_city'     => 'Getting there from Cebu City: about :time by car.',
         'note'          => 'Times are GIYA estimates from the map. Traffic, Masses and fiestas can change them.',
         'open'          => 'Open this route in the planner',
+        'picked'        => 'Plan a trip with these churches',
+        'picked_one'    => 'Plan a trip to this church',
     ],
 
     'legal' => [
