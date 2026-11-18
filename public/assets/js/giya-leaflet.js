@@ -873,19 +873,40 @@ window.GiyaLeaflet = (function () {
 
         map.on('click', function (e) { place(e.latlng.lat, e.latlng.lng); });
 
+        var byId = {};
         function draw(churches) {
             existing.clearLayers();
+            byId = {};
             (churches || []).forEach(function (c) {
                 if (!c.lat || !c.lng) return;
 
-                L.marker([c.lat, c.lng], {
+                var m = L.marker([c.lat, c.lng], {
                     icon: churchIcon(c, { size: 42 }),
                     opacity: c.active ? 1 : 0.55,
-                    title: c.name
+                    title: c.name,
+                    // Admin: drag a pin that is in the wrong place to fix it.
+                    draggable: !!cfg.onChurchMove
                 })
                     .on('click', function () { if (cfg.onChurchClick) cfg.onChurchClick(c); })
                     .bindTooltip(escapeHtml(c.name), { direction: 'top', offset: [0, -50] })
                     .addTo(existing);
+
+                if (cfg.onChurchMove) {
+                    var from = L.latLng(c.lat, c.lng);
+                    m.on('dragend', function (e) {
+                        var to = e.target.getLatLng();
+                        cfg.onChurchMove(c, to.lat, to.lng, function undo() { m.setLatLng(from); }, function keep() {
+                            from = to; c.lat = to.lat; c.lng = to.lng;
+                        });
+                    });
+                }
+
+                // A church that still needs something gets a small count badge.
+                if (cfg.showIssues && c.issues && c.issues.length) {
+                    var el = m.getElement();
+                    if (el) { el.classList.add('has-issues'); el.setAttribute('data-issues', c.issues.length); }
+                }
+                byId[c.id] = m;
             });
         }
 
@@ -897,7 +918,14 @@ window.GiyaLeaflet = (function () {
         return {
             map: map, place: place, draw: draw,
             clear: function () { if (pin) { map.removeLayer(pin); pin = null; } },
-            focus: function (lat, lng) { map.setView([lat, lng], 16); }
+            focus: function (lat, lng) { map.setView([lat, lng], 16); },
+            // Ring the pin of the church whose panel is open.
+            select: function (id) {
+                Object.keys(byId).forEach(function (k) {
+                    var el = byId[k].getElement();
+                    if (el) el.classList.toggle('is-picked', Number(k) === id);
+                });
+            }
         };
     }
 

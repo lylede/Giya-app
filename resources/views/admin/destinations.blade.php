@@ -30,7 +30,8 @@
         <div>
             <h2 class="dm-panel-title">Destinations map</h2>
             <p class="dm-mapcard-sub">
-                Click anywhere to add a destination, or click a pin to edit one.
+                Click a pin to see everything about a church. Drag a pin to move it.
+                Click an empty spot to add a new one.
             </p>
         </div>
         <div class="adm-actions">
@@ -43,8 +44,41 @@
         </div>
     </div>
 
+    {{-- Show only the churches that still need something. --}}
+    @php
+        $issueCount = fn ($code) => collect($markers)->filter(fn ($m) => in_array($code, $m['issues'], true))->count();
+        $needAny = collect($markers)->filter(fn ($m) => count($m['issues']) > 0)->count();
+    @endphp
+    <div class="dm-chips" role="group" aria-label="Show on the map">
+        <button type="button" class="dm-chip is-on" data-issue="">All <b>{{ count($markers) }}</b></button>
+        <button type="button" class="dm-chip" data-issue="any"><i class="bi bi-info-circle"></i> Needs attention <b>{{ $needAny }}</b></button>
+        <button type="button" class="dm-chip" data-issue="photo">No photo <b>{{ $issueCount('photo') }}</b></button>
+        <button type="button" class="dm-chip" data-issue="schedule">No Mass schedule <b>{{ $issueCount('schedule') }}</b></button>
+        <button type="button" class="dm-chip" data-issue="hidden">Hidden <b>{{ $issueCount('hidden') }}</b></button>
+        <button type="button" class="dm-chip" data-issue="rating">Low rating <b>{{ $issueCount('rating') }}</b></button>
+    </div>
+
     <div class="dm-map-shell" id="adminMapShell">
         <div class="dm-map-canvas" id="adminPickMap"></div>
+
+        {{-- One church at a glance: click its pin. Editing still opens the
+             usual pop-up; the panel is for seeing and quick actions. --}}
+        <aside class="dm-side" id="dmSide" hidden aria-labelledby="dmSideName">
+            <div class="dm-side-photo" id="dmSidePhoto"></div>
+            <button type="button" class="dm-side-x" id="dmSideClose" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+            <div class="dm-side-head">
+                <h3 class="dm-side-name" id="dmSideName"></h3>
+                <p class="dm-side-place" id="dmSidePlace"></p>
+                <div class="dm-side-issues" id="dmSideIssues"></div>
+            </div>
+            <div class="dm-side-tabs" role="tablist">
+                <button type="button" role="tab" class="dm-side-tab is-on" data-tab="details">Details</button>
+                <button type="button" role="tab" class="dm-side-tab" data-tab="photos">Photos</button>
+                <button type="button" role="tab" class="dm-side-tab" data-tab="schedule">Schedule</button>
+                <button type="button" role="tab" class="dm-side-tab" data-tab="feedback">Feedback</button>
+            </div>
+            <div class="dm-side-body" id="dmSideBody" role="tabpanel"></div>
+        </aside>
 
         <div class="map-tools">
             <button type="button" class="map-tool" id="dmFullscreen"
@@ -567,11 +601,242 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                         flashCoords();
             } else {
                 openModal(null, lat, lng);
+                guessTown(lat, lng);
             }
         },
 
-        /* A click on a pin means "edit this one". */
-        onChurchClick: function (c) { openModal(c.id); }
+        /* A click on a pin opens its side panel. */
+        onChurchClick: function (c) { openSide(c.id); },
+
+        /* A pin dragged somewhere else: ask, then save, with Undo. */
+        onChurchMove: function (c, lat, lng, undo, keep) {
+            GiyaConfirm.ask({
+                title: 'Move ' + c.name + ' here?',
+                message: 'The pin will stay where you dropped it, and directions will lead here.',
+                ok: 'Move pin',
+            }).then(function (yes) {
+                if (!yes) { undo(); return; }
+                saveMove(c.id, lat, lng).then(function (ok) {
+                    if (!ok) { undo(); GiyaToast.show('Could not move ' + c.name + '. Try again.', { error: true }); return; }
+                    const oldLat = c.lat, oldLng = c.lng;
+                    keep();
+                    const r = rows.filter(function (x) { return x.id === c.id; })[0];
+                    if (r) { r.lat = lat; r.lng = lng; }
+                    GiyaToast.show('Moved ' + c.name + '.', {
+                        action: 'Undo', ms: 6000,
+                        onAction: function () {
+                            saveMove(c.id, oldLat, oldLng).then(function () {
+                                c.lat = oldLat; c.lng = oldLng;
+                                if (r) { r.lat = oldLat; r.lng = oldLng; }
+                                drawFiltered();
+                            });
+                        }
+                    });
+                });
+            });
+        },
+        showIssues: true
+    });
+
+    /* A new pin: fill in the town from the nearest church already on the
+       map (within 8 km). The admin can still change it. */
+    function guessTown(lat, lng) {
+        const box = field('f-municipality');
+        if (!box || box.value) return;
+        let best = null, bestKm = 8;
+        rows.forEach(function (r) {
+            if (!r.lat || !r.lng || !r.municipality) return;
+            const dLat = (r.lat - lat) * 111, dLng = (r.lng - lng) * 111 * Math.cos(lat * Math.PI / 180);
+            const km = Math.sqrt(dLat * dLat + dLng * dLng);
+            if (km < bestKm) { bestKm = km; best = r; }
+        });
+        if (best) {
+            box.value = best.municipality;
+            box.classList.add('is-guessed');
+            setTimeout(function () { box.classList.remove('is-guessed'); }, 1600);
+        }
+    }
+
+    const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+    function saveMove(id, lat, lng) {
+        return fetch(@json(url('admin/destinations')) + '/' + id + '/move', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({ latitude: lat, longitude: lng })
+        }).then(function (r) { return r.ok; }).catch(function () { return false; });
+    }
+
+    /* ---------------------------------------------- needs-attention chips */
+    let issueFilter = '';
+    function drawFiltered() {
+        picker.draw(markers.filter(function (m) {
+            if (!issueFilter) return true;
+            if (issueFilter === 'any') return m.issues.length > 0;
+            return m.issues.indexOf(issueFilter) !== -1;
+        }));
+        if (sideId) picker.select(sideId);
+    }
+    document.querySelectorAll('.dm-chip').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            document.querySelectorAll('.dm-chip').forEach(function (c) { c.classList.toggle('is-on', c === chip); });
+            issueFilter = chip.dataset.issue;
+            drawFiltered();
+        });
+    });
+
+    /* --------------------------------------------------------- side panel */
+    const side = document.getElementById('dmSide');
+    const sideBody = document.getElementById('dmSideBody');
+    const ISSUE = {
+        photo:    ['camera-fill', 'No photo', 'photos'],
+        schedule: ['calendar3', 'No Mass schedule', 'schedule'],
+        hidden:   ['eye-slash', 'Hidden from devotees', 'details'],
+        rating:   ['star-fill', 'Low rating', 'feedback'],
+    };
+    let sideId = null, sideData = null, sideTab = 'details';
+    const esc = GiyaUI.esc;
+
+    function openSide(id) {
+        const r = rows.filter(function (x) { return x.id === id; })[0];
+        const m = markers.filter(function (x) { return x.id === id; })[0];
+        if (!r) return;
+        sideId = id; sideData = null;
+        picker.select(id);
+        document.getElementById('dmSideName').textContent = r.name;
+        document.getElementById('dmSidePlace').textContent = [r.location, r.municipality].filter(Boolean).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(' · ');
+        document.getElementById('dmSidePhoto').style.backgroundImage = "url('" + r.image + "')";
+        document.getElementById('dmSideIssues').innerHTML = ((m && m.issues) || []).map(function (k) {
+            return '<button type="button" class="dm-issue" data-goto="' + ISSUE[k][2] + '"><i class="bi bi-' + ISSUE[k][0] + '"></i> ' + ISSUE[k][1] + '</button>';
+        }).join('');
+        side.hidden = false;
+        shell.classList.add('has-side');
+        setTimeout(function () { picker.map.invalidateSize(); }, 220);
+        showTab('details');
+        fetch(@json(url('admin/destinations')) + '/' + id + '/panel', { headers: { 'Accept': 'application/json' } })
+            .then(function (res) { return res.json(); })
+            .then(function (d) { if (sideId === id) { sideData = d; showTab(sideTab); } })
+            .catch(function () { if (sideId === id) sideBody.innerHTML = '<p class="dm-side-empty">Could not load this church. Try again.</p>'; });
+    }
+
+    function closeSide() {
+        side.hidden = true; sideId = null;
+        shell.classList.remove('has-side');
+        picker.select(null);
+        setTimeout(function () { picker.map.invalidateSize(); }, 220);
+    }
+    document.getElementById('dmSideClose').addEventListener('click', closeSide);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !side.hidden && !document.querySelector('.modal.is-open')) closeSide();
+    });
+
+    document.querySelectorAll('.dm-side-tab').forEach(function (t) {
+        t.addEventListener('click', function () { showTab(t.dataset.tab); });
+    });
+    document.getElementById('dmSideIssues').addEventListener('click', function (e) {
+        const b = e.target.closest('[data-goto]');
+        if (b) showTab(b.dataset.goto);
+    });
+
+    function stars(n) {
+        let s = '';
+        for (let i = 1; i <= 5; i++) s += '<i class="bi bi-star-fill' + (i <= Math.round(n) ? '' : ' is-off') + '"></i>';
+        return '<span class="dm-stars" aria-label="' + n + ' of 5">' + s + '</span>';
+    }
+
+    function showTab(tab) {
+        sideTab = tab;
+        document.querySelectorAll('.dm-side-tab').forEach(function (t) {
+            const on = t.dataset.tab === tab;
+            t.classList.toggle('is-on', on); t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const r = rows.filter(function (x) { return x.id === sideId; })[0];
+        if (!r) return;
+        const d = sideData;
+        const wait = '<p class="dm-side-empty">Loading…</p>';
+        let html = '';
+
+        if (tab === 'details') {
+            const line = function (icon, label, value) {
+                return value ? '<div class="dm-kv"><i class="bi bi-' + icon + '"></i><div><span>' + label + '</span><b>' + esc(value) + '</b></div></div>' : '';
+            };
+            html = '<div class="dm-side-actions">'
+                 + '<button type="button" class="btn btn-primary btn-sm" data-act="edit"><i class="bi bi-pencil-square"></i> Edit details</button>'
+                 + '<form method="POST" action="' + @json(url('admin/destinations')) + '/' + r.id + '/toggle" class="d-inline">'
+                 + '<input type="hidden" name="_token" value="' + CSRF + '"><input type="hidden" name="_method" value="PATCH">'
+                 + '<button class="btn btn-outline btn-sm"><i class="bi bi-' + (r.active ? 'eye-slash' : 'eye') + '"></i> ' + (r.active ? 'Set to Draft' : 'Publish') + '</button></form>'
+                 + '<a class="btn btn-outline btn-sm" target="_blank" href="' + @json(url('churches')) + '/' + r.id + '"><i class="bi bi-box-arrow-up-right"></i> View page</a>'
+                 + '</div>'
+                 + '<div class="dm-kvs">'
+                 + line('list', 'Category', r.category)
+                 + line('geo-alt', 'Address', r.address || r.location)
+                 + line('clock', 'Open', (r.open && r.close) ? r.open + ' - ' + r.close : '')
+                 + line('telephone', 'Phone', r.phone)
+                 + line('envelope', 'Email', r.email)
+                 + '</div>'
+                 + (r.description ? '<p class="dm-side-desc">' + esc(r.description.length > 260 ? r.description.slice(0, 260) + '…' : r.description) + '</p>' : '');
+        }
+
+        if (tab === 'photos') {
+            if (!d) { sideBody.innerHTML = wait; return; }
+            html = (d.photos.length
+                    ? '<div class="dm-photos">' + d.photos.map(function (p) {
+                        return '<figure class="dm-photo' + (p.primary ? ' is-primary' : '') + '"><img src="' + esc(p.url) + '" alt="" loading="lazy">'
+                             + (p.primary ? '<figcaption>Main photo</figcaption>' : '') + '</figure>'; }).join('') + '</div>'
+                    : '<p class="dm-side-empty"><i class="bi bi-camera-fill"></i> No photo yet. Devotees see a plain picture for now.</p>')
+                 + '<form method="POST" enctype="multipart/form-data" action="' + @json(url('admin/destinations')) + '/' + r.id + '/photo" class="dm-photo-up">'
+                 + '<input type="hidden" name="_token" value="' + CSRF + '">'
+                 + '<label class="btn btn-primary btn-sm"><i class="bi bi-arrow-up"></i> ' + (d.photos.length ? 'Replace main photo' : 'Upload a photo')
+                 + '<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()"></label>'
+                 + '<span class="dm-hint">JPG, PNG or WebP, up to 4 MB.</span></form>';
+        }
+
+        if (tab === 'schedule') {
+            if (!d) { sideBody.innerHTML = wait; return; }
+            const sc = d.schedule;
+            html = '<div class="dm-side-actions"><a class="btn btn-primary btn-sm" href="' + esc(sc.url) + '"><i class="bi bi-calendar3"></i> Edit timetable</a>'
+                 + '<span class="dm-hint">' + sc.published + ' published' + (sc.drafts ? ' · ' + sc.drafts + ' draft' : '') + '</span></div>'
+                 + (sc.items.length
+                    ? '<ul class="dm-sched">' + sc.items.map(function (s) {
+                        return '<li><b>' + esc(s.time || '-') + '</b><span>' + esc(s.name) + '<small>' + esc(s.when) + (s.status !== 'Published' ? ' · ' + esc(s.status) : '') + '</small></span></li>'; }).join('') + '</ul>'
+                    : '<p class="dm-side-empty"><i class="bi bi-calendar3"></i> No Masses or events yet. Add them in the timetable.</p>');
+        }
+
+        if (tab === 'feedback') {
+            if (!d) { sideBody.innerHTML = wait; return; }
+            const f = d.feedback;
+            html = '<div class="dm-fb-sum">' + (f.average !== null ? '<b>' + f.average + '</b>' + stars(f.average) : '<b>-</b>')
+                 + '<span>' + f.count + ' approved review' + (f.count === 1 ? '' : 's') + (f.pending ? ' · <em>' + f.pending + ' waiting</em>' : '') + '</span></div>'
+                 + (f.items.length
+                    ? '<ul class="dm-reviews">' + f.items.map(function (x) {
+                        return '<li class="dm-review is-' + x.status.toLowerCase() + '" data-review="' + x.id + '">'
+                             + '<div class="dm-review-top">' + stars(x.rating) + '<span>' + esc(x.by) + ' · ' + esc(x.when || '') + '</span></div>'
+                             + (x.comment ? '<p>' + esc(x.comment) + '</p>' : '')
+                             + '<div class="dm-review-act">'
+                             + (x.status !== 'Approved' ? '<button type="button" class="btn btn-sm btn-primary" data-review-set="Approved" data-url="' + esc(x.update) + '">Approve</button>' : '<span class="dm-tag is-ok">Approved</span>')
+                             + (x.status !== 'Flagged' ? '<button type="button" class="btn btn-sm btn-outline" data-review-set="Flagged" data-url="' + esc(x.update) + '">Hide</button>' : '<span class="dm-tag">Hidden</span>')
+                             + '</div></li>'; }).join('') + '</ul>'
+                    : '<p class="dm-side-empty"><i class="bi bi-chat-square-text"></i> No reviews yet.</p>');
+        }
+
+        sideBody.innerHTML = html;
+    }
+
+    sideBody.addEventListener('click', function (e) {
+        if (e.target.closest('[data-act="edit"]')) { openModal(sideId); return; }
+        const b = e.target.closest('[data-review-set]');
+        if (!b) return;
+        b.disabled = true;
+        fetch(b.dataset.url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF },
+            body: JSON.stringify({ status: b.dataset.reviewSet })
+        }).then(function (res) {
+            if (!res.ok) throw new Error();
+            const id = Number(b.closest('[data-review]').dataset.review);
+            sideData.feedback.items.forEach(function (x) { if (x.id === id) x.status = b.dataset.reviewSet; });
+            GiyaToast.show(b.dataset.reviewSet === 'Approved' ? 'Review approved.' : 'Review hidden.');
+            showTab('feedback');
+        }).catch(function () { b.disabled = false; GiyaToast.show('Could not update the review.', { error: true }); });
     });
 
     /* ---------------------------------------------------------- modal ---- */
@@ -847,6 +1112,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
 
         if (saved && saved.lat && saved.lng) {
             picker.map.setView([saved.lat, saved.lng], 16);
+            openSide(saved.id);
         } else {
             try {
                 const v = JSON.parse(sessionStorage.getItem(KEY) || 'null');

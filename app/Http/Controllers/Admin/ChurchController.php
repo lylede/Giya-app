@@ -80,7 +80,16 @@ class ChurchController extends Controller
             ->paginate($perPage = $this->perPage($request, 10))
             ->withQueryString();
 
-        $all = Church::with('churchCategory', 'primaryImage')->get();
+        /* For the map's "needs attention" pins: how many published Masses and
+           approved reviews each church has, and their average, in the same
+           query as the pins. */
+        $all = Church::with('churchCategory', 'primaryImage')
+            ->withCount([
+                'schedules as live_schedules' => fn ($q) => $q->where('status', 'Published'),
+                'feedback as approved_reviews' => fn ($q) => $q->where('status', 'Approved'),
+            ])
+            ->withAvg(['feedback as approved_rating' => fn ($q) => $q->where('status', 'Approved')], 'rating')
+            ->get();
 
         return view('admin.destinations', [
             'churches'   => $churches,
@@ -110,6 +119,7 @@ class ChurchController extends Controller
                     'image'  => $c->imagePath(),
                     'color'  => $c->color(),
                     'active' => (bool) $c->is_active,
+                    'issues' => self::issues($c),
                 ])->values()->all(),
 
             // Full records so clicking edit fills the form without another request.
@@ -137,6 +147,87 @@ class ChurchController extends Controller
     }
 
     /** Handles both create and update. The form posts church_id when editing. */
+    /**
+     * What a church still needs, for the map's "needs attention" pins:
+     * photo (only the placeholder), schedule (no published Mass or event),
+     * hidden (not shown to devotees), rating (3 or more reviews averaging
+     * under 3 stars).
+     */
+    public static function issues(Church $c): array
+    {
+        $issues = [];
+        if (str_contains($c->imagePath(), 'placeholder')) $issues[] = 'photo';
+        if ((int) ($c->live_schedules ?? $c->schedules()->where('status', 'Published')->count()) === 0) $issues[] = 'schedule';
+        if (! $c->is_active) $issues[] = 'hidden';
+        $reviews = (int) ($c->approved_reviews ?? 0);
+        if ($reviews >= 3 && (float) $c->approved_rating < 3) $issues[] = 'rating';
+
+        return $issues;
+    }
+
+    /**
+     * Everything the map's side panel shows for one church: its photos, its
+     * Masses and events, and its reviews (pending first, then the latest).
+     */
+    public function panel(Church $church): \Illuminate\Http\JsonResponse
+    {
+        $church->loadCount([
+            'schedules as live_schedules' => fn ($q) => $q->where('status', 'Published'),
+            'feedback as approved_reviews' => fn ($q) => $q->where('status', 'Approved'),
+        ])->loadAvg(['feedback as approved_rating' => fn ($q) => $q->where('status', 'Approved')], 'rating');
+
+        $schedules = $church->schedules()->orderByRaw('start_time IS NULL, start_time')->get();
+        $reviews = $church->feedback()->with('user:id,name')
+            ->orderByRaw("CASE WHEN status = 'Pending' THEN 0 ELSE 1 END")
+            ->latest('created_at')->limit(8)->get();
+
+        return response()->json([
+            'id'       => $church->id,
+            'issues'   => self::issues($church),
+            'photos'   => $church->images()->orderByDesc('is_primary')->get()
+                ->map(fn ($i) => ['url' => $i->path(), 'primary' => (bool) $i->is_primary, 'caption' => $i->caption])->values(),
+            'schedule' => [
+                'published' => $schedules->where('status', 'Published')->count(),
+                'drafts'    => $schedules->where('status', '!=', 'Published')->count(),
+                'items'     => $schedules->take(12)->map(fn ($s) => [
+                    'name'   => $s->event_name,
+                    'type'   => $s->event_type,
+                    'when'   => $s->day_label,
+                    'time'   => $s->start_time ? $s->timeLabel($s->start_time) : '',
+                    'status' => $s->status,
+                ])->values(),
+                'url' => route('admin.schedules', ['view' => 'church', 'church_id' => $church->id]),
+            ],
+            'feedback' => [
+                'average' => $church->approved_rating ? round((float) $church->approved_rating, 1) : null,
+                'count'   => (int) $church->approved_reviews,
+                'pending' => $church->feedback()->where('status', 'Pending')->count(),
+                'items'   => $reviews->map(fn ($f) => [
+                    'id'      => $f->id,
+                    'rating'  => (int) $f->rating,
+                    'comment' => $f->comment,
+                    'by'      => $f->user->name ?? 'Devotee',
+                    'when'    => optional($f->created_at)->format('M j, Y'),
+                    'status'  => $f->status,
+                    'update'  => route('admin.feedback.update', $f),
+                ])->values(),
+            ],
+        ]);
+    }
+
+    /** A pin dragged to the right spot: save only its coordinates. */
+    public function move(Request $request, Church $church): \Illuminate\Http\JsonResponse
+    {
+        $data = $request->validate([
+            'latitude'  => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        $church->update($data);
+
+        return response()->json(['ok' => true, 'message' => 'Moved '.$church->name.'.']);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([

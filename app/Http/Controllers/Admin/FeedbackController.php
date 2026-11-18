@@ -34,7 +34,7 @@ class FeedbackController extends Controller
         ]);
     }
 
-    public function update(Request $request, Feedback $feedback): RedirectResponse
+    public function update(Request $request, Feedback $feedback): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $data = $request->validate([
             'status' => ['required', 'in:Pending,Approved,Flagged'],
@@ -44,6 +44,11 @@ class FeedbackController extends Controller
 
         // Only on the way in to Approved, and only from something else.
         Notifier::feedbackApproved($feedback, $feedback->getChanges());
+
+        // The map's side panel approves or flags without leaving the map.
+        if ($request->expectsJson()) {
+            return response()->json(['ok' => true, 'status' => $feedback->status]);
+        }
 
         return back()->with('success', "Feedback marked as {$data['status']}.");
     }

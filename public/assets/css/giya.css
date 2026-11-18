@@ -7963,3 +7963,127 @@ html[data-theme="dark"] .vi-sheet-seven { color: var(--gold-light, #E9C77E); }
 }
 @keyframes vi-sheet-up { from { transform: translateY(40px); opacity: .6; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .vi-sheet-body, .vi-row.is-new { animation: none; } }
+
+/* ── ADMIN: Destinations map workspace ───────────────────────
+   Chips filter the pins to what still needs work; a pin opens a side
+   panel with the church's details, photos, schedule and reviews. */
+.dm-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.dm-chip {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 7px 12px; border-radius: 999px; font-size: .8125rem; font-weight: 700;
+  background: #fff; color: var(--text-muted); border: 1px solid var(--border);
+}
+.dm-chip b { font-weight: 700; color: var(--text); background: var(--bg-secondary); border-radius: 999px; padding: 1px 7px; font-size: .75rem; }
+.dm-chip .bi { width: .9rem; height: .9rem; color: #C0283F; }
+.dm-chip.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.dm-chip.is-on b { background: rgba(255, 255, 255, .22); color: #fff; }
+.dm-chip.is-on .bi { color: #fff; }
+html[data-theme="dark"] .dm-chip { background: var(--surface); }
+html[data-theme="dark"] .dm-chip.is-on { background: var(--primary); }
+
+/* A pin with problems wears a small red count; the open church gets a ring. */
+.leaflet-marker-icon.has-issues::after {
+  content: attr(data-issues); position: absolute; top: -4px; right: -4px;
+  min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px;
+  background: #C0283F; color: #fff; border: 2px solid #fff;
+  font: 700 10px/14px var(--font-body); text-align: center; box-sizing: border-box;
+}
+.leaflet-marker-icon.is-picked { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 0 6px rgba(215, 169, 74, .95)); z-index: 2000 !important; }
+
+/* The side panel: docked on the right of the map on a computer. */
+.dm-map-shell { position: relative; }
+.dm-side {
+  position: absolute; top: 0; right: 0; bottom: 0; z-index: 900;
+  width: min(380px, 100%); display: flex; flex-direction: column;
+  background: var(--surface, #fff); border-left: 1px solid var(--border);
+  box-shadow: -10px 0 30px rgba(36, 28, 24, .14);
+  animation: dm-side-in .22s cubic-bezier(.2, .8, .2, 1);
+}
+.dm-side[hidden] { display: none; }
+@keyframes dm-side-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.dm-side-photo { height: 132px; flex-shrink: 0; background: #E9DFD2 center / cover no-repeat; }
+.dm-side-x {
+  position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; border-radius: 50%;
+  border: 0; cursor: pointer; background: rgba(36, 28, 24, .55); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.dm-side-head { padding: 14px 16px 10px; }
+.dm-side-name { margin: 0; font-size: 1.125rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+.dm-side-place { margin: 2px 0 0; font-size: .8125rem; color: var(--text-muted); }
+.dm-side-issues { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.dm-side-issues:empty { display: none; }
+.dm-issue {
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(192, 40, 63, .3);
+  background: rgba(192, 40, 63, .08); color: #B3182F; font-size: .75rem; font-weight: 700;
+}
+.dm-issue .bi { width: .8rem; height: .8rem; }
+.dm-side-tabs { display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.dm-side-tab {
+  flex: 1; padding: 10px 4px; border: 0; background: none; cursor: pointer;
+  font-size: .8125rem; font-weight: 700; color: var(--text-muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.dm-side-tab.is-on { color: var(--primary); border-bottom-color: var(--primary); }
+.dm-side-body { flex: 1; overflow-y: auto; padding: 14px 16px 18px; }
+.dm-side-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+.dm-side-actions form { margin: 0; }
+.dm-side-empty { color: var(--text-muted); font-size: .875rem; display: flex; gap: 8px; align-items: center; margin: 4px 0 14px; }
+.dm-hint { font-size: .75rem; color: var(--text-muted); }
+.dm-kvs { display: grid; gap: 10px; }
+.dm-kv { display: flex; gap: 10px; align-items: flex-start; }
+.dm-kv > .bi { width: 1rem; height: 1rem; margin-top: 2px; color: var(--primary); flex-shrink: 0; }
+.dm-kv span { display: block; font-size: .6875rem; color: var(--text-muted); }
+.dm-kv b { display: block; font-size: .875rem; font-weight: 600; color: var(--text); word-break: break-word; }
+.dm-side-desc { margin: 14px 0 0; font-size: .8125rem; line-height: 1.6; color: var(--text-muted); }
+.dm-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.dm-photo { margin: 0; position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 4 / 3; background: #E9DFD2; }
+.dm-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dm-photo.is-primary { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
+.dm-photo figcaption { position: absolute; left: 8px; bottom: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(36, 28, 24, .7); color: #fff; font-size: .6875rem; font-weight: 700; }
+.dm-photo-up { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0; }
+.dm-sched { list-style: none; margin: 0; padding: 0; }
+.dm-sched li { display: flex; gap: 12px; padding: 9px 0; border-top: 1px solid var(--border-light); }
+.dm-sched li:first-child { border-top: 0; }
+.dm-sched b { min-width: 72px; font-size: .8125rem; color: var(--primary); }
+.dm-sched span { font-size: .8125rem; font-weight: 600; color: var(--text); }
+.dm-sched small { display: block; font-weight: 400; color: var(--text-muted); }
+.dm-fb-sum { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.dm-fb-sum > b { font-size: 1.75rem; line-height: 1; color: var(--text); }
+.dm-fb-sum > span { font-size: .8125rem; color: var(--text-muted); }
+.dm-fb-sum em { font-style: normal; font-weight: 700; color: #B3182F; }
+.dm-stars { display: inline-flex; gap: 1px; color: #D7A94A; }
+.dm-stars .bi { width: .85rem; height: .85rem; }
+.dm-stars .bi.is-off { color: #E2D6C7; }
+.dm-reviews { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.dm-review { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); }
+.dm-review.is-pending { border-color: rgba(215, 169, 74, .7); background: rgba(215, 169, 74, .08); }
+.dm-review-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .75rem; color: var(--text-muted); }
+.dm-review p { margin: 6px 0 0; font-size: .8125rem; line-height: 1.5; color: var(--text); }
+.dm-review-act { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+.dm-tag { font-size: .6875rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--bg-secondary); color: var(--text-muted); }
+.dm-tag.is-ok { background: rgba(75, 122, 59, .12); color: #4B7A3B; }
+html[data-theme="dark"] .dm-side { background: var(--surface); }
+html[data-theme="dark"] .dm-issue { color: #FFB3BE; background: rgba(240, 138, 155, .14); border-color: rgba(240, 138, 155, .4); }
+
+/* ── GiyaToast: a short note at the bottom, with Undo ─────── */
+.giya-toast {
+  position: fixed; left: 50%; bottom: 24px; z-index: 3000;
+  display: flex; align-items: center; gap: 14px;
+  max-width: min(520px, calc(100vw - 32px));
+  padding: 12px 14px 12px 18px; border-radius: 12px;
+  background: #241C18; color: #F5E9D9; box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+  font-size: .875rem; font-weight: 600;
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+  transition: transform .2s ease, opacity .2s ease;
+}
+.giya-toast.is-shown { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.giya-toast.is-error { background: #8E1F2E; }
+.giya-toast-btn {
+  border: 0; cursor: pointer; padding: 6px 12px; border-radius: 8px;
+  background: rgba(255, 255, 255, .14); color: #F2D58E; font-weight: 700; font-size: .8125rem;
+}
+.giya-toast-btn:hover { background: rgba(255, 255, 255, .24); }
+@media (prefers-reduced-motion: reduce) { .dm-side { animation: none; } .giya-toast { transition: none; } }
+/* The town just filled in from the nearest church: a short gold glow. */
+.giya-input.is-guessed { box-shadow: 0 0 0 3px rgba(215, 169, 74, .55); transition: box-shadow .3s; }

@@ -198,6 +198,8 @@ Route::middleware(['auth', 'admin', 'admin.log'])->prefix('admin')->name('admin.
     Route::post('/destinations/import',          [AdminChurchController::class, 'import'])->name('destinations.import');
     Route::patch('/destinations/{church}/toggle',[AdminChurchController::class, 'toggle'])->name('destinations.toggle');
     Route::post('/destinations/{church}/photo', [AdminChurchController::class, 'updatePhoto'])->name('destinations.photo');
+    Route::get('/destinations/{church}/panel',   [AdminChurchController::class, 'panel'])->name('destinations.panel');
+    Route::patch('/destinations/{church}/move',  [AdminChurchController::class, 'move'])->name('destinations.move');
     Route::delete('/destinations/{church}',      [AdminChurchController::class, 'destroy'])->name('destinations.destroy');
 
     Route::get('/schedules',              [AdminScheduleController::class, 'index'])->name('schedules');
