@@ -379,6 +379,17 @@ class Church extends Model
      * the hosted app (see App\Support\Uploads). Any other remote URL - an
      * imported photo_url from some website - is still ignored.
      */
+    /**
+     * Where this church is, as a schedule's Location: its location from the
+     * map, else its address, else its town. Fits the 150-character column.
+     */
+    public function placeLabel(): ?string
+    {
+        $place = trim((string) ($this->location ?: $this->address ?: $this->municipality));
+
+        return $place === '' ? null : mb_substr($place, 0, 150);
+    }
+
     public function imagePath(): string
     {
         $url = $this->image_url;

@@ -194,4 +194,44 @@ class ScheduleTimetableTest extends TestCase
         $this->assertSame('Osmena Blvd, Cebu City', $blank->fresh()->location);
         $this->assertSame('Pilgrim Center', $typed->fresh()->location);
     }
+
+    public function test_every_new_mass_gets_its_church_address(): void
+    {
+        $this->basilica->update(['location' => 'Osmena Blvd, Cebu City']);
+        $mass = \App\Models\Schedule::create(['church_id' => $this->basilica->id, 'event_name' => 'Sunday Mass',
+            'event_type' => 'Mass', 'start_time' => '09:00', 'is_recurring' => true, 'recurrence_rule' => ['type' => 'weekly', 'days' => [0]],
+            'recurrence' => 'Weekly', 'status' => 'Published', 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->assertSame('Osmena Blvd, Cebu City', $mass->fresh()->location);
+    }
+
+    public function test_copying_gives_the_new_church_its_own_address(): void
+    {
+        $this->basilica->update(['location' => 'Osmena Blvd, Cebu City']);
+        $this->cathedral->update(['location' => 'P. Burgos St, Cebu City']);
+        $this->mass($this->basilica, '06:00', ['type' => 'weekly', 'days' => [0]]);
+        $chapel = $this->mass($this->basilica, '07:00', ['type' => 'weekly', 'days' => [0]]);
+        $chapel->update(['location' => 'Chapel']);
+
+        $this->actingAs($this->admin)->post(route('admin.schedules.copy'), [
+            'from_church_id' => $this->basilica->id, 'to_church_id' => $this->cathedral->id,
+        ]);
+
+        $places = \App\Models\Schedule::where('church_id', $this->cathedral->id)->pluck('location')->sort()->values()->all();
+        $this->assertSame(['Chapel', 'P. Burgos St, Cebu City'], $places);
+    }
+
+    public function test_the_second_pass_fills_dash_and_space_locations(): void
+    {
+        $this->basilica->update(['location' => 'Osmena Blvd, Cebu City']);
+        $a = $this->mass($this->basilica, '06:00', ['type' => 'weekly', 'days' => [0]]);
+        $b = $this->mass($this->basilica, '08:00', ['type' => 'weekly', 'days' => [0]]);
+        \Illuminate\Support\Facades\DB::table('schedules')->where('id', $a->id)->update(['location' => '-']);
+        \Illuminate\Support\Facades\DB::table('schedules')->where('id', $b->id)->update(['location' => '  ']);
+
+        (require database_path('migrations/2026_11_18_000002_fill_remaining_mass_locations.php'))->up();
+
+        $this->assertSame('Osmena Blvd, Cebu City', $a->fresh()->location);
+        $this->assertSame('Osmena Blvd, Cebu City', $b->fresh()->location);
+    }
 }

@@ -113,10 +113,16 @@ class ScheduleController extends Controller
             'to_church_id'   => ['required', 'exists:churches,id'],
         ], ['from_church_id.different' => 'Pick a different church to copy from.']);
 
+        $fromPlace = Church::find($data['from_church_id'])?->placeLabel();
         $copied = 0;
         foreach (Schedule::where('church_id', $data['from_church_id'])->get() as $s) {
             $new = $s->replicate();
             $new->church_id  = (int) $data['to_church_id'];
+            // The first church's address is not this one's: it is filled in
+            // again for the new church. A typed place ("Chapel") is kept.
+            if ($new->location === $fromPlace) {
+                $new->location = null;
+            }
             $new->status     = 'Draft';
             $new->created_at = now();
             $new->updated_at = now();
@@ -157,12 +163,7 @@ class ScheduleController extends Controller
     {
         $data = $this->validated($request);
 
-        // Left blank: the church's own address from the map.
-        if (blank($data['location'] ?? null) && ! empty($data['church_id'])) {
-            $church = Church::find($data['church_id']);
-            $data['location'] = $church ? (\Illuminate\Support\Str::limit((string) ($church->location ?: $church->address ?: $church->municipality), 147) ?: null) : null;
-        }
-
+        // A Location left blank becomes the church's address (Schedule::booted).
         if (! empty($data['schedule_id'])) {
             $schedule = Schedule::findOrFail($data['schedule_id']);
             unset($data['schedule_id']);

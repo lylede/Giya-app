@@ -15,6 +15,21 @@ class Schedule extends Model
 
     public $timestamps = false;
 
+    /**
+     * A schedule at a church always has a Location: left empty, it takes the
+     * church's address. This covers every way schedules are made - the
+     * admin form, Copy from another church, the Mass-times importers and
+     * the seeders - so no Mass is ever listed with a blank place.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Schedule $s) {
+            if ($s->church_id && blank($s->location)) {
+                $s->location = Church::find($s->church_id)?->placeLabel();
+            }
+        });
+    }
+
     /** Languages a Mass can be said in, as shown to pilgrims. */
     public const LANGUAGES = ['Cebuano', 'English', 'Filipino'];
 
