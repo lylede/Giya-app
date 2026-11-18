@@ -133,4 +133,13 @@ class ScheduleTimetableTest extends TestCase
         $this->actingAs($devotee)->post(route('admin.schedules.days', $s), ['day' => 1])->assertForbidden();
         $this->assertSame([0], $s->fresh()->weekdays());
     }
+
+    public function test_the_schedules_page_opens_on_all_schedules(): void
+    {
+        $this->actingAs($this->admin)->get(route('admin.schedules'))->assertOk()
+            ->assertViewHas('view', 'all');
+        // A link that names a church still opens its timetable.
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['church_id' => $this->basilica->id]))
+            ->assertViewHas('view', 'church');
+    }
 }

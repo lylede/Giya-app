@@ -5,15 +5,16 @@
 
 @section('content')
 
-{{-- Two ways in: By church (a timetable for editing one church's week)
-     and All schedules (the long list, for searching and bulk changes). --}}
+{{-- Two ways in: All schedules (the long list, for searching and bulk
+     changes; where the page opens) and By church (a timetable for editing
+     one church's week). --}}
 <nav class="sm-tabs" aria-label="Schedule views">
+    <a href="{{ route('admin.schedules', ['view' => 'all']) }}" @class(['sm-tab', 'is-on' => $view === 'all'])>
+        <i class="bi bi-list"></i> All schedules
+    </a>
     <a href="{{ route('admin.schedules', array_filter(['view' => 'church', 'church_id' => request('church_id')])) }}"
        @class(['sm-tab', 'is-on' => $view === 'church'])>
         <i class="bi bi-calendar3"></i> By church
-    </a>
-    <a href="{{ route('admin.schedules', ['view' => 'all']) }}" @class(['sm-tab', 'is-on' => $view === 'all'])>
-        <i class="bi bi-list"></i> All schedules
     </a>
 </nav>
 

@@ -30,12 +30,11 @@ class ScheduleController extends Controller
         /* Two ways in. "By church" is the one for editing: pick a church and
            see its week as a timetable, one row per Mass with a tick for each
            day. "All schedules" is the long list, for searching across every
-           church and for changing many rows at once. Any list filter in the
-           address means the list. */
-        $listFilters = ['search', 'event_type', 'day', 'status', 'page', 'per_page'];
+           church and for changing many rows at once. The page opens on the
+           list; a link that names a church (church_id) opens its timetable. */
         $view = $request->input('view');
         if (! in_array($view, ['church', 'all'], true)) {
-            $view = collect($listFilters)->contains(fn ($k) => $request->filled($k)) ? 'all' : 'church';
+            $view = $request->filled('church_id') && ! $request->filled('search') ? 'church' : 'all';
         }
 
         $churches = Church::orderBy('name')->get();

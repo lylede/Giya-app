@@ -71,7 +71,7 @@ class AdminChartsAndListTest extends TestCase
 
     public function test_admin_pages_load_the_palette_dropdown(): void
     {
-        $this->actingAs($this->admin)->get(route('admin.schedules'))->assertOk()
+        $this->actingAs($this->admin)->get(route('admin.schedules', ['view' => 'church']))->assertOk()
             ->assertSee('giya-combo.js', false)->assertSee('list="ttChurches"', false);
     }
 
