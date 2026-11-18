@@ -115,25 +115,43 @@ class RoutePlanner
         $budget = $hours ? (int) round($hours * 60) : PHP_INT_MAX;
         $max = $visita ? 7 : 8;
 
-        $route = [$first + ['leg' => null]];
-        $used = $visit;
+        /* One way: the route keeps one direction and never doubles back.
+           The churches of a region lie along a line (a coast, a valley);
+           each next stop must be further along that line than the last, so
+           seven churches read as a line down the coast instead of north,
+           then back south past the start. Both directions are tried from
+           the first church, and the one that fits more stops wins (the
+           shorter drive on a tie). */
+        $along = self::heading($first, $pool);
 
-        while (count($route) < $max) {
-            $here = end($route);
-            $next = $pool->reject(fn ($c) => in_array($c['id'], array_column($route, 'id'), true))
-                ->map(fn ($c) => $c + ['leg' => self::leg([$here['lat'], $here['lng']], [$c['lat'], $c['lng']], $metro)])
-                ->filter(fn ($c) => $used + $c['leg']['minutes'] + $visit <= $budget)
-                // Close, and worth the stop: a well-known or documented church wins a small detour.
-                ->sortBy(fn ($c) => $c['leg']['minutes'] - $c['bonus'] / 5)
-                ->first();
+        $build = function (int $sign) use ($first, $pool, $along, $metro, $visit, $budget, $max) {
+            $route = [$first + ['leg' => null]];
+            $used = $visit;
 
-            if (! $next) {
-                break;
+            while (count($route) < $max) {
+                $here = end($route);
+                $next = $pool->reject(fn ($c) => in_array($c['id'], array_column($route, 'id'), true))
+                    ->filter(fn ($c) => $sign * $along($c) >= $sign * $along($here) - self::BACKTRACK_KM)
+                    ->map(fn ($c) => $c + ['leg' => self::leg([$here['lat'], $here['lng']], [$c['lat'], $c['lng']], $metro)])
+                    ->filter(fn ($c) => $used + $c['leg']['minutes'] + $visit <= $budget)
+                    // Close, and worth the stop: a well-known or documented church wins a small detour.
+                    ->sortBy(fn ($c) => $c['leg']['minutes'] - $c['bonus'] / 5)
+                    ->first();
+
+                if (! $next) {
+                    break;
+                }
+
+                $used += $next['leg']['minutes'] + $visit;
+                $route[] = $next;
             }
 
-            $used += $next['leg']['minutes'] + $visit;
-            $route[] = $next;
-        }
+            return [$route, $used];
+        };
+
+        [$a, $usedA] = $build(1);
+        [$b, $usedB] = $build(-1);
+        $route = count($a) > count($b) || (count($a) === count($b) && $usedA <= $usedB) ? $a : $b;
 
         if (count($route) < 2) {
             return null;
@@ -167,6 +185,42 @@ class RoutePlanner
             'from_city' => $fromCity,
             'ids'       => array_column($stops, 'id'),
         ];
+    }
+
+    /** How far a next stop may sit behind the last one along the heading (km): two churches across a plaza. */
+    public const BACKTRACK_KM = 0.4;
+
+    /**
+     * The line a region's churches lie along, as a function that says how
+     * far along it (km) a church is from the first one. It is the main axis
+     * of the churches' positions (a coast, a valley), so it also works when
+     * the trip starts in the middle of them; the sign says nothing about
+     * direction - the planner tries both.
+     *
+     * @return \Closure(array): float
+     */
+    public static function heading(array $first, Collection $pool): \Closure
+    {
+        $kx = 111.32 * cos(deg2rad($first['lat']));
+        $ky = 110.57;
+        $flat = fn (array $c) => [($c['lng'] - $first['lng']) * $kx, ($c['lat'] - $first['lat']) * $ky];
+
+        $pts = $pool->map($flat);
+        $mx = $pts->avg(fn ($p) => $p[0]) ?? 0.0;
+        $my = $pts->avg(fn ($p) => $p[1]) ?? 0.0;
+        $sxx = $pts->sum(fn ($p) => ($p[0] - $mx) ** 2);
+        $syy = $pts->sum(fn ($p) => ($p[1] - $my) ** 2);
+        $sxy = $pts->sum(fn ($p) => ($p[0] - $mx) * ($p[1] - $my));
+
+        // Nothing to go by: north to south, as most Cebu trips run.
+        $angle = ($sxx + $syy) < 1e-9 ? -M_PI / 2 : 0.5 * atan2(2 * $sxy, $sxx - $syy);
+        [$dx, $dy] = [cos($angle), sin($angle)];
+
+        return function (array $c) use ($flat, $dx, $dy) {
+            [$x, $y] = $flat($c);
+
+            return $x * $dx + $y * $dy;
+        };
     }
 
     /** The plan as chat text: the part of the answer that must be exact. */
