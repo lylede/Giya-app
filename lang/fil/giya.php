@@ -201,6 +201,8 @@ return [
         'pick_first'     => 'Pumili muna ng kahit isang destinasyon.',
         'located'        => 'Ipinapakita ang iyong lokasyon. Nauuna sa listahan ang pinakamalapit na destinasyon.',
         'selected_none'  => '0 simbahang napili',
+        'selected_short' => ':count napili',
+        'tray_show'      => 'Ipakita ang :count na napiling simbahan',
         'selected_aria'  => 'Mga napiling simbahan',
         'signin_title'   => 'Mag-sign in para magpatuloy',
         'signin_body'    => 'Ang :what ay para sa mga miyembro. Libre ang paggawa ng account, at maaari ka pa ring tumingin sa mapa kahit wala nito.',

@@ -51,6 +51,8 @@
         // Plural: "1 churches selected" is the kind of thing a panel notices.
         'selected'       => trans_choice('giya.map.selected', 2, ['count' => ':count']),
         'selected_one'   => trans_choice('giya.map.selected', 1, ['count' => ':count']),
+        'selected_short' => __('giya.map.selected_short', ['count' => ':count']),
+        'tray_show'      => __('giya.map.tray_show', ['count' => ':count']),
         'following'      => __('giya.map.following'),
         'add_another'    => __('giya.map.add_another'),
         'no_match'       => __('giya.map.no_match'),
@@ -246,7 +248,13 @@
                 </div>
             </div>
 
-            <div class="mx-list-head" id="listHeading">{{ __('giya.church.results', ['count' => count($markers)]) }}</div>
+            <div class="mx-list-head" id="listHeading">
+                <span id="listCount">{{ __('giya.church.results', ['count' => count($markers)]) }}</span>
+                {{-- The tray, tucked away to the right: tap or swipe left to bring it back. --}}
+                <button type="button" id="trayTab" class="mx-tray-tab" hidden aria-controls="routeBox">
+                    <i class="bi bi-person-walking"></i><b id="trayTabN">0</b><i class="bi bi-chevron-left"></i>
+                </button>
+            </div>
             {{-- The list is drawn by the script once the markers exist, so
                  until then it holds rows the size of the real ones. They
                  are replaced wholesale by the first render, which is why
@@ -267,6 +275,7 @@
             <section id="routeBox" class="mx-tray" hidden aria-label="{{ __('giya.map.selected_aria') }}">
                 <div class="mx-tray-head">
                     <span id="traySummary">{{ __('giya.map.selected_none') }}</span>
+                    <span class="mx-tray-short"><i class="bi bi-giya-spires" aria-hidden="true"></i><b id="trayShort"></b></span>
                     <span id="routeDistance" class="mx-tray-distance"></span>
                 </div>
 
@@ -283,7 +292,9 @@
                         {{-- Like checking out a cart: the trip's name is asked next. --}}
                         <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
                     </button>
-                    <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm">{{ __('giya.common.clear') }}</button>
+                    <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm" aria-label="{{ __('giya.common.clear') }}">
+                        <i class="bi bi-x-lg mx-clear-x" aria-hidden="true"></i><span class="mx-clear-text">{{ __('giya.common.clear') }}</span>
+                    </button>
                 </div>
             </section>
         </aside>
@@ -611,6 +622,7 @@ onLocated: function (me) {
             // even though nothing is selected any more.
             if (!stops.length) {
                 routeBox.hidden = true;
+                if (window.GiyaTrayTuck) window.GiyaTrayTuck.count(0);
                 rememberRoute([]);
                 renderList();
                 refitSheet();
@@ -629,6 +641,11 @@ onLocated: function (me) {
                 trans(stops.length === 1 ? 'selected_one' : 'selected', { count: stops.length });
             document.getElementById('routeDistance').textContent =
                 stops.length < 2 ? '' : totalKm.toFixed(1) + ' km';
+            // Phones: a church and the count ("4"), so the distance and Start fit on one line.
+            document.getElementById('trayShort').textContent = stops.length;
+            document.querySelector('#routeBox .mx-tray-head').setAttribute('aria-label',
+                trans('selected_short', { count: stops.length }) + (stops.length > 1 ? ', ' + totalKm.toFixed(1) + ' km' : ''));
+            if (window.GiyaTrayTuck) window.GiyaTrayTuck.count(stops.length);
 
             meta = meta || {};
 
@@ -806,7 +823,7 @@ onLocated: function (me) {
            known yet - a count with no explanation reads as a failed filter. */
         const unlocated = category === 'Near' && !hasLocation;
 
-        document.getElementById('listHeading').textContent = unlocated
+        document.getElementById('listCount').textContent = unlocated
             ? trans('near_unlocated', { count: list.length })
             : trans('results', { count: list.length });
 
@@ -1402,6 +1419,105 @@ onLocated: function (me) {
         window.addEventListener('pointerup', up);
         window.addEventListener('pointercancel', up);
     })();
+
+    /* ---- the tray tucks away to the right (phones) ----
+       Swipe the tray right and it slides off, its row closes up, and a
+       small tab ("4 <") waits at the end of the results line. Tap the tab
+       or swipe it left to bring the tray back. Ticking or unticking a
+       church brings it back too, so the new count and distance are seen.
+       Right, not left: a swipe in from the left edge is Safari's Back. */
+    window.GiyaTrayTuck = (function () {
+        const tray = document.getElementById('routeBox');
+        const tab = document.getElementById('trayTab');
+        const KEY = 'giya.trayTucked';
+        let tucked = false, n = 0;
+        try { tucked = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
+
+        function paint() {
+            const on = phone.matches && tucked && n > 0;
+            tray.classList.toggle('is-tucked', on);
+            tab.hidden = !on;
+            document.getElementById('trayTabN').textContent = n;
+            tab.setAttribute('aria-label', trans('tray_show', { count: n }));
+            refitSheet();
+        }
+        function set(v) {
+            tucked = v;
+            try { sessionStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {}
+            if (v) {
+                // Slide out first, then close the row up.
+                tray.classList.add('is-leaving');
+                setTimeout(function () { tray.classList.remove('is-leaving'); tray.style.transform = ''; paint(); }, reduce() ? 0 : 200);
+            } else {
+                paint();
+                tray.classList.add('is-arriving');
+                requestAnimationFrame(function () { requestAnimationFrame(function () { tray.classList.remove('is-arriving'); }); });
+            }
+        }
+        function reduce() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+        /* Follow the finger on the tray itself. Dragging the map or the list
+           is untouched: only a sideways drag that starts on the tray counts. */
+        let x0 = null, y0 = 0, t0 = 0, dx = 0, sideways = null;
+        tray.addEventListener('pointerdown', function (e) {
+            if (!phone.matches || e.button > 0) return;
+            x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); dx = 0; sideways = null;
+        });
+        window.addEventListener('pointermove', function (e) {
+            if (x0 === null) return;
+            const mx = e.clientX - x0, my = e.clientY - y0;
+            if (sideways === null && (Math.abs(mx) > 8 || Math.abs(my) > 8)) sideways = Math.abs(mx) > Math.abs(my);
+            if (!sideways) return;
+            dx = Math.max(0, mx);
+            tray.style.transition = 'none';
+            tray.style.transform = 'translateX(' + dx + 'px)';
+            tray.style.opacity = String(Math.max(.35, 1 - dx / tray.offsetWidth));
+        });
+        function release() {
+            if (x0 === null) return;
+            const fast = dx / Math.max(1, Date.now() - t0) > 0.5;
+            const far = dx > tray.offsetWidth * 0.35;
+            x0 = null;
+            tray.style.transition = ''; tray.style.opacity = '';
+            if (sideways && (far || (fast && dx > 30))) {
+                tray.dataset.swiped = '1';      // the click that follows is not a tap
+                setTimeout(function () { delete tray.dataset.swiped; }, 350);
+                set(true);
+            } else {
+                tray.style.transform = '';
+            }
+        }
+        window.addEventListener('pointerup', release);
+        window.addEventListener('pointercancel', release);
+        // A swipe that ended over Start or the line must not also press them.
+        tray.addEventListener('click', function (e) {
+            if (tray.dataset.swiped) { e.preventDefault(); e.stopPropagation(); }
+        }, true);
+
+        // The tab: tap it, or swipe it left.
+        let tx = null;
+        tab.addEventListener('pointerdown', function (e) { tx = e.clientX; e.stopPropagation(); });
+        tab.addEventListener('pointerup', function (e) {
+            if (tx !== null && e.clientX - tx < -24) set(false);
+            tx = null;
+        });
+        tab.addEventListener('click', function () { set(false); });
+
+        (phone.addEventListener ? phone.addEventListener('change', paint) : phone.addListener(paint));
+
+        return {
+            // A route restored from the address bar was drawn before this ran.
+            init: function () { n = map.selected().length; paint(); },
+            count: function (next) {
+                const changed = next !== n;
+                n = next;
+                if (changed && tucked && next > 0 && sheetReady) { set(false); return; }
+                paint();
+            },
+        };
+    })();
+
+    window.GiyaTrayTuck.init();
 
     /* On a phone the tray is one line - "3 churches selected \u00b7 12.4 km" and
        Start. Tapping that line shows the stops, to reorder or drop one. */

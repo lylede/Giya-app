@@ -211,6 +211,8 @@ return [
         'pick_first'     => 'Pick at least one destination first.',
         'located'        => 'Showing your location. The nearest destinations are listed first.',
         'selected_none'  => '0 churches selected',
+        'selected_short' => ':count selected',
+        'tray_show'      => 'Show the :count selected churches',
         'selected_aria'  => 'Selected churches',
         'signin_title'   => 'Sign in to continue',
         'signin_body'    => ':what is for members. Creating an account is free, and you can keep browsing the map without one.',

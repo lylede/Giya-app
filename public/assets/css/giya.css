@@ -8266,3 +8266,53 @@ html[data-theme="dark"] .lchart-dot { border-color: #2E241E; }
   background: rgba(215, 169, 74, .16); color: var(--text); font-size: .8125rem; font-weight: 600;
 }
 html[data-theme="dark"] .pl-change { background: rgba(215, 169, 74, .14); }
+
+/* ── Map page tray, phones: one line, and it tucks away to the right ──
+   "4 selected · 348.9 km ▾  [Start Pilgrimage] [×]". It used to stack the
+   count, the words and the distance in a narrow column, which with larger
+   text made a box a third of the sheet tall. Swipe it right and it slides
+   off; a "🚶 4 <" tab at the end of the results line brings it back. */
+.mx-tray-short, .mx-clear-x { display: none; }
+.mx-tray-tab { display: none; }
+@media (max-width: 768px) {
+  body[data-page="map"] .map-sidebar .mx-tray {
+    touch-action: pan-y;                 /* sideways drags are the tray's */
+    transition: transform .2s cubic-bezier(.2, .8, .2, 1), opacity .2s ease;
+    overflow: hidden;
+  }
+  body[data-page="map"] .mx-tray .mx-tray-head {
+    flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; gap: 6px; min-width: 0;
+    white-space: nowrap; overflow: hidden;
+  }
+  body[data-page="map"] .mx-tray #traySummary { display: none; }
+  body[data-page="map"] .mx-tray .mx-tray-short { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; font-size: .875rem; font-weight: 800; color: var(--text); }
+  body[data-page="map"] .mx-tray .mx-tray-short .bi { width: 1rem; height: 1rem; color: var(--primary); }
+  body[data-page="map"] .mx-tray .mx-tray-distance:not(:empty)::before { content: "· "; color: var(--text-muted); font-weight: 600; }
+  body[data-page="map"] .mx-tray .mx-tray-distance { font-size: .8125rem; flex-shrink: 0; }
+  body[data-page="map"] .mx-tray .mx-tray-head::after { flex-shrink: 0; }
+  body[data-page="map"] .mx-tray .mx-clear-text { display: none; }
+  body[data-page="map"] .mx-tray .mx-clear-x { display: inline-block; }
+  body[data-page="map"] .mx-tray #btnClearRoute { width: 38px; height: 38px; padding: 0; justify-content: center; flex-shrink: 0; }
+
+  body[data-page="map"] .mx-tray.is-leaving { transform: translateX(110%) !important; opacity: 0; }
+  body[data-page="map"] .mx-tray.is-tucked { display: none !important; }
+  body[data-page="map"] .mx-tray.is-arriving { transform: translateX(110%); opacity: 0; transition: none; }
+
+  body[data-page="map"] .mx-list-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  body[data-page="map"] .mx-tray-tab:not([hidden]) {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    height: 34px; padding: 0 8px 0 12px; margin-right: -12px;
+    border: 1px solid var(--border); border-right: 0; border-radius: 17px 0 0 17px;
+    background: var(--primary); color: #fff; font: 700 .8125rem var(--font-body);
+    box-shadow: -2px 2px 8px rgba(36, 28, 24, .18); cursor: pointer; touch-action: none;
+    animation: mx-tab-in .22s cubic-bezier(.2, .8, .2, 1);
+  }
+  body[data-page="map"] .mx-tray-tab .bi { width: .95rem; height: .95rem; }
+  body[data-page="map"] .mx-tray-tab .bi-chevron-left { width: .7rem; height: .7rem; opacity: .8; }
+}
+@keyframes mx-tab-in { from { transform: translateX(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  body[data-page="map"] .map-sidebar .mx-tray { transition: none; }
+  .mx-tray-tab { animation: none !important; }
+}
+html[data-theme="dark"] body[data-page="map"] .mx-tray .mx-tray-short .bi { color: var(--gold); }

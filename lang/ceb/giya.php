@@ -201,6 +201,8 @@ return [
         'pick_first'     => 'Pagpili una og bisan usa ka destinasyon.',
         'located'        => 'Gipakita ang imong nahimutangan. Ang pinakaduol nga destinasyon ang una sa lista.',
         'selected_none'  => '0 ka simbahan ang napili',
+        'selected_short' => ':count napili',
+        'tray_show'      => 'Ipakita ang :count ka napiling simbahan',
         'selected_aria'  => 'Mga napiling simbahan',
         'signin_title'   => 'Sulod aron magpadayon',
         'signin_body'    => 'Ang :what alang sa mga miyembro. Libre ang paghimo ug account, ug makapadayon ka sa pagtan-aw sa mapa bisan wala niini.',
