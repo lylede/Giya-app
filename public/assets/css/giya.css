@@ -721,7 +721,7 @@ html[data-theme="dark"] .google-consent a { color: var(--gold-light, #E9C77E); }
   flex-direction: column;
   position: sticky; top: 0; height: 100vh;
   overflow-y: auto; overflow-x: hidden;
-  transition: width .22s cubic-bezier(.2, .8, .2, 1);
+  transition: width .2s cubic-bezier(.2, .8, .2, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -8187,13 +8187,27 @@ html[data-theme="dark"] .hbar-row:hover .hbar-fill { background: #C0705A; }
 @media (max-width: 520px) { .hbar-row { grid-template-columns: minmax(90px, 40%) 1fr 2em; gap: 8px; } }
 @media (prefers-reduced-motion: reduce) { .hbar-fill { transition: none; } }
 
-/* ── Admin map: square, sized to fit the screen ─────────────── */
-.dm-mapcard .dm-map-shell:not(.is-fullscreen) {
-  width: min(100%, max(420px, calc(100vh - 150px)));
-  width: min(100%, max(420px, calc(100dvh - 150px)));
-  aspect-ratio: 1 / 1; margin-inline: auto;
+/* ── Admin map: as big as the screen allows, never covered ──────
+   Full width, and tall enough to fill most of the screen under the chips.
+   On a computer the church panel docks beside the map and the map narrows
+   to make room, so the map is always in view. On a narrow screen there is
+   no room beside it, so the panel lies over the map as before. */
+.dm-mapcard .dm-map-shell:not(.is-fullscreen) .dm-map-canvas {
+  height: clamp(420px, calc(100vh - 190px), 900px);
+  height: clamp(420px, calc(100dvh - 190px), 900px);
+  transition: width .2s cubic-bezier(.2, .8, .2, 1);
 }
-.dm-mapcard .dm-map-shell:not(.is-fullscreen) .dm-map-canvas { height: 100%; }
+@media (min-width: 900px) {
+  .dm-map-shell.has-side .dm-map-canvas { width: calc(100% - 392px); }
+  .dm-map-shell.has-side .dm-side {
+    width: 380px; border: 1px solid var(--border); border-radius: var(--radius-md);
+    box-shadow: none; overflow: hidden;
+  }
+  /* The map tools and hint follow the map's edge, not the panel's. */
+  .dm-map-shell.has-side .map-tools { right: 404px; }
+  .dm-map-shell.has-side .dm-map-hint-bar { left: calc((100% - 392px) / 2); }
+}
+@media (prefers-reduced-motion: reduce) { .dm-mapcard .dm-map-canvas { transition: none; } }
 
 /* A grouped bubble on the admin map: how many inside need attention. */
 .giya-cluster { position: relative; }
