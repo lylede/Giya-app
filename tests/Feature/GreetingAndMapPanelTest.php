@@ -60,13 +60,15 @@ class GreetingAndMapPanelTest extends TestCase
         $this->assertMatchesRegularExpression('/say\s+"Maayong gabii", never a greeting for another time of day/', $prompt);
     }
 
-    public function test_the_map_is_hidden_under_an_open_panel_on_phones(): void
+    public function test_the_map_stays_in_view_dimmed_under_an_open_panel_on_phones(): void
     {
         $css = file_get_contents(public_path('assets/css/giya.css'));
         $js  = file_get_contents(public_path('assets/js/giya-notifications.js'));
 
-        $this->assertStringContainsString('body[data-page="map"].has-nav-overlay .map-grid,', $css);
-        $this->assertStringContainsString('body[data-page="map"]:has(.nav-toggle-input:checked) .map-grid { visibility: hidden; }', $css);
+        // One flat layer, kept below the top bar by Safari too.
+        $this->assertStringContainsString("isolation: isolate;\n    -webkit-transform: translateZ(0); transform: translateZ(0);", $css);
+        $this->assertStringContainsString('body[data-page="map"].has-nav-overlay .map-grid::after,', $css);
+        $this->assertStringNotContainsString('.map-grid { visibility: hidden; }', $css);
         $this->assertStringContainsString("document.body.classList.toggle('has-nav-overlay', !!open);", $js);
         $this->assertStringContainsString('body.has-nav-overlay .giya-fab,', $css);
     }

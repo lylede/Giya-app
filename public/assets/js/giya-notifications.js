@@ -146,10 +146,8 @@
     window.GiyaNotifications = { refresh: function () { return load(true); } };
 
     /* While the notifications panel or the phone menu is open, <body> says
-       so (has-nav-overlay). On the phone map page the CSS then hides the map
-       under it: iPhone Safari draws the map tiles and the sliding filter row
-       on top of the top bar's panels whatever their z-index, which cut the
-       list off below the first item. One watcher covers every way they open
+       so (has-nav-overlay): the phone map page dims the map under it, and
+       the robot button steps aside. One watcher covers every way they open
        and close (bell, ☰, a tap outside, Escape). */
     (function () {
         var menu = document.getElementById('navMobileMenu');

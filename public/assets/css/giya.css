@@ -6743,13 +6743,26 @@ html[data-theme="dark"] .chat-page .guide-bubble::after { border-top-color: var(
   }
   body[data-page="map"] .map-sidebar.is-dragging { transition: none; }
 
-  /* The notifications panel or the ☰ menu is open: hide the map under it.
-     iPhone Safari paints the map tiles, the sliding filter row and the sheet
-     above the top bar's panels whatever their z-index (they are composited
-     layers), so the notifications list was cut off after one item. Hidden,
-     not removed, so the map is exactly where it was when the panel closes. */
-  body[data-page="map"].has-nav-overlay .map-grid,
-  body[data-page="map"]:has(.nav-toggle-input:checked) .map-grid { visibility: hidden; }
+  /* The notifications panel or the ☰ menu over the map.
+     iPhone Safari used to paint the map tiles, the sliding filter row and
+     the sheet above the top bar's panels whatever their z-index: each is a
+     composited layer of its own, and Safari sorted them in 3D on their own.
+     So the map was hidden while a panel was open, and pilgrims saw a blank
+     page behind the bell. Now the whole map is ONE flat layer (its own
+     stacking context and transform), which Safari keeps in z-index order
+     below the top bar (5 under 1000), so it can stay in view, dimmed a
+     little so the panel reads first. */
+  body[data-page="map"] .map-grid {
+    isolation: isolate;
+    -webkit-transform: translateZ(0); transform: translateZ(0);
+  }
+  body[data-page="map"] .map-grid::after {
+    content: ""; position: absolute; inset: 0; z-index: 3000;
+    background: rgba(36, 28, 24, .22); opacity: 0; pointer-events: none;
+    transition: opacity .18s ease;
+  }
+  body[data-page="map"].has-nav-overlay .map-grid::after,
+  body[data-page="map"]:has(.nav-toggle-input:checked) .map-grid::after { opacity: 1; }
   body[data-page="map"] .mx-grab {
     display: block; flex: 0 0 auto; width: 100%; padding: 9px 0 5px;
     background: none; border: 0; cursor: grab; touch-action: none;
