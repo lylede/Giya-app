@@ -191,10 +191,10 @@
     .vi-grip:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
     #churchList.is-sorting { -webkit-user-select: none; user-select: none; }
     #churchList.is-sorting .vi-grip { cursor: grabbing; }
-    .vi-row.is-dragging { position: relative; z-index: 2; box-shadow: 0 10px 24px rgba(60, 25, 15, .18);
-                          border-color: var(--primary); transform: scale(1.01); }
+    .vi-row.is-dragging { position: relative; z-index: 2; box-shadow: 0 14px 30px rgba(60, 25, 15, .22);
+                          border-color: var(--primary); cursor: grabbing; }
     html[data-theme="dark"] .vi-row.is-dragging { box-shadow: 0 10px 24px rgba(0, 0, 0, .5); }
-    @media (prefers-reduced-motion: reduce) { .vi-row.is-dragging { transform: none; } }
+
     /* Add a Church: the church icon, and type sized to be read on a phone. */
     .vi-pick-list { display: flex; flex-direction: column; gap: 8px; max-height: min(360px, 55vh); overflow-y: auto; padding-right: 2px; }
     .vi-pick { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 12px;
@@ -408,28 +408,55 @@ const GiyaVisita = (function () {
     const listEl = document.getElementById('churchList');
     let drag = null;
 
+    /* The whole box lifts and follows the finger; the boxes it passes slide
+       up or down to make room, and on letting go it glides into its new
+       place. Nothing is moved in the page until then, so the motion is
+       smooth rather than jumping from slot to slot. */
+    const SLIDE = 'transform .2s cubic-bezier(.2, .8, .2, 1)';
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     listEl.addEventListener('pointerdown', function (e) {
         const grip = e.target.closest('.vi-grip');
         if (!grip || (e.pointerType === 'mouse' && e.button !== 0)) return;
         e.preventDefault();
         const row = grip.closest('.vi-row');
-        drag = { row: row, grip: grip, pointer: e.pointerId };
+        const rows = Array.from(listEl.querySelectorAll('.vi-row'));
+        const rects = rows.map(r => r.getBoundingClientRect());
+        const from = rows.indexOf(row);
+        const gap = rows.length > 1 ? Math.max(0, rects[1].top - rects[0].bottom) : 10;
+        drag = { row: row, grip: grip, pointer: e.pointerId, rows: rows, rects: rects, from: from, to: from,
+                 gap: gap, y0: e.clientY, s0: window.scrollY, dy: 0 };
         grip.setPointerCapture(e.pointerId);
+        rows.forEach(r => { r.style.transition = (r === row || still) ? 'none' : SLIDE; });
         row.classList.add('is-dragging');
         listEl.classList.add('is-sorting');
     });
 
+    function moveTo(e) {
+        const d = drag;
+        d.dy = e.clientY - d.y0 + (window.scrollY - d.s0);
+        d.row.style.transform = 'translateY(' + d.dy + 'px) scale(1.02)';
+
+        // Where the box's middle is now, against where the others' middles were.
+        const mid = d.rects[d.from].top + d.rects[d.from].height / 2 + d.dy;
+        let to = 0;
+        d.rows.forEach((r, i) => { if (i !== d.from && d.rects[i].top + d.rects[i].height / 2 < mid) to++; });
+        d.to = to;
+
+        const step = d.rects[d.from].height + d.gap;
+        d.rows.forEach((r, i) => {
+            if (i === d.from) return;
+            let shift = 0;
+            if (d.from < to && i > d.from && i <= to) shift = -step;
+            if (d.from > to && i >= to && i < d.from) shift = step;
+            r.style.transform = shift ? 'translateY(' + shift + 'px)' : '';
+        });
+    }
+
     listEl.addEventListener('pointermove', function (e) {
         if (!drag || e.pointerId !== drag.pointer) return;
         e.preventDefault();
-        const others = Array.from(listEl.querySelectorAll('.vi-row')).filter(r => r !== drag.row);
-        const before = others.find(function (r) {
-            const box = r.getBoundingClientRect();
-            return e.clientY < box.top + box.height / 2;
-        });
-        if (before) { if (drag.row.nextElementSibling !== before) listEl.insertBefore(drag.row, before); }
-        else if (listEl.lastElementChild !== drag.row) { listEl.appendChild(drag.row); }
-
+        moveTo(e);
         const edge = 70;
         if (e.clientY < edge) window.scrollBy(0, -14);
         else if (e.clientY > window.innerHeight - edge) window.scrollBy(0, 14);
@@ -437,13 +464,26 @@ const GiyaVisita = (function () {
 
     function finishDrag(e) {
         if (!drag || (e && e.pointerId !== drag.pointer)) return;
-        const order = Array.from(listEl.querySelectorAll('.vi-row')).map(r => Number(r.dataset.i));
-        drag.row.classList.remove('is-dragging');
-        listEl.classList.remove('is-sorting');
+        const d = drag;
         drag = null;
-        const moved = order.some((n, k) => n !== k);
-        if (moved) { list = order.map(n => list[n]); }
-        render();
+        listEl.classList.remove('is-sorting');
+
+        // Glide into the slot it was dropped on, then re-order for real.
+        let land = 0;
+        if (d.to > d.from) for (let i = d.from + 1; i <= d.to; i++) land += d.rects[i].height + d.gap;
+        if (d.to < d.from) for (let i = d.to; i < d.from; i++) land -= d.rects[i].height + d.gap;
+        d.row.style.transition = still ? 'none' : SLIDE;
+        d.row.style.transform = 'translateY(' + land + 'px)';
+
+        setTimeout(function () {
+            d.row.classList.remove('is-dragging');
+            d.rows.forEach(r => { r.style.transition = ''; r.style.transform = ''; });
+            if (d.to !== d.from) {
+                const moved = list.splice(d.from, 1)[0];
+                list.splice(d.to, 0, moved);
+            }
+            render();
+        }, still ? 0 : 200);
     }
     listEl.addEventListener('pointerup', finishDrag);
     listEl.addEventListener('pointercancel', finishDrag);

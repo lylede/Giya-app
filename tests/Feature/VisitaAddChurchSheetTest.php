@@ -30,4 +30,16 @@ class VisitaAddChurchSheetTest extends TestCase
         $this->assertStringContainsString('role="switch" aria-checked=', $html);
         $this->assertStringContainsString('// Added by mistake: tapping it again takes it back out.', $html);
     }
+
+    public function test_dragging_moves_the_whole_box_and_slides_the_others(): void
+    {
+        $user = User::create(['name' => 'W', 'email' => 'w@example.com', 'password_hash' => bcrypt('secret'),
+            'role' => 'devotee', 'status' => 'Active', 'created_at' => now(), 'updated_at' => now()]);
+
+        $html = $this->actingAs($user)->get(route('plan.visita'))->assertOk()->getContent();
+
+        $this->assertStringContainsString("d.row.style.transform = 'translateY(' + d.dy + 'px) scale(1.02)';", $html);
+        $this->assertStringContainsString("const SLIDE = 'transform .2s cubic-bezier(.2, .8, .2, 1)';", $html);
+        $this->assertStringContainsString("window.matchMedia('(prefers-reduced-motion: reduce)')", $html);
+    }
 }
