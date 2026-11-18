@@ -26,5 +26,8 @@ class VisitaAddChurchSheetTest extends TestCase
         // A real handle to swipe the sheet down with.
         $this->assertStringContainsString('class="vi-sheet-grab"', $html);
         $this->assertStringContainsString("addEventListener('pointerdown', startDrag)", $html);
+        // Each church is an on/off switch, like the Map page's add circle.
+        $this->assertStringContainsString('role="switch" aria-checked=', $html);
+        $this->assertStringContainsString('// Added by mistake: tapping it again takes it back out.', $html);
     }
 }

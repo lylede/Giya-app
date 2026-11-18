@@ -7912,18 +7912,36 @@ html[data-theme="dark"] .vi-sheet-x:hover { color: var(--gold-light, #E9C77E); }
 .vi-sheet-note { margin: 0; font-size: .8125rem; color: var(--text-muted); }
 .vi-sheet-seven { display: block; margin-top: 2px; color: var(--primary); font-weight: 700; }
 .vi-sheet .vi-pick-list { flex: 1 1 auto; min-height: 0; max-height: none; }
-.vi-pick-act {
-  margin-left: auto; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  min-width: 40px; height: 40px; padding: 0 10px; border-radius: 10px;
-  background: var(--primary); color: #fff; font-size: .8125rem; font-weight: 700;
+/* The add switch: the same circle as the Map page's add-to-route. Empty
+   with a + to add; filled maroon with a tick once it is in the route, and
+   tapping it again takes the church back out. */
+.vi-pick-tick {
+  position: relative; margin-left: auto; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border: 2px solid rgba(142, 59, 47, .6); color: transparent;
+  transition: background .15s, border-color .15s, color .15s;
 }
-.vi-pick.is-added { cursor: default; border-color: rgba(75, 122, 59, .45); background: rgba(107, 155, 90, .08); }
-.vi-pick.is-added .vi-pick-act { background: transparent; color: #4B7A3B; }
+.vi-pick-tick .bi { width: 1rem; height: 1rem; }
+.vi-pick-tick:not(.is-on) .bi { display: none; }
+.vi-pick-tick:not(.is-on)::before,
+.vi-pick-tick:not(.is-on)::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 12px; height: 2px; border-radius: 1px; background: var(--primary);
+  transform: translate(-50%, -50%);
+}
+.vi-pick-tick:not(.is-on)::after { transform: translate(-50%, -50%) rotate(90deg); }
+.vi-pick-tick.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.vi-pick:hover .vi-pick-tick:not(.is-on) { border-color: var(--primary); background: var(--gold-bg, #FBEFD6); }
+.vi-pick.is-added { border-color: var(--primary); background: rgba(142, 59, 47, .06); }
+html[data-theme="dark"] .vi-pick-tick:not(.is-on) { background: var(--surface-2); border-color: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .vi-pick-tick:not(.is-on)::before,
+html[data-theme="dark"] .vi-pick-tick:not(.is-on)::after { background: var(--gold-light, #E9C77E); }
+html[data-theme="dark"] .vi-pick.is-added { border-color: var(--gold-light, #E9C77E); background: rgba(233, 199, 126, .08); }
 .vi-sheet-done { flex-shrink: 0; height: 50px; font-size: 1rem; }
 /* The church just added glows for a moment where it landed in the list. */
 .vi-row.is-new { animation: vi-new 2.2s ease-out; }
 @keyframes vi-new { 0%, 30% { box-shadow: 0 0 0 3px var(--gold); } 100% { box-shadow: 0 0 0 3px transparent; } }
-html[data-theme="dark"] .vi-pick.is-added .vi-pick-act { color: #9BCB87; }
 html[data-theme="dark"] .vi-sheet-seven { color: var(--gold-light, #E9C77E); }
 
 @media (max-width: 600px) {

@@ -494,14 +494,17 @@ const GiyaVisita = (function () {
         box.innerHTML = shown.length
             ? shown.map(c => {
                 const done = justAdded.includes(c.id), d = dist(c);
+                // A switch, like the add-to-route circle on the Map page: tap to
+                // add, tap again to take it back out.
                 return '<button type="button" class="vi-pick' + (done ? ' is-added' : '') + '"' +
-                    (done ? ' disabled' : ' onclick="GiyaVisita.pick(' + c.id + ')"') + '>' +
+                    ' role="switch" aria-checked="' + (done ? 'true' : 'false') + '"' +
+                    ' onclick="GiyaVisita.pick(' + c.id + ')">' +
                     '<span class="vi-pick-icon" style="color:' + esc(c.color) + '"><i class="bi bi-giya-spires" aria-hidden="true"></i></span>' +
                     '<span class="vi-pick-text"><span class="vi-pick-name">' + esc(c.name) + '</span>' +
                     '<span class="vi-pick-place">' + esc(c.location || c.town || '') +
                     (d !== null ? ' · ' + (d < 10 ? d.toFixed(1) : Math.round(d)) + ' km' : '') + '</span></span>' +
-                    '<span class="vi-pick-act">' + (done ? '<i class="bi bi-check-lg"></i> ' + esc(P.added)
-                                                        : '<i class="bi bi-plus-lg"></i><span class="visually-hidden">' + esc(P.add) + '</span>') + '</span>' +
+                    '<span class="vi-pick-tick' + (done ? ' is-on' : '') + '" aria-hidden="true"><i class="bi bi-check-lg"></i></span>' +
+                    '<span class="visually-hidden">' + esc(done ? P.added : P.add) + '</span>' +
                     '</button>';
             }).join('')
             : '<p class="vi-pick-empty">' + esc(q ? P.none : P.allIn) + '</p>';
@@ -638,12 +641,17 @@ const GiyaVisita = (function () {
         },
         pick: function (id) {
             const c = all.find(x => x.id === id);
-            if (c && !list.some(x => x.id === id)) {
+            if (!c) return;
+            if (justAdded.includes(id)) {
+                // Added by mistake: tapping it again takes it back out.
+                list = list.filter(x => x.id !== id);
+                justAdded = justAdded.filter(x => x !== id);
+            } else if (!list.some(x => x.id === id)) {
                 list.push(Object.assign({ visited: false }, c));
                 justAdded.push(id);
-                render();
-                refreshPicker();
             }
+            render();
+            refreshPicker();
         },
         submit: function () {
             if (!list.length) { GiyaConfirm.ask({ title: @json(__('giya.plan.no_churches_t')), message: @json(__('giya.plan.no_churches_b')), ok: @json(__('giya.common.got_it')), cancel: @json(__('giya.common.close')), tone: 'primary' }); return; }
