@@ -15,6 +15,10 @@
     <title>GIYA - @yield('title', 'Pilgrimage Companion')</title>
     <x-meta />
 
+    {{-- The map's loading screen plays once per visit (giya-leaflet.js);
+         marked here, before the page paints, so it never flashes again. --}}
+    <script>try { if (sessionStorage.getItem('giya-map-intro')) document.documentElement.classList.add('giya-map-intro-seen'); } catch (e) {}</script>
+
     @guest
         {{-- A guest's light / dark choice lives on this device. Read before
              the page paints, so it does not flash light first. --}}

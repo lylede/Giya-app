@@ -150,9 +150,35 @@ window.GiyaLeaflet = (function () {
        many times a day and the wait read as lag). */
     var LOADING_AT_LEAST_MS = 6000;
 
+    /* Once per visit. The first map GIYA opens plays the drop; every map
+       after it (the trip page after Start pilgrimage, back to the map, a
+       church's map) opens at once, because its tiles are already in the
+       browser. A visit is the tab or the home-screen app: closing it and
+       opening GIYA again plays it again. The layout marks the page before it
+       paints so the screen does not flash; this is the same rule for a page
+       that was already open when the first one finished. */
+    var INTRO_KEY = 'giya-map-intro';
+
+    function introSeen() {
+        try { return !!sessionStorage.getItem(INTRO_KEY); } catch (e) { return false; }
+    }
+
+    function markIntroSeen() {
+        try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) { /* private mode: it just plays again */ }
+    }
+
     function markReadyWhenTilesArrive(map, cfg) {
         var layer = tileLayer(cfg).addTo(map);
         var started = Date.now();
+
+        if (introSeen()) {
+            var seenShell = map.getContainer().parentNode;
+            if (seenShell && seenShell.classList) seenShell.classList.add('is-map-ready');
+            whenTilesArrive(layer, function () { if (cfg.onTilesReady) cfg.onTilesReady(); });
+            return layer;
+        }
+        // Counted from the moment it starts: leaving the page mid-drop still means it was seen.
+        markIntroSeen();
 
         whenTilesArrive(layer, function () {
             if (cfg.onTilesReady) cfg.onTilesReady();

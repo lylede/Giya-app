@@ -1559,6 +1559,8 @@ html[data-theme="dark"] .history-thumb-badge { background: var(--bg); }
    fades, and the map underneath was never covered by anything opaque
    again. */
 .is-map-ready .giya-loading { opacity: 0; visibility: hidden; }
+/* Already played once this visit: no loading screen on the next map (see giya-leaflet.js). */
+html.giya-map-intro-seen .giya-loading { display: none !important; }
 
 /* The pin drops like water: it falls stretched, squashes flat on landing,
    bounces twice and settles, and a gold ripple spreads out where it hit.
