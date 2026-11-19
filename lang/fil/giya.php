@@ -878,4 +878,26 @@ return [
         'topic_account' => 'Iyong account',
         'topic_other' => 'Iba pa',
     ],
+
+    // Phone notifications (Web Push): Profile switch and the prompt after Notify me.
+    'push' => [
+        'title' => 'Abiso sa Telepono',
+        'hint' => 'Mga oras ng Misa at balita mula sa iyong mga simbahan sa notification bar ng iyong telepono.',
+        'on' => 'Naka-on sa teleponong ito',
+        'off' => 'Naka-off sa teleponong ito',
+        'turning_on' => 'Ini-on…',
+        'blocked' => 'Naka-block ang mga abiso ng GIYA. Payagan ito sa settings ng iyong telepono o browser, saka bumalik dito.',
+        'unsupported' => 'Hindi makapagpakita ng abiso mula sa GIYA ang browser na ito.',
+        'ios_title' => 'Sa iPhone, idagdag muna ang GIYA sa iyong Home Screen',
+        'ios_steps' => 'I-tap ang Share, piliin ang Add to Home Screen, saka buksan ang GIYA mula sa icon at i-on ito.',
+        'test' => 'Padalhan ako ng pagsubok',
+        'test_sent' => 'Naipadala na. Lalabas ito sa loob ng ilang segundo.',
+        'test_failed' => 'Hindi ito natuloy. I-off at i-on muli.',
+        'failed' => 'Hindi ma-on ang mga abiso. Subukan muli.',
+        'test_title' => 'Naka-on na ang abiso ng GIYA',
+        'test_body' => 'Ganito lalabas ang mga oras ng Misa at balita mula sa iyong mga simbahan.',
+        'ask' => 'Gusto mo bang makita rin ito sa iyong telepono?',
+        'ask_yes' => 'I-on',
+        'ask_no' => 'Hindi muna',
+    ],
 ];

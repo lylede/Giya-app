@@ -415,6 +415,37 @@
                     <span style="font-size: 0.9375rem;font-weight:700;color:var(--text)">{{ __('giya.profile.notifications') }}</span>
                 </div>
 
+                {{-- Phone notifications: this browser's push subscription, not a
+                     saved preference. giya-push.js shows it once it knows
+                     what this phone can do. --}}
+                @if (\App\Support\WebPush::enabled())
+                    <div class="push-pref" data-giya-push hidden>
+                        <label class="pref-toggle-row" data-push-row>
+                            <span>
+                                <span style="display:block;font-weight:600">{{ __('giya.push.title') }}</span>
+                                <span style="display:block;font-size:0.75rem;color:var(--text-muted)">{{ __('giya.push.hint') }}</span>
+                            </span>
+                            <span class="pref-switch">
+                                <input type="checkbox" data-push-switch aria-label="{{ __('giya.push.title') }}">
+                                <span class="pref-switch-track"></span>
+                            </span>
+                        </label>
+                        <div class="push-ios" data-push-ios hidden>
+                            <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                            <div>
+                                <strong>{{ __('giya.push.ios_title') }}</strong>
+                                <p>{{ __('giya.push.ios_steps') }}</p>
+                            </div>
+                        </div>
+                        <div class="push-foot">
+                            <p class="push-status" data-push-status role="status" aria-live="polite"></p>
+                            <button type="button" class="btn btn-outline btn-sm" data-push-test hidden>
+                                <i class="bi bi-bell-fill" aria-hidden="true"></i> {{ __('giya.push.test') }}
+                            </button>
+                        </div>
+                    </div>
+                @endif
+
                 @foreach ([
                     ['notify_mass_schedule',     __('giya.profile.notify_mass')],
                     ['notify_itinerary',         __('giya.profile.notify_itin')],

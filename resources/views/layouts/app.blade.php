@@ -7,6 +7,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth
+        @if (\App\Support\WebPush::enabled())
+    <meta name="giya-push-key" content="{{ \App\Support\WebPush::publicKey() }}">
+        @endif
+    @endauth
     <title>GIYA - @yield('title', 'Pilgrimage Companion')</title>
     <x-meta />
 
@@ -132,5 +137,7 @@
 <script src="{{ asset('assets/js/giya-navsearch.js') }}?v={{ filemtime(public_path('assets/js/giya-navsearch.js')) }}"></script>
 @stack('scripts')
 <script src="{{ asset('assets/js/giya-offline.js') }}?v={{ filemtime(public_path('assets/js/giya-offline.js')) }}" defer></script>
+@auth<script>window.GiyaPushText = @json(__('giya.push'));</script>
+<script src="{{ asset('assets/js/giya-push.js') }}?v={{ filemtime(public_path('assets/js/giya-push.js')) }}" defer></script>@endauth
 </body>
 </html>

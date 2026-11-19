@@ -118,7 +118,7 @@ class Notifier
 
         $church = $feedback->church ?: Church::find($feedback->church_id);
 
-        Notification::notify($feedback->user_id, 'Your review was published', [
+        self::notifyOne($feedback->user_id, 'Your review was published', [
             'type'    => 'feedback',
             'message' => $church
                 ? "It is now visible on {$church->name}."
@@ -157,7 +157,7 @@ class Notifier
             ? $transaction->processed_at->copy()->addDays($days)
             : null;
 
-        Notification::notify($transaction->user_id, 'Premium is active', [
+        self::notifyOne($transaction->user_id, 'Premium is active', [
             'type'    => 'system',
             'message' => $until
                 ? "{$transaction->plan}, until {$until->format('M j, Y')}."
@@ -283,6 +283,14 @@ class Notifier
         $now = now();
         $row += ['dedupe_key' => null];
 
+        // The phone's notification bar gets the same note, but not a second
+        // time for someone the key says already has it.
+        $toPhone = $row['dedupe_key'] === null ? $userIds : array_values(array_diff(
+            $userIds,
+            Notification::where('dedupe_key', $row['dedupe_key'])->whereIn('user_id', $userIds)
+                ->pluck('user_id')->map(fn ($id) => (int) $id)->all()
+        ));
+
         foreach (array_chunk($userIds, self::CHUNK) as $chunk) {
             $rows = array_map(fn (int $id) => $row + [
                 'user_id'    => $id,
@@ -296,6 +304,26 @@ class Notifier
                 : Notification::insertOrIgnore($rows);
         }
 
+        WebPush::toUsers($toPhone, [
+            'title' => (string) $row['title'],
+            'body'  => $row['message'] ?? null,
+            'url'   => $row['url'] ?? null,
+            'tag'   => $row['type'] ?? null,
+        ]);
+
         return count($userIds);
+    }
+
+    /** One devotee's bell note, also sent to their phone. */
+    private static function notifyOne(int $userId, string $title, array $options): void
+    {
+        Notification::notify($userId, $title, $options);
+
+        WebPush::toUsers([$userId], [
+            'title' => $title,
+            'body'  => $options['message'] ?? null,
+            'url'   => $options['url'] ?? null,
+            'tag'   => $options['type'] ?? null,
+        ]);
     }
 }

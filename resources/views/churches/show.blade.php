@@ -455,7 +455,12 @@ window.GiyaChurchNotify = {
             },
         })
             .then(r => r.json())
-            .then(d => { if (!d.ok) throw new Error('rejected'); paint(d.notify); })
+            .then(d => {
+                if (!d.ok) throw new Error('rejected');
+                paint(d.notify);
+                // Turned on: offer the same news in the phone's notification bar.
+                if (d.notify && window.GiyaPush) GiyaPush.offer(btn.parentElement);
+            })
             .catch(() => paint(!on));
     },
 };

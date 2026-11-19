@@ -878,4 +878,26 @@ return [
         'topic_account' => 'Imong account',
         'topic_other' => 'Uban pa',
     ],
+
+    // Phone notifications (Web Push): Profile switch and the prompt after Notify me.
+    'push' => [
+        'title' => 'Pahibalo sa Telepono',
+        'hint' => 'Mga oras sa Misa ug balita gikan sa imong mga simbahan sa notification bar sa imong telepono.',
+        'on' => 'Naka-on niining telepono',
+        'off' => 'Naka-off niining telepono',
+        'turning_on' => 'Gi-on…',
+        'blocked' => 'Gibabagan ang mga pahibalo sa GIYA. Tugoti kini sa settings sa imong telepono o browser, unya balik dinhi.',
+        'unsupported' => 'Kini nga browser dili makapakita og pahibalo gikan sa GIYA.',
+        'ios_title' => 'Sa iPhone, idugang una ang GIYA sa imong Home Screen',
+        'ios_steps' => 'I-tap ang Share, pilia ang Add to Home Screen, unya ablihi ang GIYA gikan sa icon ug i-on kini.',
+        'test' => 'Padalhi ko og pagsulay',
+        'test_sent' => 'Napadala na. Mogawas kini sulod sa pipila ka segundo.',
+        'test_failed' => 'Wala kini molampos. I-off ug i-on pag-usab.',
+        'failed' => 'Dili ma-on ang mga pahibalo. Sulayi pag-usab.',
+        'test_title' => 'Naka-on na ang pahibalo sa GIYA',
+        'test_body' => 'Ingon niini mogawas ang mga oras sa Misa ug balita gikan sa imong mga simbahan.',
+        'ask' => 'Gusto ba nimo kini makita usab sa imong telepono?',
+        'ask_yes' => 'I-on',
+        'ask_no' => 'Dili sa karon',
+    ],
 ];

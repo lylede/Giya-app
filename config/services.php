@@ -140,4 +140,19 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Web push - notifications in the phone's notification bar
+    |--------------------------------------------------------------------------
+    | Make the keys once with "php artisan giya:push-keys" and put the three
+    | lines it prints in .env and in the Render and Vercel environment. The
+    | public key is safe to show; the private key is a secret like a password.
+    | Without them GIYA works as before and simply offers no phone switch.
+    */
+    'webpush' => [
+        'public'  => preg_replace('/\s+/', '', (string) env('VAPID_PUBLIC_KEY')),
+        'private' => preg_replace('/\s+/', '', (string) env('VAPID_PRIVATE_KEY')),
+        'subject' => env('VAPID_SUBJECT', env('APP_URL', 'https://giya-ai.app')),
+    ],
+
 ];

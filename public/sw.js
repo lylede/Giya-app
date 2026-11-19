@@ -15,7 +15,7 @@
  *   phone never sees someone else's itineraries.
  */
 // Change this whenever the caching rules change: the old saved copies are dropped.
-const VERSION = 'giya-v6';
+const VERSION = 'giya-v7';
 const SHELL = VERSION + '-shell';
 const PAGES = 'giya-pages';
 const TILES = 'giya-tiles';
@@ -192,4 +192,40 @@ self.addEventListener('fetch', (event) => {
   if (/^\/(assets|images|build)\//.test(url.pathname) || url.pathname === '/manifest.webmanifest') {
     event.respondWith(asset(request));
   }
+});
+
+/* ---------------------------------------------------------------- push
+   A notification for the phone's notification bar (see App\Support\WebPush).
+   The server encrypts it for this browser; the browser decrypts it before
+   this runs, so event.data is the plain JSON {title, body, url, tag}. */
+self.addEventListener('push', (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (e) { data = { body: event.data && event.data.text() }; }
+
+  const title = data.title || 'GIYA';
+  event.waitUntil(self.registration.showNotification(title, {
+    body: data.body || '',
+    icon: '/images/brand/icon-192.png',
+    badge: '/images/brand/icon-192.png',
+    tag: data.tag || undefined,
+    renotify: !!data.tag,
+    data: { url: data.url || '/home' },
+  }));
+});
+
+// Tapping it opens the page it is about: an open GIYA window if there is one.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || '/home', self.location.origin).href;
+
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const win of wins) {
+      if (new URL(win.url).origin === self.location.origin && 'focus' in win) {
+        try { await win.navigate(target); } catch (e) {}
+        return win.focus();
+      }
+    }
+    return self.clients.openWindow(target);
+  })());
 });
