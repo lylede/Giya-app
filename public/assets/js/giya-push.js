@@ -103,8 +103,6 @@
       });
   }
 
-  function test() { return post('/push/test'); }
-
   /* ------------------------------------------------------- Profile switch */
 
   function bindProfile(box) {
@@ -112,7 +110,6 @@
     var status = box.querySelector('[data-push-status]');
     var guide = box.querySelector('[data-push-ios]');
     var row = box.querySelector('[data-push-row]');
-    var testBtn = box.querySelector('[data-push-test]');
 
     // Not one of the auto-saved preferences: keep the form's autosave out of it.
     ['change', 'input'].forEach(function (ev) {
@@ -126,7 +123,6 @@
       row.hidden = s === 'ios-install' || s === 'unsupported';
       input.checked = s === 'on';
       input.disabled = s === 'blocked';
-      testBtn.hidden = s !== 'on';
       status.textContent = {
         on: t('on'), off: t('off'), blocked: t('blocked'), unsupported: t('unsupported'), 'ios-install': '',
       }[s] || '';
@@ -140,14 +136,6 @@
         .then(show)
         .catch(function () { status.textContent = t('failed'); input.checked = !wantOn; })
         .then(function () { if (box.dataset.state !== 'blocked') input.disabled = false; });
-    });
-
-    testBtn.addEventListener('click', function () {
-      testBtn.disabled = true;
-      test()
-        .then(function (r) { status.textContent = r.message || (r.ok ? t('test_sent') : t('test_failed')); })
-        .catch(function () { status.textContent = t('test_failed'); })
-        .then(function () { setTimeout(function () { testBtn.disabled = false; }, 4000); });
     });
 
     state().then(show);
@@ -208,7 +196,7 @@
     });
   }
 
-  window.GiyaPush = { state: state, enable: enable, disable: disable, test: test, offer: offer };
+  window.GiyaPush = { state: state, enable: enable, disable: disable, offer: offer };
 
   function init() {
     var box = document.querySelector('[data-giya-push]');

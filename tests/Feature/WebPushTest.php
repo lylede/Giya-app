@@ -206,19 +206,6 @@ class WebPushTest extends TestCase
         $this->assertSame(1, Notification::count(), 'The bell note must still be written.');
     }
 
-    public function test_the_test_button_sends_to_this_devotee_only(): void
-    {
-        Http::fake(['*' => Http::response('', 201)]);
-        $me = $this->devotee();
-        $this->subscribe($me);
-        $this->subscribe($this->devotee('other@example.com'), 'https://fcm.googleapis.com/fcm/send/other');
-
-        $this->actingAs($me)->postJson(route('push.test'))->assertOk()->assertJson(['ok' => true, 'sent' => 1, 'devices' => 1]);
-
-        Http::assertSentCount(1);
-        Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/abc'));
-    }
-
     public function test_the_service_worker_shows_pushes_and_opens_their_page(): void
     {
         $sw = file_get_contents(public_path('sw.js'));
@@ -226,26 +213,6 @@ class WebPushTest extends TestCase
         $this->assertStringContainsString("addEventListener('push'", $sw);
         $this->assertStringContainsString('showNotification', $sw);
         $this->assertStringContainsString("addEventListener('notificationclick'", $sw);
-    }
-
-    public function test_the_test_button_says_why_a_push_was_refused(): void
-    {
-        Http::fake(['*' => Http::response('{"reason":"BadJwtToken"}', 403)]);
-        $me = $this->devotee();
-        $this->subscribe($me, 'https://web.push.apple.com/QGx');
-
-        $this->actingAs($me)->postJson(route('push.test'))
-            ->assertOk()
-            ->assertJson(['ok' => false, 'sent' => 0])
-            ->assertJsonPath('message', fn ($m) => str_contains($m, 'web.push.apple.com') && str_contains($m, 'BadJwtToken') && str_contains($m, '403'));
-
-        $this->assertSame(1, PushSubscription::count(), 'A refusal is not a removal.');
-    }
-
-    public function test_the_test_button_says_when_this_phone_is_not_registered(): void
-    {
-        $this->actingAs($this->devotee())->postJson(route('push.test'))
-            ->assertOk()->assertJson(['ok' => false, 'message' => __('giya.push.no_device')]);
     }
 
     public function test_pushes_are_sent_during_the_request_and_many_at_once(): void
@@ -271,5 +238,28 @@ class WebPushTest extends TestCase
             ->expectsOutputToContain('Phones turned on: 1')
             ->expectsOutputToContain('fcm.googleapis.com')
             ->assertSuccessful();
+    }
+
+    public function test_the_profile_has_only_the_switch_and_no_test_button(): void
+    {
+        $this->actingAs($this->devotee())->get(route('profile'))
+            ->assertOk()
+            ->assertSee('data-push-switch', false)
+            ->assertDontSee('data-push-test', false);
+
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('push.test'));
+    }
+
+    public function test_a_refusal_is_reported_by_the_check_command_and_the_phone_is_kept(): void
+    {
+        Http::fake(['*' => Http::response('{"reason":"BadJwtToken"}', 403)]);
+        $me = $this->devotee();
+        $this->subscribe($me, 'https://web.push.apple.com/QGx');
+
+        $this->artisan('giya:push-test', ['email' => $me->email])
+            ->expectsOutputToContain('web.push.apple.com  403 {"reason":"BadJwtToken"}')
+            ->assertFailed();
+
+        $this->assertSame(1, PushSubscription::count(), 'A refusal is not a removal.');
     }
 }

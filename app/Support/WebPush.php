@@ -85,7 +85,7 @@ class WebPush
 
     /**
      * One notification to one browser, and what the push service said:
-     * the Send me a test button and giya:push-test show this, so a refusal
+     * giya:push-test shows this, so a refusal
      * names its reason instead of failing quietly.
      *
      * @return array{ok: bool, status: ?int, reason: string, service: string}

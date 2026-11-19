@@ -437,12 +437,7 @@
                                 <p>{{ __('giya.push.ios_steps') }}</p>
                             </div>
                         </div>
-                        <div class="push-foot">
-                            <p class="push-status" data-push-status role="status" aria-live="polite"></p>
-                            <button type="button" class="btn btn-outline btn-sm" data-push-test hidden>
-                                <i class="bi bi-bell-fill" aria-hidden="true"></i> {{ __('giya.push.test') }}
-                            </button>
-                        </div>
+                        <p class="push-status" data-push-status role="status" aria-live="polite"></p>
                     </div>
                 @else
                     <p class="push-status" style="margin:0 0 10px">{{ __('giya.push.no_keys') }}</p>

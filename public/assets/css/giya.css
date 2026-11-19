@@ -8354,7 +8354,6 @@ html[data-theme="dark"] .admin-topbar .adm-theme:hover { background: rgba(215, 1
 .push-ios .bi { font-size: 1.25rem; color: var(--primary); }
 .push-ios strong { display: block; font-size: 0.875rem; }
 .push-ios p { margin: 4px 0 0; font-size: 0.8125rem; color: var(--text-muted); }
-.push-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
 .push-status { margin: 4px 0 0; font-size: 0.75rem; color: var(--text-muted); min-height: 1em; }
 .push-status:empty { display: none; }
 .giya-push-offer { flex-basis: 100%; max-width: 420px; margin-top: 12px; padding: 12px 14px; border-radius: 14px; background: var(--bg-input); color: var(--text); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }

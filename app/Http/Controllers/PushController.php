@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 
 /**
  * The phone switch: the browser hands GIYA the address and keys of its push
- * subscription (subscribe), takes them back (unsubscribe), and the devotee can
- * ask for one notification to check it works (test).
+ * subscription (subscribe) and takes them back (unsubscribe). To check that
+ * a phone gets them: php artisan giya:push-test {email}.
  */
 class PushController extends Controller
 {
@@ -49,43 +49,5 @@ class PushController extends Controller
             ->delete();
 
         return response()->json(['ok' => true]);
-    }
-
-    /**
-     * Send me a test. Answers with what each push service said, so the
-     * Profile can say why it did not arrive instead of just "failed".
-     */
-    public function test(Request $request): JsonResponse
-    {
-        if (! WebPush::enabled()) {
-            return response()->json(['ok' => false, 'sent' => 0, 'message' => __('giya.push.no_keys')]);
-        }
-
-        $subs = PushSubscription::where('user_id', $request->user()->id)->get();
-        if ($subs->isEmpty()) {
-            return response()->json(['ok' => false, 'sent' => 0, 'message' => __('giya.push.no_device')]);
-        }
-
-        $results = $subs->map(fn ($sub) => WebPush::report($sub, [
-            'title' => __('giya.push.test_title'),
-            'body'  => __('giya.push.test_body'),
-            'url'   => route('profile', ['tab' => 'preferences']),
-            'tag'   => 'test',
-        ]))->values();
-
-        $sent = $results->where('ok', true)->count();
-        $failed = $results->firstWhere('ok', false);
-
-        return response()->json([
-            'ok'      => $sent > 0,
-            'sent'    => $sent,
-            'devices' => $subs->count(),
-            'message' => $sent > 0
-                ? __('giya.push.test_sent')
-                : __('giya.push.refused', [
-                    'service' => $failed['service'] ?? '',
-                    'reason'  => trim(($failed['status'] ? $failed['status'].' ' : '').$failed['reason']),
-                ]),
-        ]);
     }
 }

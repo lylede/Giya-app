@@ -248,9 +248,8 @@ Route::middleware('auth')->prefix('notifications')->name('notifications.')->grou
     Route::delete('/',                 [\App\Http\Controllers\NotificationController::class, 'clear'])->name('clear');
 });
 
-// Phone notifications (Web Push): the browser's subscription, and a test.
+// Phone notifications (Web Push): the browser's subscription.
 Route::middleware(['auth', 'throttle:20,1'])->prefix('push')->name('push.')->group(function () {
     Route::post('/subscribe',   [\App\Http\Controllers\PushController::class, 'subscribe'])->name('subscribe');
     Route::post('/unsubscribe', [\App\Http\Controllers\PushController::class, 'unsubscribe'])->name('unsubscribe');
-    Route::post('/test',        [\App\Http\Controllers\PushController::class, 'test'])->name('test');
 });
