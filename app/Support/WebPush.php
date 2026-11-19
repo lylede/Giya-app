@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Models\PushSubscription;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -44,8 +46,11 @@ class WebPush
     /* ---------------------------------------------------------------- send */
 
     /**
-     * Push to every browser of these devotees, after the page has been sent:
-     * the admin who saved a schedule does not wait for a hundred phones.
+     * Push to every browser of these devotees.
+     *
+     * Sent now, before the page answers, twenty at a time in parallel. It was
+     * sent after the response, but a host that freezes the container once
+     * the page is out (Vercel can) dropped those pushes without a word.
      *
      * @param  array<int>  $userIds
      * @param  array{title: string, body?: ?string, url?: ?string, tag?: ?string}  $message
@@ -56,70 +61,120 @@ class WebPush
             return;
         }
 
-        $send = function () use ($userIds, $message) {
+        try {
             PushSubscription::whereIn('user_id', array_values(array_unique($userIds)))
                 ->orderBy('id')
-                ->chunkById(200, function ($subs) use ($message) {
-                    foreach ($subs as $sub) {
-                        self::send($sub, $message);
-                    }
+                ->chunkById(20, function ($subs) use ($message) {
+                    self::sendMany($subs->all(), $message);
                 });
-        };
-
-        app()->runningUnitTests() ? $send() : app()->terminating($send);
+        } catch (\Throwable $e) {
+            // A phone that cannot be reached must never break saving a schedule.
+            Log::warning('Web push batch failed: '.$e->getMessage());
+        }
     }
 
     /**
      * One notification to one browser. True when the push service took it.
-     * A subscription the push service says is gone (404 / 410: the devotee
-     * turned notifications off, cleared the browser, removed the app) is
-     * deleted so GIYA stops trying.
      *
      * @param  array{title: string, body?: ?string, url?: ?string, tag?: ?string}  $message
      */
     public static function send(PushSubscription $sub, array $message): bool
     {
-        try {
-            $payload = json_encode([
-                'title' => mb_substr($message['title'], 0, 120),
-                'body'  => isset($message['body']) ? mb_substr((string) $message['body'], 0, 240) : '',
-                'url'   => $message['url'] ?? '/home',
-                'tag'   => $message['tag'] ?? null,
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return self::report($sub, $message)['ok'];
+    }
 
-            $body = self::encrypt($payload, $sub->p256dh, $sub->auth);
-            $audience = self::origin($sub->endpoint);
+    /**
+     * One notification to one browser, and what the push service said:
+     * the Send me a test button and giya:push-test show this, so a refusal
+     * names its reason instead of failing quietly.
+     *
+     * @return array{ok: bool, status: ?int, reason: string, service: string}
+     */
+    public static function report(PushSubscription $sub, array $message): array
+    {
+        return self::sendMany([$sub], $message)[$sub->id];
+    }
 
-            $response = Http::timeout(10)
-                ->withHeaders([
-                    'Authorization'    => 'vapid t='.self::jwt($audience).', k='.self::publicKey(),
-                    'Content-Encoding' => 'aes128gcm',
-                    'Content-Type'     => 'application/octet-stream',
-                    'TTL'              => (string) self::TTL,
-                    'Urgency'          => 'normal',
-                ])
-                ->withBody($body, 'application/octet-stream')
-                ->post($sub->endpoint);
+    /**
+     * Several browsers at once. A browser the push service says is gone
+     * (404 / 410: notifications turned off, browser cleared, app removed) is
+     * deleted so GIYA stops trying.
+     *
+     * @param  array<PushSubscription>  $subs
+     * @return array<int, array{ok: bool, status: ?int, reason: string, service: string}>
+     */
+    private static function sendMany(array $subs, array $message): array
+    {
+        $payload = json_encode([
+            'title' => mb_substr($message['title'], 0, 120),
+            'body'  => isset($message['body']) ? mb_substr((string) $message['body'], 0, 240) : '',
+            'url'   => $message['url'] ?? '/home',
+            'tag'   => $message['tag'] ?? null,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-            if (in_array($response->status(), [404, 410], true)) {
-                $sub->delete();
-
-                return false;
+        $results = [];
+        $ready = [];
+        foreach ($subs as $sub) {
+            $service = (string) parse_url($sub->endpoint, PHP_URL_HOST);
+            try {
+                $ready[$sub->id] = [
+                    'sub'     => $sub,
+                    'service' => $service,
+                    'body'    => self::encrypt($payload, $sub->p256dh, $sub->auth),
+                    'jwt'     => self::jwt(self::origin($sub->endpoint)),
+                ];
+            } catch (\Throwable $e) {
+                $results[$sub->id] = ['ok' => false, 'status' => null, 'reason' => $e->getMessage(), 'service' => $service];
             }
-            if (! $response->successful()) {
-                Log::warning('Web push refused', ['status' => $response->status(), 'body' => mb_substr($response->body(), 0, 300)]);
-
-                return false;
-            }
-
-            $sub->forceFill(['last_sent_at' => now()])->save();
-
-            return true;
-        } catch (\Throwable $e) {
-            Log::warning('Web push failed: '.$e->getMessage());
-
-            return false;
         }
+
+        if ($ready !== []) {
+            $responses = Http::pool(fn (Pool $pool) => array_map(
+                fn ($r) => $pool->as((string) $r['sub']->id)
+                    ->timeout(8)
+                    ->withHeaders([
+                        'Authorization'    => 'vapid t='.$r['jwt'].', k='.self::publicKey(),
+                        'Content-Encoding' => 'aes128gcm',
+                        'TTL'              => (string) self::TTL,
+                        // High: delivered at once even to a phone asleep in a pocket.
+                        'Urgency'          => 'high',
+                    ])
+                    ->withBody($r['body'], 'application/octet-stream')
+                    ->post($r['sub']->endpoint),
+                array_values($ready)
+            ));
+
+            foreach ($ready as $id => $r) {
+                $response = $responses[(string) $id] ?? null;
+                $sub = $r['sub'];
+
+                if (! $response instanceof Response) {
+                    $why = $response instanceof \Throwable ? $response->getMessage() : 'no answer';
+                    Log::warning('Web push failed', ['service' => $r['service'], 'reason' => $why]);
+                    $results[$id] = ['ok' => false, 'status' => null, 'reason' => $why, 'service' => $r['service']];
+
+                    continue;
+                }
+
+                $status = $response->status();
+                if ($response->successful()) {
+                    $sub->forceFill(['last_sent_at' => now()])->save();
+                    $results[$id] = ['ok' => true, 'status' => $status, 'reason' => '', 'service' => $r['service']];
+
+                    continue;
+                }
+
+                $reason = trim(mb_substr(strip_tags($response->body()), 0, 200));
+                if (in_array($status, [404, 410], true)) {
+                    $sub->delete();
+                    $reason = 'This browser is no longer subscribed'.($reason !== '' ? ' ('.$reason.')' : '');
+                }
+                Log::warning('Web push refused', ['service' => $r['service'], 'status' => $status, 'reason' => $reason]);
+                $results[$id] = ['ok' => false, 'status' => $status, 'reason' => $reason, 'service' => $r['service']];
+            }
+        }
+
+        return $results;
     }
 
     /* ---------------------------------------------------------- encryption */

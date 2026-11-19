@@ -51,21 +51,41 @@ class PushController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    /**
+     * Send me a test. Answers with what each push service said, so the
+     * Profile can say why it did not arrive instead of just "failed".
+     */
     public function test(Request $request): JsonResponse
     {
-        abort_unless(WebPush::enabled(), 503);
-
-        $subs = PushSubscription::where('user_id', $request->user()->id)->get();
-        $sent = 0;
-        foreach ($subs as $sub) {
-            $sent += WebPush::send($sub, [
-                'title' => __('giya.push.test_title'),
-                'body'  => __('giya.push.test_body'),
-                'url'   => route('profile'),
-                'tag'   => 'test',
-            ]) ? 1 : 0;
+        if (! WebPush::enabled()) {
+            return response()->json(['ok' => false, 'sent' => 0, 'message' => __('giya.push.no_keys')]);
         }
 
-        return response()->json(['ok' => $sent > 0, 'sent' => $sent]);
+        $subs = PushSubscription::where('user_id', $request->user()->id)->get();
+        if ($subs->isEmpty()) {
+            return response()->json(['ok' => false, 'sent' => 0, 'message' => __('giya.push.no_device')]);
+        }
+
+        $results = $subs->map(fn ($sub) => WebPush::report($sub, [
+            'title' => __('giya.push.test_title'),
+            'body'  => __('giya.push.test_body'),
+            'url'   => route('profile', ['tab' => 'preferences']),
+            'tag'   => 'test',
+        ]))->values();
+
+        $sent = $results->where('ok', true)->count();
+        $failed = $results->firstWhere('ok', false);
+
+        return response()->json([
+            'ok'      => $sent > 0,
+            'sent'    => $sent,
+            'devices' => $subs->count(),
+            'message' => $sent > 0
+                ? __('giya.push.test_sent')
+                : __('giya.push.refused', [
+                    'service' => $failed['service'] ?? '',
+                    'reason'  => trim(($failed['status'] ? $failed['status'].' ' : '').$failed['reason']),
+                ]),
+        ]);
     }
 }

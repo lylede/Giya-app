@@ -43,3 +43,10 @@ services:
         sync: false
       - key: MAYA_SECRET_KEY
         sync: false
+      # Phone notifications: make them with "php artisan giya:push-keys".
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: https://giya-ai.app

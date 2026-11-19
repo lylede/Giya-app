@@ -898,6 +898,9 @@ return [
         'test_body' => 'Ingon niini mogawas ang mga oras sa Misa ug balita gikan sa imong mga simbahan.',
         'ask' => 'Gusto ba nimo kini makita usab sa imong telepono?',
         'ask_yes' => 'I-on',
+        'no_keys' => 'Wala pa ma-set up ang pahibalo sa telepono sa server: kulang ang VAPID_PUBLIC_KEY ug VAPID_PRIVATE_KEY.',
+        'no_device' => 'Wala pa marehistro kini nga telepono. I-off ug i-on pag-usab ang switch.',
+        'refused' => 'Gibalibaran kini sa :service: :reason',
         'ask_no' => 'Dili sa karon',
     ],
 ];

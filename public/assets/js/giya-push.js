@@ -145,7 +145,7 @@
     testBtn.addEventListener('click', function () {
       testBtn.disabled = true;
       test()
-        .then(function (r) { status.textContent = r.ok ? t('test_sent') : t('test_failed'); })
+        .then(function (r) { status.textContent = r.message || (r.ok ? t('test_sent') : t('test_failed')); })
         .catch(function () { status.textContent = t('test_failed'); })
         .then(function () { setTimeout(function () { testBtn.disabled = false; }, 4000); });
     });
@@ -212,7 +212,20 @@
 
   function init() {
     var box = document.querySelector('[data-giya-push]');
-    if (box) bindProfile(box);
+    if (box) { bindProfile(box); return; }
+
+    /* Already allowed: check the subscription on any page, so a phone whose
+       push address changed (the push service rotates them) or whose row the
+       server dropped is registered again without visiting Profile. Once a
+       day is plenty. */
+    if (supported && Notification.permission === 'granted') {
+      try {
+        var last = Number(localStorage.getItem('giya-push-checked') || 0);
+        if (Date.now() - last < 86400000) return;
+        localStorage.setItem('giya-push-checked', String(Date.now()));
+      } catch (e) { /* private mode: check every time */ }
+      state();
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

@@ -444,6 +444,8 @@
                             </button>
                         </div>
                     </div>
+                @else
+                    <p class="push-status" style="margin:0 0 10px">{{ __('giya.push.no_keys') }}</p>
                 @endif
 
                 @foreach ([

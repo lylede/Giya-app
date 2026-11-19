@@ -908,6 +908,9 @@ return [
         'test_body' => 'This is how Mass times and news from your churches will appear.',
         'ask' => 'Get this on your phone too?',
         'ask_yes' => 'Turn on',
+        'no_keys' => "Phone notifications aren't set up on the server yet: VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY are missing.",
+        'no_device' => "This phone isn't registered yet. Turn the switch off and on again.",
+        'refused' => ':service refused it: :reason',
         'ask_no' => 'Not now',
     ],
 ];

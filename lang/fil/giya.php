@@ -898,6 +898,9 @@ return [
         'test_body' => 'Ganito lalabas ang mga oras ng Misa at balita mula sa iyong mga simbahan.',
         'ask' => 'Gusto mo bang makita rin ito sa iyong telepono?',
         'ask_yes' => 'I-on',
+        'no_keys' => 'Hindi pa naka-set up sa server ang abiso sa telepono: kulang ang VAPID_PUBLIC_KEY at VAPID_PRIVATE_KEY.',
+        'no_device' => 'Hindi pa nakarehistro ang teleponong ito. I-off at i-on muli ang switch.',
+        'refused' => 'Tinanggihan ito ng :service: :reason',
         'ask_no' => 'Hindi muna',
     ],
 ];

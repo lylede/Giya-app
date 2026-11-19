@@ -158,7 +158,7 @@ class WebPushTest extends TestCase
         config(['services.webpush.public' => '', 'services.webpush.private' => '']);
         $user = $this->devotee();
 
-        $this->actingAs($user)->get(route('profile'))->assertOk()->assertDontSee('data-giya-push', false);
+        $this->actingAs($user)->get(route('profile'))->assertOk()->assertDontSee('data-giya-push', false)->assertSee(__('giya.push.no_keys'));
         $this->actingAs($user)->postJson(route('push.subscribe'), [
             'endpoint' => 'https://fcm.googleapis.com/x', 'keys' => ['p256dh' => 'a', 'auth' => 'b'],
         ])->assertStatus(503);
@@ -213,7 +213,7 @@ class WebPushTest extends TestCase
         $this->subscribe($me);
         $this->subscribe($this->devotee('other@example.com'), 'https://fcm.googleapis.com/fcm/send/other');
 
-        $this->actingAs($me)->postJson(route('push.test'))->assertOk()->assertJson(['ok' => true, 'sent' => 1]);
+        $this->actingAs($me)->postJson(route('push.test'))->assertOk()->assertJson(['ok' => true, 'sent' => 1, 'devices' => 1]);
 
         Http::assertSentCount(1);
         Http::assertSent(fn (Request $r) => str_ends_with($r->url(), '/abc'));
@@ -226,5 +226,50 @@ class WebPushTest extends TestCase
         $this->assertStringContainsString("addEventListener('push'", $sw);
         $this->assertStringContainsString('showNotification', $sw);
         $this->assertStringContainsString("addEventListener('notificationclick'", $sw);
+    }
+
+    public function test_the_test_button_says_why_a_push_was_refused(): void
+    {
+        Http::fake(['*' => Http::response('{"reason":"BadJwtToken"}', 403)]);
+        $me = $this->devotee();
+        $this->subscribe($me, 'https://web.push.apple.com/QGx');
+
+        $this->actingAs($me)->postJson(route('push.test'))
+            ->assertOk()
+            ->assertJson(['ok' => false, 'sent' => 0])
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'web.push.apple.com') && str_contains($m, 'BadJwtToken') && str_contains($m, '403'));
+
+        $this->assertSame(1, PushSubscription::count(), 'A refusal is not a removal.');
+    }
+
+    public function test_the_test_button_says_when_this_phone_is_not_registered(): void
+    {
+        $this->actingAs($this->devotee())->postJson(route('push.test'))
+            ->assertOk()->assertJson(['ok' => false, 'message' => __('giya.push.no_device')]);
+    }
+
+    public function test_pushes_are_sent_during_the_request_and_many_at_once(): void
+    {
+        Http::fake(['*' => Http::response('', 201)]);
+        for ($i = 1; $i <= 25; $i++) {
+            $this->subscribe($this->devotee("p{$i}@example.com"), "https://fcm.googleapis.com/fcm/send/{$i}");
+        }
+
+        Notifier::announcement(Announcement::create(['title' => 'Simbang Gabi', 'message' => 'Dawn Masses begin.', 'is_active' => true]));
+
+        Http::assertSentCount(25);
+        $this->assertSame(25, PushSubscription::whereNotNull('last_sent_at')->count());
+    }
+
+    public function test_the_check_command_reports_each_phone(): void
+    {
+        Http::fake(['*' => Http::response('', 201)]);
+        $me = $this->devotee();
+        $this->subscribe($me);
+
+        $this->artisan('giya:push-test', ['email' => $me->email])
+            ->expectsOutputToContain('Phones turned on: 1')
+            ->expectsOutputToContain('fcm.googleapis.com')
+            ->assertSuccessful();
     }
 }
