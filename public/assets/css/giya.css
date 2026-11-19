@@ -8361,9 +8361,9 @@ html[data-theme="dark"] .admin-topbar .adm-theme:hover { background: rgba(215, 1
 .giya-push-offer .giya-push-offer-steps { margin-top: 4px; font-weight: 400; font-size: 0.8125rem; color: var(--text-muted); }
 .giya-push-offer-actions { display: flex; gap: 8px; margin-top: 10px; }
 
-/* Add to Home Screen (giya-install.js): the menu button and the steps pop-up. */
-.mobile-nav-install { color: var(--gold) !important; font-weight: 600; cursor: pointer; }
-.mobile-nav-install[hidden] { display: none !important; }
+/* Add to Home Screen (giya-install.js): the Profile > Preferences card and the steps pop-up. */
+.install-card[hidden] { display: none !important; }
+.install-card-icon { width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
 .install-modal { border: none; border-radius: var(--radius-2xl); padding: 28px; text-align: center; }
 .install-modal-icon { width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 12px; display: block; box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
 .install-modal-lead { font-size: 0.875rem; color: var(--text-muted); margin: 4px 0 16px; }

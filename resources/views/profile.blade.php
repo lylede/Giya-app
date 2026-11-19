@@ -408,6 +408,21 @@
                 </p>
             </div>
 
+            {{-- Add to Home Screen: shown by giya-install.js only on a phone (or a
+                 browser that can install GIYA) where it is not yet installed. --}}
+            <div class="card card-body mb-3 install-card" data-giya-install-card hidden>
+                <div class="d-flex align-items-center gap-3">
+                    <img src="{{ asset('images/brand/icon-192.png') }}?v=2" alt="" width="44" height="44" class="install-card-icon">
+                    <div style="flex:1;min-width:0">
+                        <span style="display:block;font-size:0.9375rem;font-weight:700;color:var(--text)">{{ __('giya.install.title') }}</span>
+                        <span style="display:block;font-size:0.75rem;color:var(--text-muted)">{{ __('giya.install.lead') }}</span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary btn-w-full mt-3" data-giya-install>
+                    <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> {{ __('giya.install.button') }}
+                </button>
+            </div>
+
             {{-- Notifications --}}
             <div class="card card-body mb-3">
                 <div class="d-flex align-items-center gap-2 mb-3">
@@ -435,7 +450,6 @@
                             <div>
                                 <strong>{{ __('giya.push.ios_title') }}</strong>
                                 <p>{{ __('giya.push.ios_steps') }}</p>
-                                <button type="button" class="btn btn-primary btn-sm mt-2" data-giya-install hidden>{{ __('giya.install.button') }}</button>
                             </div>
                         </div>
                         <p class="push-status" data-push-status role="status" aria-live="polite"></p>

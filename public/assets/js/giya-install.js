@@ -8,8 +8,9 @@
  * then Add to Home Screen). A browser that offers neither on Android gets the
  * menu steps.
  *
- * Every [data-giya-install] button is hidden until one of those is possible,
- * and hidden again once GIYA is running from the Home Screen or was installed.
+ * The Profile > Preferences card ([data-giya-install-card]) and its button
+ * stay hidden until one of those is possible, and hide again once GIYA is
+ * running from the Home Screen or was installed.
  */
 (function () {
   'use strict';
@@ -24,10 +25,12 @@
   var deferred = null;   // the saved beforeinstallprompt event
 
   function buttons() { return document.querySelectorAll('[data-giya-install]'); }
+  function cards() { return document.querySelectorAll('[data-giya-install-card]'); }
 
   function refresh() {
     var show = !installed() && (deferred !== null || isIOS || isAndroid);
     buttons().forEach(function (b) { b.hidden = !show; });
+    cards().forEach(function (c) { c.hidden = !show; });
   }
 
   function showSteps() {
@@ -49,6 +52,7 @@
     deferred = null;
     try { localStorage.setItem('giya-installed', '1'); } catch (err) { /* private mode */ }
     buttons().forEach(function (b) { b.hidden = true; });
+    cards().forEach(function (c) { c.hidden = true; });
   });
 
   document.addEventListener('click', function (e) {
