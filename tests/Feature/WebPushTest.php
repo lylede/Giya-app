@@ -38,7 +38,7 @@ class WebPushTest extends TestCase
             'services.webpush.subject' => 'https://giya-ai.app',
         ]);
 
-        $key = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
+        $key = WebPush::newEcKey();
         $ec = openssl_pkey_get_details($key)['ec'];
         $this->browser = [
             'key'    => $key,

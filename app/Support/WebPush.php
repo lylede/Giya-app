@@ -137,7 +137,7 @@ class WebPush
         }
 
         // A fresh key pair for this one message.
-        $ephemeral ??= openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
+        $ephemeral ??= self::newEcKey();
         $d = openssl_pkey_get_details($ephemeral)['ec'];
         $asPublic = "\x04".str_pad($d['x'], 32, "\0", STR_PAD_LEFT).str_pad($d['y'], 32, "\0", STR_PAD_LEFT);
 
@@ -193,13 +193,70 @@ class WebPush
      */
     public static function newKeys(): array
     {
-        $key = openssl_pkey_new(['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC]);
-        $ec = openssl_pkey_get_details($key)['ec'];
+        $ec = openssl_pkey_get_details(self::newEcKey())['ec'];
 
         return [
             'public'  => self::b64e("\x04".str_pad($ec['x'], 32, "\0", STR_PAD_LEFT).str_pad($ec['y'], 32, "\0", STR_PAD_LEFT)),
             'private' => self::b64e(str_pad($ec['d'], 32, "\0", STR_PAD_LEFT)),
         ];
+    }
+
+    /**
+     * A new P-256 key pair.
+     *
+     * On Windows, PHP often cannot find its openssl.cnf and openssl_pkey_new()
+     * fails ("must be of type OpenSSLAsymmetricKey, false given"). Making an EC
+     * key needs nothing from that file, so when the default fails, try the
+     * usual places PHP and XAMPP keep it, then a minimal one of our own.
+     */
+    public static function newEcKey(): \OpenSSLAsymmetricKey
+    {
+        $options = ['curve_name' => 'prime256v1', 'private_key_type' => OPENSSL_KEYTYPE_EC];
+
+        $key = openssl_pkey_new($options);
+        if ($key !== false) {
+            return $key;
+        }
+
+        $phpDir = dirname(PHP_BINARY);
+        $candidates = array_filter([
+            getenv('OPENSSL_CONF') ?: null,
+            $phpDir.'/extras/ssl/openssl.cnf',
+            $phpDir.'/extras/openssl/openssl.cnf',
+            dirname($phpDir).'/apache/conf/openssl.cnf',     // XAMPP
+            'C:/xampp/php/extras/openssl/openssl.cnf',
+            'C:/xampp/apache/conf/openssl.cnf',
+        ]);
+
+        $minimal = null;
+        foreach ([...$candidates, null] as $config) {
+            if ($config === null) {
+                $minimal = tempnam(sys_get_temp_dir(), 'giya-ssl');
+                file_put_contents($minimal, "[req]\ndefault_bits = 2048\ndistinguished_name = req_dn\n[req_dn]\n");
+                $config = $minimal;
+            } elseif (! is_file($config)) {
+                continue;
+            }
+
+            // The bit count is ignored for an EC key, but PHP refuses a config without one.
+            $key = @openssl_pkey_new($options + ['config' => $config, 'private_key_bits' => 2048]);
+            if ($key !== false) {
+                break;
+            }
+        }
+
+        if ($minimal !== null) {
+            @unlink($minimal);
+        }
+        while (openssl_error_string() !== false) {
+            // Clear the "no such file" errors left by the failed tries.
+        }
+
+        if ($key === false) {
+            throw new RuntimeException('OpenSSL could not make a key. Check that the openssl extension is enabled in php.ini.');
+        }
+
+        return $key;
     }
 
     /** GIYA's private key as PEM, rebuilt from the two .env values (SEC1 ECPrivateKey). */

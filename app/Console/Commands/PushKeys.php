@@ -33,7 +33,10 @@ class PushKeys extends Command
 
         $this->line('VAPID_PUBLIC_KEY='.$keys['public']);
         $this->line('VAPID_PRIVATE_KEY='.$keys['private']);
-        $this->line('VAPID_SUBJECT='.rtrim((string) config('app.url'), '/'));
+        // Apple refuses a push whose subject is not https:// or mailto:,
+        // so a local http://localhost APP_URL is no use here.
+        $url = rtrim((string) config('app.url'), '/');
+        $this->line('VAPID_SUBJECT='.(str_starts_with($url, 'https://') && ! str_contains($url, 'localhost') ? $url : 'https://giya-ai.app'));
         $this->newLine();
         $this->info('Put these in .env and in the hosting environment, then run: php artisan config:clear');
         $this->comment('Keep VAPID_PRIVATE_KEY secret. Do not commit it.');
