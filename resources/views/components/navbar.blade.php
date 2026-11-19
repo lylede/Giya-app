@@ -405,6 +405,11 @@
                 </a>
             @endforeach
 
+            {{-- Shown by giya-install.js only where GIYA can be added and is not yet. --}}
+            <button type="button" class="mobile-nav-link mobile-nav-install w-100 text-start bg-transparent border-0" data-giya-install hidden>
+                <i class="bi bi-box-arrow-up-right me-2"></i>{{ __('giya.install.button') }}
+            </button>
+
             @auth
                 <a href="{{ route('app-feedback') }}" @class(['mobile-nav-link', 'active' => request()->routeIs('app-feedback')])>
                     <i class="bi bi-chat-dots me-2"></i>{{ __('giya.app_feedback.link') }}

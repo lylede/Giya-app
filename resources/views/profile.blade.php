@@ -435,6 +435,7 @@
                             <div>
                                 <strong>{{ __('giya.push.ios_title') }}</strong>
                                 <p>{{ __('giya.push.ios_steps') }}</p>
+                                <button type="button" class="btn btn-primary btn-sm mt-2" data-giya-install hidden>{{ __('giya.install.button') }}</button>
                             </div>
                         </div>
                         <p class="push-status" data-push-status role="status" aria-live="polite"></p>

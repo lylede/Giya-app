@@ -143,5 +143,25 @@
 <script src="{{ asset('assets/js/giya-offline.js') }}?v={{ filemtime(public_path('assets/js/giya-offline.js')) }}" defer></script>
 @auth<script>window.GiyaPushText = @json(__('giya.push'));</script>
 <script src="{{ asset('assets/js/giya-push.js') }}?v={{ filemtime(public_path('assets/js/giya-push.js')) }}" defer></script>@endauth
+
+{{-- Add to Home Screen steps, for phones where the browser cannot be asked directly (giya-install.js). --}}
+<div class="modal" id="installModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content install-modal">
+            <img src="{{ asset('images/brand/icon-192.png') }}?v=2" alt="" class="install-modal-icon" width="64" height="64">
+            <div class="modal-title">{{ __('giya.install.title') }}</div>
+            <p class="install-modal-lead">{{ __('giya.install.lead') }}</p>
+            @foreach (['ios', 'android'] as $os)
+                <ol class="install-steps" data-install-steps="{{ $os }}" hidden>
+                    @foreach ([1, 2, 3] as $n)
+                        <li>{{ __("giya.install.{$os}_{$n}") }}</li>
+                    @endforeach
+                </ol>
+            @endforeach
+            <button type="button" class="btn btn-primary btn-w-full" data-modal-close>{{ __('giya.install.done') }}</button>
+        </div>
+    </div>
+</div>
+<script src="{{ asset('assets/js/giya-install.js') }}?v={{ filemtime(public_path('assets/js/giya-install.js')) }}" defer></script>
 </body>
 </html>

@@ -896,4 +896,18 @@ return [
         'no_keys' => 'Wala pa ma-set up ang pahibalo sa telepono sa server: kulang ang VAPID_PUBLIC_KEY ug VAPID_PRIVATE_KEY.',
         'ask_no' => 'Dili sa karon',
     ],
+
+    // Add to Home Screen: the menu button and its steps (giya-install.js).
+    'install' => [
+        'button' => 'Idugang ang GIYA sa Home Screen',
+        'title' => 'Idugang ang GIYA sa imong Home Screen',
+        'lead' => 'Ablihi ang GIYA sama sa app, puno ang screen, uban ang pahibalo sa telepono.',
+        'ios_1' => 'I-tap ang Share (ang kahon nga may pana pataas).',
+        'ios_2' => 'I-scroll paubos ug i-tap ang Add to Home Screen.',
+        'ios_3' => 'I-tap ang Add, unya ablihi ang GIYA gikan sa bag-ong icon.',
+        'android_1' => 'I-tap ang menu sa browser (ang tulo ka tuldok).',
+        'android_2' => 'I-tap ang Add to Home screen o Install app.',
+        'android_3' => 'I-tap ang Install o Add, unya ablihi ang GIYA gikan sa bag-ong icon.',
+        'done' => 'Sige',
+    ],
 ];

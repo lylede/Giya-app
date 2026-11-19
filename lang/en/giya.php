@@ -906,4 +906,18 @@ return [
         'no_keys' => "Phone notifications aren't set up on the server yet: VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY are missing.",
         'ask_no' => 'Not now',
     ],
+
+    // Add to Home Screen: the menu button and its steps (giya-install.js).
+    'install' => [
+        'button' => 'Add GIYA to Home Screen',
+        'title' => 'Add GIYA to your Home Screen',
+        'lead' => 'Open GIYA like an app, full screen, with phone notifications.',
+        'ios_1' => 'Tap the Share button (the square with an arrow pointing up).',
+        'ios_2' => 'Scroll down and tap Add to Home Screen.',
+        'ios_3' => 'Tap Add, then open GIYA from its new icon.',
+        'android_1' => 'Tap the browser menu (the three dots).',
+        'android_2' => 'Tap Add to Home screen or Install app.',
+        'android_3' => 'Tap Install or Add, then open GIYA from its new icon.',
+        'done' => 'Got it',
+    ],
 ];
