@@ -286,4 +286,28 @@ class FreeItineraryUsageTest extends TestCase
             ->assertDontSee('of 3 used')
             ->assertDontSee('Go Premium');
     }
+
+    public function test_at_the_limit_the_page_offers_premium_and_never_says_to_delete_one(): void
+    {
+        $user = $this->devotee();
+        foreach (['One', 'Two', 'Three'] as $name) {
+            $this->plan($user, 'Custom', $name);
+        }
+
+        $this->actingAs($user)->get(route('plan.index'))
+            ->assertOk()
+            ->assertSee(__('giya.plan.unlock_desc', ['limit' => 3]))
+            ->assertSee(route('upgrade'), false)
+            ->assertSee(__('giya.plan.unlock_btn'));
+
+        // Deleting never gives a slot back, so no wording, in any language, may suggest it.
+        foreach (['en', 'ceb', 'fil'] as $locale) {
+            foreach (['giya.plan.unlock_desc', 'giya.share.limit'] as $key) {
+                $text = strtolower(trans($key, ['limit' => 3], $locale));
+                $this->assertStringNotContainsString('delete one', $text);
+                $this->assertStringNotContainsString('magbura ng isa', $text);
+                $this->assertStringNotContainsString('papasa ang usa', $text);
+            }
+        }
+    }
 }

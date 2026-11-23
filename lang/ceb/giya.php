@@ -340,7 +340,8 @@ return [
         'title_active'      => 'Aktibong Peregrinasyon',
         'visited_b'         => 'Nabisitahan',
         'stops_count'       => ':count ka hunongan',
-        'unlock_desc'       => 'Nagamit na ang tanan nga :limit ka libreng slot. Papasa ang usa aron makapadayon sa pagplano.',
+        'unlock_desc'       => 'Nagamit na nimo ang tanan nga :limit ka libreng itinerary. Ang pagpapas og usa dili mobalik sa libreng slot. Mag-upgrade sa Premium aron makaplano kutob sa imong gusto.',
+        'unlock_btn'        => 'Mag-upgrade sa Premium',
         'at_limit_note'     => 'Mokuha ug Premium alang sa walay kinutuban nga ruta - ang pagpapas dili makabalik ug slot.',
         'slots_left'        => ':count sa :limit ka libreng slot ang nahibilin - ang gipapas nga itinerary maihap gihapon.',
         'act_view'          => 'Tan-awa',
@@ -780,7 +781,7 @@ return [
         'copy_help' => 'I-save ang kopya aron lakwon kini nga ruta uban sa imong kaugalingong progreso ug pahinumdom.',
         'copy' => 'I-save ang kopya sa akong itinerary',
         'copied' => 'Na-save sa imong itinerary. Bulahan nga pilgrimage!',
-        'limit' => 'Naabot na nimo ang libre nga limit sa itinerary. Mag-upgrade o papasa ang usa aron ma-save kini nga ruta.',
+        'limit' => 'Nagamit na nimo ang tanan nimong libreng itinerary. Mag-upgrade sa Premium aron ma-save kini nga ruta.',
     ],
 
     'visit' => [

@@ -340,7 +340,8 @@ return [
         'title_active'      => 'Aktibong Peregrinasyon',
         'visited_b'         => 'Nabisita',
         'stops_count'       => ':count na hinto',
-        'unlock_desc'       => 'Nagamit na ang lahat ng :limit na libreng slot. Magbura ng isa para makapagpatuloy sa pagpaplano.',
+        'unlock_desc'       => "Nagamit mo na ang lahat ng :limit libreng itinerary. Hindi naibabalik ang libreng slot kapag nagbura ka ng isa. Mag-upgrade sa Premium para makapagplano hangga't gusto mo.",
+        'unlock_btn'        => 'Mag-upgrade sa Premium',
         'at_limit_note'     => 'Kumuha ng Premium para sa walang limitasyong ruta - ang pagbura ay hindi nagbabalik ng slot.',
         'slots_left'        => ':count sa :limit na libreng slot ang natitira - binibilang pa rin ang mga binurang itinerary.',
         'act_view'          => 'Tingnan',
@@ -780,7 +781,7 @@ return [
         'copy_help' => 'Mag-save ng kopya para lakarin ang rutang ito na may sariling progreso at paalala.',
         'copy' => 'I-save ang kopya sa aking mga itinerary',
         'copied' => 'Na-save sa iyong mga itinerary. Pagpalain ang iyong pilgrimage!',
-        'limit' => 'Naabot mo na ang libreng limit ng itinerary. Mag-upgrade o magbura ng isa para ma-save ang rutang ito.',
+        'limit' => 'Nagamit mo na ang lahat ng libreng itinerary mo. Mag-upgrade sa Premium para ma-save ang rutang ito.',
     ],
 
     'visit' => [

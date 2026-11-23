@@ -175,9 +175,14 @@
                     <div>
                         <p style="font-size: 0.875rem;font-weight:700;color:var(--text);margin:0 0 6px">{{ __('giya.plan.unlock_more') }}</p>
                         <p style="font-size: 0.75rem;color:var(--text-muted);line-height:1.6;margin:0">
+                            {{-- Deleted itineraries still count (they stay on record), so
+                                 the way on is Premium; deleting never frees a slot. --}}
                             {{ __('giya.plan.unlock_desc', ['limit' => $limit]) }}
                         </p>
                     </div>
+                    <a href="{{ route('upgrade') }}" class="btn btn-primary">
+                        <i class="bi bi-gem" aria-hidden="true"></i> {{ __('giya.plan.unlock_btn') }}
+                    </a>
                 </div>
             @endif
         </div>

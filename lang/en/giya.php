@@ -350,7 +350,8 @@ return [
         'title_active'      => 'Active Pilgrimage',
         'visited_b'         => 'Visited',
         'stops_count'       => ':count stops',
-        'unlock_desc'       => 'All :limit free slots are in use. Delete one to continue planning.',
+        'unlock_desc'       => 'You have used all :limit free itineraries. Deleting one does not give a free slot back. Upgrade to Premium to plan as many as you like.',
+        'unlock_btn'        => 'Upgrade to Premium',
         'at_limit_note'     => 'Go Premium for unlimited routes - deleting one does not free a slot.',
         'slots_left'        => ':count of :limit free slots left - deleted itineraries still count.',
         'act_view'          => 'View',
@@ -790,7 +791,7 @@ return [
         'copy_help' => 'Save a copy to walk this route with your own progress and reminders.',
         'copy' => 'Save a copy to my itineraries',
         'copied' => 'Saved to your itineraries. Have a blessed pilgrimage!',
-        'limit' => 'You have reached the free limit of itineraries. Upgrade or delete one to save this route.',
+        'limit' => 'You have used all your free itineraries. Upgrade to Premium to save this route.',
     ],
 
     'visit' => [
