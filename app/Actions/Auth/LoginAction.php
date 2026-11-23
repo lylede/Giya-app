@@ -31,7 +31,11 @@ class LoginAction
             ]);
         }
 
-        if (! Auth::attempt($credentials, $remember)) {
+        // Admins are never kept signed in by the "Remember me" cookie: their
+        // sessions end after 30 minutes without activity (AdminIdleTimeout).
+        $isAdmin = User::where('email', $credentials['email'] ?? '')->value('role') === 'admin';
+
+        if (! Auth::attempt($credentials, $remember && ! $isAdmin)) {
             RateLimiter::hit($key, self::LOCKOUT_SECONDS);
 
             throw ValidationException::withMessages([

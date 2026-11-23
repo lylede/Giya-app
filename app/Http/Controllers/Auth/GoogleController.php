@@ -97,7 +97,8 @@ class GoogleController extends Controller
             $user->forceFill(['email_verified_at' => now()])->saveQuietly();
         }
 
-        Auth::login($user, remember: true);
+        // Pilgrims stay signed in; admins time out (AdminIdleTimeout).
+        Auth::login($user, remember: ! $user->isAdmin());
         $request->session()->regenerate();
         $user->forceFill(['last_seen_at' => now()])->saveQuietly();
 

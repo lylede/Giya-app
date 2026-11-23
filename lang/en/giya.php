@@ -926,4 +926,10 @@ return [
         'android_3' => 'Tap Install or Add, then open GIYA from its new icon.',
         'done' => 'Got it',
     ],
+
+    // After a long pause: a refused tap, or signed out (giya-session.js).
+    'session' => [
+        'tap_again' => 'GIYA refreshed this page after a long pause. Please tap that again.',
+        'sign_in_again' => 'You were signed out. Sign in to continue where you left off.',
+    ],
 ];

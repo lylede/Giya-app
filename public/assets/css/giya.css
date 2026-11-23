@@ -8372,3 +8372,11 @@ html[data-theme="dark"] .admin-topbar .adm-theme:hover { background: rgba(215, 1
 .install-steps { text-align: left; margin: 0 0 20px; padding-left: 1.25rem; font-size: 0.9375rem; color: var(--text); }
 .install-steps li { margin-bottom: 10px; line-height: 1.45; }
 .install-steps[hidden] { display: none; }
+
+/* Admin "Still there?" box before the idle sign-out (giya-session.js). */
+.admin-idle { position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 12, 10, 0.45); }
+.admin-idle[hidden] { display: none; }
+.admin-idle-card { background: var(--bg-input, #fff); color: var(--text); border-radius: 16px; padding: 24px; max-width: 360px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.25); text-align: center; }
+.admin-idle-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 6px; }
+.admin-idle-text { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 16px; }
+.admin-idle-text b { color: var(--primary); font-variant-numeric: tabular-nums; }

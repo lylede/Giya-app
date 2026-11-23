@@ -8,6 +8,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Admins are signed out after this many seconds without activity (AdminIdleTimeout). --}}
+    <meta name="giya-admin-idle" content="{{ \App\Http\Middleware\AdminIdleTimeout::IDLE_SECONDS }}">
+    {{-- Before the other scripts: repeats a tap refused after a long pause (giya-session.js). --}}
+    <script src="{{ asset('assets/js/giya-session.js') }}?v={{ filemtime(public_path('assets/js/giya-session.js')) }}"></script>
     <title>GIYA Admin - @yield('title')</title>
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/logo/giya-logo.svg') }}?v=2">

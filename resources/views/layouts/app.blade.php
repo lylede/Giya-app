@@ -7,6 +7,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Before the other scripts: repeats a tap refused after a long pause (giya-session.js). --}}
+    <script src="{{ asset('assets/js/giya-session.js') }}?v={{ filemtime(public_path('assets/js/giya-session.js')) }}"></script>
     @auth
         @if (\App\Support\WebPush::enabled())
     <meta name="giya-push-key" content="{{ \App\Support\WebPush::publicKey() }}">

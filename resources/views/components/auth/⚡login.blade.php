@@ -8,7 +8,9 @@ new class extends Component
 {
     public string $email = '';
     public string $password = '';
-    public bool $remember = false;
+    // Ticked by default: pilgrims stay signed in during long trips. (Admins
+    // are never remembered; see LoginAction.)
+    public bool $remember = true;
 
     public function login(): void
     {

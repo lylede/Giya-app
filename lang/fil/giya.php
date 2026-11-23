@@ -916,4 +916,10 @@ return [
         'android_3' => 'I-tap ang Install o Add, saka buksan ang GIYA mula sa bagong icon.',
         'done' => 'Sige',
     ],
+
+    // After a long pause: a refused tap, or signed out (giya-session.js).
+    'session' => [
+        'tap_again' => 'Ni-refresh ng GIYA ang pahinang ito matapos ang mahabang paghinto. Pakitap ulit iyon.',
+        'sign_in_again' => 'Na-sign out ka. Mag-sign in para magpatuloy kung saan ka huminto.',
+    ],
 ];

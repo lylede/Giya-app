@@ -73,7 +73,7 @@
     }
 
     function load(quiet) {
-        return fetch('/notifications', { headers: { 'Accept': 'application/json' } })
+        return fetch('/notifications', { headers: quiet ? { 'Accept': 'application/json', 'X-Giya-Background': '1' } : { 'Accept': 'application/json' } })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 /* The count always updates. The list only redraws when the

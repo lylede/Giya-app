@@ -248,6 +248,12 @@ Route::middleware('auth')->prefix('notifications')->name('notifications.')->grou
     Route::delete('/',                 [\App\Http\Controllers\NotificationController::class, 'clear'])->name('clear');
 });
 
+// A page left open for hours gets a fresh form token here (giya-session.js).
+Route::get('/session/refresh', [\App\Http\Controllers\SessionController::class, 'refresh'])->name('session.refresh');
+Route::post('/admin/keep-alive', [\App\Http\Controllers\SessionController::class, 'keepAlive'])
+    ->middleware(['auth', 'admin'])->name('admin.keep-alive');
+Route::post('/admin/idle-sign-out', [\App\Http\Controllers\SessionController::class, 'idleSignOut'])->name('admin.idle-sign-out');
+
 // Phone notifications (Web Push): the browser's subscription.
 Route::middleware(['auth', 'throttle:20,1'])->prefix('push')->name('push.')->group(function () {
     Route::post('/subscribe',   [\App\Http\Controllers\PushController::class, 'subscribe'])->name('subscribe');

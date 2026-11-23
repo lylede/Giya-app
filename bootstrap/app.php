@@ -39,6 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\EnsureAccountIsActive::class,
+            // Admins only: signed out after 30 minutes without activity.
+            \App\Http\Middleware\AdminIdleTimeout::class,
             // After the account check: a suspended admin is signed out first.
             \App\Http\Middleware\MaintenanceMode::class,
             \App\Http\Middleware\DeliverDueReminders::class,
@@ -53,6 +55,30 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // A page left open for hours sends an old form token. Instead of the
+        // bare "Page Expired" screen: a fetch gets a JSON answer the page can
+        // recover from (giya-session.js refreshes the token and tries again),
+        // and a form goes back to its page, fresh, or to sign in and back.
+        // (Laravel has already turned the token error into a 419 by this point.)
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, \Illuminate\Http\Request $request) {
+            if ($e->getStatusCode() !== 419) {
+                return null;
+            }
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'reason' => 'session_expired', 'message' => __('giya.session.tap_again')], 419);
+            }
+            $back = url()->previous();
+            if (! \Illuminate\Support\Facades\Auth::check()) {
+                if (str_starts_with($back, url('/'))) {
+                    $request->session()->put('url.intended', $back);
+                }
+
+                return redirect()->route('login')->with('warning', __('giya.session.sign_in_again'));
+            }
+
+            return redirect()->to($back)->with('warning', __('giya.session.tap_again'));
+        });
+
         // Tell the team (Discord/Slack webhook or email) when the live site breaks.
         $exceptions->report(fn (\Throwable $e) => \App\Support\ErrorAlert::report($e));
     })->create();
