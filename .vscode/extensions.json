@@ -1,0 +1,7 @@
+{
+    // VS Code offers these when the project is opened. The Laravel extension
+    // understands Blade (highlighting, @json, {{ }}, routes and views).
+    "recommendations": [
+        "laravel.vscode-laravel"
+    ]
+}

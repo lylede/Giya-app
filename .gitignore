@@ -10,7 +10,10 @@
 /.idea
 /.nova
 /.phpunit.cache
-/.vscode
+/.vscode/*
+# Shared with the team: how VS Code reads Blade, and the Laravel extension.
+!/.vscode/settings.json
+!/.vscode/extensions.json
 /.zed
 /auth.json
 /node_modules

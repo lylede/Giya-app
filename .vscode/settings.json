@@ -1,0 +1,18 @@
+{
+    // Blade pages (*.blade.php) mix Blade with HTML, CSS and JavaScript:
+    // @json(...), {{ ... }}, {!! ... !!}, @if ... Laravel turns these into
+    // plain code before the browser sees them, but VS Code's own CSS and
+    // JavaScript checkers read the file before that, so every Blade line
+    // inside <script> or style="" showed as an error ("Decorators are not
+    // valid here", "Expression expected", "property value expected").
+    // They are not bugs: the test suite and the pages themselves are the
+    // real check (php artisan test).
+    "files.associations": {
+        "*.blade.php": "blade"
+    },
+    "html.validate.scripts": false,
+    "html.validate.styles": false,
+    "emmet.includeLanguages": {
+        "blade": "html"
+    }
+}
