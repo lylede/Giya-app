@@ -22,10 +22,19 @@ class ChatMessage extends Model
         return str_starts_with($url, '/') && ! str_starts_with($url, '//') ? $url : null;
     }
 
+    /** The free limit was reached: the button leads to Premium, not the planner. */
+    public function isUpgradeLink(): bool
+    {
+        return str_starts_with((string) $this->planLink(), '/upgrade');
+    }
+
     /** The button's words: a planned route, or the churches an answer named. */
     public function planLabel(): string
     {
         $url = (string) $this->planLink();
+        if ($this->isUpgradeLink()) {
+            return __('giya.chat.upgrade_btn');
+        }
         if (! str_contains($url, 'picked=1')) {
             return __('giya.route.open');
         }

@@ -562,6 +562,11 @@ return [
     ],
 
     'chat' => [
+        // Free limits: itineraries and daily questions (ChatbotController).
+        'itinerary_limit' => 'Nagamit na nimo ang imong :limit ka libreng itinerary, busa dili ko makaplano og bag-ong biyahe para nimo. Sa Premium (semana-semana o binulan) makaplano ka kutob sa imong gusto. Maablihan gihapon nimo ang mga itinerary nga nahimo na nimo, ug andam ko motubag bahin sa mga simbahan ug oras sa Misa.',
+        'daily_limit' => 'Nahuman na nimo ang imong :limit ka libreng pangutana karong adlawa. Balik ugma, o mag-upgrade sa Premium aron makapangutana kutob sa imong gusto.',
+        'upgrade_btn' => 'Mag-upgrade sa Premium',
+        'left' => ':count ka libreng pangutana ang nabilin karong adlawa',
         'history' => 'Kasaysayan',
         'history_title' => 'Imong mga chat',
         'history_search' => 'Pangitaa ang imong mga chat',

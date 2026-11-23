@@ -572,6 +572,11 @@ return [
     ],
 
     'chat' => [
+        // Free limits: itineraries and daily questions (ChatbotController).
+        'itinerary_limit' => 'You have used your :limit free itineraries, so I cannot plan a new trip for you. Premium (weekly or monthly) lets you plan as many as you like. You can still open the itineraries you already made, and I am happy to answer anything about churches and Mass times.',
+        'daily_limit' => 'You have asked your :limit free questions for today. Come back tomorrow, or upgrade to Premium to ask as many as you like.',
+        'upgrade_btn' => 'Upgrade to Premium',
+        'left' => ':count free questions left today',
         'history' => 'History',
         'history_title' => 'Your chats',
         'history_search' => 'Search your chats',

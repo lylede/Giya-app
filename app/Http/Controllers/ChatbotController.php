@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ChatMessage;
 use App\Models\ChatSession;
+use App\Models\Itinerary;
 use App\Services\GiyaAssistant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -134,6 +135,22 @@ class ChatbotController extends Controller
 
         RateLimiter::hit($key, 60);
 
+        $user = Auth::user();
+        $free = ! $user->is_premium && ! $user->isAdmin();
+
+        /* Free devotees get DAILY_FREE questions a day (Cebu time); Premium
+           and admins are unlimited. The question is not kept, so the
+           conversation does not fill with unanswered questions. */
+        if ($free && $this->questionsToday($user->id) >= self::DAILY_FREE) {
+            return response()->json([
+                'ok'       => false,
+                'reason'   => 'daily_limit',
+                'mood'     => 'sorry',
+                'reply'    => __('giya.chat.daily_limit', ['limit' => self::DAILY_FREE]),
+                'plan_url' => route('upgrade', [], false),
+            ]);
+        }
+
         $session = $this->currentSession();
 
         $question = ChatMessage::create([
@@ -164,7 +181,9 @@ class ChatbotController extends Controller
             ->where('created_at', '>=', now()->subMinutes(30))
             ->count();
 
-        $result = $this->assistant->ask($data['message'], $history, $streak);
+        $result = $this->assistant
+            ->atItineraryLimit($free && Itinerary::atFreeLimit($user))
+            ->ask($data['message'], $history, $streak);
 
         /* "Giya is catching its breath" is not an answer. Neither it nor the
            question is kept, so "Ask again" does not leave the question twice
@@ -203,7 +222,24 @@ class ChatbotController extends Controller
             'plan_url' => $result['plan_url'] ?? null,
             'reply'   => $answer->message,
             'when'    => $answer->created_at->format('g:i A'),
+            // Free devotees: how many questions are left today (null when unlimited).
+            'left'    => $free ? max(0, self::DAILY_FREE - $this->questionsToday($user->id)) : null,
         ]);
+    }
+
+    /** Questions a free devotee may ask Giya AI per day. */
+    public const DAILY_FREE = 20;
+
+    /** This devotee's questions since midnight in Cebu, across all conversations. */
+    protected function questionsToday(int $userId): int
+    {
+        // Midnight in Cebu, in the app's own timezone (the one created_at is written in).
+        $midnight = now()->timezone('Asia/Manila')->startOfDay()->timezone(config('app.timezone'));
+
+        return ChatMessage::where('sender_type', 'user')
+            ->where('created_at', '>=', $midnight)
+            ->whereIn('session_id', ChatSession::where('user_id', $userId)->select('id'))
+            ->count();
     }
 
     public function reset(): RedirectResponse

@@ -331,7 +331,7 @@
                                     <span class="guide-lamp"></span>
                                 </span>
                             </span>
-                            <div class="chat-bubble chat-bubble-bot">{!! \App\Support\Text::chatHtml($m->message) !!}@if ($m->planLink())<a class="chat-plan-link" href="{{ $m->planLink() }}"><i class="bi bi-map"></i> {{ $m->planLabel() }}</a>@endif</div>
+                            <div class="chat-bubble chat-bubble-bot">{!! \App\Support\Text::chatHtml($m->message) !!}@if ($m->planLink())<a class="chat-plan-link" href="{{ $m->planLink() }}"><i class="bi {{ $m->isUpgradeLink() ? 'bi-gem' : 'bi-map' }}"></i> {{ $m->planLabel() }}</a>@endif</div>
                         </div>
                     @endif
                 @endforeach
@@ -664,13 +664,14 @@
        planned, another when the answer named GIYA churches (picked=1),
        singular when it named just one. */
     function planLabel(url, labels) {
+        if (url.indexOf('/upgrade') === 0) return labels.upgrade;
         if (url.indexOf('picked=1') === -1) return labels.route;
         var m = /[?&]stops=([^&]*)/.exec(url);
         var n = m ? decodeURIComponent(m[1]).split(',').length : 0;
         return n === 1 ? labels.one : labels.many;
     }
 
-    function addBot(text, ok, mood, planUrl) {
+    function addBot(text, ok, mood, planUrl, note) {
         const typing = document.getElementById('chatTyping');
         if (typing) typing.remove();
 
@@ -694,13 +695,16 @@
                 fmt(text) +
                 // A route Giya planned: one tap opens its stops on the planner map.
                 (planUrl && planUrl.indexOf('/') === 0 && planUrl.indexOf('//') !== 0
-                    ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi bi-map"></i> ' +
+                    ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi ' + (planUrl.indexOf('/upgrade') === 0 ? 'bi-gem' : 'bi-map') + '"></i> ' +
                       esc(planLabel(planUrl, {
-                          route: @json(__('giya.route.open')),
-                          many:  @json(__('giya.route.picked')),
-                          one:   @json(__('giya.route.picked_one'))
+                          route:   @json(__('giya.route.open')),
+                          many:    @json(__('giya.route.picked')),
+                          one:     @json(__('giya.route.picked_one')),
+                          upgrade: @json(__('giya.chat.upgrade_btn'))
                       })) + '</a>'
                     : '') +
+                // Free devotees, near the day's limit: how many questions are left.
+                (note ? '<p class="chat-left">' + esc(note) + '</p>' : '') +
             '</div>';
         log.appendChild(row);
         scroll();
@@ -755,7 +759,8 @@
             .then(r => r.json())
             .then(d => d.reason === 'busy'
                 ? addBusy(d.reply, d.retry_after, text)
-                : addBot(d.reply || @json(__('giya.chat.error')), d.ok, d.mood, d.plan_url))
+                : addBot(d.reply || @json(__('giya.chat.error')), d.ok, d.mood, d.plan_url,
+                    typeof d.left === 'number' && d.left <= 5 ? @json(__('giya.chat.left')).replace(':count', d.left) : null))
             .catch(() => addBot(@json(__('giya.chat.unreachable')), false))
             .finally(() => {
                 input.disabled = send.disabled = false;

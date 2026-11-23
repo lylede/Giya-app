@@ -92,6 +92,21 @@ class GiyaAssistant
     /** What GIYA knows about the signed-in devotee, worked out once per question. */
     protected ?string $devotee = null;
 
+    /**
+     * The devotee has used up the free itineraries (not Premium). Giya then
+     * answers questions as usual but does not plan a new trip: a route
+     * request gets the limit and an Upgrade button instead, and an answer's
+     * trip button becomes that Upgrade button.
+     */
+    protected bool $atItineraryLimit = false;
+
+    public function atItineraryLimit(bool $at = true): static
+    {
+        $this->atItineraryLimit = $at;
+
+        return $this;
+    }
+
     public function configured(): bool
     {
         return filled(config('services.groq.key'));
@@ -126,6 +141,18 @@ class GiyaAssistant
            guessed travel times and once put Compostela (north) 20 minutes
            from Dumanjug (south west). */
         $this->plan = app(RoutePlanner::class)->plan($question, $history);
+
+        if ($this->plan && $this->atItineraryLimit) {
+            $this->plan = null;
+
+            return [
+                'ok'       => true,
+                'reason'   => 'itinerary_limit',
+                'mood'     => 'sorry',
+                'reply'    => Text::withoutLongDashes(__('giya.chat.itinerary_limit', ['limit' => \App\Http\Controllers\ItineraryController::FREE_LIMIT])),
+                'plan_url' => route('upgrade', [], false),
+            ];
+        }
 
         if (! $this->configured()) {
             return $this->withPlan([
@@ -224,6 +251,15 @@ class GiyaAssistant
      */
     protected function withPlan(array $result): array
     {
+        if ($this->atItineraryLimit) {
+            // Churches named in the answer would open a planner that cannot save.
+            if ($this->namedChurchIds((string) ($result['reply'] ?? ''))) {
+                $result['plan_url'] = route('upgrade', [], false);
+            }
+
+            return $result;
+        }
+
         if ($this->plan) {
             // Relative, so it stays on whichever site the devotee is using (Vercel or Render).
             $result['plan_url'] = route('plan.create', ['stops' => implode(',', $this->plan['ids'])], false);
@@ -828,6 +864,14 @@ For this question recommend ONLY churches from this list, nearest first, with th
 
         $me = $this->aboutDevotee();
 
+        $limit = $this->atItineraryLimit
+            ? "\nFREE LIMIT: This devotee has used all ".\App\Http\Controllers\ItineraryController::FREE_LIMIT.' free itineraries '
+              .'and is not on Premium. Still answer questions about churches, Mass times, history and directions fully. '
+              .'But if they ask you to plan, build or suggest a trip, route, itinerary or Visita Iglesia, do NOT draw one up '
+              .'and do NOT list churches as a route: say kindly that they have used their free itineraries, that Premium '
+              .'(weekly or monthly) lets them plan more, and that they can still open the itineraries they already made.'
+            : '';
+
         // The time in Cebu, so a greeting back fits the hour.
         $clock = now()->timezone(config('app.timezone'))->format('g:i A');
         $greet = \App\Support\Greeting::word();
@@ -957,7 +1001,7 @@ For this question recommend ONLY churches from this list, nearest first, with th
         FULL RECORDS for the destinations this conversation is about:
         {$details}
         {$festivals}
-        {$region}{$route}{$this->near}{$tired}
+        {$region}{$route}{$this->near}{$tired}{$limit}
         {$me}
 
         Now answer the devotee's latest message directly, starting with the mood tag. No self-introduction.

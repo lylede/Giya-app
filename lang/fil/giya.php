@@ -562,6 +562,11 @@ return [
     ],
 
     'chat' => [
+        // Free limits: itineraries and daily questions (ChatbotController).
+        'itinerary_limit' => "Nagamit mo na ang iyong :limit libreng itinerary, kaya hindi ako makapagplano ng bagong biyahe para sa iyo. Sa Premium (lingguhan o buwanan) makakapagplano ka hangga't gusto mo. Mabubuksan mo pa rin ang mga itinerary na nagawa mo na, at handa akong sumagot tungkol sa mga simbahan at oras ng Misa.",
+        'daily_limit' => "Naubos mo na ang iyong :limit libreng tanong para ngayong araw. Bumalik bukas, o mag-upgrade sa Premium para makapagtanong hangga't gusto mo.",
+        'upgrade_btn' => 'Mag-upgrade sa Premium',
+        'left' => ':count libreng tanong na lang ngayong araw',
         'history' => 'Kasaysayan',
         'history_title' => 'Iyong mga chat',
         'history_search' => 'Hanapin ang iyong mga chat',

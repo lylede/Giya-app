@@ -93,6 +93,8 @@
                 data-open-route="{{ __('giya.route.open') }}"
                 data-plan-picked="{{ __('giya.route.picked') }}"
                 data-plan-picked-one="{{ __('giya.route.picked_one') }}"
+                data-upgrade="{{ __('giya.chat.upgrade_btn') }}"
+                data-left="{{ __('giya.chat.left') }}"
                 {{-- The bubble above the robot speaks up on every page it is on: a
                      short line when the page opens, then every 30 seconds. The
                      first line fits the page; then it rotates through the rest. --}}

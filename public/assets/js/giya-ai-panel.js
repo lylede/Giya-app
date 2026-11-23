@@ -202,13 +202,14 @@
        planned, another when the answer named GIYA churches (picked=1),
        singular when it named just one. */
     function planLabel(url, labels) {
+        if (url.indexOf('/upgrade') === 0) return labels.upgrade;
         if (url.indexOf('picked=1') === -1) return labels.route;
         var m = /[?&]stops=([^&]*)/.exec(url);
         var n = m ? decodeURIComponent(m[1]).split(',').length : 0;
         return n === 1 ? labels.one : labels.many;
     }
 
-    function addBot(text, ok, mood, planUrl) {
+    function addBot(text, ok, mood, planUrl, note) {
         var typing = document.getElementById('giyaPanelTyping');
         if (typing) typing.remove();
 
@@ -235,13 +236,16 @@
                     .replace(/\n/g, '<br>') +
                 // A route Giya planned: one tap opens its stops on the planner map.
                 (planUrl && planUrl.indexOf('/') === 0 && planUrl.indexOf('//') !== 0
-                    ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi bi-map"></i> ' +
+                    ? '<a class="chat-plan-link" href="' + esc(planUrl) + '"><i class="bi ' + (planUrl.indexOf('/upgrade') === 0 ? 'bi-gem' : 'bi-map') + '"></i> ' +
                       esc(planLabel(planUrl, {
-                          route: fab.dataset.openRoute || 'Open this route in the planner',
-                          many:  fab.dataset.planPicked || 'Plan a trip with these churches',
-                          one:   fab.dataset.planPickedOne || 'Plan a trip to this church'
+                          route:   fab.dataset.openRoute || 'Open this route in the planner',
+                          many:    fab.dataset.planPicked || 'Plan a trip with these churches',
+                          one:     fab.dataset.planPickedOne || 'Plan a trip to this church',
+                          upgrade: fab.dataset.upgrade || 'Upgrade to Premium'
                       })) + '</a>'
                     : '') +
+                // Free devotees, near the day's limit: how many questions are left.
+                (note ? '<p class="chat-left">' + esc(note) + '</p>' : '') +
             '</div>';
         log.appendChild(row);
         scroll();
@@ -296,7 +300,8 @@
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (d.reason === 'busy') addBusy(d.reply, d.retry_after, text);
-                else addBot(d.reply || 'Something went wrong. Try again.', d.ok, d.mood, d.plan_url);
+                else addBot(d.reply || 'Something went wrong. Try again.', d.ok, d.mood, d.plan_url,
+                    typeof d.left === 'number' && d.left <= 5 && fab.dataset.left ? fab.dataset.left.replace(':count', d.left) : null);
             })
             .catch(function () { addBot('I could not reach the server. Try again in a moment.', false); })
             .finally(function () {
