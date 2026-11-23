@@ -18,7 +18,7 @@
 @endphp
 
 @section('content')
-<x-legal-page :title="__('giya.legal.privacy')" updated="10 November 2026" :sections="$sections">
+<x-legal-page :title="__('giya.legal.privacy')" updated="24 November 2026" :sections="$sections">
     <p>GIYA is a pilgrimage companion for the churches of Cebu. This policy explains what personal data GIYA keeps, why, and what you can do about it, in line with the Data Privacy Act of 2012 (Republic Act No. 10173).</p>
 
     <h2 id="collect">1. What GIYA collects</h2>
@@ -53,7 +53,7 @@
     <h2 id="share">6. Who else handles your data</h2>
     <p>GIYA uses these services to run, and they process data only to provide their service to GIYA:</p>
     <ul>
-        <li><strong>Vercel</strong> and <strong>Render</strong>: host the website.</li>
+        <li><strong>Vercel</strong>: hosts the website.</li>
         <li><strong>Neon</strong>: stores the database.</li>
         <li><strong>Supabase</strong>: stores uploaded photos.</li>
         <li><strong>Groq</strong>: answers Giya AI messages.</li>
