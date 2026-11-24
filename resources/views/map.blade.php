@@ -349,6 +349,15 @@
         <button type="button" class="arrive-undo" id="visitToastUndo">{{ __('giya.visit.undo') }}</button>
     </div>
 @endauth
+
+{{-- The guided tour, once per account, after the map has loaded. --}}
+<x-tour name="map" wait-for=".giya-map-shell.is-map-ready" :steps="[
+    ['.mx-search-field', 'search'],
+    ['.mx-chips', 'chips', true],
+    ['#churchList [data-add]', 'add', true],
+    ['#routeBox', 'tray'],
+    ['#btnLocate', 'locate', true],
+]" />
 @endsection
 
 @push('scripts')

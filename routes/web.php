@@ -55,6 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::get('/home',    [HomeController::class, 'index'])->name('home');
+    // The guided tour: finished or skipped (a beacon), and shown again.
+    Route::post('/tour/done',   [\App\Http\Controllers\TourController::class, 'done'])->middleware('throttle:giya-actions')->name('tour.done');
+    Route::post('/tour/replay', [\App\Http\Controllers\TourController::class, 'replay'])->name('tour.replay');
 Route::get('/search/churches', [HomeController::class, 'search'])->middleware('throttle:giya-actions')->name('search.churches');
     Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot');
     Route::get('/chatbot/history', [ChatbotController::class, 'history'])->name('chatbot.history');

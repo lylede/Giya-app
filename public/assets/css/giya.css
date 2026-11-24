@@ -8636,3 +8636,39 @@ html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important;
 @media (max-width: 1024px) {
   .active-layout .is-map-turned > .giya-turn-credit { bottom: var(--ap-sheet, 0px); }
 }
+
+/* ── The guided tour (giya-tour.js) ──
+   The screen dims to 55%, one button stays lit with a gold ring, and a card
+   beside it says what it is for. */
+.gt-root { position: fixed; inset: 0; z-index: 6000; pointer-events: none; }
+.gt-strip { position: fixed; pointer-events: auto; background: transparent; }
+.gt-root.is-whole .gt-strip:first-child { background: rgba(20, 14, 10, .55); }
+.gt-ring {
+  position: fixed; pointer-events: auto; border-radius: 14px;
+  box-shadow: 0 0 0 3px var(--gold, #D7A94A), 0 0 0 9999px rgba(20, 14, 10, .55);
+  transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease;
+}
+.gt-root.is-open .gt-ring { pointer-events: none; }   /* the lit button can be tapped */
+.gt-ring[hidden] { display: none; }
+.gt-card {
+  position: fixed; pointer-events: auto;
+  background: var(--surface, #fff); color: var(--text, #241C18);
+  border-radius: 16px; padding: 16px 16px 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+  transition: left .25s ease, top .25s ease;
+}
+.gt-count { margin: 0 0 4px; font-size: .75rem; font-weight: 700; color: var(--text-muted); }
+.gt-title { margin: 0 0 6px; font-family: var(--font-display); font-size: 1.125rem; color: var(--primary); }
+.gt-body { margin: 0; font-size: .875rem; line-height: 1.5; }
+.gt-hint { margin: 8px 0 0; font-size: .8125rem; font-weight: 600; color: var(--text-muted); }
+.gt-hint[hidden] { display: none; }
+.gt-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.gt-skip {
+  margin-right: auto; padding: 8px 4px; background: none; border: 0; cursor: pointer;
+  font-size: .8125rem; font-weight: 600; color: var(--text-muted); text-decoration: underline;
+}
+.gt-actions .btn[hidden] { display: none; }
+html[data-theme="dark"] .gt-card { background: var(--surface-2, #2E241E); }
+@media (prefers-reduced-motion: reduce) { .gt-ring, .gt-card { transition: none; } }
+/* The robot's greeting would talk over the tour. */
+html.has-tour .giya-fab .fab-say { opacity: 0 !important; }

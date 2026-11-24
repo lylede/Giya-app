@@ -60,6 +60,7 @@ class User extends Authenticatable
             'last_seen_at' => 'datetime',
             'terms_accepted_at' => 'datetime',
             'email_verified_at' => 'datetime',
+            'tours_done'   => 'array',
         ];
     }
 

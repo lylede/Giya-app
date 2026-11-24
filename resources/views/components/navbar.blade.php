@@ -409,6 +409,12 @@
                 <a href="{{ route('app-feedback') }}" @class(['mobile-nav-link', 'active' => request()->routeIs('app-feedback')])>
                     <i class="bi bi-chat-dots me-2"></i>{{ __('giya.app_feedback.link') }}
                 </a>
+                <form method="POST" action="{{ route('tour.replay') }}" class="m-0">
+                    @csrf
+                    <button type="submit" class="mobile-nav-link w-100 text-start bg-transparent border-0">
+                        <i class="bi bi-signpost-2 me-2"></i>{{ __('giya.tour.replay') }}
+                    </button>
+                </form>
                 <form method="POST" action="{{ route('logout') }}" class="mt-2">
                     @csrf
                     <button type="submit" class="mobile-nav-link w-100 text-start bg-transparent border-0">

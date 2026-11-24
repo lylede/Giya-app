@@ -284,6 +284,16 @@
     </section>
 </div>
 
+
+{{-- The guided tour, once per account (see TourController). --}}
+<x-tour name="home" :steps="[
+    [null, 'welcome'],
+    ['#navBell', 'bell'],
+    ['#giyaFab', 'giya'],
+    ['.hamburger-btn, .nav-links', 'menu'],
+    ['.hero a.btn-ghost', 'plan', true],
+    ['.hero a.btn-gold', 'map', true],
+]" />
 @endsection
 
 @push('scripts')

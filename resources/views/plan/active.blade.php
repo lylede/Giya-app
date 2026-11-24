@@ -322,6 +322,16 @@
     </div>
 </div>
 @endif
+
+{{-- The guided tour, the first time a pilgrimage opens on this account.
+     Mark, Change stops and End only point: they change the trip. --}}
+<x-tour name="trip" wait-for=".is-map-ready" :steps="[
+    ['.ap-head', 'head'],
+    ['#markBtn', 'mark'],
+    ['#editStopsBtn', 'edit'],
+    ['.ap-end-btn', 'end'],
+    ['#apLocate', 'follow', true],
+]" />
 @endsection
 
 @push('scripts')

@@ -483,6 +483,12 @@
             <p class="pref-status" id="prefStatus" role="status" aria-live="polite"></p>
         </form>
 
+        {{-- The guided tour: shown again on each page, from the home page. --}}
+        <form method="POST" action="{{ route('tour.replay') }}" style="margin-top:14px">
+            @csrf
+            <button type="submit" class="btn btn-ghost btn-w-full"><i class="bi bi-signpost-2" aria-hidden="true"></i> {{ __('giya.tour.replay') }}</button>
+        </form>
+
         {{-- Account actions kept from the old Settings tab --}}
         <h2 class="section-title" style="font-size: 1.25rem;margin-top:28px">{{ __('giya.profile.account') }}</h2>
         <div class="card card-body">
@@ -756,6 +762,13 @@
         </div>
     </div>
 </div>
+
+{{-- The guided tour, once per account. --}}
+<x-tour name="profile" :steps="[
+    ['.profile-tabs-strip', 'tabs', true],
+    ['#panel-overview a.btn[href$=&quot;/upgrade&quot;]', 'premium', true],
+    ['[data-tab=preferences]', 'prefs', true],
+]" />
 @endsection
 
 @push('head')
