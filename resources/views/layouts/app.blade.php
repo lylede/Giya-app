@@ -136,6 +136,7 @@
 <script src="{{ asset('assets/js/giya-datepicker.js') }}?v={{ filemtime(public_path('assets/js/giya-datepicker.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-notifications.js') }}?v={{ filemtime(public_path('assets/js/giya-notifications.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-ai-panel.js') }}?v={{ filemtime(public_path('assets/js/giya-ai-panel.js')) }}"></script>
+<script src="{{ asset('assets/js/giya-fab-drag.js') }}?v={{ filemtime(public_path('assets/js/giya-fab-drag.js')) }}"></script>
 {{-- Before the page scripts, because the plan screens call GiyaCandles as
      part of their own first render. --}}
 <script src="{{ asset('assets/js/giya-candles.js') }}?v={{ filemtime(public_path('assets/js/giya-candles.js')) }}"></script>

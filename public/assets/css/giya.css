@@ -8544,3 +8544,17 @@ html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important;
   .active-layout .es-open .bi-pencil-square,
   .active-layout .ap-end-icon { font-size: 1.15rem; }
 }
+
+/* ══ The Giya button can be dragged (giya-fab-drag.js) ══
+   Like AssistiveTouch: drag it, it snaps to the nearest side, and the spot
+   is remembered on this device. */
+.giya-fab { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.giya-fab.is-dragging { cursor: grabbing; transform: scale(1.08) !important; }
+.giya-fab.is-dragging .fab-say { opacity: 0 !important; }
+/* On the left side the greeting opens to the right, into the page. */
+.giya-fab.is-left .fab-say { right: auto; left: 4px; transform-origin: bottom left; }
+.giya-fab.is-left .fab-say::before { right: auto; left: 20px; }
+/* Near the top it opens underneath. */
+.giya-fab.is-high .fab-say { bottom: auto; top: calc(100% + 14px); transform-origin: top right; }
+.giya-fab.is-high.is-left .fab-say { transform-origin: top left; }
+.giya-fab.is-high .fab-say::before { bottom: auto; top: -8px; }
