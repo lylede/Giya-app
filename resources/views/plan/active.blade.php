@@ -8,6 +8,22 @@
 
 @section('content')
 @php
+    // Changing the stops of a trip is a Premium feature (admins too).
+    $canEditStops = auth()->user()->is_premium || auth()->user()->isAdmin();
+    // Built here, not inside @json(...): Blade cannot match the brackets of a
+    // closure inside a directive (the same reason as the map data below).
+    $editStops = $stops->map(fn ($s) => [
+        'id' => $s->id, 'church' => $s->church_id, 'name' => $s->church_name,
+        'location' => $s->church?->location ?? 'Cebu', 'visited' => (bool) $s->is_visited,
+    ])->values();
+    $editUrls = [
+        'add'    => route('plan.stops.add', $itinerary),
+        'order'  => route('plan.stops.reorder', $itinerary),
+        'stop'   => route('plan.stops.remove', [$itinerary, 0]),
+        'search' => route('search.churches'),
+    ];
+@endphp
+@php
     // Same as the map page: built outside @json(...) because Blade matches the
     // directive's brackets textually and a multi-line array defeats it.
     $mapLabels = [
@@ -117,6 +133,13 @@
             <button type="button" class="btn btn-primary btn-w-full" id="markBtn" onclick="GiyaActive.markCurrent()">
                 <i class="bi bi-check-lg"></i> {{ __('giya.plan.mark_visited') }}
             </button>
+            @if ($itinerary->status !== 'Completed')
+                {{-- Add, remove, swap or reorder the stops still to come (Premium). --}}
+                <button type="button" class="btn btn-ghost btn-w-full es-open" id="editStopsBtn" data-edit-stops>
+                    <i class="bi bi-pencil-square"></i> {{ __('giya.plan.edit_trip') }}
+                    @unless ($canEditStops)<i class="bi bi-lock-fill es-lock" aria-hidden="true"></i>@endunless
+                </button>
+            @endif
             <form class="ap-end" method="POST" action="{{ route('plan.destroy', $itinerary) }}"
                   data-confirm-title="{{ __('giya.plan.end_q') }}"
                   data-confirm="Your progress and this itinerary are removed. Visits you already recorded stay in your history, and on a free account this itinerary still counts towards your 3."
@@ -244,9 +267,65 @@
         </div>
     </div>
 </div>
+{{-- Change the stops of this trip: add, remove, swap, reorder. Premium only;
+     free accounts get the Upgrade offer instead. Visited stops never change. --}}
+@if ($itinerary->status !== 'Completed')
+<div class="plan-modal" id="editStopsModal" hidden role="dialog" aria-modal="true" aria-labelledby="editStopsTitle">
+    <div class="plan-modal-box es-box">
+        @if ($canEditStops)
+            <h2 class="plan-modal-title" id="editStopsTitle">{{ __('giya.plan.edit_title') }}</h2>
+            <p class="plan-modal-sub">{{ __('giya.plan.edit_sub') }}</p>
+
+            <p class="es-label">{{ __('giya.plan.edit_to_come') }}</p>
+            <ol class="es-list" id="esList"></ol>
+
+            <div class="es-add">
+                <p class="es-label" id="esAddLabel">{{ __('giya.plan.edit_add') }}</p>
+                <div class="es-swapping" id="esSwapping" hidden>
+                    <span id="esSwapText"></span>
+                    <button type="button" class="btn btn-ghost btn-sm" id="esCancelSwap">{{ __('giya.plan.edit_cancel_swap') }}</button>
+                </div>
+                <input type="search" class="giya-input es-search" id="esSearch" autocomplete="off"
+                       placeholder="{{ __('giya.plan.edit_search') }}" aria-labelledby="esAddLabel">
+                <ul class="es-results" id="esResults"></ul>
+            </div>
+
+            <p class="rate-error" id="esError" role="alert" hidden></p>
+            <div class="plan-modal-actions">
+                <button type="button" class="btn btn-primary" id="esDone">{{ __('giya.plan.edit_done') }}</button>
+            </div>
+        @else
+            <h2 class="plan-modal-title" id="editStopsTitle"><i class="bi bi-lock-fill"></i> {{ __('giya.plan.edit_premium_title') }}</h2>
+            <p class="plan-modal-sub">{{ __('giya.plan.edit_premium_body') }}</p>
+            <div class="plan-modal-actions">
+                <button type="button" class="btn btn-ghost" id="esDone">{{ __('giya.plan.edit_not_now') }}</button>
+                <a class="btn btn-primary" href="{{ route('upgrade') }}">{{ __('giya.plan.edit_upgrade') }}</a>
+            </div>
+        @endif
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')
+@if ($itinerary->status !== 'Completed')
+<script>
+    window.GIYA_EDIT_STOPS = {
+        can: @json($canEditStops),
+        stops: @json($editStops),
+        urls: @json($editUrls),
+        text: {
+            up: @json(__('giya.plan.edit_up')), down: @json(__('giya.plan.edit_down')),
+            swap: @json(__('giya.plan.edit_swap')), remove: @json(__('giya.plan.edit_remove')),
+            next: @json(__('giya.plan.edit_next')), end: @json(__('giya.plan.edit_end')),
+            swapIn: @json(__('giya.plan.edit_swap_in')), swapFor: @json(__('giya.plan.edit_swap_for', ['name' => ':name'])),
+            none: @json(__('giya.plan.edit_none')), allVisited: @json(__('giya.plan.edit_all_visited')),
+            fail: @json(__('giya.plan.edit_fail')),
+        },
+    };
+</script>
+<script src="{{ asset('assets/js/giya-edit-stops.js') }}?v={{ filemtime(public_path('assets/js/giya-edit-stops.js')) }}" defer></script>
+@endif
 <script src="{{ asset('assets/js/leaflet.js') }}?v={{ filemtime(public_path('assets/js/leaflet.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-leaflet.js') }}?v={{ filemtime(public_path('assets/js/giya-leaflet.js')) }}"></script>
 <script>

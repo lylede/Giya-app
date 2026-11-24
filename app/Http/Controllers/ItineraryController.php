@@ -445,20 +445,30 @@ class ItineraryController extends Controller
         /* The last stop: a reminder in the bell to rate the churches, for
            whoever presses "Later" on the rating sheet or closes the app. */
         if ($allDone) {
-            Notification::updateOrCreate(
-                ['user_id' => Auth::id(), 'dedupe_key' => 'rate:'.$stop->itinerary_id],
-                [
-                    'type'       => 'feedback',
-                    'title'      => __('giya.plan.rate_note_title', ['trip' => $stop->itinerary->name]),
-                    'message'    => __('giya.plan.rate_note_body'),
-                    'url'        => route('plan.show', ['itinerary' => $stop->itinerary_id, 'rate' => 1]),
-                    'is_read'    => false,
-                    'created_at' => now(),
-                ]
-            );
+            self::remindToRate($stop->itinerary);
         }
 
         return response()->json(['ok' => true, 'all_done' => $allDone]);
+    }
+
+    /**
+     * "Rate the churches" in the bell, once a trip is finished: by the last
+     * stop being visited, or by the last stop still to come being removed
+     * (ItineraryStopController).
+     */
+    public static function remindToRate(Itinerary $itinerary): void
+    {
+        Notification::updateOrCreate(
+            ['user_id' => $itinerary->user_id, 'dedupe_key' => 'rate:'.$itinerary->id],
+            [
+                'type'       => 'feedback',
+                'title'      => __('giya.plan.rate_note_title', ['trip' => $itinerary->name]),
+                'message'    => __('giya.plan.rate_note_body'),
+                'url'        => route('plan.show', ['itinerary' => $itinerary->id, 'rate' => 1]),
+                'is_read'    => false,
+                'created_at' => now(),
+            ]
+        );
     }
 
     private function notifyArrival(ItineraryStop $stop, bool $allDone): void

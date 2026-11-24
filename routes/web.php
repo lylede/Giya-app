@@ -98,6 +98,11 @@ Route::get('/search/churches', [HomeController::class, 'search'])->middleware('t
         Route::get('/{itinerary}',     'show')->withTrashed()->name('show');
         Route::post('/{itinerary}/ratings', 'storeRatings')->middleware('confirmed.email')->name('ratings');
         Route::delete('/{itinerary}',  'destroy')->name('destroy');
+        // Change the stops of a saved trip, also mid-trip (Premium; ItineraryStopController).
+        Route::post('/{itinerary}/stops', [\App\Http\Controllers\ItineraryStopController::class, 'add'])->middleware('throttle:giya-actions')->name('stops.add');
+        Route::post('/{itinerary}/stops/order', [\App\Http\Controllers\ItineraryStopController::class, 'reorder'])->middleware('throttle:giya-actions')->name('stops.reorder');
+        Route::post('/{itinerary}/stops/{stop}/swap', [\App\Http\Controllers\ItineraryStopController::class, 'swap'])->whereNumber('stop')->middleware('throttle:giya-actions')->name('stops.swap');
+        Route::delete('/{itinerary}/stops/{stop}', [\App\Http\Controllers\ItineraryStopController::class, 'remove'])->whereNumber('stop')->middleware('throttle:giya-actions')->name('stops.remove');
         // Share with family or a parish group (SharedItineraryController).
         Route::post('/{itinerary}/share', [\App\Http\Controllers\SharedItineraryController::class, 'share'])->middleware('throttle:giya-actions')->name('share');
         Route::delete('/{itinerary}/share', [\App\Http\Controllers\SharedItineraryController::class, 'unshare'])->name('unshare');
