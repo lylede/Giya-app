@@ -1012,6 +1012,8 @@ return [
             'list_b' => 'Lahat ng simbahan sa pilgrimage mo, nang sunod-sunod. May tsek ang mga nadalaw na.',
             'whole_t' => 'Ang buong ruta',
             'whole_b' => 'Makita nang sabay sa mapa ang lahat ng simbahan sa biyahe.',
+            'share_t' => 'Ibahagi',
+            'share_b' => 'Ipadala ang pilgrimage na ito sa pamilya o sa grupo mo sa parokya bilang link. Makikita nila ang ruta at makakapag-save sila ng sariling kopya.',
             'head_t' => 'Ang pag-usad mo',
             'head_b' => 'May kandilang sisindi sa bawat simbahang madalaw mo.',
             'mark_t' => 'Markahan bilang nadalaw',

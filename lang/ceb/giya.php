@@ -1012,6 +1012,8 @@ return [
             'list_b' => 'Ang tanang simbahan sa imong pilgrimage, sunod-sunod. Gi-tsek ang mga naduaw na.',
             'whole_t' => 'Ang tibuok ruta',
             'whole_b' => 'Tan-awa dungan sa mapa ang tanang simbahan sa biyahe.',
+            'share_t' => 'Ipaambit',
+            'share_b' => 'Ipadala kini nga pilgrimage sa pamilya o sa imong grupo sa parokya isip link. Makita nila ang ruta ug makatipig sila og ilang kaugalingong kopya.',
             'head_t' => 'Imong pag-uswag',
             'head_b' => 'Usa ka kandila ang mosiga sa matag simbahan nga imong maduaw.',
             'mark_t' => 'Markahi nga naduaw',

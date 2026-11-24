@@ -53,6 +53,23 @@ class SharedItineraryTest extends TestCase
             ->assertDontSee('maria@example.com');
     }
 
+    public function test_the_trip_screen_and_saved_itineraries_both_have_the_share_window(): void
+    {
+        $owner = $this->person('share-owner@example.com');
+        $trip = $this->trip($owner);
+
+        // The trip screen: every pilgrimage opens here, from Create Custom
+        // Itinerary or the Visita Iglesia planner.
+        $this->actingAs($owner)->get(route('plan.show', $trip))->assertOk()
+            ->assertSee('id="apShare"', false)
+            ->assertSee('id="shareModal"', false)
+            ->assertSee('GiyaShare.open('.$trip->id, false);
+
+        $this->actingAs($owner)->get(route('plan.index'))->assertOk()
+            ->assertSee('id="shareModal"', false)
+            ->assertSee('GiyaShare.open('.$trip->id, false);
+    }
+
     public function test_only_the_owner_can_share_or_stop_sharing(): void
     {
         $trip = $this->trip($this->person('maria@example.com'));

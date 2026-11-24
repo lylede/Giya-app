@@ -1022,6 +1022,8 @@ return [
             'list_b' => 'Every church on your pilgrimage, in order. Visited ones are ticked.',
             'whole_t' => 'The whole route',
             'whole_b' => 'See every church of the trip on the map at once.',
+            'share_t' => 'Share',
+            'share_b' => 'Send this pilgrimage to family or your parish group as a link. They see the route and can save their own copy.',
             'head_t' => 'Your progress',
             'head_b' => 'A candle lights up for every church you visit.',
             'mark_t' => 'Mark visited',

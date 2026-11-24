@@ -196,6 +196,12 @@
                     title="{{ __('giya.plan.show_route') }}" aria-label="{{ __('giya.plan.show_route') }}">
                 <i class="bi bi-map"></i>
             </button>
+            {{-- Share this pilgrimage with family or a parish group: a private link. --}}
+            <button type="button" class="map-tool" id="apShare"
+                    title="{{ __('giya.share.title') }}" aria-label="{{ __('giya.share.title') }}"
+                    onclick="GiyaShare.open({{ $itinerary->id }}, @js($itinerary->name))">
+                <i class="bi bi-people-fill"></i>
+            </button>
         </div>
 
         {{-- Notes about the trip itself ("Location is off...") sit in a thin
@@ -323,6 +329,8 @@
 </div>
 @endif
 
+<x-share-modal />
+
 {{-- The guided tour, the first time a pilgrimage opens on this account.
      Mark, Change stops and End only point: they change the trip. --}}
 <x-tour name="trip" wait-for=".is-map-ready" :steps="[
@@ -333,6 +341,7 @@
     ['#editStopsBtn', 'edit'],
     ['.ap-end-btn', 'end'],
     ['#apRecenter', 'whole', true],
+    ['#apShare', 'share'],
     ['#apLocate', 'follow', true],
 ]" />
 @endsection
