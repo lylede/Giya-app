@@ -8680,3 +8680,13 @@ html.has-tour .giya-fab .fab-say { opacity: 0 !important; }
 }
 @keyframes gt-pulse { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.12); } }
 @media (prefers-reduced-motion: reduce) { .gt-ring::after { animation: none; opacity: 0; } }
+
+/* Admin top bar on a computer: the page title on the left; search, the
+   light/dark switch and the administrator together on the right. */
+@media (min-width: 769px) {
+  .admin-topbar { justify-content: flex-start; gap: 12px; }
+  .admin-topbar-titles { flex: 1 1 auto; }
+  .admin-topbar .adm-qs { flex: 0 1 340px; margin: 0; }
+  .admin-topbar .adm-theme { flex-shrink: 0; }
+  .admin-topbar-user { margin-left: 4px; }
+}
