@@ -33,7 +33,8 @@
     var r = el.getBoundingClientRect();
     if (r.width < 2 || r.height < 2) return false;
     var s = getComputedStyle(el);
-    return s.visibility !== 'hidden' && s.display !== 'none' && parseFloat(s.opacity || '1') > 0.05;
+    // Not opacity: a card that fades in as it scrolls into view is still there.
+    return s.visibility !== 'hidden' && s.display !== 'none';
   }
 
   /* A step for one kind of screen only (a phone's slide bar). */

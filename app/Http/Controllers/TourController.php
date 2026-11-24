@@ -9,7 +9,8 @@ use Illuminate\Http\Response;
 
 /**
  * The guided tour a new account sees after logging in: a dimmed screen with
- * a spotlight on one button at a time (home, map, trip screen, profile).
+ * a spotlight on one button at a time (home, map, Plan hub, trip screen,
+ * profile).
  *
  * Each page's tour shows once per account, on any device. Finishing a page
  * marks that page; Skip marks them all. "Show the tour again", in the
@@ -17,7 +18,7 @@ use Illuminate\Http\Response;
  */
 class TourController extends Controller
 {
-    public const TOURS = ['home', 'map', 'trip', 'profile'];
+    public const TOURS = ['home', 'map', 'trip', 'profile', 'plan'];
 
     public static function pending(?User $user, string $tour): bool
     {

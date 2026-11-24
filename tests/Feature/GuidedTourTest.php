@@ -50,14 +50,14 @@ class GuidedTourTest extends TestCase
         $this->assertEmpty($user->fresh()->tours_done ?? []);
 
         $this->actingAs($user)->post(route('tour.done'), ['tour' => 'all'])->assertNoContent();
-        $this->assertEqualsCanonicalizing(['home', 'map', 'trip', 'profile'], $user->fresh()->tours_done);
+        $this->assertEqualsCanonicalizing(['home', 'map', 'trip', 'profile', 'plan'], $user->fresh()->tours_done);
         $this->actingAs($user)->get(route('profile'))->assertDontSee('id="giyaTour"', false);
     }
 
     public function test_show_the_tour_again_clears_it_and_goes_home(): void
     {
         $user = $this->person();
-        $user->tours_done = ['home', 'map', 'trip', 'profile'];
+        $user->tours_done = ['home', 'map', 'trip', 'profile', 'plan'];
         $user->save();
 
         $this->actingAs($user)->get(route('profile'))
@@ -94,6 +94,14 @@ class GuidedTourTest extends TestCase
         $this->actingAs($this->person())->get(route('home'))->assertOk()
             ->assertSee('#homeFeatured', false)->assertSee('#homeJourney', false)->assertSee('#homeEvents', false)
             ->assertSee('Featured destinations');
+    }
+
+    public function test_the_plan_hub_has_its_own_tour(): void
+    {
+        $this->actingAs($this->person())->get(route('plan.hub'))->assertOk()
+            ->assertSee('id="giyaTour"', false)
+            ->assertSee('Create Custom Itinerary')
+            ->assertSee('.hub-saved', false);
     }
 
     public function test_a_guest_cannot_mark_a_tour(): void

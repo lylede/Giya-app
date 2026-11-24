@@ -1023,6 +1023,18 @@ return [
             'follow_t' => 'Sundan ako',
             'follow_b' => 'Arrow ang tuldok mo habang nasa pilgrimage. I-tap ito at iikot ang mapa papunta sa daan mo.',
         ],
+        'plan' => [
+            'active_t' => 'Ang biyahe mo ngayon',
+            'active_b' => 'Ang pilgrimage na nilalakad mo ngayon. I-tap ito para bumalik dito.',
+            'own_t' => 'Gumawa ng Sariling Itinerary',
+            'own_b' => 'Pumili ng mga simbahan sa mapa, itakda ang petsa, at aayusin ito ng GIYA para sa iyo.',
+            'visita_t' => 'Ruta ng Visita Iglesia',
+            'visita_b' => 'Ang tradisyonal na pilgrimage sa maraming simbahan: pitong simbahan karaniwan, at puwede mong baguhin ang bilang.',
+            'saved_t' => 'Mga Naka-save na Itinerary',
+            'saved_b' => 'Lahat ng pilgrimage na pinlano mo, nilalakad mo o natapos mo na, nasa iisang lugar.',
+            'tips_t' => 'Mga Payo sa Peregrino',
+            'tips_b' => 'Ano ang isusuot at dadalhin, at paano pumunta, bago ka umalis.',
+        ],
         'profile' => [
             'tabs_t' => 'Mga pahina mo',
             'tabs_b' => 'Ang mga pagdalaw, pilgrimage, paboritong simbahan at settings mo.',

@@ -140,4 +140,13 @@
     </div>
 </div>
 
+{{-- The guided tour, once per account. The cards are links, so tapping
+     one goes there and ends this page's tour. --}}
+<x-tour name="plan" :steps="[
+    ['.hub-active', 'active', true],
+    ['.plan-grid > .plan-card:nth-child(1)', 'own', true],
+    ['.plan-grid > .plan-card:nth-child(2)', 'visita', true],
+    ['.hub-saved', 'saved', true],
+    ['.hub-bottom.is-tips', 'tips'],
+]" />
 @endsection

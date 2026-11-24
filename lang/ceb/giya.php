@@ -1023,6 +1023,18 @@ return [
             'follow_t' => 'Sunda ko',
             'follow_b' => 'Usa ka pana ang imong tuldok samtang naa sa pilgrimage. I-tap kini ug moliko ang mapa ngadto sa imong padulngan.',
         ],
+        'plan' => [
+            'active_t' => 'Imong biyahe karon',
+            'active_b' => 'Ang pilgrimage nga imong gibaktas karon. I-tap aron mobalik niini.',
+            'own_t' => 'Paghimo ug Kaugalingong Itinerary',
+            'own_b' => 'Pili og mga simbahan sa mapa, ibutang ang petsa, ug ihan-ay kini sa GIYA para nimo.',
+            'visita_t' => 'Ruta sa Visita Iglesia',
+            'visita_b' => 'Ang tradisyonal nga pilgrimage sa daghang simbahan: pito ka simbahan kasagaran, ug mahimo nimong usbon ang ihap.',
+            'saved_t' => 'Mga Natipigan nga Itinerary',
+            'saved_b' => 'Ang tanang pilgrimage nga imong giplano, gibaktas karon o nahuman na, sa usa ka dapit.',
+            'tips_t' => 'Mga Tambag sa Peregrino',
+            'tips_b' => 'Unsay isul-ob ug dad-on, ug unsaon pag-adto, sa dili pa ka mobiya.',
+        ],
         'profile' => [
             'tabs_t' => 'Imong mga panid',
             'tabs_b' => 'Imong mga pagduaw, pilgrimage, paboritong simbahan ug mga setting.',

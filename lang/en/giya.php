@@ -1033,6 +1033,18 @@ return [
             'follow_t' => 'Follow me',
             'follow_b' => 'On a pilgrimage your dot is an arrow. Tap here and the map turns to the way ahead.',
         ],
+        'plan' => [
+            'active_t' => 'Your trip in progress',
+            'active_b' => 'The pilgrimage you are walking now. Tap it to go back to it.',
+            'own_t' => 'Create Custom Itinerary',
+            'own_b' => 'Pick the churches you want on the map, set the date, and GIYA puts them in order for you.',
+            'visita_t' => 'Visita Iglesia Route',
+            'visita_b' => 'The traditional multi-church pilgrimage: seven churches by default, and you can change the count.',
+            'saved_t' => 'Saved Itineraries',
+            'saved_b' => 'Every pilgrimage you planned, are walking or have finished, all in one place.',
+            'tips_t' => 'Pilgrim Tips',
+            'tips_b' => 'What to wear and bring, and how to get there, before you set out.',
+        ],
         'profile' => [
             'tabs_t' => 'Your pages',
             'tabs_b' => 'Your visits, pilgrimages, favorite churches and settings.',
