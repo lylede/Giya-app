@@ -120,8 +120,14 @@
 
     if (t) {
       var r = t.getBoundingClientRect();
-      var off = r.top < 70 || r.bottom > window.innerHeight - 40;
-      if (off && t.scrollIntoView) t.scrollIntoView({ block: 'center', inline: 'nearest' });
+      if (tall(r)) {
+        // A whole section: its title just under the navbar, so it is read first.
+        var by = r.top - navBottom() - 12;
+        if (Math.abs(by) > 4) window.scrollBy({ top: by, behavior: 'instant' });
+      } else {
+        var off = r.top < 70 || r.bottom > window.innerHeight - 40;
+        if (off && t.scrollIntoView) t.scrollIntoView({ block: 'center', inline: 'nearest' });
+      }
     }
 
     var c = visibleSteps();
@@ -145,6 +151,16 @@
       if (ready(steps[k])) return true;
     }
     return false;
+  }
+
+  function tall(r) { return r.height > window.innerHeight * 0.6; }
+
+  /* Where the page starts under the navbar. */
+  function navBottom() {
+    var nav = document.querySelector('.giya-nav');
+    if (nav && getComputedStyle(nav).position !== 'static') return Math.max(0, nav.getBoundingClientRect().bottom);
+    var v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-height'));
+    return isNaN(v) ? 64 : v;
   }
 
   function box(n, x, y, w, h) {
@@ -175,6 +191,12 @@
     var r = target.getBoundingClientRect();
     var x = Math.max(4, r.left - PAD), y = Math.max(4, r.top - PAD);
     var x2 = Math.min(vw - 4, r.right + PAD), y2 = Math.min(vh - 4, r.bottom + PAD);
+    // A section taller than the screen: light its top part (the title and
+    // the first items) and leave room for the card under it.
+    if (tall(r)) {
+      y = Math.max(y, navBottom() + 4);
+      y2 = Math.min(y2, y + Math.round(vh * 0.48));
+    }
 
     box(strips[0], 0, 0, vw, y);                 // above
     box(strips[1], 0, y2, vw, vh - y2);          // below

@@ -72,7 +72,7 @@
 <div class="page-wrap">
 
     {{-- ───────────────────────── Quick actions ──────────────────────── --}}
-    <section class="home-section" data-loading-section>
+    <section class="home-section" data-loading-section id="homeJourney">
         <div class="section-header">
             <div>
                 <h2 class="section-title">{{ __('giya.home.journey') }}</h2>
@@ -147,7 +147,7 @@
     </section>
 
     {{-- ──────────────────── Featured destinations ───────────────────── --}}
-    <section class="home-section-ruled">
+    <section class="home-section-ruled" id="homeFeatured">
         <div class="section-header">
             <div>
                 <h2 class="section-title">{{ __('giya.home.featured') }}</h2>
@@ -203,7 +203,7 @@
     <section class="home-section-ruled">
         <div class="home-bottom-grid">
 
-            <div data-loading-section>
+            <div data-loading-section id="homeEvents">
                 <h2 class="section-title event-heading">{{ __('giya.home.events') }}</h2>
                 <p class="section-subtitle event-lead">{{ __('giya.home.events_lead') }}</p>
 
@@ -291,7 +291,9 @@
     ['#navBell', 'bell'],
     ['#giyaFab', 'giya'],
     ['.hamburger-btn, .nav-links', 'menu'],
-    ['#proc', 'featured'],
+    ['#homeJourney', 'journey'],
+    ['#homeFeatured', 'featured'],
+    ['#homeEvents', 'events'],
     ['.hero a.btn-ghost', 'plan', true],
     ['.hero a.btn-gold', 'map', true],
 ]" />

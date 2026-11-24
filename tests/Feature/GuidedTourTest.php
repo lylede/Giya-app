@@ -64,6 +64,10 @@ class GuidedTourTest extends TestCase
             ->assertSee(route('tour.replay'), false)
             ->assertSee(__('giya.tour.replay'));
 
+        // Only in the profile's Preferences, not in the phone menu.
+        $this->assertStringNotContainsString("route('tour.replay')",
+            file_get_contents(resource_path('views/components/navbar.blade.php')));
+
         $this->actingAs($user)->post(route('tour.replay'))->assertRedirect(route('home'));
         $this->assertSame([], $user->fresh()->tours_done);
         $this->actingAs($user)->get(route('home'))->assertSee('id="giyaTour"', false);
@@ -88,7 +92,7 @@ class GuidedTourTest extends TestCase
     public function test_the_home_tour_scrolls_down_to_featured_destinations(): void
     {
         $this->actingAs($this->person())->get(route('home'))->assertOk()
-            ->assertSee('#proc', false)
+            ->assertSee('#homeFeatured', false)->assertSee('#homeJourney', false)->assertSee('#homeEvents', false)
             ->assertSee('Featured destinations');
     }
 

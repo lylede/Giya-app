@@ -12,8 +12,8 @@ use Illuminate\Http\Response;
  * a spotlight on one button at a time (home, map, trip screen, profile).
  *
  * Each page's tour shows once per account, on any device. Finishing a page
- * marks that page; Skip marks them all. "Show the tour again" clears the
- * list. Admins are not shown the tour.
+ * marks that page; Skip marks them all. "Show the tour again", in the
+ * profile's Preferences, clears the list. Admins are not shown the tour.
  */
 class TourController extends Controller
 {
