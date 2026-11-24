@@ -8672,3 +8672,11 @@ html[data-theme="dark"] .gt-card { background: var(--surface-2, #2E241E); }
 @media (prefers-reduced-motion: reduce) { .gt-ring, .gt-card { transition: none; } }
 /* The robot's greeting would talk over the tour. */
 html.has-tour .giya-fab .fab-say { opacity: 0 !important; }
+/* The lit button breathes once a second or so, to catch the eye. */
+.gt-ring::after {
+  content: ""; position: absolute; inset: -3px; border-radius: inherit;
+  border: 3px solid var(--gold, #D7A94A);
+  animation: gt-pulse 1.6s ease-out infinite;
+}
+@keyframes gt-pulse { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.12); } }
+@media (prefers-reduced-motion: reduce) { .gt-ring::after { animation: none; opacity: 0; } }

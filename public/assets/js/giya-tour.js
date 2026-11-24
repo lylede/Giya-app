@@ -36,6 +36,16 @@
     return s.visibility !== 'hidden' && s.display !== 'none' && parseFloat(s.opacity || '1') > 0.05;
   }
 
+  /* A step for one kind of screen only (a phone's slide bar). */
+  function fits(s) {
+    return !s.media || !window.matchMedia || window.matchMedia(s.media).matches;
+  }
+
+  /* Can this step show right now? A step about the whole screen always can. */
+  function ready(s) {
+    return fits(s) && (!s.target || !!find(s.target));
+  }
+
   function find(sel) {
     if (!sel) return null;
     var list;
@@ -89,8 +99,7 @@
   function go(n, dir) {
     while (n >= 0 && n < steps.length) {
       var s = steps[n];
-      var t = s.target ? find(s.target) : null;
-      if (!s.target || t) { show(n, t); return; }
+      if (ready(s)) { show(n, s.target ? find(s.target) : null); return; }
       n += dir;
     }
     if (n >= steps.length) finish();
@@ -99,7 +108,7 @@
   function visibleSteps() {
     var count = 0, index = 0;
     steps.forEach(function (s, k) {
-      if (!s.target || find(s.target)) { count++; if (k <= at) index = count; }
+      if (ready(s)) { count++; if (k <= at) index = count; }
     });
     return { n: index, total: count };
   }
@@ -133,7 +142,7 @@
 
   function hasNext() {
     for (var k = at + 1; k < steps.length; k++) {
-      if (!steps[k].target || find(steps[k].target)) return true;
+      if (ready(steps[k])) return true;
     }
     return false;
   }
@@ -173,12 +182,16 @@
     box(strips[3], x2, y, vw - x2, y2 - y);      // right
     box(ring, x, y, x2 - x, y2 - y);
 
-    // The card under the button if it fits, else over it, else at the bottom.
-    var top;
+    // The card under the button if it fits, else over it, else beside a
+    // tall one (the list on a computer), else at the bottom.
+    var top, left = null;
     if (vh - y2 >= ch + GAP + 8) top = y2 + GAP;
     else if (y >= ch + GAP + 8) top = y - GAP - ch;
+    else if (vw - x2 >= cw + GAP + 12) { left = x2 + GAP; top = (y + y2) / 2 - ch / 2; }
+    else if (x >= cw + GAP + 12) { left = x - GAP - cw; top = (y + y2) / 2 - ch / 2; }
     else top = vh - ch - 12;
-    var left = Math.min(Math.max(12, (x + x2) / 2 - cw / 2), vw - cw - 12);
+    top = Math.min(top, vh - ch - 12);
+    if (left === null) left = Math.min(Math.max(12, (x + x2) / 2 - cw / 2), vw - cw - 12);
     card.style.left = Math.round(left) + 'px';
     card.style.top = Math.round(Math.max(12, top)) + 'px';
   }
@@ -223,6 +236,7 @@
     document.addEventListener('keydown', onKey, true);
     window.addEventListener('resize', replace);
     window.addEventListener('scroll', replace, true);
+    window.addEventListener('pointermove', replace, true);   // a slide bar being dragged
     ticker = setInterval(place, 500);   // panels and sheets that move on their own
     go(0, 1);
   }
@@ -234,6 +248,7 @@
     document.removeEventListener('keydown', onKey, true);
     window.removeEventListener('resize', replace);
     window.removeEventListener('scroll', replace, true);
+    window.removeEventListener('pointermove', replace, true);
     document.documentElement.classList.remove('has-tour');
     if (root) root.remove();
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus({ preventScroll: true }); } catch (e) { /* gone */ } }

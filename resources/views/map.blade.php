@@ -351,9 +351,14 @@
 @endauth
 
 {{-- The guided tour, once per account, after the map has loaded. --}}
+{{-- The church list is a slide bar on a phone and a column on a computer. --}}
 <x-tour name="map" wait-for=".giya-map-shell.is-map-ready" :steps="[
     ['.mx-search-field', 'search'],
     ['.mx-chips', 'chips', true],
+    ['.giya-map-shell .giya-cluster, .giya-map-shell .giya-pin-wrap', 'pins'],
+    ['#sheetGrab', 'sheet', true, '(max-width: 768px)'],
+    ['#churchList', 'list', false, '(min-width: 769px)'],
+    ['#churchList .mx-row-body', 'row'],
     ['#churchList [data-add]', 'add', true],
     ['#routeBox', 'tray'],
     ['#btnLocate', 'locate', true],

@@ -291,6 +291,7 @@
     ['#navBell', 'bell'],
     ['#giyaFab', 'giya'],
     ['.hamburger-btn, .nav-links', 'menu'],
+    ['#proc', 'featured'],
     ['.hero a.btn-ghost', 'plan', true],
     ['.hero a.btn-gold', 'map', true],
 ]" />

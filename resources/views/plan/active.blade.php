@@ -327,9 +327,12 @@
      Mark, Change stops and End only point: they change the trip. --}}
 <x-tour name="trip" wait-for=".is-map-ready" :steps="[
     ['.ap-head', 'head'],
+    ['#apGrab', 'stops', true, '(max-width: 1024px)'],
+    ['#stopList', 'list', false, '(min-width: 1025px)'],
     ['#markBtn', 'mark'],
     ['#editStopsBtn', 'edit'],
     ['.ap-end-btn', 'end'],
+    ['#apRecenter', 'whole', true],
     ['#apLocate', 'follow', true],
 ]" />
 @endsection

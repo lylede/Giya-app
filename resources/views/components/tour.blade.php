@@ -2,12 +2,14 @@
     The guided tour for one page: a dimmed screen with a spotlight on one
     button at a time and a card that explains it (giya-tour.js draws it).
 
-    Each step is [selector, key, tap]. The selector may list several
+    Each step is [selector, key, tap, media]. The selector may list several
     (a phone and a computer show different buttons); the first one on screen
     is used, and a step with nothing on screen is skipped. Text comes from
     giya.tour.<page>.<key>_t and _b. With tap true, tapping the lit button
     does what it does and the tour moves on; false keeps it to Next, for
-    buttons that open a panel or change something.
+    buttons that open a panel or change something. media (optional) is a
+    CSS media query: the step only shows on screens that match, such as the
+    slide bar that only a phone has.
 
     Only rendered while this account has not finished this page's tour.
 --}}
@@ -17,12 +19,13 @@
     @php
         $tourSteps = [];
         foreach ($steps as $step) {
-            [$target, $key, $tap] = $step + [null, null, false];
+            [$target, $key, $tap, $media] = $step + [null, null, false, null];
             $tourSteps[] = [
                 'target' => $target,
                 'title'  => __("giya.tour.{$name}.{$key}_t", ['name' => auth()->user()->firstName()]),
                 'body'   => __("giya.tour.{$name}.{$key}_b"),
                 'tap'    => (bool) $tap,
+                'media'  => $media,
             ];
         }
         $tourConfig = [

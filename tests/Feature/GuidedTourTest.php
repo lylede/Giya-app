@@ -74,6 +74,24 @@ class GuidedTourTest extends TestCase
         $this->actingAs($this->person('admin'))->get(route('home'))->assertDontSee('id="giyaTour"', false);
     }
 
+    public function test_the_map_tour_points_at_the_pins_and_the_church_list(): void
+    {
+        $html = $this->actingAs($this->person())->get(route('map'))->assertOk()->getContent();
+
+        $this->assertStringContainsString('Church pins', $html);
+        // The slide bar on a phone, the list column on a computer.
+        $this->assertStringContainsString('#sheetGrab', $html);
+        $this->assertStringContainsString('(max-width: 768px)', $html);
+        $this->assertStringContainsString('#churchList .mx-row-body', $html);
+    }
+
+    public function test_the_home_tour_scrolls_down_to_featured_destinations(): void
+    {
+        $this->actingAs($this->person())->get(route('home'))->assertOk()
+            ->assertSee('#proc', false)
+            ->assertSee('Featured destinations');
+    }
+
     public function test_a_guest_cannot_mark_a_tour(): void
     {
         $this->post(route('tour.done'), ['tour' => 'all'])->assertRedirect(route('login'));
