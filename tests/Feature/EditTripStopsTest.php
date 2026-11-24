@@ -312,11 +312,16 @@ class EditTripStopsTest extends TestCase
         // Closed: one line each for the current and next church, one row of buttons.
         $this->assertStringContainsString('white-space: nowrap; overflow: hidden; text-overflow: ellipsis;', $phone);
         $this->assertStringContainsString('flex-direction: row; align-items: stretch; gap: 8px;', $phone);
+        // Mark Visited, Change stops and End in one row, open or closed; End still asks first.
+        $this->assertStringContainsString('.active-sidebar:not(.is-open) .ap-end { display: flex;', $phone);
+        $this->assertStringContainsString('.active-layout .ap-end-btn {', $phone);
 
         // The route is framed between the strip and the sheet.
         $html = $this->actingAs($this->user)->get(route('plan.show', $this->trip))->getContent();
         $this->assertStringContainsString("document.querySelector('.active-layout .ap-head')", $html);
         $this->assertStringContainsString('class="ap-cur-name"', $html);
         $this->assertStringContainsString('class="es-open-label"', $html);
+        $this->assertStringContainsString('class="ap-end-label"', $html);
+        $this->assertStringContainsString('data-confirm-title=', $html);
     }
 }

@@ -8504,32 +8504,43 @@ html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important;
   .active-layout .leaflet-bottom { bottom: var(--ap-sheet, 196px); }
   .active-layout .leaflet-top { top: var(--ap-head); }
   body:has(.active-layout) .giya-fab { bottom: calc(var(--ap-sheet, 196px) + 56px); }
+  /* Open, the sheet reaches the trip card: the guide would sit on the candles. */
+  body:has(.active-sidebar.is-open) .giya-fab,
+  body:has(.active-sidebar.is-open) .fab-say { display: none; }
 
-  /* Closed sheet: compact. */
-  .active-sidebar:not(.is-open) .ap-grab { height: 20px; }
-  .active-sidebar:not(.is-open) .ap-banner { padding: 2px 16px 8px; background: none; border-bottom: 0; }
-  .active-sidebar:not(.is-open) .ap-cur-label { font-size: .6875rem; margin-bottom: 1px; }
-  .active-sidebar:not(.is-open) .ap-cur-name,
-  .active-sidebar:not(.is-open) .ap-cur-next {
+  /* The current stop: compact, open or closed. */
+  .active-sidebar .ap-grab { height: 20px; }
+  .active-sidebar .ap-banner { padding: 2px 16px 8px; }
+  .active-sidebar:not(.is-open) .ap-banner { background: none; border-bottom: 0; }
+  .active-sidebar .ap-cur-label { font-size: .6875rem; margin-bottom: 1px; }
+  .active-sidebar .ap-cur-name,
+  .active-sidebar .ap-cur-next {
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .active-sidebar:not(.is-open) .ap-cur-name { font-size: .9375rem; }
-  .active-sidebar:not(.is-open) .ap-cur-next { margin-top: 1px; }
-  .active-sidebar:not(.is-open) #doneBanner { padding: 4px 16px 8px; }
+  .active-sidebar .ap-cur-name { font-size: .9375rem; }
+  .active-sidebar .ap-cur-next { margin-top: 1px; }
+  .active-sidebar #doneBanner { padding: 4px 16px 8px; }
 
-  /* Mark Visited and Change stops share one row; Change stops is its icon. */
-  .active-sidebar:not(.is-open) .ap-foot {
+  /* One row of three, open or closed: Mark Visited takes the row, Change
+     stops and End pilgrimage are icon buttons beside it (their names stay
+     for a screen reader and as a tooltip). End still asks before ending. */
+  .active-layout .ap-foot {
     flex-direction: row; align-items: stretch; gap: 8px;
     padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-    border-top: 0;
   }
-  .active-sidebar:not(.is-open) #markBtn { flex: 1; min-height: 46px; }
-  .active-sidebar:not(.is-open) .es-open {
+  .active-sidebar:not(.is-open) .ap-foot { border-top: 0; }
+  .active-layout #markBtn { flex: 1; min-width: 0; min-height: 46px; white-space: nowrap; }
+  .active-layout .es-open,
+  .active-layout .ap-end-btn {
     width: 52px; flex: 0 0 52px; margin: 0; padding: 0; justify-content: center; min-height: 46px;
   }
-  .active-sidebar:not(.is-open) .es-open-label,
-  .active-sidebar:not(.is-open) .es-lock {
+  .active-sidebar .ap-end,
+  .active-sidebar:not(.is-open) .ap-end { display: flex; flex: 0 0 52px; margin: 0; }
+  .active-layout .es-open-label,
+  .active-layout .es-lock,
+  .active-layout .ap-end-label {
     position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
   }
-  .active-sidebar:not(.is-open) .es-open .bi-pencil-square { font-size: 1.15rem; }
+  .active-layout .es-open .bi-pencil-square,
+  .active-layout .ap-end-icon { font-size: 1.15rem; }
 }

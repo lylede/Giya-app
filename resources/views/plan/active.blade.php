@@ -146,7 +146,10 @@
                   data-confirm="Your progress and this itinerary are removed. Visits you already recorded stay in your history, and on a free account this itinerary still counts towards your 3."
                   data-confirm-ok="End pilgrimage">
                 @csrf @method('DELETE')
-                <button type="submit" class="btn btn-danger btn-w-full">{{ __('giya.plan.end') }}</button>
+                <button type="submit" class="btn btn-danger btn-w-full ap-end-btn"
+                        aria-label="{{ __('giya.plan.end') }}" title="{{ __('giya.plan.end') }}">
+                    <i class="bi bi-flag-fill ap-end-icon" aria-hidden="true"></i> <span class="ap-end-label">{{ __('giya.plan.end') }}</span>
+                </button>
             </form>
         </div>
     </aside>
@@ -578,7 +581,7 @@ const GiyaActive = (function () {
         ) || HEAD_MIN;
 
         // Enough of the map left to see where you are going.
-        return Math.round(Math.min(window.innerHeight * 0.62, window.innerHeight - 64 - headPx - 24));
+        return Math.round(Math.min(window.innerHeight * 0.72, window.innerHeight - 64 - headPx - 24));
     }
 
     function setSheet(px) {
