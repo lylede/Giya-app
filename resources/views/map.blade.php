@@ -1262,6 +1262,24 @@ onLocated: function (me) {
         return t && !t.hidden ? t.offsetHeight + 8 : 0;
     }
 
+    /* With a trip picked, the lowered sheet is just the handle, the trip bar
+       and the results line: the map keeps the room, and the list is a drag
+       up away. With nothing picked, a church peeks so the list is found. */
+    function peekWithTray() {
+        const tray = trayHeight();
+        if (!tray) return PEEK;
+        const head = document.getElementById('listHeading');
+        return grab.offsetHeight + tray + (head ? head.offsetHeight : 0) + 6;
+    }
+
+    /* The map buttons start just under the search and the chips. */
+    function placeTools() {
+        const controls = floatBar.querySelector('.mx-controls');
+        if (!controls) return;
+        const b = floatBar.offsetTop + controls.offsetTop + controls.offsetHeight;
+        document.documentElement.style.setProperty('--mx-controls-b', b + 'px');
+    }
+
     function heights() {
         const total = grid.clientHeight;
         const top = floatBar.offsetTop + floatBar.offsetHeight + 8;
@@ -1270,7 +1288,7 @@ onLocated: function (me) {
             half: Math.round(total * 0.5),
             full: Math.max(PEEK, total - top),
             card: Math.min(Math.max(PEEK, total - top), card.scrollHeight + 34 + trayHeight()),
-            peekTray: PEEK + trayHeight()
+            peekTray: peekWithTray()
         };
     }
 
@@ -1279,6 +1297,7 @@ onLocated: function (me) {
         const h = heights();
         sheetEl.style.height = (state === 'peek' ? h.peekTray : h[state]) + 'px';
         sheetEl.dataset.state = state;
+        placeTools();
         // So the Giya robot can sit just above the lowered list.
         document.documentElement.style.setProperty('--mx-sheet-h', sheetEl.style.height);
     }

@@ -8587,3 +8587,24 @@ html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important;
 .giya-fab.is-high .fab-say { bottom: auto; top: calc(100% + 14px); transform-origin: top right; }
 .giya-fab.is-high.is-left .fab-say { transform-origin: top left; }
 .giya-fab.is-high .fab-say::before { bottom: auto; top: -8px; }
+
+/* ── Map page, phones: more map ──
+   A slimmer search bar and chips, smaller map buttons that start right under
+   them, a tighter location notice, and a lowered sheet that is only the trip
+   bar and the results line once churches are picked. */
+@media (max-width: 768px) {
+  body[data-page="map"] .mx-float { top: 8px; }
+  body[data-page="map"] .mx-float .mx-search-field { min-height: 42px; margin-bottom: 6px; }
+  body[data-page="map"] .mx-float .cat-chip { padding: 5px 12px; }
+  body[data-page="map"] .mx-float .mx-chips { gap: 5px; padding-bottom: 3px; }
+  body[data-page="map"] .mx-float .map-note { padding: 6px 10px; line-height: 1.4; margin-top: 4px; }
+  body[data-page="map"] .map-tools { top: calc(var(--mx-controls-b, 110px) + 8px); gap: 6px; }
+  body[data-page="map"] .map-tool { width: 38px; height: 38px; font-size: .875rem; }
+  body[data-page="map"] .mx-grab { padding: 7px 0 4px; }
+  body[data-page="map"] .map-sidebar .mx-tray { margin-bottom: 4px; padding-top: 7px; padding-bottom: 7px; }
+  body[data-page="map"] .mx-list-head { padding-top: 4px; padding-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+@media (max-width: 768px) {
+  /* Lowered with a trip: no half-cut church card under the results line. */
+  body[data-page="map"] .map-sidebar[data-state="peek"]:not(.is-dragging):has(#routeBox:not([hidden])) .mx-list { visibility: hidden; }
+}
