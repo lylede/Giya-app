@@ -103,9 +103,9 @@
         </button>
 
         <div class="ap-banner" id="currentBanner">
-            <div style="font-size: .75rem;font-weight:700;color:var(--primary);text-transform: none;letter-spacing: .01em;margin-bottom:3px">{{ __('giya.plan.current_stop') }}</div>
-            <div id="currentName" style="font-size: 0.875rem;font-weight:700;color:var(--text)"></div>
-            <div id="currentNext" style="font-size: .75rem;color:var(--primary);margin-top:4px"></div>
+            <div class="ap-cur-label">{{ __('giya.plan.current_stop') }}</div>
+            <div id="currentName" class="ap-cur-name"></div>
+            <div id="currentNext" class="ap-cur-next"></div>
         </div>
 
         <div class="ap-banner d-none" id="doneBanner" style="text-align:center">
@@ -135,8 +135,9 @@
             </button>
             @if ($itinerary->status !== 'Completed')
                 {{-- Add, remove, swap or reorder the stops still to come (Premium). --}}
-                <button type="button" class="btn btn-ghost btn-w-full es-open" id="editStopsBtn" data-edit-stops>
-                    <i class="bi bi-pencil-square"></i> {{ __('giya.plan.edit_trip') }}
+                <button type="button" class="btn btn-ghost btn-w-full es-open" id="editStopsBtn" data-edit-stops
+                        aria-label="{{ __('giya.plan.edit_trip') }}" title="{{ __('giya.plan.edit_trip') }}">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i> <span class="es-open-label">{{ __('giya.plan.edit_trip') }}</span>
                     @unless ($canEditStops)<i class="bi bi-lock-fill es-lock" aria-hidden="true"></i>@endunless
                 </button>
             @endif
@@ -428,8 +429,13 @@ const GiyaActive = (function () {
         viewPadding: function () {
             if (window.innerWidth > 1024) return null;
 
+            /* The map runs behind the strip and the sheet on a phone, so the
+               route is framed into the part between them. */
             const bar = document.querySelector('.active-sidebar');
-            return [8, (bar ? bar.getBoundingClientRect().height : 196) + 16];
+            const strip = document.querySelector('.active-layout .ap-head');
+            const map = document.getElementById('activeMap');
+            const top = strip && map ? Math.max(8, strip.getBoundingClientRect().bottom - map.getBoundingClientRect().top + 8) : 8;
+            return [top, (bar ? bar.getBoundingClientRect().height : 196) + 16];
         },
         currentId: (stops.find(s => !s.visited) || {}).id,
         onArrive: announceArrival,

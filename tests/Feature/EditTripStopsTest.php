@@ -296,4 +296,27 @@ class EditTripStopsTest extends TestCase
         $this->assertLessThan(strpos($html, 'id="esList"'), strpos($html, 'id="esSearch"'));
         $this->assertLessThan(strpos($html, 'id="esSearch"'), strpos($html, 'id="esDone"'));
     }
+
+    public function test_on_a_phone_the_map_is_the_background_and_the_closed_sheet_is_compact(): void
+    {
+        $css = file_get_contents(public_path('assets/css/giya.css'));
+        $start = strpos($css, '/* ══ Trip screen on a phone or tablet: the map is the background ══');
+        $this->assertNotFalse($start);
+        $phone = substr($css, $start);
+
+        // The map fills the screen behind the strip and the sheet.
+        $this->assertStringContainsString("position: fixed;\n    inset: var(--nav-height, 64px) 0 0 0;", $phone);
+        // What sits on the map keeps clear of both.
+        $this->assertStringContainsString('.active-layout .map-tools { top: calc(var(--ap-head) + 10px); }', $phone);
+        $this->assertStringContainsString('.active-layout .leaflet-bottom { bottom: var(--ap-sheet, 196px); }', $phone);
+        // Closed: one line each for the current and next church, one row of buttons.
+        $this->assertStringContainsString('white-space: nowrap; overflow: hidden; text-overflow: ellipsis;', $phone);
+        $this->assertStringContainsString('flex-direction: row; align-items: stretch; gap: 8px;', $phone);
+
+        // The route is framed between the strip and the sheet.
+        $html = $this->actingAs($this->user)->get(route('plan.show', $this->trip))->getContent();
+        $this->assertStringContainsString("document.querySelector('.active-layout .ap-head')", $html);
+        $this->assertStringContainsString('class="ap-cur-name"', $html);
+        $this->assertStringContainsString('class="es-open-label"', $html);
+    }
 }

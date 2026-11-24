@@ -8460,3 +8460,76 @@ html[data-theme="dark"] .admin-topbar .adm-theme:hover { background: rgba(215, 1
 .admin-idle-title { font-size: 1.125rem; font-weight: 700; margin: 0 0 6px; }
 .admin-idle-text { font-size: 0.9rem; color: var(--text-muted); margin: 0 0 16px; }
 .admin-idle-text b { color: var(--primary); font-variant-numeric: tabular-nums; }
+
+/* ══ Trip screen: the current stop ══ */
+.ap-cur-label { font-size: .75rem; font-weight: 700; color: var(--primary); letter-spacing: .01em; margin-bottom: 3px; }
+.ap-cur-name { font-size: .875rem; font-weight: 700; color: var(--text); }
+.ap-cur-next { font-size: .75rem; color: var(--primary); margin-top: 4px; }
+html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important; }
+
+/* ══ Trip screen on a phone or tablet: the map is the background ══
+   The map fills the screen behind everything. The trip strip floats over
+   its top as a card and the stop sheet over its bottom, and the route is
+   framed into the part between them (viewPadding in the page). Closed, the
+   sheet is one line for the current church, one for the next, and a single
+   row of buttons, so most of the screen stays map. */
+@media (max-width: 1024px) {
+  /* The screen does not scroll: scrolling hid the navbar and left black bands
+     above and below the map. */
+  body:has(.active-layout) { overflow: hidden; overscroll-behavior: none; }
+
+  .active-layout .map-wrap {
+    position: fixed;
+    inset: var(--nav-height, 64px) 0 0 0;
+    transition: none;
+  }
+
+  /* The strip: a floating card rather than a band across the map. */
+  .active-layout .ap-head {
+    top: calc(var(--nav-height, 64px) + 8px); left: 10px; right: 10px;
+    border-radius: 16px;
+    padding: 8px 12px 9px;
+    box-shadow: 0 6px 20px rgba(36, 28, 24, .28);
+  }
+
+  /* Everything that sits on the map keeps clear of the card and the sheet.
+     --ap-head is measured from the top of the screen below the navbar to the
+     bottom of the card, which is also where the map starts. */
+  .active-layout .map-tools { top: calc(var(--ap-head) + 10px); }
+  .active-layout .ap-legend { top: calc(var(--ap-head) + 10px); }
+  .active-layout .ap-notice { top: calc(var(--ap-head) + 6px); left: 10px; right: 10px; border-radius: 12px; border-bottom: 0; }
+  .active-layout.has-notice .ap-legend,
+  .active-layout.has-notice .map-tools { top: calc(var(--ap-head) + var(--ap-notice-h, 48px) + 14px); }
+  .active-layout .ap-summary { bottom: calc(var(--ap-sheet, 196px) + 12px); }
+  .active-layout .leaflet-bottom { bottom: var(--ap-sheet, 196px); }
+  .active-layout .leaflet-top { top: var(--ap-head); }
+  body:has(.active-layout) .giya-fab { bottom: calc(var(--ap-sheet, 196px) + 56px); }
+
+  /* Closed sheet: compact. */
+  .active-sidebar:not(.is-open) .ap-grab { height: 20px; }
+  .active-sidebar:not(.is-open) .ap-banner { padding: 2px 16px 8px; background: none; border-bottom: 0; }
+  .active-sidebar:not(.is-open) .ap-cur-label { font-size: .6875rem; margin-bottom: 1px; }
+  .active-sidebar:not(.is-open) .ap-cur-name,
+  .active-sidebar:not(.is-open) .ap-cur-next {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .active-sidebar:not(.is-open) .ap-cur-name { font-size: .9375rem; }
+  .active-sidebar:not(.is-open) .ap-cur-next { margin-top: 1px; }
+  .active-sidebar:not(.is-open) #doneBanner { padding: 4px 16px 8px; }
+
+  /* Mark Visited and Change stops share one row; Change stops is its icon. */
+  .active-sidebar:not(.is-open) .ap-foot {
+    flex-direction: row; align-items: stretch; gap: 8px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    border-top: 0;
+  }
+  .active-sidebar:not(.is-open) #markBtn { flex: 1; min-height: 46px; }
+  .active-sidebar:not(.is-open) .es-open {
+    width: 52px; flex: 0 0 52px; margin: 0; padding: 0; justify-content: center; min-height: 46px;
+  }
+  .active-sidebar:not(.is-open) .es-open-label,
+  .active-sidebar:not(.is-open) .es-lock {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .active-sidebar:not(.is-open) .es-open .bi-pencil-square { font-size: 1.15rem; }
+}
