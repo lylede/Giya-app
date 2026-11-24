@@ -800,7 +800,7 @@ return [
         'send' => 'Ipadala',
         'copy_link' => 'Kopyaha ang link',
         'copied_link' => 'Nakopya ang link. I-paste sa Messenger, Viber o group chat.',
-        'stop' => 'Hunonga ang pagpaambit (dili na mogana ang link)',
+        'stop' => 'Hunonga ang pagpaambit',
         'stopped' => 'Nahunong ang pagpaambit. Dili na mogana ang daan nga link.',
         'badge' => 'Gipaambit ni :owner',
         'stops' => '{1} :n ka simbahan|[2,*] :n ka simbahan',

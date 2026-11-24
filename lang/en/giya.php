@@ -810,7 +810,7 @@ return [
         'send' => 'Send',
         'copy_link' => 'Copy link',
         'copied_link' => 'Link copied. Paste it in Messenger, Viber or your group chat.',
-        'stop' => 'Stop sharing (the link stops working)',
+        'stop' => 'Stop sharing',
         'stopped' => 'Sharing stopped. The old link no longer works.',
         'badge' => 'Shared by :owner',
         'stops' => '{1} :n church|[2,*] :n churches',
