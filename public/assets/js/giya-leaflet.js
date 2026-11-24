@@ -1058,6 +1058,19 @@ window.GiyaLeaflet = (function () {
                 '</div>';
         }
 
+        /* On a phone the stop's card is the compact one (photo beside the
+           name), and it opens clear of the trip card and the bottom panel. */
+        function popupOptions() {
+            var phone = window.innerWidth <= 1024;
+            var pad = cfg.viewPadding ? cfg.viewPadding() : null;
+            var o = { className: phone ? 'giya-popup-compact giya-popup-stop' : 'giya-popup-stop' };
+            if (pad) {
+                o.autoPanPaddingTopLeft = [12, pad[0] + 8];
+                o.autoPanPaddingBottomRight = [12, pad[1] + 8];
+            }
+            return o;
+        }
+
         function refreshPopup(id) {
             var s = stops.filter(function (x) { return x.id === id; })[0];
             if (s && pins[id]) pins[id].setPopupContent(popupFor(s));
@@ -1081,7 +1094,7 @@ window.GiyaLeaflet = (function () {
                     icon: numberedIcon(s, state),
                     zIndexOffset: state === 'current' ? 800 : 0
                 })
-                    .bindPopup(popupFor(s))
+                    .bindPopup(popupFor(s), popupOptions())
                     .addTo(map);
             });
         }

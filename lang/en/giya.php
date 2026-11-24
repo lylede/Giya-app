@@ -367,6 +367,7 @@ return [
         'percent_done'      => ':pct% complete',
         'all_visited'       => 'All :count churches visited',
         'km_to'             => ':km km to :name',
+        'km_away'           => ':km km away',
         'km_roads'          => ':km km along roads',
         'km_roads_min'      => ':km km along roads · about :min min by car',
         'km_roads_min_to'  => ':km km to :name · about :min min by car',

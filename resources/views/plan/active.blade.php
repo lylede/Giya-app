@@ -104,7 +104,11 @@
 
         <div class="ap-banner" id="currentBanner">
             <div class="ap-cur-label">{{ __('giya.plan.current_stop') }}</div>
-            <div id="currentName" class="ap-cur-name"></div>
+            {{-- On a phone the distance sits at the end of this line instead of on the map. --}}
+            <div class="ap-cur-row">
+                <div id="currentName" class="ap-cur-name"></div>
+                <span class="ap-cur-dist" id="currentDist" hidden></span>
+            </div>
             <div id="currentNext" class="ap-cur-next"></div>
         </div>
 
@@ -392,6 +396,19 @@ const GiyaActive = (function () {
     const summaryEl = document.getElementById('routeSummary');
     let summaryTimer = null;
 
+    /* The distance: a pill on the map on a computer; on a phone, a short
+       line beside "Current stop", so the map is left clear. The panel keeps
+       the latest one (no fading), and a distance from where the devotee is
+       wins over the length of the whole route. */
+    const distEl = document.getElementById('currentDist');
+    let distFromHere = false;
+    function showDistance(text, fromHere) {
+        if (!distEl || !text || (distFromHere && !fromHere)) return;
+        distFromHere = distFromHere || fromHere;
+        distEl.textContent = text;
+        distEl.hidden = false;
+    }
+
     function showSummary(text) {
         if (!summaryEl || !text) return;
         if (summaryEl.textContent !== text || summaryEl.classList.contains('is-quiet')) {
@@ -449,13 +466,16 @@ const GiyaActive = (function () {
             hideNotice();   // a fresh fix: "could not follow your location" is no longer true
             showSummary(@json(__('giya.plan.km_to', ['km' => ':km', 'name' => ':name']))
                 .replace(':km', distanceKm.toFixed(1)).replace(':name', next.name));
+            showDistance(@json(__('giya.plan.km_away', ['km' => ':km'])).replace(':km', distanceKm.toFixed(1)), true);
         },
         onRoads: function (d) {
-            showSummary((d.duration_min
+            const text = (d.duration_min
                     ? @json(__('giya.plan.km_roads_min', ['km' => ':km', 'min' => ':min']))
                         .replace(':min', d.duration_min)
                     : @json(__('giya.plan.km_roads', ['km' => ':km'])))
-                .replace(':km', d.distance_km));
+                .replace(':km', d.distance_km);
+            showSummary(text);
+            showDistance(text, false);
         }
     });
 

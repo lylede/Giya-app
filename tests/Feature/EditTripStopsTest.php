@@ -322,6 +322,14 @@ class EditTripStopsTest extends TestCase
         $this->assertStringContainsString('class="ap-cur-name"', $html);
         $this->assertStringContainsString('class="es-open-label"', $html);
         $this->assertStringContainsString('class="ap-end-label"', $html);
+        // The distance sits at the end of the church's line on a phone, not over the map.
+        $this->assertStringContainsString('id="currentDist"', $html);
+        $this->assertStringContainsString('class="ap-cur-row"', $html);
+        // A stop's card on the map is the small one on a phone.
+        $leaflet = file_get_contents(public_path('assets/js/giya-leaflet.js'));
+        $this->assertStringContainsString('.bindPopup(popupFor(s), popupOptions())', $leaflet);
+        $this->assertStringContainsString("'giya-popup-compact giya-popup-stop'", $leaflet);
+        $this->assertStringContainsString('.active-layout .ap-summary { display: none; }', $phone);
         $this->assertStringContainsString('data-confirm-title=', $html);
     }
 }

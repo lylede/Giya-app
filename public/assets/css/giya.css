@@ -2803,6 +2803,12 @@ html[data-theme="dark"] .giya-cluster span { border-color: #2E241E; }
 }
 .giya-popup-compact .giya-popup .giya-popup-btn { margin-top: 0; padding: 8px 2px; font-size: .75rem; }
 .giya-popup-compact .giya-popup .giya-popup-row .giya-popup-btn { width: 100%; }
+/* A trip stop's card: Mark visited (or Visited) under the photo and name. */
+.giya-popup-compact.giya-popup-stop .giya-popup > .giya-popup-btn,
+.giya-popup-compact.giya-popup-stop .giya-popup > .giya-popup-done { grid-column: 1 / -1; margin-top: 8px; width: 100%; }
+.giya-popup-compact.giya-popup-stop .giya-popup > span:nth-of-type(n+2) { display: block; }
+.giya-popup-compact .giya-popup:not(:has(img)) { display: block; }  /* a church with no photo yet */
+.giya-popup-compact.giya-popup-stop .giya-popup > span:first-of-type { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Map shells */
 .giya-map-canvas {
@@ -8461,6 +8467,8 @@ html[data-theme="dark"] .admin-topbar .adm-theme:hover { background: rgba(215, 1
 
 /* ══ Trip screen: the current stop ══ */
 .ap-cur-label { font-size: .75rem; font-weight: 700; color: var(--primary); letter-spacing: .01em; margin-bottom: 3px; }
+/* Only on a phone: on a computer the pill on the map says it. */
+.ap-cur-dist { display: none; }
 .ap-cur-name { font-size: .875rem; font-weight: 700; color: var(--text); }
 .ap-cur-next { font-size: .75rem; color: var(--primary); margin-top: 4px; }
 html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important; }
@@ -8498,7 +8506,18 @@ html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important;
   .active-layout .ap-notice { top: calc(var(--ap-head) + 6px); left: 10px; right: 10px; border-radius: 12px; border-bottom: 0; }
   .active-layout.has-notice .ap-legend,
   .active-layout.has-notice .map-tools { top: calc(var(--ap-head) + var(--ap-notice-h, 48px) + 14px); }
-  .active-layout .ap-summary { bottom: calc(var(--ap-sheet, 196px) + 12px); }
+  /* The distance moves off the map into the panel, beside "Current stop". */
+  .active-layout .ap-summary { display: none; }
+  /* Two lines: the church with its distance at the end, then the next one.
+     "Current stop" is still read aloud; the bold name says it on screen. */
+  .active-sidebar .ap-cur-label {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .ap-cur-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .ap-cur-row .ap-cur-name { flex: 1 1 auto; min-width: 0; }
+  .ap-cur-dist { display: inline; flex: 0 0 auto; font-size: .75rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+  .ap-cur-dist[hidden] { display: none; }
+  .active-sidebar .ap-banner { padding-top: 0; }
   .active-layout .leaflet-bottom { bottom: var(--ap-sheet, 196px); }
   .active-layout .leaflet-top { top: var(--ap-head); }
   body:has(.active-layout) .giya-fab { bottom: calc(var(--ap-sheet, 196px) + 56px); }
