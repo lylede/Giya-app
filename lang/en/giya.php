@@ -386,8 +386,6 @@ return [
         'edit_swap_in' => 'Go here instead',
         'edit_cancel_swap' => 'Cancel swap',
         'edit_remove' => 'Remove',
-        'edit_up' => 'Move up',
-        'edit_down' => 'Move down',
         'edit_done' => 'Done',
         'edit_none' => 'No church found.',
         'edit_to_come' => 'Still to come',

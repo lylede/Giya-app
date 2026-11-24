@@ -20,13 +20,31 @@
   var doneBtn = document.getElementById('esDone');
   var changed = false;
 
+  /* On a phone the window fills the screen. The keyboard shrinks only the
+     visible part of the page, so the window follows that part: Done and the
+     search results stay above the keyboard instead of behind it. */
+  var vv = window.visualViewport;
+  function fit() {
+    if (modal.hidden || !vv) return;
+    modal.style.top = vv.offsetTop + 'px';
+    modal.style.height = vv.height + 'px';
+    modal.style.bottom = 'auto';
+  }
+  if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
+
+  // A mouse and keyboard can start typing at once; on a phone the keyboard
+  // would cover the stops before they are even seen.
+  var finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+
   function open() {
     modal.hidden = false;
     document.body.classList.add('has-plan-modal');
-    if (cfg.can) { render(); setTimeout(function () { search.focus(); }, 50); }
+    fit();
+    if (cfg.can) { render(); if (finePointer) setTimeout(function () { search.focus(); }, 50); }
   }
   function close() {
     modal.hidden = true;
+    modal.style.top = modal.style.height = modal.style.bottom = '';
     document.body.classList.remove('has-plan-modal');
     if (changed) location.reload();
   }
@@ -47,6 +65,7 @@
   var swapText = document.getElementById('esSwapText');
   var swapping = null;   // the stop being swapped, or null
   var busy = false;
+  var box = modal.querySelector('.es-box');
   var token = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
 
   function esc(s) {
@@ -102,13 +121,14 @@
     }
     list.innerHTML = rows.map(function (s, i) {
       return '<li class="es-row' + (swapping === s.id ? ' is-swapping' : '') + '" data-id="' + s.id + '">' +
+        '<button type="button" class="es-grip" aria-label="' + esc(T.drag.replace(':name', s.name)) + '" title="' + esc(T.dragHint) + '">' +
+          '<svg viewBox="0 0 10 16" aria-hidden="true" focusable="false"><circle cx="2.5" cy="2.5" r="1.5"/><circle cx="7.5" cy="2.5" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13.5" r="1.5"/><circle cx="7.5" cy="13.5" r="1.5"/></svg>' +
+        '</button>' +
         '<span class="es-num">' + (i + 1) + '</span>' +
         '<span class="es-name"><b>' + esc(s.name) + '</b><small>' + esc(s.location) + '</small></span>' +
         '<span class="es-actions">' +
-          '<button type="button" class="es-icon" data-act="up" aria-label="' + esc(T.up) + '" title="' + esc(T.up) + '"' + (i === 0 ? ' disabled' : '') + '><i class="bi bi-arrow-up"></i></button>' +
-          '<button type="button" class="es-icon" data-act="down" aria-label="' + esc(T.down) + '" title="' + esc(T.down) + '"' + (i === rows.length - 1 ? ' disabled' : '') + '><i class="bi bi-arrow-up es-flip"></i></button>' +
-          '<button type="button" class="es-text" data-act="swap">' + esc(T.swap) + '</button>' +
-          '<button type="button" class="es-text es-danger" data-act="remove">' + esc(T.remove) + '</button>' +
+          '<button type="button" class="es-text" data-act="swap" aria-label="' + esc(T.swap) + '"><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span class="es-btn-label">' + esc(T.swap) + '</span></button>' +
+          '<button type="button" class="es-text es-danger" data-act="remove" aria-label="' + esc(T.remove) + '"><i class="bi bi-trash3" aria-hidden="true"></i><span class="es-btn-label">' + esc(T.remove) + '</span></button>' +
         '</span>' +
       '</li>';
     }).join('');
@@ -125,13 +145,117 @@
       send(stopUrl(id), 'DELETE');
     } else if (act === 'swap') {
       setSwap(swapping === id ? null : id);
-    } else {
-      var ids = todo().map(function (s) { return s.id; });
-      var i = ids.indexOf(id), j = act === 'up' ? i - 1 : i + 1;
-      if (j < 0 || j >= ids.length) return;
-      ids[i] = ids[j]; ids[j] = id;
-      send(cfg.urls.order, 'POST', { stops: ids });
     }
+  });
+
+  /* ---- Dragging to reorder (the same feel as the Visita Iglesia planner) ----
+     Pointer events serve a finger, a mouse and a pen alike. The stop lifts and
+     follows the finger, the others slide aside to make room, and on letting
+     go it glides into its place and the new order is saved. The handle has
+     touch-action: none so dragging it does not scroll the window; near the top
+     or bottom the window scrolls along. On a keyboard the handle moves its stop
+     with the up and down arrow keys. */
+  var SLIDE = 'transform .2s cubic-bezier(.2, .8, .2, 1)';
+  var still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var drag = null;
+
+  function saveOrder(ids) {
+    var before = todo().map(function (s) { return s.id; });
+    if (ids.join() === before.join()) { render(); return; }
+    // Show the new order at once; the saved one replaces it (or the old one, on failure).
+    var byId = {};
+    stops.forEach(function (s) { byId[s.id] = s; });
+    stops = stops.filter(function (s) { return s.visited; }).concat(ids.map(function (id) { return byId[id]; }));
+    render();
+    send(cfg.urls.order, 'POST', { stops: ids }).then(function (ok) {
+      if (!ok) {
+        stops = stops.filter(function (s) { return s.visited; }).concat(before.map(function (id) { return byId[id]; }));
+        render();
+      }
+    });
+  }
+
+  list.addEventListener('pointerdown', function (e) {
+    var grip = e.target.closest('.es-grip');
+    if (!grip || busy || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    e.preventDefault();
+    var row = grip.closest('.es-row');
+    var rows = Array.prototype.slice.call(list.querySelectorAll('.es-row'));
+    if (rows.length < 2) return;
+    var rects = rows.map(function (r) { return r.getBoundingClientRect(); });
+    var from = rows.indexOf(row);
+    drag = { row: row, pointer: e.pointerId, rows: rows, rects: rects, from: from, to: from,
+             gap: Math.max(0, rects[1].top - rects[0].bottom), y0: e.clientY, s0: box.scrollTop };
+    grip.setPointerCapture(e.pointerId);
+    rows.forEach(function (r) { r.style.transition = (r === row || still) ? 'none' : SLIDE; });
+    row.classList.add('is-dragging');
+    list.classList.add('is-sorting');
+  });
+
+  list.addEventListener('pointermove', function (e) {
+    var d = drag;
+    if (!d || e.pointerId !== d.pointer) return;
+    e.preventDefault();
+    var dy = e.clientY - d.y0 + (box.scrollTop - d.s0);
+    d.row.style.transform = 'translateY(' + dy + 'px) scale(1.02)';
+
+    var mid = d.rects[d.from].top + d.rects[d.from].height / 2 + dy;
+    var to = 0;
+    d.rows.forEach(function (r, i) { if (i !== d.from && d.rects[i].top + d.rects[i].height / 2 < mid) to++; });
+    d.to = to;
+
+    var step = d.rects[d.from].height + d.gap;
+    d.rows.forEach(function (r, i) {
+      if (i === d.from) return;
+      var shift = 0;
+      if (d.from < to && i > d.from && i <= to) shift = -step;
+      if (d.from > to && i >= to && i < d.from) shift = step;
+      r.style.transform = shift ? 'translateY(' + shift + 'px)' : '';
+    });
+
+    var area = box.getBoundingClientRect(), edge = 60;
+    if (e.clientY < area.top + edge) box.scrollTop -= 12;
+    else if (e.clientY > area.bottom - edge) box.scrollTop += 12;
+  });
+
+  function finishDrag(e) {
+    var d = drag;
+    if (!d || (e && e.pointerId !== d.pointer)) return;
+    drag = null;
+    list.classList.remove('is-sorting');
+
+    var land = 0, i;
+    if (d.to > d.from) for (i = d.from + 1; i <= d.to; i++) land += d.rects[i].height + d.gap;
+    if (d.to < d.from) for (i = d.to; i < d.from; i++) land -= d.rects[i].height + d.gap;
+    d.row.style.transition = still ? 'none' : SLIDE;
+    d.row.style.transform = 'translateY(' + land + 'px)';
+
+    setTimeout(function () {
+      d.row.classList.remove('is-dragging');
+      d.rows.forEach(function (r) { r.style.transition = ''; r.style.transform = ''; });
+      var ids = d.rows.map(function (r) { return Number(r.dataset.id); });
+      var moved = ids.splice(d.from, 1)[0];
+      ids.splice(d.to, 0, moved);
+      saveOrder(ids);
+    }, still ? 0 : 200);
+  }
+  list.addEventListener('pointerup', finishDrag);
+  list.addEventListener('pointercancel', finishDrag);
+
+  list.addEventListener('keydown', function (e) {
+    var grip = e.target.closest('.es-grip');
+    if (!grip || busy || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault();
+    var id = Number(grip.closest('.es-row').dataset.id);
+    var ids = todo().map(function (s) { return s.id; });
+    var i = ids.indexOf(id), j = i + (e.key === 'ArrowUp' ? -1 : 1);
+    if (j < 0 || j >= ids.length) return;
+    ids[i] = ids[j]; ids[j] = id;
+    saveOrder(ids);
+    setTimeout(function () {
+      var again = list.querySelector('.es-row[data-id="' + id + '"] .es-grip');
+      if (again) again.focus();
+    }, 0);
   });
 
   function setSwap(id) {
@@ -141,7 +265,7 @@
     swapText.textContent = s ? T.swapFor.replace(':name', s.name) : '';
     render();
     renderResults(lastItems);
-    if (s) search.focus();
+    if (s) { box.scrollTop = 0; search.focus(); }
   }
   document.getElementById('esCancelSwap').addEventListener('click', function () { setSwap(null); });
 
@@ -149,7 +273,12 @@
   var lastItems = [];
   var timer = null;
   var asked = 0;
+  /* While typing, the list of stops steps aside so the results sit right
+     under the search box, above a phone's keyboard. */
+  function searching() { box.classList.toggle('is-searching', search.value.trim() !== ''); }
+  search.addEventListener('focus', function () { box.scrollTop = 0; });
   search.addEventListener('input', function () {
+    searching();
     clearTimeout(timer);
     var q = search.value.trim();
     if (q.length < 2) { lastItems = []; results.innerHTML = ''; return; }
@@ -197,6 +326,8 @@
       search.value = '';
       lastItems = [];
       results.innerHTML = '';
+      searching();
+      search.blur();   // the keyboard goes away and the new list shows
     });
   });
 })();

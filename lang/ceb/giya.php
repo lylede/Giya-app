@@ -376,8 +376,6 @@ return [
         'edit_swap_in' => 'Adto na lang dinhi',
         'edit_cancel_swap' => 'Ayaw na ilisi',
         'edit_remove' => 'Tangtanga',
-        'edit_up' => 'Ibalhin pataas',
-        'edit_down' => 'Ibalhin paubos',
         'edit_done' => 'Human na',
         'edit_none' => 'Walay simbahan nga nakit-an.',
         'edit_to_come' => 'Adtoan pa',

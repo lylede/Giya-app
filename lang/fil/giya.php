@@ -376,8 +376,6 @@ return [
         'edit_swap_in' => 'Dito na lang pumunta',
         'edit_cancel_swap' => 'Huwag nang palitan',
         'edit_remove' => 'Alisin',
-        'edit_up' => 'Iakyat',
-        'edit_down' => 'Ibaba',
         'edit_done' => 'Tapos na',
         'edit_none' => 'Walang nahanap na simbahan.',
         'edit_to_come' => 'Pupuntahan pa',

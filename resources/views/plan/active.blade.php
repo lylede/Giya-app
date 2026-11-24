@@ -273,26 +273,33 @@
 <div class="plan-modal" id="editStopsModal" hidden role="dialog" aria-modal="true" aria-labelledby="editStopsTitle">
     <div class="plan-modal-box es-box">
         @if ($canEditStops)
-            <h2 class="plan-modal-title" id="editStopsTitle">{{ __('giya.plan.edit_title') }}</h2>
-            <p class="plan-modal-sub">{{ __('giya.plan.edit_sub') }}</p>
+            {{-- Title and Done stay at the top, above a phone's keyboard. --}}
+            <div class="es-head">
+                <h2 class="plan-modal-title" id="editStopsTitle">{{ __('giya.plan.edit_title') }}</h2>
+                <button type="button" class="btn btn-primary btn-sm" id="esDone">{{ __('giya.plan.edit_done') }}</button>
+            </div>
+            <p class="plan-modal-sub es-sub">{{ __('giya.plan.edit_sub') }}</p>
+            <p class="rate-error es-error" id="esError" role="alert" hidden></p>
 
-            <p class="es-label">{{ __('giya.plan.edit_to_come') }}</p>
-            <ol class="es-list" id="esList"></ol>
-
+            {{-- Search first: its results appear right under it, not below the
+                 list where the keyboard would cover them. --}}
             <div class="es-add">
                 <p class="es-label" id="esAddLabel">{{ __('giya.plan.edit_add') }}</p>
                 <div class="es-swapping" id="esSwapping" hidden>
                     <span id="esSwapText"></span>
                     <button type="button" class="btn btn-ghost btn-sm" id="esCancelSwap">{{ __('giya.plan.edit_cancel_swap') }}</button>
                 </div>
-                <input type="search" class="giya-input es-search" id="esSearch" autocomplete="off"
-                       placeholder="{{ __('giya.plan.edit_search') }}" aria-labelledby="esAddLabel">
+                <div class="es-search-wrap">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="search" class="giya-input es-search" id="esSearch" autocomplete="off" enterkeyhint="search"
+                           placeholder="{{ __('giya.plan.edit_search') }}" aria-labelledby="esAddLabel">
+                </div>
                 <ul class="es-results" id="esResults"></ul>
             </div>
 
-            <p class="rate-error" id="esError" role="alert" hidden></p>
-            <div class="plan-modal-actions">
-                <button type="button" class="btn btn-primary" id="esDone">{{ __('giya.plan.edit_done') }}</button>
+            <div class="es-stops">
+                <p class="es-label">{{ __('giya.plan.edit_to_come') }}</p>
+                <ol class="es-list" id="esList"></ol>
             </div>
         @else
             <h2 class="plan-modal-title" id="editStopsTitle"><i class="bi bi-lock-fill"></i> {{ __('giya.plan.edit_premium_title') }}</h2>
@@ -315,7 +322,7 @@
         stops: @json($editStops),
         urls: @json($editUrls),
         text: {
-            up: @json(__('giya.plan.edit_up')), down: @json(__('giya.plan.edit_down')),
+            drag: @json(__('giya.plan.drag_label', ['name' => ':name'])), dragHint: @json(__('giya.plan.drag_hint')),
             swap: @json(__('giya.plan.edit_swap')), remove: @json(__('giya.plan.edit_remove')),
             next: @json(__('giya.plan.edit_next')), end: @json(__('giya.plan.edit_end')),
             swapIn: @json(__('giya.plan.edit_swap_in')), swapFor: @json(__('giya.plan.edit_swap_for', ['name' => ':name'])),

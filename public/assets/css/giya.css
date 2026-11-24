@@ -6851,41 +6851,82 @@ body.has-plan-modal { overflow: hidden; }
 /* ══ Change stops on a trip (giya-edit-stops.js) ══ */
 .es-open { margin-top: 8px; }
 .es-lock { font-size: .8em; opacity: .75; margin-left: 4px; }
-.es-box { width: min(520px, 100%); }
+.es-box { width: min(540px, 100%); }
+.es-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  position: sticky; top: 0; z-index: 3; background: var(--surface, #fff);
+  margin: -20px -18px 0; padding: 16px 18px 6px;
+}
+.es-head .plan-modal-title { margin: 0; }
+.es-sub { margin-bottom: 8px; }
+.es-error { margin: 0 0 8px; }
 .es-label { font-size: .75rem; font-weight: 700; color: var(--text-muted); margin: 6px 0 6px; }
+.es-search-wrap { position: relative; margin-bottom: 8px; }
+.es-search-wrap .bi-search { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.es-search { width: 100%; font-size: 16px; padding-left: 36px; }
 .es-list, .es-results { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .es-row, .es-result {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 8px;
   padding: 8px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2, #FBF7F2);
 }
+.es-result { flex-wrap: wrap; }
 .es-row.is-swapping { border-color: var(--primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent); }
+.es-row.is-dragging { position: relative; z-index: 2; border-color: var(--primary); box-shadow: 0 14px 30px rgba(60, 25, 15, .22); cursor: grabbing; }
+html[data-theme="dark"] .es-row.is-dragging { box-shadow: 0 10px 24px rgba(0, 0, 0, .5); }
+/* The drag handle: six dots, a finger's width wide. */
+.es-grip {
+  flex-shrink: 0; width: 28px; height: 42px; margin-left: -4px; display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 8px; background: none; color: var(--text-muted);
+  cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none;
+}
+.es-grip svg { width: 10px; height: 16px; fill: currentColor; }
+.es-grip:hover { color: var(--primary); }
+.es-grip:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.es-list.is-sorting { -webkit-user-select: none; user-select: none; }
 .es-num {
   width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center;
   font-size: .75rem; font-weight: 700; color: #fff; background: var(--primary);
 }
-.es-name { flex: 1 1 160px; min-width: 0; display: flex; flex-direction: column; }
-.es-name b { font-size: .875rem; color: var(--text); overflow-wrap: anywhere; }
+.es-name { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.es-name b { font-size: .875rem; color: var(--text); overflow-wrap: anywhere; line-height: 1.3; }
 .es-name small { font-size: .75rem; color: var(--text-muted); }
-.es-actions, .es-pick { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
-.es-icon, .es-text {
-  min-height: 36px; border: 1px solid var(--border); background: transparent; color: var(--text);
+.es-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.es-pick { display: flex; gap: 6px; margin-left: auto; }
+.es-text {
+  min-height: 38px; display: inline-flex; align-items: center; gap: 5px; padding: 0 10px;
+  border: 1px solid var(--border); background: transparent; color: var(--text);
   border-radius: 9px; font-size: .8125rem; cursor: pointer;
 }
-.es-icon { width: 36px; }
-.es-text { padding: 0 10px; }
-.es-icon:disabled { opacity: .35; cursor: default; }
-.es-flip { display: inline-block; transform: rotate(180deg); }
-.es-icon:focus-visible, .es-text:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.es-text:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .es-danger { color: var(--danger, #B42318); }
 .es-empty { font-size: .8125rem; color: var(--text-muted); padding: 6px 2px; }
-.es-search { width: 100%; font-size: 16px; margin-bottom: 8px; }
 .es-swapping {
   display: flex; align-items: center; gap: 8px; justify-content: space-between; flex-wrap: wrap;
   font-size: .8125rem; color: var(--text); background: var(--gold-bg, #F6EBD7); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px;
 }
+/* While typing a search, the list steps aside so the results sit right under it. */
+.es-box.is-searching .es-stops { display: none; }
 .plan-modal.is-busy .es-box { cursor: progress; }
 .plan-modal.is-busy .es-box button { pointer-events: none; opacity: .7; }
 html[data-theme="dark"] .es-swapping { background: #3A2E22; }
+
+/* Phones: the whole screen, sized to what the keyboard leaves visible (the
+   script sets top and height from the visual viewport). Icon-only Swap and
+   Remove, so a long church name keeps its room. */
+@media (max-width: 768px) {
+  #editStopsModal { padding: 0; align-items: stretch; }
+  #editStopsModal .es-box {
+    width: 100%; height: 100%; max-height: none; border-radius: 0;
+    padding: 0 14px calc(16px + env(safe-area-inset-bottom));
+  }
+  .es-head { top: 0; margin: 0 -14px; padding: max(12px, env(safe-area-inset-top)) 14px 8px; border-bottom: 1px solid var(--border-light, #eee); }
+  .es-sub { margin-top: 8px; }
+  .es-row { padding: 6px 8px 6px 6px; gap: 6px; }
+  .es-btn-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .es-text { width: 40px; min-height: 40px; padding: 0; justify-content: center; font-size: 1rem; }
+  .es-pick { width: 100%; }
+  .es-pick .btn { flex: 1; justify-content: center; }
+}
 @media (max-width: 768px) {
   /* A sheet from the bottom on phones, above the keyboard's reach. */
   .plan-modal { align-items: flex-end; padding: 0; }

@@ -274,4 +274,26 @@ class EditTripStopsTest extends TestCase
         $this->actingAs($this->user)->get(route('plan.show', $this->trip))->assertOk()
             ->assertDontSee('data-edit-stops', false);
     }
+
+    public function test_on_a_phone_stops_are_dragged_and_the_window_stays_above_the_keyboard(): void
+    {
+        $js = file_get_contents(public_path('assets/js/giya-edit-stops.js'));
+        $css = file_get_contents(public_path('assets/css/giya.css'));
+
+        // Dragging by the six-dot handle, with the arrow keys for a keyboard.
+        $this->assertStringContainsString('es-grip', $js);
+        $this->assertStringContainsString('pointerdown', $js);
+        $this->assertStringContainsString("e.key !== 'ArrowUp'", $js);
+        $this->assertMatchesRegularExpression('/\.es-grip \{[^}]*touch-action: none/', $css);
+
+        // The window follows the part of the screen the keyboard leaves, and the
+        // list steps aside while searching so the results are not covered.
+        $this->assertStringContainsString('visualViewport', $js);
+        $this->assertStringContainsString('.es-box.is-searching .es-stops { display: none; }', $css);
+
+        // Search comes before the list, and Done is in the header.
+        $html = $this->actingAs($this->user)->get(route('plan.show', $this->trip))->getContent();
+        $this->assertLessThan(strpos($html, 'id="esList"'), strpos($html, 'id="esSearch"'));
+        $this->assertLessThan(strpos($html, 'id="esSearch"'), strpos($html, 'id="esDone"'));
+    }
 }
