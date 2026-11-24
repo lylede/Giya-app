@@ -34,7 +34,15 @@
     if (r.width < 2 || r.height < 2) return false;
     var s = getComputedStyle(el);
     // Not opacity: a card that fades in as it scrolls into view is still there.
-    return s.visibility !== 'hidden' && s.display !== 'none';
+    if (s.visibility === 'hidden' || s.display === 'none') return false;
+    // A map pin is drawn even when it is outside the map's frame (the map
+    // just hides it), so it only counts when it sits inside the frame.
+    var frame = el.closest('.leaflet-container');
+    if (frame) {
+      var f = frame.getBoundingClientRect();
+      if (r.left < f.left + 8 || r.right > f.right - 8 || r.top < f.top + 8 || r.bottom > f.bottom - 8) return false;
+    }
+    return true;
   }
 
   /* A step for one kind of screen only (a phone's slide bar). */
@@ -51,8 +59,17 @@
     if (!sel) return null;
     var list;
     try { list = document.querySelectorAll(sel); } catch (e) { return null; }
-    for (var k = 0; k < list.length; k++) if (shown(list[k])) return list[k];
-    return null;
+    var best = null, bestD = Infinity;
+    for (var k = 0; k < list.length; k++) {
+      if (!shown(list[k])) continue;
+      var frame = list[k].closest('.leaflet-container');
+      if (!frame) return list[k];
+      // On a map: the pin nearest the middle, which is the easiest to see.
+      var f = frame.getBoundingClientRect(), r = list[k].getBoundingClientRect();
+      var d = Math.pow((r.left + r.right) / 2 - (f.left + f.right) / 2, 2) + Math.pow((r.top + r.bottom) / 2 - (f.top + f.bottom) / 2, 2);
+      if (d < bestD) { bestD = d; best = list[k]; }
+    }
+    return best;
   }
 
   function send(which) {

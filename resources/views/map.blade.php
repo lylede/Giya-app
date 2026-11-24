@@ -355,7 +355,7 @@
 <x-tour name="map" wait-for=".giya-map-shell.is-map-ready" :steps="[
     ['.mx-search-field', 'search'],
     ['.mx-chips', 'chips', true],
-    ['.giya-map-shell .giya-cluster, .giya-map-shell .giya-pin-wrap', 'pins'],
+    ['.giya-map-shell .giya-cluster, .giya-map-shell .giya-pin-wrap:not(:has(.giya-me))', 'pins'],
     ['#sheetGrab', 'sheet', true, '(max-width: 768px)'],
     ['#churchList', 'list', false, '(min-width: 769px)'],
     ['#churchList .mx-row-body', 'row'],
