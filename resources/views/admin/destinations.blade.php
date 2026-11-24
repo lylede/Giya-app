@@ -64,7 +64,22 @@
         {{-- One church at a glance: click its pin. Editing still opens the
              usual pop-up; the panel is for seeing and quick actions. --}}
         <aside class="dm-side" id="dmSide" hidden aria-labelledby="dmSideName">
-            <div class="dm-side-photo" id="dmSidePhoto"></div>
+            {{-- The photo is the upload, as on the profile: click it (or drop
+                 a picture on it) to replace the church's main photo. --}}
+            <form method="POST" enctype="multipart/form-data" id="dmPhotoForm" class="dm-side-photo-form">
+                @csrf
+                <label class="dm-side-photo" id="dmSidePhoto" for="dmPhotoFile" tabindex="0"
+                       title="Change photo (JPG, PNG or WebP, up to 4 MB)">
+                    <span class="dm-photo-veil" aria-hidden="true">
+                        <i class="bi bi-camera-fill"></i>
+                        <span id="dmPhotoVeilText">Change photo</span>
+                        <small>JPG, PNG or WebP, up to 4 MB</small>
+                    </span>
+                    <span class="dm-photo-badge" aria-hidden="true"><i class="bi bi-camera-fill"></i></span>
+                </label>
+                <input type="file" name="photo" id="dmPhotoFile" accept="image/jpeg,image/png,image/webp" class="visually-hidden"
+                       aria-label="Change this church's photo">
+            </form>
             <button type="button" class="dm-side-x" id="dmSideClose" aria-label="Close"><i class="bi bi-x-lg"></i></button>
             <div class="dm-side-head">
                 <h3 class="dm-side-name" id="dmSideName"></h3>
@@ -73,7 +88,6 @@
             </div>
             <div class="dm-side-tabs" role="tablist">
                 <button type="button" role="tab" class="dm-side-tab is-on" data-tab="details">Details</button>
-                <button type="button" role="tab" class="dm-side-tab" data-tab="photos">Photos</button>
                 <button type="button" role="tab" class="dm-side-tab" data-tab="schedule">Schedule</button>
                 <button type="button" role="tab" class="dm-side-tab" data-tab="feedback">Feedback</button>
             </div>
@@ -695,7 +709,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
     const side = document.getElementById('dmSide');
     const sideBody = document.getElementById('dmSideBody');
     const ISSUE = {
-        photo:    ['camera-fill', 'No photo', 'photos'],
+        photo:    ['camera-fill', 'No photo', 'photo'],
         schedule: ['calendar3', 'No Mass schedule', 'schedule'],
         hidden:   ['eye-slash', 'Hidden from devotees', 'details'],
         rating:   ['star-fill', 'Low rating', 'feedback'],
@@ -711,7 +725,13 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         picker.select(id);
         document.getElementById('dmSideName').textContent = r.name;
         document.getElementById('dmSidePlace').textContent = [r.location, r.municipality].filter(Boolean).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(' · ');
-        document.getElementById('dmSidePhoto').style.backgroundImage = "url('" + r.image + "')";
+        const photo = document.getElementById('dmSidePhoto');
+        const noPhoto = !!(m && m.issues && m.issues.indexOf('photo') !== -1);
+        photo.style.backgroundImage = "url('" + r.image + "')";
+        photo.classList.toggle('is-empty', noPhoto);
+        photo.classList.remove('is-busy');
+        document.getElementById('dmPhotoVeilText').textContent = noPhoto ? 'Add a photo' : 'Change photo';
+        document.getElementById('dmPhotoForm').action = @json(url('admin/destinations')) + '/' + id + '/photo';
         document.getElementById('dmSideIssues').innerHTML = ((m && m.issues) || []).map(function (k) {
             return '<button type="button" class="dm-issue" data-goto="' + ISSUE[k][2] + '"><i class="bi bi-' + ISSUE[k][0] + '"></i> ' + ISSUE[k][1] + '</button>';
         }).join('');
@@ -739,6 +759,37 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         setTimeout(function () { picker.map.invalidateSize(); }, 220);
     }
     document.getElementById('dmSideClose').addEventListener('click', closeSide);
+
+    /* The photo is the upload: choose a file, or drop one on the photo. */
+    (function () {
+        const form = document.getElementById('dmPhotoForm');
+        const input = document.getElementById('dmPhotoFile');
+        const photo = document.getElementById('dmSidePhoto');
+        function send() {
+            if (!input.files.length || !sideId) return;
+            photo.classList.add('is-busy');
+            document.getElementById('dmPhotoVeilText').textContent = 'Uploading…';
+            form.submit();
+        }
+        input.addEventListener('change', send);
+        photo.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+        });
+        ['dragenter', 'dragover'].forEach(function (t) {
+            photo.addEventListener(t, function (e) { e.preventDefault(); photo.classList.add('is-dragging'); });
+        });
+        ['dragleave', 'drop'].forEach(function (t) {
+            photo.addEventListener(t, function () { photo.classList.remove('is-dragging'); });
+        });
+        photo.addEventListener('drop', function (e) {
+            e.preventDefault();
+            if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+            const dt = new DataTransfer();
+            dt.items.add(e.dataTransfer.files[0]);
+            input.files = dt.files;
+            send();
+        });
+    })();
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !side.hidden && !document.querySelector('.modal.is-open')) closeSide();
     });
@@ -748,7 +799,10 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
     });
     document.getElementById('dmSideIssues').addEventListener('click', function (e) {
         const b = e.target.closest('[data-goto]');
-        if (b) showTab(b.dataset.goto);
+        if (!b) return;
+        // "No photo" opens the picker: the photo above is the upload.
+        if (b.dataset.goto === 'photo') { document.getElementById('dmPhotoFile').click(); return; }
+        showTab(b.dataset.goto);
     });
 
     function stars(n) {
@@ -774,11 +828,11 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                 return value ? '<div class="dm-kv"><i class="bi bi-' + icon + '"></i><div><span>' + label + '</span><b>' + esc(value) + '</b></div></div>' : '';
             };
             html = '<div class="dm-side-actions">'
-                 + '<button type="button" class="btn btn-primary btn-sm" data-act="edit"><i class="bi bi-pencil-square"></i> Edit details</button>'
+                 + '<button type="button" class="btn btn-primary btn-sm" data-act="edit"><i class="bi bi-pencil-square"></i> Edit</button>'
                  + '<form method="POST" action="' + @json(url('admin/destinations')) + '/' + r.id + '/toggle" class="d-inline">'
                  + '<input type="hidden" name="_token" value="' + CSRF + '"><input type="hidden" name="_method" value="PATCH">'
                  + '<button class="btn btn-outline btn-sm"><i class="bi bi-' + (r.active ? 'eye-slash' : 'eye') + '"></i> ' + (r.active ? 'Set to Draft' : 'Publish') + '</button></form>'
-                 + '<a class="btn btn-outline btn-sm" target="_blank" href="' + @json(url('churches')) + '/' + r.id + '"><i class="bi bi-box-arrow-up-right"></i> View page</a>'
+                 + '<a class="btn btn-outline btn-sm dm-icon-btn" target="_blank" href="' + @json(url('churches')) + '/' + r.id + '" title="View page" aria-label="View the church page"><i class="bi bi-box-arrow-up-right"></i></a>'
                  + '</div>'
                  + '<div class="dm-kvs">'
                  + line('list', 'Category', r.category)
@@ -788,20 +842,6 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
                  + line('envelope', 'Email', r.email)
                  + '</div>'
                  + (r.description ? '<p class="dm-side-desc">' + esc(r.description.length > 260 ? r.description.slice(0, 260) + '…' : r.description) + '</p>' : '');
-        }
-
-        if (tab === 'photos') {
-            if (!d) { sideBody.innerHTML = wait; return; }
-            html = (d.photos.length
-                    ? '<div class="dm-photos">' + d.photos.map(function (p) {
-                        return '<figure class="dm-photo' + (p.primary ? ' is-primary' : '') + '"><img src="' + esc(p.url) + '" alt="" loading="lazy">'
-                             + (p.primary ? '<figcaption>Main photo</figcaption>' : '') + '</figure>'; }).join('') + '</div>'
-                    : '<p class="dm-side-empty"><i class="bi bi-camera-fill"></i> No photo yet. Devotees see a plain picture for now.</p>')
-                 + '<form method="POST" enctype="multipart/form-data" action="' + @json(url('admin/destinations')) + '/' + r.id + '/photo" class="dm-photo-up">'
-                 + '<input type="hidden" name="_token" value="' + CSRF + '">'
-                 + '<label class="btn btn-primary btn-sm"><i class="bi bi-arrow-up"></i> ' + (d.photos.length ? 'Replace main photo' : 'Upload a photo')
-                 + '<input type="file" name="photo" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()"></label>'
-                 + '<span class="dm-hint">JPG, PNG or WebP, up to 4 MB.</span></form>';
         }
 
         if (tab === 'schedule') {
