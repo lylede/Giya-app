@@ -11,15 +11,28 @@
  *   <div id="dmList" data-soft-list> … table … pagination … </div>
  *   <form data-soft-list-form="dmList"> (filters outside the list)
  *   <a data-soft-list-link="dmList" href="…"> (e.g. Reset)
+ *
+ * A search box in such a form filters as you type: a moment after the last
+ * key the list is swapped, with no Enter or Apply needed. While typing,
+ * the address bar is replaced rather than added to (Back is not a list of
+ * every letter), the cursor stays in the box, and a failed fetch leaves the
+ * list as it was instead of reloading the page under the admin's typing.
+ * A newer search cancels an older one, so a slow answer never wins.
  */
 (function (window, document) {
-    function load(id, url, push) {
+    const pending = {};
+
+    function load(id, url, push, quiet) {
         const box = document.getElementById(id);
         if (!box) { window.location.href = url; return; }
         box.classList.add('is-soft-loading');
         box.setAttribute('aria-busy', 'true');
 
-        fetch(url, { headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+        if (pending[id]) pending[id].abort();
+        const ctl = window.AbortController ? new AbortController() : null;
+        pending[id] = ctl;
+
+        fetch(url, { headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin', signal: ctl ? ctl.signal : undefined })
             .then(function (r) {
                 if (!r.ok || r.redirected) throw new Error('page');
                 return r.text();
@@ -30,6 +43,12 @@
                 box.innerHTML = fresh.innerHTML;
                 box.classList.remove('is-soft-loading');
                 box.removeAttribute('aria-busy');
+                if (pending[id] === ctl) pending[id] = null;
+                if (quiet) {
+                    window.history.replaceState({ softList: id }, '', url);
+                    box.dispatchEvent(new CustomEvent('giya:list-changed', { bubbles: true }));
+                    return;
+                }
                 if (push) window.history.pushState({ softList: id }, '', url);
 
                 // Bring the top of the list into view if it scrolled away.
@@ -41,7 +60,11 @@
                 box.focus({ preventScroll: true });
                 box.dispatchEvent(new CustomEvent('giya:list-changed', { bubbles: true }));
             })
-            .catch(function () { window.location.href = url; });
+            .catch(function (err) {
+                if (err && err.name === 'AbortError') return;   // a newer search took over
+                if (quiet) { box.classList.remove('is-soft-loading'); box.removeAttribute('aria-busy'); return; }
+                window.location.href = url;
+            });
     }
 
     function formUrl(form) {
@@ -73,6 +96,26 @@
         if (!id) return;
         e.preventDefault();
         load(id, formUrl(form), true);
+    });
+
+    // Search as you type.
+    const timers = {};
+    document.addEventListener('input', function (e) {
+        const input = e.target;
+        if (!input.matches || !input.matches('input[type=search]')) return;
+        const form = input.form;
+        const id = form && (form.dataset.softListForm || (form.closest('[data-soft-list]') || {}).id);
+        if (!id || (form.method || 'get').toLowerCase() !== 'get') return;
+        clearTimeout(timers[id]);
+        timers[id] = setTimeout(function () {
+            load(id, formUrl(form), false, true);
+            form.dispatchEvent(new CustomEvent('giya:filters-changed', { bubbles: true }));
+        }, 280);
+    });
+
+    // With live search, the Apply button has nothing left to do.
+    document.querySelectorAll('form[data-soft-list-form] [data-live-hide]').forEach(function (b) {
+        if (b.form && b.form.querySelector('input[type=search]')) b.hidden = true;
     });
 
     window.addEventListener('popstate', function (e) {

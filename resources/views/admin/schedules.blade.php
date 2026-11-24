@@ -203,7 +203,7 @@
         <div class="sm-bar">
             <div class="sm-search">
                 <i class="bi bi-search"></i>
-                <input type="search" name="search" value="{{ request('search') }}"
+                <input type="search" name="search" value="{{ request('search') }}" autocomplete="off" spellcheck="false"
                        placeholder="Search Schedule..." aria-label="Search schedules">
             </div>
 
@@ -832,7 +832,7 @@
         });
     });
 
-    // Search submits on Enter without needing a visible button.
+    // Search filters as you type (giya-soft-list.js); Enter still works too.
     // Only on All schedules: By church has its own box, and no filterForm.
     const filterForm = document.getElementById('filterForm');
     const filterSearch = filterForm && filterForm.querySelector('.sm-search input');

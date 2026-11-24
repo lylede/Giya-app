@@ -39,19 +39,21 @@
 </div>
 
 {{-- ══════════════ Filters ══════════════ --}}
-<form method="GET" id="userFilters" class="um-filters">
+{{-- Search filters as you type, and the selects and dates on change: only
+     the list below is swapped (giya-soft-list.js). --}}
+<form method="GET" id="userFilters" class="um-filters" data-soft-list-form="umList">
     <div class="field is-wide">
         <label class="dm-label" for="uq">Search Users</label>
         <div class="sm-search">
             <i class="bi bi-search"></i>
             <input id="uq" type="search" name="search" value="{{ request('search') }}"
-                   placeholder="Search users by name or email...">
+                   placeholder="Search users by name or email..." autocomplete="off" spellcheck="false">
         </div>
     </div>
 
     <div class="field">
         <label class="dm-label" for="ustatus">Status</label>
-        <select id="ustatus" name="status" class="giya-input" onchange="this.form.submit()">
+        <select id="ustatus" name="status" class="giya-input" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
             <option value="">All Status</option>
             @foreach (\App\Models\User::STATUSES as $s)
                 <option value="{{ $s }}" @selected(request('status') === $s)>{{ $s }}</option>
@@ -63,23 +65,25 @@
         <label class="dm-label">Date Range</label>
         <div class="field-dates">
             <input type="date" name="from" value="{{ request('from') }}" class="giya-input"
-                   aria-label="Joined from" onchange="this.form.submit()">
+                   aria-label="Joined from" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
             <input type="date" name="to" value="{{ request('to') }}" class="giya-input"
-                   aria-label="Joined to" onchange="this.form.submit()">
+                   aria-label="Joined to" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
         </div>
     </div>
 
     <div class="adm-actions">
-        <a href="{{ route('admin.users') }}" class="btn btn-outline">
+        <a href="{{ route('admin.users') }}" class="btn btn-outline" data-soft-list-link="umList" id="umReset">
             <i class="bi bi-arrow-clockwise"></i> Reset Filter
         </a>
-        <a href="{{ route('admin.users.export', request()->query()) }}" class="btn btn-primary">
+        <a href="{{ route('admin.users.export', request()->query()) }}" class="btn btn-primary" id="umExport"
+           data-base="{{ route('admin.users.export') }}">
             <i class="bi bi-download"></i> Export User
         </a>
     </div>
 </form>
 
 {{-- ══════════════ Table ══════════════ --}}
+<div id="umList" data-soft-list tabindex="-1" aria-live="polite">
 <div class="card adm-scroller mt-3">
     <div>
         <table class="giya-table sm-table">
@@ -210,7 +214,7 @@
                 @endforeach
                 <label for="uPer" class="per-page-label">Rows per page</label>
                 <select id="uPer" name="per_page" class="giya-input per-page-select"
-                        onchange="this.form.submit()">
+                        onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
                     @foreach ([5, 10, 25, 50] as $n)
                         <option value="{{ $n }}" @selected($perPage === $n)>{{ $n }}</option>
                     @endforeach
@@ -218,6 +222,8 @@
             </form>
         </div>
     </div>
+</div>
+
 </div>
 
 {{-- ══════════════ Edit modal ══════════════ --}}
@@ -279,11 +285,15 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('assets/js/giya-soft-list.js') }}?v={{ filemtime(public_path('assets/js/giya-soft-list.js')) }}"></script>
 <script>
 (function () {
-    document.querySelectorAll('[data-user]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const u = JSON.parse(this.dataset.user);
+    // One listener for the whole list, so rows swapped in by a search work too.
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-user]');
+        if (!btn) return;
+        {
+            const u = JSON.parse(btn.dataset.user);
 
             document.getElementById('userForm').action = u.action;
             document.getElementById('u-name').value    = u.name;
@@ -292,11 +302,25 @@
             document.getElementById('u-status').value  = u.status;
 
             GiyaUI.Modal.open('userModal');
-        });
+        }
     });
 
+    const filters = document.getElementById('userFilters');
     document.getElementById('uq').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('userFilters').submit(); }
+        if (e.key === 'Enter') { e.preventDefault(); filters.requestSubmit ? filters.requestSubmit() : filters.submit(); }
+    });
+
+    // Export follows the filters on screen, and Reset clears the boxes too.
+    const exportLink = document.getElementById('umExport');
+    function syncExport() {
+        const q = new URLSearchParams(new FormData(filters));
+        exportLink.href = exportLink.dataset.base + (q.toString() ? '?' + q.toString() : '');
+    }
+    filters.addEventListener('input', syncExport);
+    filters.addEventListener('change', syncExport);
+    document.getElementById('umReset').addEventListener('click', function () {
+        filters.querySelectorAll('input, select').forEach(function (f) { f.value = ''; });
+        syncExport();
     });
 
     @if ($errors->any())

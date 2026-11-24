@@ -124,8 +124,10 @@
 <form method="GET" class="dm-filters" data-soft-list-form="dmList">
     <div class="dm-filter-field is-wide">
         <label class="dm-label" for="q">Search Destination</label>
+        {{-- Filters as you type (giya-soft-list.js). No browser suggestions:
+             they covered the table the search was already narrowing. --}}
         <input id="q" type="search" name="search" value="{{ $search }}" class="giya-input"
-               placeholder="Search by name or location...">
+               placeholder="Search by name or location..." autocomplete="off" spellcheck="false">
     </div>
 
     <div class="dm-filter-field">
@@ -147,14 +149,15 @@
     </div>
 
     <div class="dm-filter-actions">
-        <button type="submit" class="btn btn-primary">
+        {{-- Apply is only for a browser without scripts: search and the
+             selects already filter on their own. --}}
+        <button type="submit" class="btn btn-primary" data-live-hide>
             <i class="bi bi-search"></i> Apply
         </button>
-        @if ($search || ($category && $category !== 'All') || request('status'))
-            <a href="{{ route('admin.destinations') }}" class="btn btn-outline" data-soft-list-link="dmList">
-                <i class="bi bi-arrow-clockwise"></i> Reset
-            </a>
-        @endif
+        <a href="{{ route('admin.destinations') }}" class="btn btn-outline" data-soft-list-link="dmList" id="dmReset"
+           @unless ($search || ($category && $category !== 'All') || request('status')) hidden @endunless>
+            <i class="bi bi-arrow-clockwise"></i> Reset
+        </a>
     </div>
 </form>
 
@@ -235,7 +238,11 @@
                 </tr>
             @empty
                 <tr><td colspan="7" class="cell-empty">
-                    No destinations yet. Add the first one above.
+                    @if ($search || ($category && $category !== 'All') || request('status'))
+                        No church matches this search. Try fewer letters, or Reset.
+                    @else
+                        No destinations yet. Add the first one above.
+                    @endif
                 </td></tr>
             @endforelse
         </tbody>
@@ -758,6 +765,27 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         picker.select(null);
         setTimeout(function () { picker.map.invalidateSize(); }, 220);
     }
+    /* Reset appears as soon as something is filtered, and goes with it. */
+    (function () {
+        const form = document.querySelector('.dm-filters');
+        const reset = document.getElementById('dmReset');
+        if (!form || !reset) return;
+        function sync() {
+            const q = form.querySelector('[name=search]').value.trim();
+            const cat = form.querySelector('[name=category]').value;
+            const st = form.querySelector('[name=status]').value;
+            reset.hidden = !(q || (cat && cat !== 'All') || st);
+        }
+        form.addEventListener('input', sync);
+        form.addEventListener('change', sync);
+        reset.addEventListener('click', function () {
+            form.querySelector('[name=search]').value = '';
+            form.querySelector('[name=category]').value = 'All';
+            form.querySelector('[name=status]').value = '';
+            setTimeout(sync, 0);
+        });
+    })();
+
     document.getElementById('dmSideClose').addEventListener('click', closeSide);
 
     /* The photo is the upload: choose a file, or drop one on the photo. */
