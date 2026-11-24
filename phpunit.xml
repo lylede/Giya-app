@@ -32,5 +32,31 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+
+        <!-- The tests use their own settings, never the ones in a laptop's
+             .env. Without these, turning on email verification, Supabase,
+             an official address or real keys on a laptop made hundreds of
+             tests fail there (and could send real error alerts), while the
+             same code passed everywhere else. -->
+        <env name="APP_URL" value="http://localhost" force="true"/>
+        <env name="APP_LOCALE" value="en" force="true"/>
+        <env name="FORCE_HTTPS" value="false" force="true"/>
+        <env name="GIYA_VERIFY_EMAIL" value="false" force="true"/>
+        <env name="GIYA_OFFICIAL_URL" value="" force="true"/>
+        <env name="GIYA_CSP" value="enforce" force="true"/>
+        <env name="SUPABASE_URL" value="" force="true"/>
+        <env name="SUPABASE_SERVICE_KEY" value="" force="true"/>
+        <env name="SUPABASE_BUCKET" value="giya-uploads" force="true"/>
+        <env name="MAYA_BASE_URL" value="https://pg-sandbox.paymaya.com" force="true"/>
+        <env name="MAYA_PUBLIC_KEY" value="pk-test" force="true"/>
+        <env name="MAYA_SECRET_KEY" value="sk-test" force="true"/>
+        <env name="GROQ_API_KEY" value="" force="true"/>
+        <env name="GOOGLE_CLIENT_ID" value="" force="true"/>
+        <env name="GOOGLE_CLIENT_SECRET" value="" force="true"/>
+        <env name="VAPID_PUBLIC_KEY" value="" force="true"/>
+        <env name="VAPID_PRIVATE_KEY" value="" force="true"/>
+        <env name="RESEND_API_KEY" value="" force="true"/>
+        <env name="ERROR_ALERT_WEBHOOK" value="" force="true"/>
+        <env name="ERROR_ALERT_EMAIL" value="" force="true"/>
     </php>
 </phpunit>

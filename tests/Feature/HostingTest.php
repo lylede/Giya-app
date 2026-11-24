@@ -183,9 +183,13 @@ class HostingTest extends TestCase
     /** A key pasted with a trailing line break made the request invalid: a 500 on Vercel. */
     public function test_a_key_with_a_stray_line_break_is_trimmed_and_cannot_cause_a_500(): void
     {
+        // Set it everywhere env() looks (phpunit.xml fixes it in $_ENV too).
+        $saved = [$_ENV['SUPABASE_SERVICE_KEY'] ?? null, $_SERVER['SUPABASE_SERVICE_KEY'] ?? null];
+        $_ENV['SUPABASE_SERVICE_KEY'] = $_SERVER['SUPABASE_SERVICE_KEY'] = "sb_secret_a\nbc \n";
         putenv("SUPABASE_SERVICE_KEY=sb_secret_a\nbc \n");
         $config = require config_path('services.php');
         putenv('SUPABASE_SERVICE_KEY');
+        [$_ENV['SUPABASE_SERVICE_KEY'], $_SERVER['SUPABASE_SERVICE_KEY']] = $saved;
 
         $this->assertSame('sb_secret_abc', $config['supabase']['key']);
 
