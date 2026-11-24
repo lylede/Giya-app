@@ -181,7 +181,7 @@
                 <button type="button" class="btn btn-ghost" data-plan-cancel>{{ __('giya.common.cancel') }}</button>
                 <button type="button" class="btn btn-primary" id="planSave"
                         @if ($atLimit) disabled title="{{ __('giya.plan.limit_title') }}" @endif>
-                    <i class="bi bi-person-walking"></i> {{ __('giya.plan.save_start') }}
+                    <i class="bi bi-giya-on-route"></i> {{ __('giya.plan.save_start') }}
                 </button>
             </div>
             @if ($atLimit)
@@ -252,7 +252,7 @@
                 <span id="listCount">{{ __('giya.church.results', ['count' => count($markers)]) }}</span>
                 {{-- The tray, tucked away to the right: tap or swipe left to bring it back. --}}
                 <button type="button" id="trayTab" class="mx-tray-tab" hidden aria-controls="routeBox">
-                    <i class="bi bi-person-walking"></i><b id="trayTabN">0</b><i class="bi bi-chevron-left"></i>
+                    <i class="bi bi-giya-on-route"></i><b id="trayTabN">0</b><i class="bi bi-chevron-left"></i>
                 </button>
             </div>
             {{-- The list is drawn by the script once the markers exist, so
@@ -290,7 +290,7 @@
                     <button type="button" id="btnDirections" class="btn btn-primary mx-plan"
                             @if ($openPlan && $atLimit) disabled title="{{ __('giya.plan.limit_title') }}" @endif>
                         {{-- Like checking out a cart: the trip's name is asked next. --}}
-                        <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
+                        <i class="bi bi-giya-on-route"></i> {{ __('giya.plan.start') }}
                     </button>
                     <button type="button" id="btnClearRoute" class="btn btn-ghost btn-sm" aria-label="{{ __('giya.common.clear') }}">
                         <i class="bi bi-x-lg mx-clear-x" aria-hidden="true"></i><span class="mx-clear-text">{{ __('giya.common.clear') }}</span>
@@ -992,7 +992,7 @@ onLocated: function (me) {
         document.getElementById('mapLead').textContent  = trans('plan_lead');
 
         const btn = document.getElementById('btnDirections');
-        btn.innerHTML = '<i class="bi bi-person-walking"></i> ';
+        btn.innerHTML = '<i class="bi bi-giya-on-route"></i> ';
         btn.appendChild(document.createTextNode(trans('start_pilgrimage')));
 
         planOpen = true;

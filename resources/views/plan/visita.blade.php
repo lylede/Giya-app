@@ -90,7 +90,7 @@
                 <div class="d-flex gap-2 flex-wrap">
                     <button type="button" class="btn btn-primary" style="flex:1;min-width:170px"
                             onclick="GiyaVisita.submit()" @disabled($atLimit)>
-                        <i class="bi bi-person-walking"></i> {{ __('giya.plan.start') }}
+                        <i class="bi bi-giya-on-route"></i> {{ __('giya.plan.start') }}
                     </button>
 
                     {{-- The same trip on the map, before committing to it. The

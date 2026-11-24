@@ -16,7 +16,7 @@
          are for. --}}
     @if ($activeItinerary)
         <a href="{{ route('plan.show', $activeItinerary) }}" class="hub-active">
-            <span class="hub-active-icon"><i class="bi bi-person-walking"></i></span>
+            <span class="hub-active-icon"><i class="bi bi-giya-on-route"></i></span>
             <span class="hub-active-body">
                 <span class="hub-active-eyebrow">{{ __('giya.hub.in_progress') }}</span>
                 <span class="hub-active-name">{{ $activeItinerary->name }}</span>

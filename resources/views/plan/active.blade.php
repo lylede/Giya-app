@@ -152,7 +152,7 @@
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-w-full ap-end-btn"
                         aria-label="{{ __('giya.plan.end') }}" title="{{ __('giya.plan.end') }}">
-                    <i class="bi bi-flag-fill ap-end-icon" aria-hidden="true"></i> <span class="ap-end-label">{{ __('giya.plan.end') }}</span>
+                    <i class="bi bi-giya-route-end ap-end-icon" aria-hidden="true"></i> <span class="ap-end-label">{{ __('giya.plan.end') }}</span>
                 </button>
             </form>
         </div>

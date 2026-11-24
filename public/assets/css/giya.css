@@ -8696,3 +8696,6 @@ html.has-tour .giya-fab .fab-say { opacity: 0 !important; }
   .admin-topbar .adm-theme { flex-shrink: 0; }
   .admin-topbar-user { margin-left: 4px; }
 }
+/* The on-route arrow is diagonal, so it fills less of its square than an
+   upright icon: a size up to sit with the same weight. */
+.hub-active-icon .bi-giya-on-route { font-size: 1.6rem; }
