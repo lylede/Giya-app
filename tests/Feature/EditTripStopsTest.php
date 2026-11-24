@@ -329,6 +329,12 @@ class EditTripStopsTest extends TestCase
         $leaflet = file_get_contents(public_path('assets/js/giya-leaflet.js'));
         $this->assertStringContainsString('.bindPopup(popupFor(s), popupOptions())', $leaflet);
         $this->assertStringContainsString("'giya-popup-compact giya-popup-stop'", $leaflet);
+        // Once started, the devotee is an arrow, and the location button
+        // follows them with the map turned to the way ahead.
+        $this->assertStringContainsString('function arrowIcon(deg)', $leaflet);
+        $this->assertStringContainsString('toggleTurn: toggleTurn', $leaflet);
+        $this->assertStringContainsString('liveMap.toggleTurn(', $html);
+        $this->assertStringContainsString('data-on="'.e(__('giya.plan.follow_stop')).'"', $html);
         $this->assertStringContainsString('.active-layout .ap-summary { display: none; }', $phone);
         $this->assertStringContainsString('data-confirm-title=', $html);
     }

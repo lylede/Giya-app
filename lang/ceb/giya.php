@@ -358,6 +358,8 @@ return [
         'all_visited'       => 'Nabisitahan na ang tanang :count ka simbahan',
         'km_to'             => ':km km paingon sa :name',
         'km_away'           => ':km km ang gilay-on',
+        'follow_me'         => 'Sunda ko subay sa ruta',
+        'follow_stop'       => 'Ibalik ang mapa sa amihanan',
         'km_roads'          => ':km km subay sa dalan',
         'km_roads_min'      => ':km km subay sa dalan · mga :min ka minuto sakay ug awto',
         'km_roads_min_to'  => ':km km paingon sa :name · mga :min ka minuto sakay ug awto',

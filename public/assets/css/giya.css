@@ -8608,3 +8608,31 @@ html[data-theme="dark"] .ap-banner .ap-cur-name { color: var(--text) !important;
   /* Lowered with a trip: no half-cut church card under the results line. */
   body[data-page="map"] .map-sidebar[data-state="peek"]:not(.is-dragging):has(#routeBox:not([hidden])) .mx-list { visibility: hidden; }
 }
+
+/* ── The trip map: an arrow for the devotee, and a map that turns ──
+   See "The arrow, and the map that turns with it" in giya-leaflet.js. */
+.giya-me.is-arrow { width: 30px; height: 30px; background: rgba(37,99,235,.2); }
+.giya-me-arrow {
+  width: 22px; height: 22px; display: block;
+  fill: #2563EB; stroke: #fff; stroke-width: 2; stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.45));
+}
+.giya-upright { display: block; }
+.giya-map-canvas.is-turned { transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+.giya-map-canvas.is-turned .giya-upright {
+  transform: rotate(var(--giya-turn-back, 0deg)); transform-origin: 17px 44px;
+  transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+}
+/* The map's credit sits in its corner of the turned box, off the screen. */
+.giya-turn-credit { display: none; }
+.is-map-turned > .giya-turn-credit {
+  display: block; position: absolute; z-index: 500; right: 0; bottom: 0;
+  padding: 1px 6px; font-size: 11px; color: #333; background: rgba(255,255,255,.8);
+}
+.active-layout .map-tool.is-on { background: #2563EB; color: #fff; border-color: #2563EB; }
+@media (prefers-reduced-motion: reduce) {
+  .giya-map-canvas.is-turned, .giya-map-canvas.is-turned .giya-upright { transition: none; }
+}
+@media (max-width: 1024px) {
+  .active-layout .is-map-turned > .giya-turn-credit { bottom: var(--ap-sheet, 0px); }
+}

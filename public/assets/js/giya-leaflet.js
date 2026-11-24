@@ -403,6 +403,18 @@ window.GiyaLeaflet = (function () {
         });
     }
 
+    /* The devotee on a pilgrimage: an arrow pointing the way they are going. */
+    function arrowIcon(deg) {
+        return L.divIcon({
+            html: '<span class="giya-me is-arrow"><svg class="giya-me-arrow" viewBox="0 0 24 24" ' +
+                  'style="transform:rotate(' + Math.round(deg) + 'deg)" aria-hidden="true">' +
+                  '<path d="M12 2.5 19.5 20.5 12 16.3 4.5 20.5Z"/></svg></span>',
+            className: 'giya-pin-wrap',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+    }
+
     /* ------------------------------------------------------------- geometry */
 
     function km(a, b) {
@@ -1030,10 +1042,11 @@ window.GiyaLeaflet = (function () {
             var text = state === 'visited' ? '&#10003;' : stop.order;
 
             return L.divIcon({
-                html: '<div class="giya-numpin' + (state === 'current' ? ' is-current' : '') + '">' +
+                // giya-upright keeps the pin standing when the map is turned.
+                html: '<div class="giya-upright"><div class="giya-numpin' + (state === 'current' ? ' is-current' : '') + '">' +
                         '<span class="giya-numpin-body" style="background:' + fill + '">' + text + '</span>' +
                         '<span class="giya-numpin-tail" style="border-top-color:' + fill + '"></span>' +
-                      '</div>',
+                      '</div></div>',
                 className: 'giya-pin-wrap',
                 iconSize: [34, 44],
                 iconAnchor: [17, 44],
@@ -1127,6 +1140,7 @@ window.GiyaLeaflet = (function () {
            variables one letter apart in the same file is a bug waiting to be
            written. */
         var myPosition = null;   // last known position, once there is one
+        var liveGeometry = null; // the roads of the live leg, once they arrive
         var liveFrom   = null;   // where the live leg was last drawn from
 
         /* How far the devotee moves before the live leg is asked for again.
@@ -1236,6 +1250,7 @@ window.GiyaLeaflet = (function () {
                     if (drawnInto !== line) return;
 
                     poly.setLatLngs(d.geometry);
+                    if (leg.live) liveGeometry = d.geometry;
                     if (leg.live && cfg.onRoads) cfg.onRoads(d);
                 });
             });
@@ -1275,11 +1290,196 @@ window.GiyaLeaflet = (function () {
             }).addTo(map);
 
             meMarker = L.marker([here.lat, here.lng], {
-                icon: userIcon(), zIndexOffset: 900
+                icon: arrowIcon(arrowDeg(here)), zIndexOffset: 900
             }).bindPopup(say(cfg, 'youAreHere')).addTo(map);
         }
 
-        function locate(done) {
+        /*
+           The arrow, and the map that turns with it.
+
+           Once a pilgrimage has started, the blue dot is an arrow pointing the
+           way the devotee is going. The direction comes from moving: the
+           phone's own heading when it reports one while moving, otherwise
+           the line between two fixes at least 8 m apart. Before they have
+           moved, it points along the blue line to the next church.
+
+           The location button turns the map so the arrow points up and keeps
+           the devotee in view as they go, like Google Maps. Leaflet cannot
+           turn a map, so the map's box is made as big as the screen's
+           diagonal (no bare corners at any angle) and turned with CSS; the
+           church pins are turned back so they stand upright. A turned map
+           cannot be dragged or tapped accurately, so the first touch, click
+           or wheel turns it back to north and stops following, and that
+           touch is used up doing so. Tap the button again to turn it back.
+        */
+        var heading  = null;     // degrees clockwise from north, from moving
+        var lastStep = null;     // the fix the last step is measured from
+        var STEP_M   = 8;        // smaller steps are GPS wobble, not walking
+        var turned   = false;
+        var turnShown = 0;       // the angle on screen, unwrapped so 359 to 1 is a nudge
+        var box      = map.getContainer();
+        var boxHome  = box.getAttribute('style') || '';
+        var holder   = box.parentNode;
+        var credit   = null;
+        var swallowClick = false;
+
+        function bearing(a, b) {
+            var p1 = rad(a.lat), p2 = rad(b.lat), dl = rad(b.lng - a.lng);
+            var y = Math.sin(dl) * Math.cos(p2);
+            var x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+            return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+        }
+
+        function toPoint(p) {
+            return Array.isArray(p) ? { lat: p[0], lng: p[1] } : { lat: p.lat, lng: p.lng };
+        }
+
+        /* Along the blue line: a point about 30 m ahead of the nearest one. */
+        function routeBearing(here) {
+            if (!here) return null;
+            var path = (liveGeometry || []).map(toPoint);
+            if (path.length > 1) {
+                var best = 0, bestKm = Infinity;
+                path.forEach(function (p, i) {
+                    var d = km(here, p);
+                    if (d < bestKm) { bestKm = d; best = i; }
+                });
+                for (var i = best; i < path.length; i++) {
+                    if (km(here, path[i]) * 1000 >= 30) return bearing(here, path[i]);
+                }
+            }
+            var n = stops[nextIndex()];
+            return n && km(here, n) * 1000 > 5 ? bearing(here, n) : null;
+        }
+
+        function arrowDeg(here) {
+            if (heading !== null) return heading;
+            var r = routeBearing(here || myPosition);
+            return r === null ? 0 : r;
+        }
+
+        function stepped(pos, here) {
+            var c = pos.coords;
+            var moved = lastStep && km(lastStep, here) * 1000 >= STEP_M;
+            if (c.heading !== null && c.heading !== undefined && !isNaN(c.heading) && c.speed > 0.5) {
+                heading = c.heading;
+            } else if (moved) {
+                heading = bearing(lastStep, here);
+            }
+            if (!lastStep || moved) lastStep = here;
+        }
+
+        /* The visible part of the map, as the page sees it: under the trip
+           card and above the bottom panel on a phone. */
+        function visible() {
+            var pad = cfg.viewPadding ? cfg.viewPadding() : null;
+            return { w: holder.clientWidth, h: holder.clientHeight, top: pad ? pad[0] : 0, bottom: pad ? pad[1] : 0 };
+        }
+
+        function sizeTurned() {
+            var v = visible();
+            var d = Math.ceil(Math.sqrt(v.w * v.w + v.h * v.h)) + 2;
+            box.style.position = 'absolute';
+            box.style.width  = d + 'px';
+            box.style.height = d + 'px';
+            box.style.left = Math.round((v.w - d) / 2) + 'px';
+            box.style.top  = Math.round((v.h - d) / 2) + 'px';
+            map.invalidateSize({ pan: false });
+        }
+
+        function setTurn(deg) {
+            var delta = ((deg - turnShown) % 360 + 540) % 360 - 180;
+            turnShown += delta;
+            box.style.transform = 'rotate(' + (-turnShown) + 'deg)';
+            box.style.setProperty('--giya-turn-back', turnShown + 'deg');
+        }
+
+        /* The devotee two-thirds of the way down the visible part, so more
+           of the way ahead is on screen. */
+        function follow(animate) {
+            if (!myPosition) return;
+            var v = visible();
+            var ty = v.top + (v.h - v.top - v.bottom) * 0.68;
+            var vy = ty - v.h / 2;
+            var a = rad(turnShown);
+            var u = L.point(-vy * Math.sin(a), vy * Math.cos(a));
+            var z = Math.max(map.getZoom(), 16);
+            var centre = map.project([myPosition.lat, myPosition.lng], z).subtract(u);
+            map.setView(map.unproject(centre, z), z, { animate: animate !== false });
+        }
+
+        function turnOn() {
+            if (turned) return;
+            turned = true;
+            map.closePopup();
+            holder.classList.add('is-map-turned');
+            box.classList.add('is-turned');
+            if (!credit) {
+                credit = document.createElement('div');
+                credit.className = 'giya-turn-credit';
+                credit.innerHTML = '&copy; OpenStreetMap';
+                holder.appendChild(credit);
+            }
+            sizeTurned();
+            setTurn(arrowDeg());
+            follow(false);
+            if (cfg.onTurn) cfg.onTurn(true);
+        }
+
+        function turnOff() {
+            if (!turned) return;
+            turned = false;
+            var mid = map.containerPointToLatLng(map.getSize().divideBy(2));
+            var z = map.getZoom();
+            box.style.transition = 'none';
+            box.setAttribute('style', boxHome);
+            box.classList.remove('is-turned');
+            holder.classList.remove('is-map-turned');
+            turnShown = 0;
+            map.invalidateSize({ pan: false });
+            map.setView(mid, z, { animate: false });
+            if (cfg.onTurn) cfg.onTurn(false);
+        }
+
+        /* While turned, each new fix turns the map and keeps them in view. */
+        function keepUp() {
+            if (!turned) return;
+            setTurn(arrowDeg());
+            follow(true);
+        }
+
+        /* The first touch on a turned map turns it back and is used up. */
+        ['pointerdown', 'mousedown', 'touchstart', 'wheel', 'dblclick'].forEach(function (type) {
+            holder.addEventListener(type, function (e) {
+                if (!turned || !box.contains(e.target)) return;
+                e.stopPropagation();
+                if (e.cancelable && type !== 'touchstart') e.preventDefault();
+                swallowClick = true;
+                setTimeout(function () { swallowClick = false; }, 500);
+                turnOff();
+            }, { capture: true, passive: false });
+        });
+        holder.addEventListener('click', function (e) {
+            if (swallowClick && box.contains(e.target)) { e.stopPropagation(); e.preventDefault(); swallowClick = false; }
+        }, true);
+
+        window.addEventListener('resize', function () { if (turned) { sizeTurned(); follow(false); } });
+        if (window.ResizeObserver) {
+            new ResizeObserver(function () { if (turned) requestAnimationFrame(function () { sizeTurned(); follow(false); }); }).observe(holder);
+        }
+
+        /* The location button: turn and follow, or turn back. Without a fix
+           yet, it finds one first. */
+        function toggleTurn(done) {
+            if (turned) { turnOff(); if (done) done(); return; }
+            if (myPosition) { turnOn(); if (done) done(); return; }
+            locate(function () {
+                if (myPosition) turnOn();
+                if (done) done();
+            }, true);
+        }
+
+        function locate(done, quiet) {
             if (!secureEnough()) {
                 if (cfg.onStatus) cfg.onStatus(say(cfg, 'insecure'), 'error');
                 if (done) done();
@@ -1296,24 +1496,12 @@ window.GiyaLeaflet = (function () {
                 function (pos) {
                     var here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 
-                    if (meMarker) map.removeLayer(meMarker);
-                    if (meRing) map.removeLayer(meRing);
-
-                    meRing = L.circle([here.lat, here.lng], {
-                        radius: pos.coords.accuracy,
-                        color: '#2563EB', weight: 1,
-                        fillColor: '#2563EB', fillOpacity: .08
-                    }).addTo(map);
-
-                    meMarker = L.marker([here.lat, here.lng], {
-                        icon: userIcon(), zIndexOffset: 900
-                    }).bindPopup(say(cfg, 'youAreHere')).addTo(map);
-
-                    map.setView([here.lat, here.lng], 15);
-
+                    stepped(pos, here);
                     // The way from here to the next church, which is the only
                     // leg the devotee can act on right now.
                     positionChanged(here);
+                    showMe(here, pos.coords.accuracy);
+                    if (!quiet) map.setView([here.lat, here.lng], 15);
 
                     // Distance to the first stop still to be visited.
                     var next = stops.filter(function (st) { return !st.visited; })[0];
@@ -1394,8 +1582,10 @@ window.GiyaLeaflet = (function () {
             watchId = navigator.geolocation.watchPosition(
                 function (pos) {
                     var here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    showMe(here, pos.coords.accuracy);
+                    stepped(pos, here);
                     positionChanged(here);
+                    showMe(here, pos.coords.accuracy);
+                    keepUp();
 
                     var next = stops.filter(function (st) { return !st.visited; })[0];
                     if (next && cfg.onLocated) {
@@ -1427,10 +1617,12 @@ window.GiyaLeaflet = (function () {
         return {
             map: map,
             locate: locate,
+            toggleTurn: toggleTurn,
+            isTurned: function () { return turned; },
             track: track,
             untrack: untrack,
             refreshPopup: refreshPopup,
-            frameAll: function () { route(true); },
+            frameAll: function () { turnOff(); route(true); },
             refresh: function (visitedIds, currentId) {
                 stops.forEach(function (s) {
                     s.visited = visitedIds.indexOf(s.id) !== -1;
@@ -1443,6 +1635,7 @@ window.GiyaLeaflet = (function () {
                    standing still at a church door, and the whole point of the
                    moment is being shown where to go next. */
                 liveFrom = null;
+                liveGeometry = null;   // the next church has its own roads
                 route(false);
             },
 
@@ -1452,7 +1645,7 @@ window.GiyaLeaflet = (function () {
             },
             focus: function (id) {
                 var m = pins[id];
-                if (m) { map.setView(m.getLatLng(), 16); m.openPopup(); }
+                if (m) { turnOff(); map.setView(m.getLatLng(), 16); m.openPopup(); }
             }
         };
     }

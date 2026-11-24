@@ -358,6 +358,8 @@ return [
         'all_visited'       => 'Nabisita na ang lahat ng :count na simbahan',
         'km_to'             => ':km km papunta sa :name',
         'km_away'           => ':km km ang layo',
+        'follow_me'         => 'Sundan ako sa ruta',
+        'follow_stop'       => 'Ibalik ang mapa sa hilaga',
         'km_roads'          => ':km km sa daan',
         'km_roads_min'      => ':km km sa daan · mga :min minuto sakay ng kotse',
         'km_roads_min_to'  => ':km km papunta sa :name · mga :min minuto sakay ng kotse',

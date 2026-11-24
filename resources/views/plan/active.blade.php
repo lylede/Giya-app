@@ -182,8 +182,10 @@
         <x-map-loading />
 
         <div class="map-tools">
-            <button type="button" class="map-tool" id="apLocate"
-                    title="{{ __('giya.map.locate') }}" aria-label="{{ __('giya.map.locate') }}">
+            {{-- Follows the devotee with the map turned to the way ahead; tap again for north up. --}}
+            <button type="button" class="map-tool" id="apLocate" aria-pressed="false"
+                    data-on="{{ __('giya.plan.follow_stop') }}" data-off="{{ __('giya.plan.follow_me') }}"
+                    title="{{ __('giya.plan.follow_me') }}" aria-label="{{ __('giya.plan.follow_me') }}">
                 <i class="bi bi-geo-alt-fill"></i>
             </button>
             <button type="button" class="map-tool" id="apFullscreen"
@@ -462,6 +464,16 @@ const GiyaActive = (function () {
         onStatus: function (message, kind) {
             if (kind === 'error') showNotice(message);
         },
+        /* The location button shows when the map is turned and following. */
+        onTurn: function (on) {
+            const b = document.getElementById('apLocate');
+            const label = on ? b.dataset.on : b.dataset.off;
+            b.classList.toggle('is-on', on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            b.title = label;
+            b.setAttribute('aria-label', label);
+            b.innerHTML = on ? '<i class="bi bi-compass-fill"></i>' : '<i class="bi bi-geo-alt-fill"></i>';
+        },
         onLocated: function (here, next, distanceKm) {
             hideNotice();   // a fresh fix: "could not follow your location" is no longer true
             showSummary(@json(__('giya.plan.km_to', ['km' => ':km', 'name' => ':name']))
@@ -486,7 +498,7 @@ const GiyaActive = (function () {
 
     apLocate.addEventListener('click', function () {
         apLocate.classList.add('is-busy');
-        liveMap.locate(function () { apLocate.classList.remove('is-busy'); });
+        liveMap.toggleTurn(function () { apLocate.classList.remove('is-busy'); });
         setTimeout(function () { apLocate.classList.remove('is-busy'); }, 13000);
     });
 
