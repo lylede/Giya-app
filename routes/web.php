@@ -196,7 +196,6 @@ Route::middleware(['auth', 'admin', 'admin.log'])->prefix('admin')->name('admin.
     Route::get('/',          [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/insights',  [\App\Http\Controllers\Admin\InsightsController::class, 'insights'])->name('insights');
     Route::get('/users',     [AdminUserController::class, 'index'])->name('users');
-    Route::get('/search',    \App\Http\Controllers\Admin\SearchController::class)->name('search');
     Route::get('/users/export',      [AdminUserController::class, 'export'])->name('users.export');
     Route::patch('/users/{user}',    [AdminUserController::class, 'update'])->name('users.update');
     Route::patch('/users/{user}/confirm-email', [AdminUserController::class, 'confirmEmail'])->name('users.confirm');

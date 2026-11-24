@@ -110,15 +110,6 @@
                 <div class="admin-page-title">@yield('page-title')</div>
                 <div class="admin-page-sub">@yield('page-subtitle')</div>
             </div>
-            {{-- Quick search: churches, people and admin pages. Ctrl+K or / from anywhere. --}}
-            <div class="adm-qs" id="admQs">
-                <i class="bi bi-search" aria-hidden="true"></i>
-                <input type="search" id="admQsInput" class="adm-qs-input" autocomplete="off"
-                       placeholder="Search churches, people, pages" aria-label="Search churches, people and admin pages"
-                       role="combobox" aria-expanded="false" aria-controls="admQsList" data-url="{{ route('admin.search') }}">
-                <kbd class="adm-qs-key" aria-hidden="true">Ctrl K</kbd>
-                <div class="adm-qs-list" id="admQsList" role="listbox" hidden></div>
-            </div>
             {{-- Light / dark in one tap, saved to the admin's account (the same
                  Theme setting as Profile), so it stays on every admin page. --}}
             <button type="button" class="nav-theme adm-theme" id="navTheme"
@@ -160,7 +151,6 @@
 <script src="{{ asset('assets/js/giya.js') }}?v={{ filemtime(public_path('assets/js/giya.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-confirm.js') }}?v={{ filemtime(public_path('assets/js/giya-confirm.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-toast.js') }}?v={{ filemtime(public_path('assets/js/giya-toast.js')) }}"></script>
-<script src="{{ asset('assets/js/giya-admin-search.js') }}?v={{ filemtime(public_path('assets/js/giya-admin-search.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-combo.js') }}?v={{ filemtime(public_path('assets/js/giya-combo.js')) }}"></script>
 <script src="{{ asset('assets/js/giya-datepicker.js') }}?v={{ filemtime(public_path('assets/js/giya-datepicker.js')) }}"></script>
 @stack('scripts')

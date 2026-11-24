@@ -50,38 +50,13 @@ class AdminTodoSearchTest extends TestCase
             ->assertSee('All caught up');
     }
 
-    public function test_quick_search_finds_churches_and_people(): void
+    public function test_the_admin_bar_has_no_search_box(): void
     {
-        $json = $this->actingAs($this->admin)->getJson(route('admin.search', ['q' => 'todo']))->assertOk()->json();
-        $this->assertSame('Todo Parish', $json['churches'][0]['name']);
-        $this->assertStringContainsString('focus='.$this->church->id, $json['churches'][0]['url']);
-
-        $json = $this->actingAs($this->admin)->getJson(route('admin.search', ['q' => 'ARGAO']))->json();
-        $this->assertCount(1, $json['churches']);
-
-        $json = $this->actingAs($this->admin)->getJson(route('admin.search', ['q' => 'admin@']))->json();
-        $this->assertSame('admin@example.com', $json['users'][0]['email']);
-    }
-
-    public function test_quick_search_needs_two_letters(): void
-    {
-        $this->actingAs($this->admin)->getJson(route('admin.search', ['q' => 't']))->assertOk()
-            ->assertExactJson(['churches' => [], 'users' => []]);
-    }
-
-    public function test_only_admins_can_search(): void
-    {
-        $user = User::create(['name' => 'Plain', 'email' => 'p@example.com', 'password_hash' => bcrypt('x'),
-            'role' => 'devotee', 'status' => 'Active', 'created_at' => now(), 'updated_at' => now()]);
-
-        $this->assertNotEquals(200, $this->actingAs($user)->getJson(route('admin.search', ['q' => 'todo']))->status());
-    }
-
-    public function test_the_admin_layout_has_the_search_box(): void
-    {
+        // Each list searches as you type, so the bar keeps only the
+        // light/dark switch and the administrator.
         $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk()
-            ->assertSee('id="admQsInput"', false)
-            ->assertSee('giya-admin-search.js', false);
+            ->assertDontSee('id="admQsInput"', false)
+            ->assertDontSee('giya-admin-search.js', false);
     }
 
     public function test_the_admin_bar_has_the_dark_mode_switch(): void
