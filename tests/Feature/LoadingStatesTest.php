@@ -167,13 +167,19 @@ class LoadingStatesTest extends TestCase
         $this->assertStringContainsString("layer.on('tileerror'", $js);
     }
 
-    /** The water-drop loader stays at least six seconds, even on a fast connection. */
-    public function test_the_map_loader_stays_at_least_six_seconds(): void
+    /** The water-drop loader stays five seconds on the first map of a visit, three after. */
+    public function test_the_map_loader_stays_five_seconds_first_then_three(): void
     {
         $js = file_get_contents(public_path('assets/js/giya-leaflet.js'));
 
-        $this->assertStringContainsString('var LOADING_AT_LEAST_MS = 6000;', $js);
-        $this->assertStringContainsString('cfg.loaderMinMs != null ? cfg.loaderMinMs : LOADING_AT_LEAST_MS', $js);
+        $this->assertStringContainsString('var LOADING_FIRST_MS = 5000;', $js);
+        $this->assertStringContainsString('var LOADING_AGAIN_MS = 3000;', $js);
+        $this->assertStringContainsString('(introSeen() ? LOADING_AGAIN_MS : LOADING_FIRST_MS)', $js);
+        $this->assertStringContainsString('cfg.loaderMinMs != null ? cfg.loaderMinMs', $js);
+
+        // Later views show it too (three seconds); it is no longer hidden outright.
+        $this->assertStringNotContainsString('giya-map-intro-seen', file_get_contents(public_path('assets/css/giya.css')));
+        $this->assertStringNotContainsString('giya-map-intro-seen', file_get_contents(resource_path('views/layouts/app.blade.php')));
     }
 
     public function test_the_admin_map_skips_the_six_second_wait(): void

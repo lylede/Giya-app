@@ -143,20 +143,19 @@ window.GiyaLeaflet = (function () {
        all.
     */
     /* The loading screen (the GIYA pin dropping like water) stays for at
-       least six seconds, even when the map is ready sooner, so the drop
-       plays through instead of flashing past. Only the screen waits: the
-       map itself, and anything waiting for its tiles, carry on at once.
-       A map can pass loaderMinMs (the admin map passes 0: admins open it
-       many times a day and the wait read as lag). */
-    var LOADING_AT_LEAST_MS = 6000;
+       least five seconds the first time a map opens in a visit, so the drop
+       plays through, and at least three seconds on every map after it (back
+       to the map, the trip screen, a church's map), when the tiles are
+       already in the browser. Only the screen waits: the map itself, and
+       anything waiting for its tiles, carry on at once. A slow connection
+       keeps it up until the tiles are really there. A map can pass
+       loaderMinMs (the admin map passes 0: admins open it many times a day
+       and the wait read as lag).
 
-    /* Once per visit. The first map GIYA opens plays the drop; every map
-       after it (the trip page after Start pilgrimage, back to the map, a
-       church's map) opens at once, because its tiles are already in the
-       browser. A visit is the tab or the home-screen app: closing it and
-       opening GIYA again plays it again. The layout marks the page before it
-       paints so the screen does not flash; this is the same rule for a page
-       that was already open when the first one finished. */
+       A visit is the tab or the home-screen app: closing it and opening GIYA
+       again counts as a first view again. */
+    var LOADING_FIRST_MS = 5000;
+    var LOADING_AGAIN_MS = 3000;
     var INTRO_KEY = 'giya-map-intro';
 
     function introSeen() {
@@ -164,19 +163,15 @@ window.GiyaLeaflet = (function () {
     }
 
     function markIntroSeen() {
-        try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) { /* private mode: it just plays again */ }
+        try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) { /* private mode: every view counts as the first */ }
     }
 
     function markReadyWhenTilesArrive(map, cfg) {
         var layer = tileLayer(cfg).addTo(map);
         var started = Date.now();
+        var atLeast = cfg.loaderMinMs != null ? cfg.loaderMinMs
+            : (introSeen() ? LOADING_AGAIN_MS : LOADING_FIRST_MS);
 
-        if (introSeen()) {
-            var seenShell = map.getContainer().parentNode;
-            if (seenShell && seenShell.classList) seenShell.classList.add('is-map-ready');
-            whenTilesArrive(layer, function () { if (cfg.onTilesReady) cfg.onTilesReady(); });
-            return layer;
-        }
         // Counted from the moment it starts: leaving the page mid-drop still means it was seen.
         markIntroSeen();
 
@@ -186,7 +181,7 @@ window.GiyaLeaflet = (function () {
             if (!shell || !shell.classList) return;
             setTimeout(function () {
                 shell.classList.add('is-map-ready');
-            }, Math.max(0, (cfg.loaderMinMs != null ? cfg.loaderMinMs : LOADING_AT_LEAST_MS) - (Date.now() - started)));
+            }, Math.max(0, atLeast - (Date.now() - started)));
         });
 
         return layer;

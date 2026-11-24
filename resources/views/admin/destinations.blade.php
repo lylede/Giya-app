@@ -642,7 +642,7 @@ Basilica del Sto. Niño,Church,Cebu City,Osmeña Blvd,10.29410000,123.90340000,0
         },
         showIssues: true,
         cluster: true,     // nearby pins group into one bubble until zoomed in
-        loaderMinMs: 0     // no six-second loading screen for admins
+        loaderMinMs: 0     // no waiting loading screen for admins
     });
 
     /* A new pin: fill in the town from the nearest church already on the
