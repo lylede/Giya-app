@@ -253,6 +253,7 @@ Route::get('/session/refresh', [\App\Http\Controllers\SessionController::class, 
 Route::post('/admin/keep-alive', [\App\Http\Controllers\SessionController::class, 'keepAlive'])
     ->middleware(['auth', 'admin'])->name('admin.keep-alive');
 Route::post('/admin/idle-sign-out', [\App\Http\Controllers\SessionController::class, 'idleSignOut'])->name('admin.idle-sign-out');
+Route::get('/admin/idle-sign-out', [\App\Http\Controllers\SessionController::class, 'idleSignedOut'])->name('admin.idle-signed-out');
 
 // Phone notifications (Web Push): the browser's subscription.
 Route::middleware(['auth', 'throttle:20,1'])->prefix('push')->name('push.')->group(function () {

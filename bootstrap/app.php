@@ -79,6 +79,22 @@ return Application::configure(basePath: dirname(__DIR__))
             return redirect()->to($back)->with('warning', __('giya.session.tap_again'));
         });
 
+        // An address that only takes a form (sign out, save, delete) opened as
+        // a page: a reload, Back, or a restored tab. Instead of the bare
+        // "405 Method Not Allowed" screen, go back to a page that works,
+        // with a note.
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson() || ! $request->isMethod('GET')) {
+                return null;
+            }
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $to = $user
+                ? ($user->isAdmin() ? route('admin.dashboard') : route('home'))
+                : ($request->is('admin*') ? route('login') : route('map'));
+
+            return redirect()->to($to)->with('warning', __('giya.session.page_moved_on'));
+        });
+
         // Tell the team (Discord/Slack webhook or email) when the live site breaks.
         $exceptions->report(fn (\Throwable $e) => \App\Support\ErrorAlert::report($e));
     })->create();

@@ -41,11 +41,11 @@ class AdminIdleTimeout
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            $message = 'You were signed out after 30 minutes without activity. Sign in again to continue.';
+            $message = \App\Http\Controllers\SessionController::SIGNED_OUT_MESSAGE;
             if ($request->expectsJson()) {
                 return response()->json(['ok' => false, 'reason' => 'signed_out', 'message' => $message, 'login_url' => route('login')], 401);
             }
-            if ($request->isMethod('GET')) {
+            if ($request->isMethod('GET') && ! $request->routeIs('admin.idle-signed-out')) {
                 $request->session()->put('url.intended', $request->fullUrl());
             }
 

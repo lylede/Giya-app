@@ -931,5 +931,6 @@ return [
     'session' => [
         'tap_again' => 'GIYA refreshed this page after a long pause. Please tap that again.',
         'sign_in_again' => 'You were signed out. Sign in to continue where you left off.',
+        'page_moved_on' => 'That page was already finished, so we brought you here.',
     ],
 ];

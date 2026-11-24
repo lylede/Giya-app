@@ -176,4 +176,36 @@ class SessionTimeoutTest extends TestCase
             ->assertSee('giya-session.js', false)
             ->assertSee('<meta name="giya-admin-idle" content="1800">', false);
     }
+
+    public function test_opening_the_sign_out_address_as_a_page_never_shows_an_error(): void
+    {
+        // Signed out (the usual case: a reload or a restored tab after the countdown).
+        $this->get('/admin/idle-sign-out')
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('warning', \App\Http\Controllers\SessionController::SIGNED_OUT_MESSAGE);
+
+        // Still signed in: straight back to work.
+        $this->actingAs($this->user('admin', 'admin@example.com'))
+            ->get('/admin/idle-sign-out')
+            ->assertRedirect(route('admin.dashboard'));
+        $this->actingAs($this->user())
+            ->get('/admin/idle-sign-out')
+            ->assertRedirect(route('home'));
+    }
+
+    public function test_any_form_only_address_opened_as_a_page_goes_somewhere_useful(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/admin/keep-alive')
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('warning');
+
+        $this->getJson('/admin/keep-alive')->assertStatus(405);
+    }
+
+    public function test_the_countdown_waits_for_the_network_before_signing_out(): void
+    {
+        $js = file_get_contents(public_path('assets/js/giya-session.js'));
+        $this->assertStringContainsString('navigator.onLine === false', $js);
+    }
 }

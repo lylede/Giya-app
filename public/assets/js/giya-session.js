@@ -155,6 +155,12 @@
   var signingOut = false;
   function signOut() {
     if (signingOut) return;
+    // Just woken from sleep with no connection yet: a form sent now fails and
+    // leaves the browser's own error on screen. Wait for the network.
+    if (navigator.onLine === false) {
+      window.addEventListener('online', signOut, { once: true });
+      return;
+    }
     signingOut = true;
     var m = tokenMeta();
     var f = document.createElement('form');

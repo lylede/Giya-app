@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
  */
 class SessionController extends Controller
 {
+    public const SIGNED_OUT_MESSAGE = 'You were signed out after 30 minutes without activity. Sign in again to continue.';
+
     public function refresh(Request $request): JsonResponse
     {
         if (Auth::check()) {
@@ -46,8 +48,24 @@ class SessionController extends Controller
             $request->session()->put('url.intended', $back);
         }
 
-        return redirect()->route('login')
-            ->with('warning', 'You were signed out after 30 minutes without activity. Sign in again to continue.');
+        return redirect()->route('login')->with('warning', self::SIGNED_OUT_MESSAGE);
+    }
+
+    /**
+     * The same address opened as a page: a reload or Back after the
+     * countdown, a tab restored after sleep, or the browser repeating the
+     * sign-out once the connection came back. Never an error page: someone
+     * still signed in goes on working, everyone else gets the sign-in page
+     * with the usual note.
+     */
+    public function idleSignedOut(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $user = Auth::user();
+        if ($user) {
+            return $user->isAdmin() ? redirect()->route('admin.dashboard') : redirect()->route('home');
+        }
+
+        return redirect()->route('login')->with('warning', self::SIGNED_OUT_MESSAGE);
     }
 
     /** The admin layout's "still working" signal; AdminIdleTimeout records it. */

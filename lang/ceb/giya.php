@@ -921,5 +921,6 @@ return [
     'session' => [
         'tap_again' => 'Gi-refresh sa GIYA kini nga panid human sa dugay nga paghunong. Palihug i-tap kini pag-usab.',
         'sign_in_again' => 'Na-sign out ka. Mag-sign in aron magpadayon kung asa ka natapos.',
+        'page_moved_on' => 'Nahuman na kana nga panid, mao nga gidala ka namo dinhi.',
     ],
 ];

@@ -921,5 +921,6 @@ return [
     'session' => [
         'tap_again' => 'Ni-refresh ng GIYA ang pahinang ito matapos ang mahabang paghinto. Pakitap ulit iyon.',
         'sign_in_again' => 'Na-sign out ka. Mag-sign in para magpatuloy kung saan ka huminto.',
+        'page_moved_on' => 'Tapos na ang pahinang iyon, kaya dinala ka namin dito.',
     ],
 ];
