@@ -695,8 +695,8 @@ class GiyaAssistantKnowledgeTest extends TestCase
         $prompt = $this->promptFor('What churches are closest to San Guillermo Parish in Catmon?');
 
         $this->assertStringContainsString('NEAREST CHURCHES, measured by GIYA on the map', $prompt);
-        $this->assertMatchesRegularExpression('/1\. St\. James the Apostle Parish \(Sogod\) - about 3\.\d km north/', $prompt);
-        $this->assertMatchesRegularExpression('/2\. St\. Michael Parish \(Carmen\) - about 14\.\d km south/', $prompt);
+        $this->assertStringContainsString('1. St. James the Apostle Parish (Sogod) - to the north', $prompt);
+        $this->assertStringContainsString('2. St. Michael Parish (Carmen) - to the south', $prompt);
         // Bogo is the farthest, so it comes last, not as a "neighbour".
         $near = substr($prompt, strpos($prompt, 'NEAREST CHURCHES, measured'));
         $this->assertGreaterThan(strpos($near, 'Danao City'), strpos($near, 'Bogo City'));
@@ -711,7 +711,46 @@ class GiyaAssistantKnowledgeTest extends TestCase
 
         $this->assertStringContainsString('from the town of Carmen', $prompt);
         $this->assertStringContainsString('1. St. Michael Parish (Carmen) - in Carmen itself', $prompt);
-        $this->assertMatchesRegularExpression('/2\. St\. Thomas of Villanueva Parish \(Danao City\) - about 7\.\d km south/', $prompt);
+        $this->assertStringContainsString('2. St. Thomas of Villanueva Parish (Danao City) - to the south', $prompt);
+    }
+
+    public function test_the_nearest_list_gives_no_distances(): void
+    {
+        $this->northCebu();
+
+        $prompt = $this->promptFor('What churches are closest to San Guillermo Parish in Catmon?');
+        $near = substr($prompt, strpos($prompt, 'NEAREST CHURCHES, measured'));
+        $near = substr($near, 0, strpos($near, 'ALL DESTINATIONS') ?: strlen($near));
+
+        $this->assertDoesNotMatchRegularExpression('/\d\s*km/i', $near);
+        $this->assertStringContainsString('Never state any distance', $near);
+        $this->assertStringContainsString('Never give a distance in kilometers', $prompt);
+    }
+
+    public function test_a_distance_in_the_models_reply_is_taken_out(): void
+    {
+        $this->northCebu();
+        config(['services.groq.key' => 'gsk-test']);
+        Http::fake(['api.groq.com/*' => Http::response(['choices' => [['message' => [
+            'content' => '[mood:happy] **St. James the Apostle Parish** (Sogod) is about 3.2 km north of Catmon, and it is 3 km away.',
+        ]]]])]);
+
+        $result = app(GiyaAssistant::class)->ask('What churches are closest to San Guillermo Parish in Catmon?');
+
+        $this->assertStringNotContainsString('km', $result['reply']);
+        $this->assertStringContainsString('north of Catmon', $result['reply']);
+    }
+
+    public function test_a_planned_route_shows_times_but_no_kilometres(): void
+    {
+        $this->southAndNorthChurches();
+        config(['services.groq.key' => null]);
+
+        $result = app(GiyaAssistant::class)->ask('plan a 5 hour route in south cebu');
+
+        $this->assertStringContainsString('South Cebu church route', $result['reply']);
+        $this->assertMatchesRegularExpression('/(drive|walk) about/', $result['reply']);
+        $this->assertDoesNotMatchRegularExpression('/\bkm\b/i', $result['reply']);
     }
 
     public function test_no_nearest_list_when_nothing_is_asked_about_nearness(): void

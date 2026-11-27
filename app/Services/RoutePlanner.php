@@ -230,9 +230,9 @@ class RoutePlanner
 
         foreach ($plan['stops'] as $i => $s) {
             if ($s['leg']) {
+                // Time only: the distance between stops is a straight-line guess, so the chat does not show it.
                 $lines[] = '   '.__($s['leg']['walk'] ? 'giya.route.walk' : 'giya.route.drive', [
                     'time' => self::duration($s['leg']['minutes']),
-                    'km'   => $s['leg']['km'] < 1 ? max(100, (int) round($s['leg']['km'] * 1000, -2)).' m' : self::number($s['leg']['km']).' km',
                 ]);
             }
             $lines[] = ($i + 1).'. '.$s['arrive'].' to '.$s['leave'].': **'.$s['name'].'**, '.$s['town'];

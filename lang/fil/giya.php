@@ -744,8 +744,8 @@ return [
     'route' => [
         'title'         => 'Ang iyong :hours oras na ruta ng simbahan sa :area',
         'title_visita'  => 'Ang iyong Visita Iglesia sa :area: 7 simbahan',
-        'drive'         => 'biyahe mga :time (:km)',
-        'walk'          => 'lakad mga :time (:km)',
+        'drive'         => 'biyahe mga :time',
+        'walk'          => 'lakad mga :time',
         'finish'        => 'Matatapos mga :time.',
         'from_city'     => 'Mula sa Cebu City: mga :time sakay ng sasakyan.',
         'note'          => 'Tantiya ng GIYA ang oras mula sa mapa. Maaaring magbago ito dahil sa trapiko, Misa at pista.',

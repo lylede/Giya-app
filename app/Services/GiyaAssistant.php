@@ -210,13 +210,14 @@ class GiyaAssistant
             Log::info('Giya AI answered with "'.($result['model'] ?? '?').'".');
 
             [$mood, $reply] = self::mood($result['reply']);
+            $reply = Text::withoutDistances($reply);
 
             if ($this->plan) {
                 // GIYA's timetable is the only one: drop any times the model wrote anyway.
                 $reply = self::withoutTimes($reply)."\n\n".RoutePlanner::text($this->plan);
             }
 
-            // House style: no long dashes, even if the model slips.
+            // House style: no long dashes and no distances in km, even if the model slips.
             return $this->withPlan(['ok' => true, 'mood' => $mood, 'reply' => Text::withoutLongDashes($reply)]);
         }
 
@@ -770,19 +771,19 @@ class GiyaAssistant
             ->map(fn ($e, $i) => ($i + 1).'. '.$e['name'].' ('.($e['town'] ?: 'Cebu').') - '.match (true) {
                 // Asked about a town: its own churches are in it, not "north of" it.
                 isset($from['town']) && $e['town'] === $from['town'] => 'in '.$from['town'].' itself',
-                $e['km'] < 1 => 'less than 1 km away',
-                default => 'about '.number_format($e['km'], 1).' km '.self::compass($from['lat'], $from['lng'], $e['lat'], $e['lng']),
+                $e['km'] < 1 => 'very close by',
+                default => 'to the '.self::compass($from['lat'], $from['lng'], $e['lat'], $e['lng']),
             });
 
         return "
-NEAREST CHURCHES, measured by GIYA on the map (straight-line distance and direction from "
+NEAREST CHURCHES, measured by GIYA on the map (direction from "
             .$from['label']."), nearest first:
 ".$near->implode("
 ")
             ."
 For this question recommend ONLY churches from this list, nearest first, with their towns as given. "
-            .'You may give each one\'s straight-line distance and direction exactly as written here (say "in a straight '
-            .'line"; roads are longer). Never name other towns as neighbours and never guess directions. To travel '
+            .'You may give each one\'s direction exactly as written here. Never state any distance (no km, kilometers, '
+            .'miles or metres) and never name other towns as neighbours or guess directions. To travel '
             .'between them, suggest asking GIYA for a route.';
     }
 
@@ -982,10 +983,12 @@ For this question recommend ONLY churches from this list, nearest first, with th
           paragraphs or a short list for history, recommendations or plans.
         - Never estimate travel times or distances between places yourself,
           and never call two churches "a short walk" apart: you cannot see the
-          roads. The only distances you may give are the straight-line ones
-          GIYA measured in NEAREST CHURCHES below, when it is there. Routes and their times come from GIYA (see ROUTE below when
-          there is one). Without one, suggest asking for a route with the
-          number of hours, e.g. "plan a 5 hour route in south Cebu".
+          roads. Never give a distance in kilometers, km, miles or metres,
+          not even roughly. You may say which direction a church lies in
+          when NEAREST CHURCHES below gives it. Routes and their times come
+          from GIYA (see ROUTE below when there is one). Without one, suggest
+          asking for a route with the number of hours, e.g. "plan a 5 hour
+          route in south Cebu".
         - Reply in the language the devotee writes in: English, Cebuano or
           Filipino.
         - Plain text only. You may use **bold** for church names; no headings,

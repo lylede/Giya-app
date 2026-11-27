@@ -30,6 +30,47 @@ final class Text
     }
 
     /**
+     * Take distances in kilometres out of an AI reply. GIYA only has
+     * straight-line guesses, which are not what a devotee will travel, so
+     * the chat does not give them. The prompt already asks the model not to;
+     * this is the safety net for when it does anyway:
+     *
+     *   "Catmon Church (about 3 km)"       becomes "Catmon Church"
+     *   "It is about 3 km away."           becomes "It is nearby."
+     *   "about 3.2 km north of Sogod"      becomes "north of Sogod"
+     *
+     * Speeds such as "60 km/h" are left alone.
+     */
+    public static function withoutDistances(string $text): string
+    {
+        $qualifier = '(?:(?:about|around|roughly|approximately|almost|nearly|only|just|some|less than|more than|over|under|at least|up to)\s+|~\s*)';
+        $number = '(?<![\d.,])\d+(?:[.,]\d+)?(?:\s*(?:-|to)\s*\d+(?:[.,]\d+)?)?';
+        $unit = '(?:kms?|kilomet(?:er|re)s?|kilometros?)';
+        $distance = '(?:'.$number.'\s*'.$unit.'|(?:an?|one|half an?)\s+kilomet(?:er|re))\b(?!\s*/)';
+
+        $original = $text;
+
+        // "(about 3 km)" or "(3 km north)": a bracket holding nothing but a distance.
+        $text = preg_replace('/\s*\(\s*'.$qualifier.'?'.$distance.'(?:\s+[\p{L}-]+){0,3}\s*\)/iu', '', $text);
+
+        // "within 5 km of Sogod" -> "near Sogod"
+        $text = preg_replace('/\bwithin\s+'.$distance.'\s+(?:of|from)\b/iu', 'near', $text);
+
+        // "3 km away" -> "nearby"
+        $text = preg_replace('/(?<!\w)'.$qualifier.'?'.$distance.'\s+away\b/iu', 'nearby', $text);
+
+        // Any other "3 km": drop it and let the sentence carry on.
+        $text = preg_replace('/(?<!\w)'.$qualifier.'?'.$distance.'/iu', '', $text);
+
+        if ($text === $original) {
+            return $original;
+        }
+
+        // Tidy what the removals left behind (never a line's own indent).
+        return preg_replace(['/(?<=\S)[ \t]{2,}/u', '/(?<=\S)[ \t]+([,.;:!?])/u'], [' ', '$1'], $text);
+    }
+
+    /**
      * A Giya AI reply as safe HTML for the chat bubble: escaped first, then
      * **bold**, _italic_ and line breaks. The page's JavaScript does the
      * same for new replies, so saved and live replies look identical.
