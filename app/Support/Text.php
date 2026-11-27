@@ -46,7 +46,7 @@ final class Text
         $qualifier = '(?:(?:about|around|roughly|approximately|almost|nearly|only|just|some|less than|more than|over|under|at least|up to)\s+|~\s*)';
         $number = '(?<![\d.,])\d+(?:[.,]\d+)?(?:\s*(?:-|to)\s*\d+(?:[.,]\d+)?)?';
         $unit = '(?:kms?|kilomet(?:er|re)s?|kilometros?)';
-        $distance = '(?:'.$number.'\s*'.$unit.'|(?:an?|one|half an?)\s+kilomet(?:er|re))\b(?!\s*/)';
+        $distance = '(?:'.$number.'\s*'.$unit.'|(?:an?|one|half an?)\s+kilomet(?:er|re))\b(?!\s*\/)';
 
         $original = $text;
 
